@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 const {
-	Wheat,
+	Leaf,
 	Search,
 	Lock,
 	MessageSquare,
@@ -1651,7 +1651,7 @@ export default function App() {
           --panel-2: #0f172a;
           --border: #1e293b;
           --text-muted: #94a3b8;
-          --green: #0f4d3f;
+          --green: #22c55e;
           --gold: #d6a23a;
         }
         * { box-sizing: border-box; }
@@ -1671,7 +1671,7 @@ export default function App() {
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer; }
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #e2e8f0; }
-        .brand-nexus { color: var(--gold); }
+        .brand-nexus { color: var(--green); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .nav-link {
           color: #fff; opacity: 0.92; padding: 8px 10px; border-radius: 8px; cursor: pointer;
@@ -2013,7 +2013,7 @@ export default function App() {
 
 			<nav className="nav">
 				<div className="brand" onClick={() => setView('landing')}>
-					<Wheat color="var(--green)" size={24} />
+					<Leaf color="var(--green)" size={24} />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2814,7 +2814,7 @@ export default function App() {
 						</div>
 						<div className="contact-panel pricing-brand-panel">
 							<p className="pricing-brand-head">
-								<Wheat size={24} color="var(--green)" />
+								<Leaf size={24} color="var(--green)" />
 								<span className="brand-wordmark">
 									<span className="brand-agri">Agri</span>
 									<span className="brand-nexus">Nexus</span>
@@ -3078,7 +3078,7 @@ export default function App() {
 						type="button"
 						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
 						onClick={() => setView('landing')}>
-						<Wheat size={16} />
+						<Leaf size={16} />
 						{tr.navHome}
 					</button>
 					<button
