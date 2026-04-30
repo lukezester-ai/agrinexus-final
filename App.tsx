@@ -110,8 +110,13 @@ function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH
 type DealRow = {
 	id: number;
 	product: string;
+	category: 'Grains' | 'Oilseeds' | 'Pulses' | 'Processed Foods';
 	packaging: string;
 	certification: string;
+	qualitySpec: string;
+	availableVolume: string;
+	incoterm: string;
+	deliveryWindow: string;
 	from: string;
 	to: string;
 	flag: string;
@@ -124,6 +129,7 @@ type DealRow = {
 	prevProfit: number;
 	volatility: 'LOW' | 'MED' | 'HIGH';
 };
+type DealCategoryFilter = 'all' | DealRow['category'];
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 type Lang = 'bg' | 'en';
@@ -236,32 +242,48 @@ function PricingCard({
 	period,
 	note = '',
 	popular = false,
+	lang,
+	labels,
 }: {
 	title: string;
 	price: string;
 	period: string;
 	note?: string;
 	popular?: boolean;
+	lang: Lang;
+	labels: {
+		bestValue: string;
+		subscribe: string;
+		per: string;
+	};
 }) {
 	const handleSubscribe = () => {
-		const subject = encodeURIComponent(`Subscription Inquiry: ${title} Plan`);
+		const subject = encodeURIComponent(
+			lang === 'bg'
+				? `Запитване за абонамент: план ${title}`
+				: `Subscription Inquiry: ${title} Plan`
+		);
 		const body = encodeURIComponent(
-			`Hello, I would like to subscribe to the ${title} plan (€${price}/${period}) for AgriNexus. Please reach me at info@agrinexus.eu for onboarding.\n`
+			lang === 'bg'
+				? `Здравейте, искам да се абонирам за плана ${title} (€${price}/${period}) в AgriNexus. Моля за съдействие за onboarding на info@agrinexus.eu.\n`
+				: `Hello, I would like to subscribe to the ${title} plan (€${price}/${period}) for AgriNexus. Please reach me at info@agrinexus.eu for onboarding.\n`
 		);
 		window.location.href = `mailto:info@agrinexus.eu?subject=${subject}&body=${body}`;
 	};
 
 	return (
 		<div className={`pricing-card ${popular ? 'popular' : ''}`}>
-			{popular && <div className="badge">BEST VALUE</div>}
+			{popular && <div className="badge">{labels.bestValue}</div>}
 			<h3>{title}</h3>
 			<div className="pricing-value">€{price}</div>
-			<p className="muted">per {period}</p>
+			<p className="muted">
+				{labels.per} {period}
+			</p>
 			{note && <p className="green-note">{note}</p>}
 			<button
 				className={`btn ${popular ? 'btn-primary' : 'btn-light'}`}
 				onClick={handleSubscribe}>
-				<CreditCard size={18} /> Subscribe
+				<CreditCard size={18} /> {labels.subscribe}
 			</button>
 		</div>
 	);
@@ -305,6 +327,7 @@ export default function App() {
 	);
 	const [isPremium] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
+	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
@@ -320,6 +343,10 @@ export default function App() {
 		() => sessionStorage.getItem('agrinexus-chat-draft') ?? ''
 	);
 	const [chatLoading, setChatLoading] = useState(false);
+	const [chatKeyboardOffset, setChatKeyboardOffset] = useState(12);
+	const [isMobileViewport, setIsMobileViewport] = useState(() =>
+		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
+	);
 	const chatAbortRef = useRef<AbortController | null>(null);
 	const chatEndRef = useRef<HTMLDivElement | null>(null);
 	const chatTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -399,17 +426,79 @@ export default function App() {
 
 	const allDeals = useMemo(() => {
 		const products = [
-			{ name: 'Peeled Tomatoes', pack: '400g Tin Can', cert: 'HALAL, ISO' },
-			{ name: 'Roasted Peppers', pack: '720ml Glass Jar', cert: 'HALAL, Saber' },
-			{ name: 'Wheat (Premium)', pack: 'Bulk (Silo)', cert: 'SGS Inspection' },
-			{ name: 'Rose Jam', pack: '380g Luxury Glass', cert: 'HALAL, Export' },
-			{ name: 'Vegetable Stew', pack: '3kg Horeca Tin', cert: 'HALAL, ISO 22000' },
-			{ name: 'Barley', pack: 'Bulk', cert: 'Phytosanitary Cert' },
-			{ name: 'Tomato Paste', pack: '70g Sachet / 24pcs', cert: 'HALAL, Saber' },
-			{ name: 'Sunflower Oil', pack: '1L / 5L PET', cert: 'ISO 22000, HACCP' },
-			{ name: 'Corn', pack: 'Bulk', cert: 'SGS, Phytosanitary' },
-			{ name: 'Chickpeas', pack: '25kg PP Bags', cert: 'HALAL, Export' },
+			{
+				name: 'Wheat (Premium)',
+				category: 'Grains' as const,
+				pack: 'Bulk (Silo)',
+				cert: 'SGS, Phytosanitary',
+				qualityOptions: ['Protein 12.5%', 'Protein 11.5%', 'Moisture ≤ 13.5%'],
+			},
+			{
+				name: 'Corn',
+				category: 'Grains' as const,
+				pack: 'Bulk',
+				cert: 'SGS, Phytosanitary',
+				qualityOptions: ['Moisture ≤ 14%', 'Broken Kernels ≤ 5%', 'Aflatoxin tested'],
+			},
+			{
+				name: 'Barley',
+				category: 'Grains' as const,
+				pack: 'Bulk',
+				cert: 'Phytosanitary, SGS',
+				qualityOptions: ['Test Weight 65+ kg/hl', 'Moisture ≤ 13.5%', 'Foreign Matter ≤ 2%'],
+			},
+			{
+				name: 'Sunflower Seed',
+				category: 'Oilseeds' as const,
+				pack: 'Bulk',
+				cert: 'SGS, HACCP',
+				qualityOptions: ['Oil Content 44%+', 'Moisture ≤ 9%', 'Impurities ≤ 2%'],
+			},
+			{
+				name: 'Rapeseed',
+				category: 'Oilseeds' as const,
+				pack: 'Bulk',
+				cert: 'SGS',
+				qualityOptions: ['Oil Content 40%+', 'Moisture ≤ 8%', 'Erucic Acid compliant'],
+			},
+			{
+				name: 'Chickpeas',
+				category: 'Pulses' as const,
+				pack: '25kg PP Bags',
+				cert: 'HALAL, Export',
+				qualityOptions: ['8-9 mm caliber', 'Moisture ≤ 12%', 'Cleaned / sorted'],
+			},
+			{
+				name: 'Lentils',
+				category: 'Pulses' as const,
+				pack: '25kg PP Bags',
+				cert: 'HALAL, Export',
+				qualityOptions: ['Size 4-6 mm', 'Foreign Matter ≤ 0.5%', 'Moisture ≤ 13%'],
+			},
+			{
+				name: 'Tomato Paste',
+				category: 'Processed Foods' as const,
+				pack: '70g Sachet / 24pcs',
+				cert: 'HALAL, Saber',
+				qualityOptions: ['Brix 28-30%', 'No additives', 'Aseptic line'],
+			},
+			{
+				name: 'Peeled Tomatoes',
+				category: 'Processed Foods' as const,
+				pack: '400g Tin Can',
+				cert: 'HALAL, ISO',
+				qualityOptions: ['Whole peeled grade A', 'Drained Weight compliant', 'EU origin'],
+			},
+			{
+				name: 'Sunflower Oil',
+				category: 'Processed Foods' as const,
+				pack: '1L / 5L PET',
+				cert: 'ISO 22000, HACCP',
+				qualityOptions: ['Refined, deodorized', 'FFA ≤ 0.1%', 'Peroxide compliant'],
+			},
 		];
+		const incoterms = ['FOB', 'CIF', 'DAP', 'FCA'];
+		const deliveryWindows = ['7-14 days', '15-30 days', '30-45 days'];
 
 		const sourceCountries = [
 			'Bulgaria',
@@ -588,8 +677,13 @@ export default function App() {
 			return {
 				id: i + 1,
 				product: product.name,
+				category: product.category,
 				packaging: product.pack,
 				certification: product.cert,
+				qualitySpec: product.qualityOptions[i % product.qualityOptions.length],
+				availableVolume: `${Math.round(120 + seededRand(i + 333 + refreshTick) * 1780)} tons`,
+				incoterm: incoterms[i % incoterms.length],
+				deliveryWindow: deliveryWindows[i % deliveryWindows.length],
 				from: sourceCountries[i % sourceCountries.length],
 				to: market.to,
 				flag: market.flag,
@@ -607,11 +701,14 @@ export default function App() {
 
 	const filteredDeals = allDeals.filter(d => {
 		const q = searchQuery.toLowerCase();
-		return (
+		const matchesCategory = selectedCategory === 'all' || d.category === selectedCategory;
+		const matchesQuery =
 			d.product.toLowerCase().includes(q) ||
+			d.category.toLowerCase().includes(q) ||
 			d.from.toLowerCase().includes(q) ||
-			d.to.toLowerCase().includes(q)
-		);
+			d.to.toLowerCase().includes(q) ||
+			d.incoterm.toLowerCase().includes(q);
+		return matchesCategory && matchesQuery;
 	});
 
 	const dealContextForAI = useMemo(() => {
@@ -758,12 +855,59 @@ export default function App() {
 		chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 	}, [chatMessages, chatLoading, isChatOpen]);
 
+	useEffect(() => {
+		const viewport = window.visualViewport;
+		if (!viewport) return;
+
+		const updateKeyboardOffset = () => {
+			const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+			// Keep a small margin above the keyboard on mobile.
+			setChatKeyboardOffset(keyboardHeight > 0 ? keyboardHeight + 10 : 12);
+		};
+
+		updateKeyboardOffset();
+		viewport.addEventListener('resize', updateKeyboardOffset);
+		viewport.addEventListener('scroll', updateKeyboardOffset);
+		window.addEventListener('orientationchange', updateKeyboardOffset);
+
+		return () => {
+			viewport.removeEventListener('resize', updateKeyboardOffset);
+			viewport.removeEventListener('scroll', updateKeyboardOffset);
+			window.removeEventListener('orientationchange', updateKeyboardOffset);
+		};
+	}, []);
+
+	useEffect(() => {
+		const media = window.matchMedia('(max-width: 900px)');
+		const updateMobile = () => setIsMobileViewport(media.matches);
+		updateMobile();
+		media.addEventListener('change', updateMobile);
+		return () => media.removeEventListener('change', updateMobile);
+	}, []);
+
 	useEffect(() => () => chatAbortRef.current?.abort(), []);
 
 	useEffect(() => {
 		if (!isChatOpen) return;
 		const id = window.setTimeout(() => chatTextAreaRef.current?.focus(), 80);
 		return () => clearTimeout(id);
+	}, [isChatOpen]);
+
+	useEffect(() => {
+		const inputEl = chatTextAreaRef.current;
+		if (!inputEl) return;
+
+		const scrollChatIntoView = () => {
+			// Mobile-first: ensure input stays above virtual keyboard.
+			const isMobile = window.matchMedia('(max-width: 900px)').matches;
+			if (!isMobile) return;
+			window.setTimeout(() => {
+				inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}, 120);
+		};
+
+		inputEl.addEventListener('focus', scrollChatIntoView);
+		return () => inputEl.removeEventListener('focus', scrollChatIntoView);
 	}, [isChatOpen]);
 
 	const applyQuickPrompt = (prompt: string) => {
@@ -948,6 +1092,65 @@ export default function App() {
 				chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
 				chatToggleOn: 'Затвори чата',
 				chatToggleOff: 'Отвори чата',
+				mobileChat: 'Чат',
+				dealCategory: 'Категория',
+				dealQuality: 'Качество',
+				dealVolume: 'Обем',
+				dealIncoterm: 'Incoterm',
+				dealDelivery: 'Доставка',
+				filterAll: 'Всички',
+				filterGrains: 'Зърнени',
+				filterOilseeds: 'Маслодайни',
+				filterPulses: 'Бобови',
+				filterProcessed: 'Преработени',
+				pricingTitle: 'Абонаментни планове',
+				pricingWeekly: 'Седмичен',
+				pricingMonthly: 'Месечен',
+				pricingYearly: 'Годишен',
+				pricingWeek: 'седмица',
+				pricingMonth: 'месец',
+				pricingYear: 'година',
+				pricingBestValue: 'НАЙ-ИЗГОДЕН',
+				pricingSubscribe: 'Абонирай се',
+				pricingPer: 'на',
+				pricingYearlyNote: '+1 месец безплатно',
+				pricingContactLead: 'Продажби:',
+				pricingContactText: 'всички абонаментни запитвания и оферти се координират от този адрес.',
+				registerTitle: 'Създай акаунт',
+				registerSubtitle:
+					'Регистрацията изпраща детайли към info@agrinexus.eu и потвърждение към вашия имейл (при SMTP).',
+				fullNamePh: 'Име и фамилия',
+				companyNamePh: 'Име на компания',
+				businessEmailPh: 'Служебен имейл',
+				passwordPh: 'Парола',
+				marketFocusPh: 'Пазарен фокус',
+				marketEurope: 'Европа',
+				marketMena: 'MENA',
+				marketBoth: 'И двете',
+				phonePh: 'Телефон (по избор, напр. +359881234567)',
+				agreeUpdates: 'Съгласен съм да получавам пазарни ъпдейти и търговски известия по имейл.',
+				createMyAccount: 'Създай акаунт',
+				alreadyHaveAccount: 'Вече имам акаунт',
+				loginTitle: 'Вход',
+				loginSubtitle:
+					'Production authentication ще се върже към вашия identity provider. За демо ползвайте регистрацията по имейл.',
+				loginEmailPh: 'Имейл',
+				loginPasswordPh: 'Парола',
+				loginBtn: 'Вход',
+				companyTitle: 'AgriNexus - Фирмена карта',
+				companySubtitle:
+					'Специализиран AI слой за оптимизация на агротърговията. Интеграция на реални пазарни данни, прогнозни цени, buyer-seller matching и търговски известия.',
+				companyRegions: 'Региони: Европа / MENA',
+				clientsTitle: 'Клиентско портфолио',
+				clientsSubtitle:
+					'Професионална страница за всеки клиент с контекст за решения, сертификати и търговски предпочитания.',
+				clientContact: 'Контакт',
+				clientMarketFocus: 'Пазарен фокус',
+				clientCertifications: 'Сертификати',
+				clientIncoterms: 'Предпочитани Incoterms',
+				clientMonthlyVolume: 'Месечен обем',
+				clientInternalNotes: 'Вътрешни бележки',
+				clientCardLabel: 'Дигитална визитка',
 			};
 		}
 		return {
@@ -1005,6 +1208,66 @@ export default function App() {
 			chatPlaceholder: 'Ask about routes, margin, certifications…',
 			chatToggleOn: 'Close chat',
 			chatToggleOff: 'Open chat',
+			mobileChat: 'Chat',
+			dealCategory: 'Category',
+			dealQuality: 'Quality',
+			dealVolume: 'Volume',
+			dealIncoterm: 'Incoterm',
+			dealDelivery: 'Delivery',
+			filterAll: 'All',
+			filterGrains: 'Grains',
+			filterOilseeds: 'Oilseeds',
+			filterPulses: 'Pulses',
+			filterProcessed: 'Processed',
+			pricingTitle: 'Subscription Plans',
+			pricingWeekly: 'Weekly',
+			pricingMonthly: 'Monthly',
+			pricingYearly: 'Yearly',
+			pricingWeek: 'week',
+			pricingMonth: 'month',
+			pricingYear: 'year',
+			pricingBestValue: 'BEST VALUE',
+			pricingSubscribe: 'Subscribe',
+			pricingPer: 'per',
+			pricingYearlyNote: '+1 month free',
+			pricingContactLead: 'Contact sales:',
+			pricingContactText:
+				'all subscription inquiries and offers are coordinated through this address.',
+			registerTitle: 'Create Account',
+			registerSubtitle:
+				'Registration sends details to info@agrinexus.eu and a confirmation to your email (when SMTP is enabled).',
+			fullNamePh: 'Full Name',
+			companyNamePh: 'Company Name',
+			businessEmailPh: 'Business Email',
+			passwordPh: 'Password',
+			marketFocusPh: 'Market Focus',
+			marketEurope: 'Europe',
+			marketMena: 'MENA',
+			marketBoth: 'Both',
+			phonePh: 'Phone (optional, e.g. +359881234567)',
+			agreeUpdates: 'I agree to receive market updates and trade alerts by email.',
+			createMyAccount: 'Create my account',
+			alreadyHaveAccount: 'Already have account',
+			loginTitle: 'Sign In',
+			loginSubtitle:
+				'Production authentication will connect to your identity provider. For demo, use email registration.',
+			loginEmailPh: 'Email',
+			loginPasswordPh: 'Password',
+			loginBtn: 'Sign In',
+			companyTitle: 'AgriNexus - Company Card',
+			companySubtitle:
+				'Domain-specific AI layer for agricultural trade optimization. Real market data integration, predictive pricing, buyer-seller matching, and trade alerts.',
+			companyRegions: 'Regions: Europe / MENA',
+			clientsTitle: 'Client Portfolio',
+			clientsSubtitle:
+				'Professional profile page for each client with decision context, certifications and trading preferences.',
+			clientContact: 'Contact',
+			clientMarketFocus: 'Market focus',
+			clientCertifications: 'Certifications',
+			clientIncoterms: 'Preferred incoterms',
+			clientMonthlyVolume: 'Monthly volume',
+			clientInternalNotes: 'Internal notes',
+			clientCardLabel: 'Digital business card',
 		};
 	}, [lang]);
 
@@ -1030,6 +1293,41 @@ export default function App() {
 
 	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
 	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+	const categoryCounts = useMemo(() => {
+		const counts: Record<DealCategoryFilter, number> = {
+			all: allDeals.length,
+			Grains: 0,
+			Oilseeds: 0,
+			Pulses: 0,
+			'Processed Foods': 0,
+		};
+		for (const deal of allDeals) {
+			counts[deal.category] += 1;
+		}
+		return counts;
+	}, [allDeals]);
+	const categoryFilterOptions: { value: DealCategoryFilter; label: string }[] = [
+		{ value: 'all', label: `${tr.filterAll} (${categoryCounts.all})` },
+		{ value: 'Grains', label: `${tr.filterGrains} (${categoryCounts.Grains})` },
+		{
+			value: 'Oilseeds',
+			label: `${tr.filterOilseeds} (${categoryCounts.Oilseeds})`,
+		},
+		{ value: 'Pulses', label: `${tr.filterPulses} (${categoryCounts.Pulses})` },
+		{
+			value: 'Processed Foods',
+			label: `${tr.filterProcessed} (${categoryCounts['Processed Foods']})`,
+		},
+	];
+
+	const getConfidenceMeta = (text: string): { label: string; tone: 'low' | 'medium' | 'high' } | null => {
+		const match = text.match(/(?:Confidence|Ниво на увереност):\s*(LOW|MEDIUM|HIGH)/i);
+		if (!match) return null;
+		const raw = match[1].toUpperCase();
+		if (raw === 'LOW') return { label: 'LOW', tone: 'low' };
+		if (raw === 'MEDIUM') return { label: 'MEDIUM', tone: 'medium' };
+		return { label: 'HIGH', tone: 'high' };
+	};
 
 	return (
 		<div className="app">
@@ -1183,6 +1481,32 @@ export default function App() {
         .chat-bubble.assistant {
           background: #0f172a; border: 1px solid #334155;
         }
+        .confidence-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          font-size: .68rem;
+          font-weight: 800;
+          padding: 3px 8px;
+          margin-bottom: 7px;
+          letter-spacing: .02em;
+        }
+        .confidence-badge.high {
+          background: rgba(34, 197, 94, 0.16);
+          border: 1px solid rgba(34, 197, 94, 0.42);
+          color: #86efac;
+        }
+        .confidence-badge.medium {
+          background: rgba(245, 158, 11, 0.16);
+          border: 1px solid rgba(245, 158, 11, 0.45);
+          color: #fcd34d;
+        }
+        .confidence-badge.low {
+          background: rgba(239, 68, 68, 0.16);
+          border: 1px solid rgba(239, 68, 68, 0.45);
+          color: #fca5a5;
+        }
         .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
         .chat-input-row textarea {
           flex: 1; resize: none; min-height: 44px; max-height: 120px; padding: 10px;
@@ -1217,6 +1541,7 @@ export default function App() {
           width: 54px; height: 54px; border-radius: 999px; border: none; background: var(--green);
           display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
         }
+        .mobile-nav { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.85s linear infinite; display: inline-block; }
 
@@ -1225,6 +1550,76 @@ export default function App() {
           .grid, .pricing-grid { grid-template-columns: 1fr; }
           .clients-layout, .client-meta-grid { grid-template-columns: 1fr; }
           .terminal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 900px) {
+          .section { padding: 16px 10px 110px; }
+          .nav { padding: 10px 12px; }
+          .nav-actions { gap: 6px; }
+          .nav-link { padding: 7px 8px; font-size: .86rem; }
+          .nav-link-mobile-hide { display: none !important; }
+          .btn { padding: 10px 12px; border-radius: 10px; }
+          .deal-card, .pricing-card, .ai-card, .contact-panel, .client-card { padding: 12px; border-radius: 12px; }
+          .deal-card h3, .pricing-card h3 { font-size: 1rem; }
+          .muted { font-size: .9rem; }
+
+          .pricing-grid {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 6px;
+          }
+          .pricing-grid::-webkit-scrollbar { height: 6px; }
+          .pricing-grid::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+          .pricing-grid .pricing-card {
+            min-width: 255px;
+            flex: 0 0 auto;
+            scroll-snap-align: center;
+          }
+
+          .mobile-nav {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            z-index: 160;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+            backdrop-filter: blur(6px);
+          }
+          .mobile-nav-btn {
+            border: 1px solid transparent;
+            background: #0b1221;
+            color: #cbd5e1;
+            border-radius: 10px;
+          padding: 8px 8px;
+            font-size: .78rem;
+            font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          gap: 4px;
+          transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
+        }
+        .mobile-nav-btn:active {
+          transform: scale(0.97);
+        }
+        .mobile-nav-btn svg {
+          width: 16px;
+          height: 16px;
+          }
+          .mobile-nav-btn.active {
+            border-color: rgba(34, 197, 94, 0.45);
+            color: #86efac;
+            background: rgba(34, 197, 94, 0.08);
+          }
         }
       `}</style>
 
@@ -1235,32 +1630,32 @@ export default function App() {
 				</div>
 				<div className="nav-actions">
 					<span
-						className={`nav-link ${view === 'landing' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'landing' ? 'active' : ''}`}
 						onClick={() => setView('landing')}>
 						{tr.navHome}
 					</span>
 					<span
-						className={`nav-link ${view === 'market' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
 						onClick={() => setView('market')}>
 						{tr.navMarket}
 					</span>
 					<span
-						className={`nav-link ${view === 'pricing' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
 						onClick={() => setView('pricing')}>
 						{tr.navPricing}
 					</span>
 					<span
-						className={`nav-link ${view === 'clients' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
 						onClick={() => setView('clients')}>
 						{tr.navClients}
 					</span>
 					<span
-						className={`nav-link ${view === 'watchlist' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
 						onClick={() => setView('watchlist')}>
 						{tr.navWatchlist}
 					</span>
 					<span
-						className={`nav-link ${view === 'login' ? 'active' : ''}`}
+						className={`nav-link nav-link-mobile-hide ${view === 'login' ? 'active' : ''}`}
 						onClick={() => setView('login')}>
 						<LogIn size={14} /> {tr.navLogin}
 					</span>
@@ -1497,6 +1892,17 @@ export default function App() {
 							</span>
 						</div>
 					</div>
+					<div className="deal-actions" style={{ margin: '2px 0 14px' }}>
+						{categoryFilterOptions.map(option => (
+							<button
+								key={option.value}
+								type="button"
+								className={`deal-chip-btn ${selectedCategory === option.value ? 'active' : ''}`}
+								onClick={() => setSelectedCategory(option.value)}>
+								{option.label}
+							</button>
+						))}
+					</div>
 
 					<div className="ticker-wrap">
 						<div className="ticker-track">
@@ -1620,6 +2026,21 @@ export default function App() {
 											<div>📦 {deal.packaging}</div>
 											<div style={{ color: '#22c55e', marginTop: 3 }}>
 												📜 {deal.certification}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												🏷️ {tr.dealCategory}: {deal.category}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												🧪 {tr.dealQuality}: {deal.qualitySpec}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												📦 {tr.dealVolume}: {deal.availableVolume}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												🚢 {tr.dealIncoterm}: {deal.incoterm}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												📅 {tr.dealDelivery}: {deal.deliveryWindow}
 											</div>
 										</div>
 										<div
@@ -1745,6 +2166,21 @@ export default function App() {
 											<div style={{ color: '#22c55e', marginTop: 3 }}>
 												📜 {deal.certification}
 											</div>
+											<div style={{ marginTop: 3 }}>
+												🏷️ {tr.dealCategory}: {deal.category}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												🧪 {tr.dealQuality}: {deal.qualitySpec}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												📦 {tr.dealVolume}: {deal.availableVolume}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												🚢 {tr.dealIncoterm}: {deal.incoterm}
+											</div>
+											<div style={{ marginTop: 3 }}>
+												📅 {tr.dealDelivery}: {deal.deliveryWindow}
+											</div>
 										</div>
 										<div
 											className="muted"
@@ -1782,26 +2218,53 @@ export default function App() {
 
 			{view === 'pricing' && (
 				<section className="section">
-					<h2 style={{ textAlign: 'center', marginBottom: 16 }}>Subscription Plans</h2>
+					<h2 style={{ textAlign: 'center', marginBottom: 16 }}>{tr.pricingTitle}</h2>
 					<div className="pricing-grid">
-						<PricingCard title="Weekly" price="25" period="week" />
-						<PricingCard title="Monthly" price="49" period="month" popular />
 						<PricingCard
-							title="Yearly"
+							title={tr.pricingWeekly}
+							price="25"
+							period={tr.pricingWeek}
+							lang={lang}
+							labels={{
+								bestValue: tr.pricingBestValue,
+								subscribe: tr.pricingSubscribe,
+								per: tr.pricingPer,
+							}}
+						/>
+						<PricingCard
+							title={tr.pricingMonthly}
+							price="49"
+							period={tr.pricingMonth}
+							popular
+							lang={lang}
+							labels={{
+								bestValue: tr.pricingBestValue,
+								subscribe: tr.pricingSubscribe,
+								per: tr.pricingPer,
+							}}
+						/>
+						<PricingCard
+							title={tr.pricingYearly}
 							price="365"
-							period="year"
-							note="+1 month free"
+							period={tr.pricingYear}
+							note={tr.pricingYearlyNote}
+							lang={lang}
+							labels={{
+								bestValue: tr.pricingBestValue,
+								subscribe: tr.pricingSubscribe,
+								per: tr.pricingPer,
+							}}
 						/>
 					</div>
 					<div className="contact-panel">
 						<p style={{ margin: 0 }}>
-							Contact sales:{' '}
+							{tr.pricingContactLead}{' '}
 							<a
 								href="mailto:info@agrinexus.eu"
 								style={{ color: '#22c55e', textDecoration: 'none' }}>
 								info@agrinexus.eu
 							</a>{' '}
-							— всички абонаментни запитвания и оферти се координират от този адрес.
+							— {tr.pricingContactText}
 						</p>
 					</div>
 				</section>
@@ -1809,24 +2272,21 @@ export default function App() {
 
 			{view === 'register' && (
 				<section className="section">
-					<h2>Create Account</h2>
-					<p className="muted">
-						Регистрация изпраща детайли към info@agrinexus.eu и потвърждение към вашия
-						имейл (при SMTP).
-					</p>
+					<h2>{tr.registerTitle}</h2>
+					<p className="muted">{tr.registerSubtitle}</p>
 					<div className="form-grid">
 						<input
-							placeholder="Full Name"
+							placeholder={tr.fullNamePh}
 							value={regFullName}
 							onChange={e => setRegFullName(e.target.value)}
 						/>
 						<input
-							placeholder="Company Name"
+							placeholder={tr.companyNamePh}
 							value={regCompany}
 							onChange={e => setRegCompany(e.target.value)}
 						/>
 						<input
-							placeholder="Business Email"
+							placeholder={tr.businessEmailPh}
 							value={regEmail}
 							onChange={e => setRegEmail(e.target.value)}
 						/>
@@ -1842,21 +2302,21 @@ export default function App() {
 							</p>
 						)}
 						<input
-							placeholder="Password"
+							placeholder={tr.passwordPh}
 							type="password"
 							value={regPassword}
 							onChange={e => setRegPassword(e.target.value)}
 						/>
 						<select value={regMarket} onChange={e => setRegMarket(e.target.value)}>
 							<option value="" disabled>
-								Market Focus
+								{tr.marketFocusPh}
 							</option>
-							<option value="Europe">Europe</option>
-							<option value="MENA">MENA</option>
-							<option value="Both">Both</option>
+							<option value="Europe">{tr.marketEurope}</option>
+							<option value="MENA">{tr.marketMena}</option>
+							<option value="Both">{tr.marketBoth}</option>
 						</select>
 						<input
-							placeholder="Phone (optional, e.g. +359881234567)"
+							placeholder={tr.phonePh}
 							value={regPhone}
 							inputMode="tel"
 							autoComplete="tel"
@@ -1892,7 +2352,7 @@ export default function App() {
 								style={{ marginRight: 8 }}
 								onChange={e => setRegSubscribe(e.target.checked)}
 							/>
-							I agree to receive market updates and trade alerts by email.
+							{tr.agreeUpdates}
 						</label>
 					</div>
 					<div
@@ -1907,11 +2367,11 @@ export default function App() {
 							className="btn btn-primary"
 							disabled={regStatus === 'loading' || !canSubmitRegister}
 							onClick={() => void submitRegister()}>
-							{regStatus === 'loading' ? <Loader2 size={18} /> : null} Create my
-							account
+							{regStatus === 'loading' ? <Loader2 size={18} /> : null}{' '}
+							{tr.createMyAccount}
 						</button>
 						<button className="btn btn-outline" onClick={() => setView('login')}>
-							Already have account
+							{tr.alreadyHaveAccount}
 						</button>
 						{regMsg && (
 							<span
@@ -1926,18 +2386,15 @@ export default function App() {
 
 			{view === 'login' && (
 				<section className="section">
-					<h2>Sign In</h2>
-					<p className="muted">
-						Production authentication ще се върже към вашия identity provider. За демо
-						ползвайте регистрацията по имейл.
-					</p>
+					<h2>{tr.loginTitle}</h2>
+					<p className="muted">{tr.loginSubtitle}</p>
 					<div className="form-grid">
-						<input placeholder="Email" />
-						<input type="password" placeholder="Password" />
+						<input placeholder={tr.loginEmailPh} />
+						<input type="password" placeholder={tr.loginPasswordPh} />
 					</div>
 					<div style={{ marginTop: 12 }}>
 						<button className="btn btn-primary" onClick={handleDemoSignIn}>
-							Sign In
+							{tr.loginBtn}
 						</button>
 					</div>
 				</section>
@@ -1946,16 +2403,12 @@ export default function App() {
 			{view === 'company' && (
 				<section className="section">
 					<h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<Building2 size={22} color="#22c55e" /> AgriNexus - Company Card
+						<Building2 size={22} color="#22c55e" /> {tr.companyTitle}
 					</h2>
-					<p className="muted">
-						Domain-specific AI layer for agricultural trade optimization. Real market
-						data integration, predictive pricing, buyer-seller matching, and trade
-						alerts.
-					</p>
+					<p className="muted">{tr.companySubtitle}</p>
 					<div className="contact-panel">
 						<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Globe2 size={16} color="#22c55e" /> Regions: Europe / MENA
+							<Globe2 size={16} color="#22c55e" /> {tr.companyRegions}
 						</p>
 						<p
 							style={{
@@ -1972,10 +2425,9 @@ export default function App() {
 
 			{view === 'clients' && (
 				<section className="section">
-					<h2 style={{ marginTop: 0 }}>Client Portfolio</h2>
+					<h2 style={{ marginTop: 0 }}>{tr.clientsTitle}</h2>
 					<p className="muted" style={{ marginTop: 6 }}>
-						Professional profile page for each client with decision context,
-						certifications and trading preferences.
+						{tr.clientsSubtitle}
 					</p>
 					<div className="clients-layout">
 						<div className="client-list">
@@ -2009,7 +2461,7 @@ export default function App() {
 							</p>
 							<div className="client-meta-grid">
 								<div className="meta-kv">
-									<strong>Contact</strong>
+									<strong>{tr.clientContact}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.email}
 										<br />
@@ -2017,31 +2469,31 @@ export default function App() {
 									</p>
 								</div>
 								<div className="meta-kv">
-									<strong>Market focus</strong>
+									<strong>{tr.clientMarketFocus}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.focus}
 									</p>
 								</div>
 								<div className="meta-kv">
-									<strong>Certifications</strong>
+									<strong>{tr.clientCertifications}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.certifications.join(', ')}
 									</p>
 								</div>
 								<div className="meta-kv">
-									<strong>Preferred incoterms</strong>
+									<strong>{tr.clientIncoterms}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.preferredIncoterms.join(', ')}
 									</p>
 								</div>
 								<div className="meta-kv">
-									<strong>Monthly volume</strong>
+									<strong>{tr.clientMonthlyVolume}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.monthlyVolume}
 									</p>
 								</div>
 								<div className="meta-kv">
-									<strong>Internal notes</strong>
+									<strong>{tr.clientInternalNotes}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
 										{selectedClient.notes}
 									</p>
@@ -2049,7 +2501,7 @@ export default function App() {
 							</div>
 							<div className="contact-panel" style={{ marginTop: 14 }}>
 								<p style={{ margin: 0 }}>
-									Digital business card: <strong>{selectedClient.company}</strong>{' '}
+									{tr.clientCardLabel}: <strong>{selectedClient.company}</strong>{' '}
 									| {selectedClient.contactPerson} | {selectedClient.email}
 								</p>
 							</div>
@@ -2058,7 +2510,42 @@ export default function App() {
 				</section>
 			)}
 
-			<div className="chat-box">
+			{isMobileViewport && (
+				<div className="mobile-nav">
+					<button
+						type="button"
+						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
+						onClick={() => setView('landing')}>
+						<Leaf size={16} />
+						{tr.navHome}
+					</button>
+					<button
+						type="button"
+						className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
+						onClick={() => setView('market')}>
+						<Search size={16} />
+						{tr.navMarket}
+					</button>
+					<button
+						type="button"
+						className={`mobile-nav-btn ${view === 'pricing' ? 'active' : ''}`}
+						onClick={() => setView('pricing')}>
+						<CreditCard size={16} />
+						{tr.navPricing}
+					</button>
+					<button
+						type="button"
+						className={`mobile-nav-btn ${isChatOpen ? 'active' : ''}`}
+						onClick={() => setIsChatOpen(v => !v)}>
+						<MessageSquare size={16} />
+						{tr.mobileChat}
+					</button>
+				</div>
+			)}
+
+			<div
+				className="chat-box"
+				style={{ bottom: chatKeyboardOffset + (isMobileViewport ? 70 : 0) }}>
 				{isChatOpen && (
 					<div className="chat-window">
 						<div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>
@@ -2094,11 +2581,30 @@ export default function App() {
 							))}
 						</div>
 						<div className="chat-messages">
-							{chatMessages.map((m, idx) => (
-								<div key={`${idx}-${m.role}`} className={`chat-bubble ${m.role}`}>
-									{m.content}
-								</div>
-							))}
+							{chatMessages.map((m, idx) => {
+								const confidenceMeta =
+									m.role === 'assistant' ? getConfidenceMeta(m.content) : null;
+								const renderedContent =
+									m.role === 'assistant'
+										? m.content
+												.replace(
+													/(?:^|\n)(?:Confidence|Ниво на увереност):\s*(LOW|MEDIUM|HIGH)\s*(?:\n|$)/i,
+													'\n'
+												)
+												.replace(/\n{3,}/g, '\n\n')
+												.trim()
+										: m.content;
+								return (
+									<div key={`${idx}-${m.role}`} className={`chat-bubble ${m.role}`}>
+										{confidenceMeta && (
+											<div className={`confidence-badge ${confidenceMeta.tone}`}>
+												Confidence: {confidenceMeta.label}
+											</div>
+										)}
+										{renderedContent}
+									</div>
+								);
+							})}
 							{chatLoading && (
 								<div
 									className="chat-bubble assistant"
