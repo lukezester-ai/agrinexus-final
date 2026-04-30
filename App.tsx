@@ -3027,7 +3027,8 @@ export default function App() {
 			<div
 				className="chat-box"
 				style={{
-					bottom: chatKeyboardOffset + (isMobileViewport ? 70 : 0),
+					// On mobile, anchor chat to the nav inset and size by visualViewport height.
+					bottom: isMobileViewport ? 70 : chatKeyboardOffset,
 					left: isMobileViewport && isChatOpen ? 10 : undefined,
 					right: isMobileViewport && isChatOpen ? 10 : 12,
 				}}>
@@ -3039,7 +3040,11 @@ export default function App() {
 						className="chat-window"
 						style={
 							isMobileViewport
-								? { width: '100%', maxHeight: Math.max(280, chatViewportHeight - 140) }
+								? {
+										width: '100%',
+										height: Math.max(260, chatViewportHeight - 90),
+										maxHeight: Math.max(260, chatViewportHeight - 90),
+									}
 								: undefined
 						}>
 						<div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>
