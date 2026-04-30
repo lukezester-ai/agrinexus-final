@@ -144,8 +144,8 @@ type View =
 	| 'watchlist';
 
 const CHAT_WELCOME: Record<Lang, string> = {
-	bg: 'Здравейте! Аз съм AgriNexus AI. Питайте за маршрути EU/MENA, марж, сертификати или за BUY/HOLD/AVOID — ползвам контекста от текущия ви преглед в Marketplace.',
-	en: 'Hello! I am AgriNexus AI. Ask about EU/MENA routes, margin, certifications, or BUY/HOLD/AVOID — I use your current Marketplace filter as context.',
+	bg: 'Здравейте! С какво да помогна?',
+	en: 'Hello! How can I help?',
 };
 
 type ClientProfile = {
@@ -329,6 +329,7 @@ export default function App() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
 	const [isChatOpen, setIsChatOpen] = useState(false);
+	const [hasUnreadChat, setHasUnreadChat] = useState(false);
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
 	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
@@ -856,6 +857,14 @@ export default function App() {
 	}, [chatMessages, chatLoading, isChatOpen]);
 
 	useEffect(() => {
+		const last = chatMessages[chatMessages.length - 1];
+		if (!last) return;
+		if (last.role === 'assistant' && !isChatOpen) {
+			setHasUnreadChat(true);
+		}
+	}, [chatMessages, isChatOpen]);
+
+	useEffect(() => {
 		const viewport = window.visualViewport;
 		if (!viewport) return;
 
@@ -913,6 +922,7 @@ export default function App() {
 	const applyQuickPrompt = (prompt: string) => {
 		setChatInput(prompt);
 		setIsChatOpen(true);
+		setHasUnreadChat(false);
 	};
 
 	const submitRegister = async () => {
@@ -1116,6 +1126,13 @@ export default function App() {
 				pricingYearlyNote: '+1 месец безплатно',
 				pricingContactLead: 'Продажби:',
 				pricingContactText: 'всички абонаментни запитвания и оферти се координират от този адрес.',
+				pricingFaqTitle: 'Често задавани въпроси',
+				pricingFaqQ1: 'Има ли минимален срок на договора?',
+				pricingFaqA1: 'Не. Можете да променяте или ъпгрейдвате плана според нуждите си.',
+				pricingFaqQ2: 'Как се отчитат AI заявките?',
+				pricingFaqA2: 'Лимитът е месечен и се обновява автоматично в началото на периода.',
+				pricingFaqQ3: 'Имате ли onboarding за фирми?',
+				pricingFaqA3: 'Да. За Pro и Business има onboarding, съобразен с вашия търговски процес.',
 				registerTitle: 'Създай акаунт',
 				registerSubtitle:
 					'Регистрацията изпраща детайли към info@agrinexus.eu и потвърждение към вашия имейл (при SMTP).',
@@ -1233,6 +1250,13 @@ export default function App() {
 			pricingContactLead: 'Contact sales:',
 			pricingContactText:
 				'all subscription inquiries and offers are coordinated through this address.',
+			pricingFaqTitle: 'Frequently Asked Questions',
+			pricingFaqQ1: 'Is there a minimum contract period?',
+			pricingFaqA1: 'No. You can change or upgrade your plan based on business needs.',
+			pricingFaqQ2: 'How are AI requests counted?',
+			pricingFaqA2: 'The quota is monthly and refreshes automatically at the start of each period.',
+			pricingFaqQ3: 'Do you provide company onboarding?',
+			pricingFaqA3: 'Yes. Pro and Business include onboarding aligned to your trade workflow.',
 			registerTitle: 'Create Account',
 			registerSubtitle:
 				'Registration sends details to info@agrinexus.eu and a confirmation to your email (when SMTP is enabled).',
@@ -1619,6 +1643,14 @@ export default function App() {
             border-color: rgba(34, 197, 94, 0.45);
             color: #86efac;
             background: rgba(34, 197, 94, 0.08);
+          }
+          .unread-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
+            display: inline-block;
           }
         }
       `}</style>
@@ -2267,6 +2299,29 @@ export default function App() {
 							— {tr.pricingContactText}
 						</p>
 					</div>
+					<div className="contact-panel">
+						<h3 style={{ marginTop: 0 }}>{tr.pricingFaqTitle}</h3>
+						<div style={{ display: 'grid', gap: 10 }}>
+							<div>
+								<strong>{tr.pricingFaqQ1}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{tr.pricingFaqA1}
+								</p>
+							</div>
+							<div>
+								<strong>{tr.pricingFaqQ2}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{tr.pricingFaqA2}
+								</p>
+							</div>
+							<div>
+								<strong>{tr.pricingFaqQ3}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{tr.pricingFaqA3}
+								</p>
+							</div>
+						</div>
+					</div>
 				</section>
 			)}
 
@@ -2536,9 +2591,16 @@ export default function App() {
 					<button
 						type="button"
 						className={`mobile-nav-btn ${isChatOpen ? 'active' : ''}`}
-						onClick={() => setIsChatOpen(v => !v)}>
+						onClick={() =>
+							setIsChatOpen(v => {
+								const next = !v;
+								if (next) setHasUnreadChat(false);
+								return next;
+							})
+						}>
 						<MessageSquare size={16} />
 						{tr.mobileChat}
+						{hasUnreadChat && !isChatOpen && <span className="unread-dot" />}
 					</button>
 				</div>
 			)}
@@ -2639,7 +2701,13 @@ export default function App() {
 				)}
 				<button
 					className="chat-trigger"
-					onClick={() => setIsChatOpen(v => !v)}
+					onClick={() =>
+						setIsChatOpen(v => {
+							const next = !v;
+							if (next) setHasUnreadChat(false);
+							return next;
+						})
+					}
 					aria-label={isChatOpen ? tr.chatToggleOn : tr.chatToggleOff}>
 					{isChatOpen ? <X color="white" /> : <MessageSquare color="white" />}
 				</button>
