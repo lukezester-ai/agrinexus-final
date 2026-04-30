@@ -455,6 +455,7 @@ export default function App() {
 	const [chatLoading, setChatLoading] = useState(false);
 	const [chatKeyboardOffset, setChatKeyboardOffset] = useState(12);
 	const [chatViewportHeight, setChatViewportHeight] = useState<number>(() => window.innerHeight);
+	const [chatViewportTop, setChatViewportTop] = useState(0);
 	const chatBaseInnerHeightRef = useRef<number>(window.innerHeight);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
@@ -1063,6 +1064,7 @@ export default function App() {
 			const viewport = window.visualViewport;
 			const viewportHeight = viewport?.height ?? window.innerHeight;
 			setChatViewportHeight(viewportHeight);
+			setChatViewportTop(viewport?.offsetTop ?? 0);
 			if (!isMobileViewport) {
 				setChatKeyboardOffset(12);
 				return;
@@ -1369,12 +1371,15 @@ export default function App() {
 				pricingSubscribe: 'Абонирай се',
 				pricingPer: 'на',
 				pricingYearlyNote: '+1 месец безплатно',
-				pricingConceptTitle: 'Каква е концепцията',
+				pricingConceptTitle: 'AI двигател за по-силни търговски решения',
 				pricingConceptBody:
-					'Абонаментът дава работещ AI инструмент за търговски решения, а не просто достъп до данни. Фокусът е по-бърз избор на сделки, по-нисък риск и по-добър контрол върху маржа.',
-				pricingBenefit1: 'BUY/HOLD/AVOID логика върху текущия пазарен филтър',
-				pricingBenefit2: 'Клиентски контекст, сертификати и маршрутни рискове на едно място',
-				pricingBenefit3: 'Известия и по-бърз оперативен цикъл за екипа',
+					'Абонаментът превръща AgriNexus в практичен AI търговски инструмент: анализира текущия пазарен контекст, подрежда приоритетите и подпомага екипа в бързи, уверени решения.',
+				pricingPlanExplainTitle: 'Как работят абонаментните планове',
+				pricingPlanExplainBody:
+					'Плановете са според интензитета на работа: Седмичен за бърз старт, Месечен за регулярна търговия и Годишен за екипи, които искат най-добра цена и предвидимост.',
+				pricingResultTitle: 'Какво печелите в практиката',
+				pricingResultBody:
+					'По-малко време за анализ, по-ясни приоритети и по-уверени сделки с подкрепа от AI във всеки етап — от филтър до финално решение.',
 				pricingContactLead: 'Продажби:',
 				pricingContactText: 'всички абонаментни запитвания и оферти се координират от този адрес.',
 				pricingFaqTitle: 'Често задавани въпроси',
@@ -1518,12 +1523,15 @@ export default function App() {
 			pricingSubscribe: 'Subscribe',
 			pricingPer: 'per',
 			pricingYearlyNote: '+1 month free',
-			pricingConceptTitle: 'What is the concept',
+			pricingConceptTitle: 'AI engine for stronger trade decisions',
 			pricingConceptBody:
-				'The subscription is a practical AI trade cockpit, not only raw data access. It helps teams decide faster, reduce risk exposure, and protect margin consistency.',
-			pricingBenefit1: 'BUY/HOLD/AVOID logic based on your live marketplace filter',
-			pricingBenefit2: 'Client context, certifications and route risk in one workflow',
-			pricingBenefit3: 'Alerts and faster execution cycle for the trade team',
+				'The subscription turns AgriNexus into a practical AI trade layer: it interprets live market context, prioritizes opportunities, and helps teams act faster with confidence.',
+			pricingPlanExplainTitle: 'How the subscription plans work',
+			pricingPlanExplainBody:
+				'Plans match your operating intensity: Weekly for fast onboarding, Monthly for steady trading rhythm, and Yearly for teams that need the best value and planning stability.',
+			pricingResultTitle: 'What you gain in practice',
+			pricingResultBody:
+				'Less time spent on manual analysis, clearer priorities, and more confident deals with AI support from market filtering to final trade decision.',
 			pricingContactLead: 'Contact sales:',
 			pricingContactText:
 				'all subscription inquiries and offers are coordinated through this address.',
@@ -1699,6 +1707,31 @@ export default function App() {
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
         .pricing-card { text-align: center; padding: 14px; }
         .pricing-card.popular { border: 2px solid var(--green); }
+        .pricing-value-panel {
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(11, 18, 33, 0.92));
+          border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .pricing-message-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 14px;
+        }
+        .pricing-value-title {
+          margin: 0;
+          font-size: clamp(1.1rem, 2.3vw, 1.5rem);
+          line-height: 1.25;
+          letter-spacing: .01em;
+          color: #dcfce7;
+          text-wrap: balance;
+        }
+        .pricing-value-body {
+          margin-top: 10px;
+          color: #d1fae5;
+          font-size: .95rem;
+          line-height: 1.55;
+          max-width: 72ch;
+        }
         .badge {
           position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
           background: var(--green); padding: 5px 10px; border-radius: 999px; font-size: .73rem; font-weight: 800;
@@ -1884,6 +1917,9 @@ export default function App() {
             flex: 0 0 auto;
             scroll-snap-align: center;
           }
+          .pricing-value-title { font-size: 1.08rem; }
+          .pricing-value-body { font-size: .88rem; }
+          .pricing-message-grid { grid-template-columns: 1fr; }
 
           .mobile-nav {
             position: fixed;
@@ -2684,21 +2720,18 @@ export default function App() {
 							}}
 						/>
 					</div>
-					<div className="contact-panel">
-						<h3 style={{ marginTop: 0 }}>{tr.pricingConceptTitle}</h3>
-						<p className="muted" style={{ marginTop: 6 }}>
-							{tr.pricingConceptBody}
-						</p>
-						<div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-							<p className="muted" style={{ margin: 0 }}>
-								• {tr.pricingBenefit1}
-							</p>
-							<p className="muted" style={{ margin: 0 }}>
-								• {tr.pricingBenefit2}
-							</p>
-							<p className="muted" style={{ margin: 0 }}>
-								• {tr.pricingBenefit3}
-							</p>
+					<div className="pricing-message-grid">
+						<div className="contact-panel pricing-value-panel">
+							<h3 className="pricing-value-title">{tr.pricingConceptTitle}</h3>
+							<p className="pricing-value-body">{tr.pricingConceptBody}</p>
+						</div>
+						<div className="contact-panel pricing-value-panel">
+							<h3 className="pricing-value-title">{tr.pricingPlanExplainTitle}</h3>
+							<p className="pricing-value-body">{tr.pricingPlanExplainBody}</p>
+						</div>
+						<div className="contact-panel pricing-value-panel">
+							<h3 className="pricing-value-title">{tr.pricingResultTitle}</h3>
+							<p className="pricing-value-body">{tr.pricingResultBody}</p>
 						</div>
 					</div>
 					<div className="contact-panel">
@@ -3027,8 +3060,8 @@ export default function App() {
 			<div
 				className="chat-box"
 				style={{
-					// On mobile, anchor chat to the nav inset and size by visualViewport height.
-					bottom: isMobileViewport ? 70 : chatKeyboardOffset,
+					top: isMobileViewport && isChatOpen ? chatViewportTop + 8 : undefined,
+					bottom: isMobileViewport ? undefined : chatKeyboardOffset,
 					left: isMobileViewport && isChatOpen ? 10 : undefined,
 					right: isMobileViewport && isChatOpen ? 10 : 12,
 				}}>
@@ -3042,8 +3075,9 @@ export default function App() {
 							isMobileViewport
 								? {
 										width: '100%',
-										height: Math.max(260, chatViewportHeight - 90),
-										maxHeight: Math.max(260, chatViewportHeight - 90),
+										// Keep chat fully inside the visual viewport above mobile nav.
+										height: Math.max(260, chatViewportHeight - 86),
+										maxHeight: Math.max(260, chatViewportHeight - 86),
 									}
 								: undefined
 						}>
