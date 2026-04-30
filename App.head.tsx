@@ -152,11 +152,6 @@ const QUICK_PROMPTS = [
   'ÐÐ°Ð¿Ñ€Ð°Ð²Ð¸ Ð±ÑŠÑ€Ð· risk-check Ð·Ð° EU to MENA route.',
 ];
 
-const CHAT_BRIEF_WELCOME: Record<Lang, string> = {
-  bg: 'Здравей! Как мога да помогна?',
-  en: 'Hi! How can I help?',
-};
-
 const MARKET_FLASH = [
   'Tomato paste corridor TR -> KSA showing tighter spreads this session.',
   'Sunflower oil bids from Egypt remain strong for next 2 loading windows.',
@@ -271,12 +266,7 @@ export default function App() {
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date());
   const [marketFlashIndex, setMarketFlashIndex] = useState(0);
   const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
-  const [chatMessages, setChatMessages] = useState<ChatTurn[]>(() => [
-    {
-      role: 'assistant',
-      content: CHAT_BRIEF_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'],
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);

@@ -100,6 +100,18 @@ function getDecisionByProfit(profit: number) {
 	return 'AVOID';
 }
 
+function getDecisionBySignals(input: {
+	profit: number;
+	volatility: 'LOW' | 'MED' | 'HIGH';
+	category: DealRow['category'];
+}): string {
+	let score = input.profit;
+	if (input.category === 'Grains') score -= 1;
+	if (input.volatility === 'HIGH') score -= 2;
+	else if (input.volatility === 'MED') score -= 1;
+	return getDecisionByProfit(score);
+}
+
 function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH' {
 	const delta = Math.abs(current - previous);
 	if (delta >= 5) return 'HIGH';
@@ -130,6 +142,8 @@ type DealRow = {
 	volatility: 'LOW' | 'MED' | 'HIGH';
 };
 type DealCategoryFilter = 'all' | DealRow['category'];
+type SearchableDeal = DealRow & { searchText: string };
+type WatchlistPanel = 'saved' | 'cabinet';
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 type Lang = 'bg' | 'en';
@@ -165,16 +179,31 @@ const QUICK_PROMPTS_BG = [
 	'Направи бърз risk-check за EU to MENA route.',
 ];
 
+const PRODUCT_BG_ALIASES: Record<string, string[]> = {
+	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно'],
+	Corn: ['царевица', 'зърно'],
+	Barley: ['ечемик', 'зърно'],
+	'Sunflower Seed': ['слънчогледово семе', 'слънчоглед'],
+	Rapeseed: ['рапица'],
+	Chickpeas: ['нахут'],
+	Lentils: ['леща'],
+	'Tomato Paste': ['доматено пюре'],
+	'Peeled Tomatoes': ['белени домати'],
+	'Sunflower Oil': ['слънчогледово масло'],
+};
+
+const CATEGORY_BG_ALIASES: Record<DealRow['category'], string[]> = {
+	Grains: ['зърнени', 'зърно'],
+	Oilseeds: ['маслодайни'],
+	Pulses: ['бобови'],
+	'Processed Foods': ['преработени', 'преработени храни'],
+};
+
 const QUICK_PROMPTS_EN = [
 	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
 	'Which certifications matter most for export to KSA?',
 	'Quick risk-check for EU to MENA route.',
 ];
-
-const CHAT_BRIEF_WELCOME: Record<Lang, string> = {
-	bg: 'Здравей! Как мога да помогна?',
-	en: 'Hi! How can I help?',
-};
 
 const MARKET_FLASH_EN = [
 	'Tomato paste corridor TR → KSA showing tighter spreads this session.',
@@ -236,6 +265,42 @@ const CLIENT_PROFILES: ClientProfile[] = [
 	},
 ];
 
+const CLIENT_PROFILE_BG_COPY: Record<
+	ClientProfile['id'],
+	{
+		role: string;
+		region: string;
+		focus: string;
+		monthlyVolume: string;
+		notes: string;
+	}
+> = {
+	'c-101': {
+		role: 'Директор снабдяване',
+		region: 'Египет (Кайро / Александрия)',
+		focus: 'Доматени продукти, слънчогледово масло',
+		monthlyVolume: '420 тона',
+		notes:
+			'Високо търсене преди периода Рамадан. Предпочита стабилни месечни ценови прозорци.',
+	},
+	'c-102': {
+		role: 'Категориен мениджър',
+		region: 'Саудитска Арабия (Рияд / Джеда)',
+		focus: 'Сашета доматено пюре, бобови',
+		monthlyVolume: '290 тона',
+		notes:
+			'Изисква бърза валидация на сертификатите и стриктен график на експедициите.',
+	},
+	'c-103': {
+		role: 'Ръководител внос',
+		region: 'Германия / Нидерландия',
+		focus: 'Премиум пшеница, ечемик',
+		monthlyVolume: '680 тона',
+		notes:
+			'Чувствителен към маржа. Предпочита разделени договори със седмичен ценови преглед.',
+	},
+};
+
 function PricingCard({
 	title,
 	price,
@@ -295,29 +360,77 @@ async function apiChat(
 	locale: Lang,
 	signal?: AbortSignal
 ): Promise<string> {
-	const res = await fetch('/api/chat', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ messages, dealContext, locale }),
-		signal,
-	});
-	let data: { reply?: string; error?: string; hint?: string } = {};
-	try {
-		data = (await res.json()) as typeof data;
-	} catch {
-		throw new Error(
-			locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
-		);
+	const timeoutMs = 15000;
+	const maxAttempts = 2;
+	const requestBody = JSON.stringify({ messages, dealContext, locale });
+
+	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+		const timeoutController = new AbortController();
+		const requestController = new AbortController();
+		let timeoutFired = false;
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+		const abortRequest = () => requestController.abort();
+		signal?.addEventListener('abort', abortRequest);
+		timeoutId = setTimeout(() => {
+			timeoutFired = true;
+			requestController.abort();
+		}, timeoutMs);
+
+		try {
+			const res = await fetch('/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: requestBody,
+				signal: requestController.signal,
+			});
+			let data: { reply?: string; error?: string; hint?: string } = {};
+			try {
+				data = (await res.json()) as typeof data;
+			} catch {
+				throw new Error(
+					locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
+				);
+			}
+			if (!res.ok) {
+				throw new Error(
+					data.hint ||
+						data.error ||
+						(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
+				);
+			}
+			if (!data.reply) {
+				throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
+			}
+			return data.reply;
+		} catch (err) {
+			if (signal?.aborted) {
+				const abortError = new Error('Chat request aborted');
+				abortError.name = 'AbortError';
+				throw abortError;
+			}
+			const isNetworkError = err instanceof TypeError;
+			const isRetryable = timeoutFired || isNetworkError;
+			const shouldRetry = isRetryable && attempt < maxAttempts;
+			if (!shouldRetry) {
+				if (timeoutFired) {
+					throw new Error(
+						locale === 'bg'
+							? 'Чат заявката изтече по време. Проверете връзката и опитайте отново.'
+							: 'Chat request timed out. Check your connection and try again.'
+					);
+				}
+				throw err;
+			}
+			await new Promise(resolve => setTimeout(resolve, 450));
+		} finally {
+			if (timeoutId) clearTimeout(timeoutId);
+			signal?.removeEventListener('abort', abortRequest);
+			timeoutController.abort();
+		}
 	}
-	if (!res.ok) {
-		throw new Error(
-			data.hint ||
-				data.error ||
-				(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
-		);
-	}
-	if (!data.reply) throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
-	return data.reply;
+
+	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
 }
 
 export default function App() {
@@ -328,15 +441,14 @@ export default function App() {
 	const [isPremium] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
+	const [watchlistPanel, setWatchlistPanel] = useState<WatchlistPanel>('saved');
 	const [isChatOpen, setIsChatOpen] = useState(false);
 	const [hasUnreadChat, setHasUnreadChat] = useState(false);
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
 	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
-	const [chatMessages, setChatMessages] = useState<ChatTurn[]>(() => [
-		{ role: 'assistant', content: CHAT_BRIEF_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'] },
-	]);
+	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
 	const [chatInput, setChatInput] = useState(
 		() => sessionStorage.getItem('agrinexus-chat-draft') ?? ''
 	);
@@ -673,6 +785,7 @@ export default function App() {
 			const margin = Math.max(5, profit - 4);
 			const currentPrice = `${(seededRand(i + 99 + refreshTick) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
 			const prevPrice = `${(seededRand(i + 99 + Math.max(0, refreshTick - 1)) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
+			const volatility = getVolatility(profit, prevProfit);
 
 			return {
 				id: i + 1,
@@ -693,23 +806,80 @@ export default function App() {
 				price: currentPrice,
 				prevPrice,
 				isMENA: market.region === 'MENA',
-				decision: getDecisionByProfit(profit),
-				volatility: getVolatility(profit, prevProfit),
+				decision: getDecisionBySignals({
+					profit,
+					volatility,
+					category: product.category,
+				}),
+				volatility,
 			} satisfies DealRow;
 		});
 	}, [refreshTick]);
 
-	const filteredDeals = allDeals.filter(d => {
-		const q = searchQuery.toLowerCase();
+	const searchableDeals = useMemo<SearchableDeal[]>(
+		() =>
+			allDeals.map(deal => {
+				const productAliases = PRODUCT_BG_ALIASES[deal.product] ?? [];
+				const categoryAliases = CATEGORY_BG_ALIASES[deal.category] ?? [];
+				const searchText = [
+					deal.product,
+					deal.category,
+					...categoryAliases,
+					...productAliases,
+					deal.certification,
+					deal.qualitySpec,
+					deal.packaging,
+					deal.from,
+					deal.to,
+					deal.deliveryWindow,
+					deal.incoterm,
+				]
+					.join(' ')
+					.toLowerCase();
+				return { ...deal, searchText };
+			}),
+		[allDeals]
+	);
+
+	const filteredDeals = searchableDeals.filter(d => {
+		const q = searchQuery.trim().toLowerCase();
 		const matchesCategory = selectedCategory === 'all' || d.category === selectedCategory;
-		const matchesQuery =
-			d.product.toLowerCase().includes(q) ||
-			d.category.toLowerCase().includes(q) ||
-			d.from.toLowerCase().includes(q) ||
-			d.to.toLowerCase().includes(q) ||
-			d.incoterm.toLowerCase().includes(q);
+		const matchesQuery = q === '' || d.searchText.includes(q);
 		return matchesCategory && matchesQuery;
 	});
+
+	const grainUniverse = useMemo(
+		() => allDeals.filter(deal => deal.category === 'Grains'),
+		[allDeals]
+	);
+
+	const grainInsights = useMemo(() => {
+		const scoped =
+			selectedCategory === 'Grains'
+				? filteredDeals.filter(deal => deal.category === 'Grains')
+				: grainUniverse;
+		if (scoped.length === 0) {
+			return {
+				count: 0,
+				avgMargin: 0,
+				buyCount: 0,
+				topRoute: '—',
+				topProduct: '—',
+			};
+		}
+		const avgMargin = Math.round(
+			scoped.reduce((sum, deal) => sum + deal.margin, 0) / scoped.length
+		);
+		const buyCount = scoped.filter(deal => deal.decision === 'BUY').length;
+		const topDeal = [...scoped].sort((a, b) => b.profit - a.profit)[0];
+		return {
+			count: scoped.length,
+			avgMargin,
+			buyCount,
+			topRoute: `${topDeal.from} → ${topDeal.to}`,
+			topProduct: topDeal.product,
+		};
+	}, [filteredDeals, grainUniverse, selectedCategory]);
 
 	const dealContextForAI = useMemo(() => {
 		const slice = filteredDeals.slice(0, 18);
@@ -775,8 +945,33 @@ export default function App() {
 	const formatTime = `${Math.floor(nextUpdate / 60)}:${(nextUpdate % 60).toString().padStart(2, '0')}`;
 	const selectedClient =
 		CLIENT_PROFILES.find(profile => profile.id === selectedClientId) || CLIENT_PROFILES[0];
+	const selectedClientLocalized =
+		lang === 'bg'
+			? {
+					...selectedClient,
+					...CLIENT_PROFILE_BG_COPY[selectedClient.id],
+				}
+			: selectedClient;
+	const selectedClientStatusLabel =
+		lang === 'bg'
+			? selectedClient.creditStatus === 'Approved'
+				? 'Одобрен'
+				: selectedClient.creditStatus === 'Pending'
+					? 'В изчакване'
+					: 'Преглед'
+			: selectedClient.creditStatus;
 	const tickerItems = filteredDeals.slice(0, 12);
 	const watchedDeals = allDeals.filter(deal => watchlistIds.includes(deal.id));
+	const lastSavedDeal = useMemo(() => {
+		const lastSavedId = watchlistIds[watchlistIds.length - 1];
+		if (!lastSavedId) return null;
+		return allDeals.find(deal => deal.id === lastSavedId) ?? null;
+	}, [allDeals, watchlistIds]);
+	const lastAlertDeal = useMemo(() => {
+		const lastAlertId = alertsEnabledIds[alertsEnabledIds.length - 1];
+		if (!lastAlertId) return null;
+		return allDeals.find(deal => deal.id === lastAlertId) ?? null;
+	}, [alertsEnabledIds, allDeals]);
 
 	const toggleWatchlist = (dealId: number) => {
 		setWatchlistIds(prev =>
@@ -933,6 +1128,21 @@ export default function App() {
 		inputEl.addEventListener('focus', scrollChatIntoView);
 		return () => inputEl.removeEventListener('focus', scrollChatIntoView);
 	}, [isChatOpen]);
+
+	useEffect(() => {
+		// Prevent background scroll when chat is open on mobile.
+		if (!(isMobileViewport && isChatOpen)) return;
+		const prev = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return () => {
+			document.body.style.overflow = prev;
+		};
+	}, [isMobileViewport, isChatOpen]);
+
+	useEffect(() => {
+		// Close chat while navigating across pages on mobile.
+		if (isMobileViewport) setIsChatOpen(false);
+	}, [view, isMobileViewport]);
 
 	const applyQuickPrompt = (prompt: string) => {
 		setChatInput(prompt);
@@ -1100,6 +1310,20 @@ export default function App() {
 					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. AI чатът получава топ филтрираните сделки като контекст.',
 				watchlistTitle: 'Моят списък',
 				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
+				watchlistTabSaved: 'Запазени сделки',
+				watchlistTabCabinet: 'Моят кабинет',
+				cabinetTitle: 'Търговски кабинет',
+				cabinetSubtitle:
+					'Бърз достъп до важните модули за работа с клиенти, пазар и абонаменти.',
+				cabinetSavedCount: 'Запазени сделки',
+				cabinetAlertsCount: 'Активни известия',
+				cabinetLastSaved: 'Последно запазена сделка',
+				cabinetLastAlert: 'Последно включено известие',
+				cabinetNoActivity: 'Няма активност',
+				cabinetGoMarket: 'Към Пазар',
+				cabinetGoClients: 'Към Клиенти',
+				cabinetGoCompany: 'Към Фирмен профил',
+				cabinetGoPricing: 'Към Абонаменти',
 				watchSaved: '★ Запазено',
 				watchSave: 'Запази',
 				alertOn: 'Известия вкл.',
@@ -1128,6 +1352,12 @@ export default function App() {
 				filterOilseeds: 'Маслодайни',
 				filterPulses: 'Бобови',
 				filterProcessed: 'Преработени',
+				grainInsightTitle: 'Зърнени: бърз обзор',
+				grainInsightDeals: 'Сделки',
+				grainInsightAvgMargin: 'Среден марж',
+				grainInsightBuy: 'BUY сигнали',
+				grainInsightTopRoute: 'Топ маршрут',
+				grainInsightTopProduct: 'Топ продукт',
 				pricingTitle: 'Абонаментни планове',
 				pricingWeekly: 'Седмичен',
 				pricingMonthly: 'Месечен',
@@ -1139,6 +1369,12 @@ export default function App() {
 				pricingSubscribe: 'Абонирай се',
 				pricingPer: 'на',
 				pricingYearlyNote: '+1 месец безплатно',
+				pricingConceptTitle: 'Каква е концепцията',
+				pricingConceptBody:
+					'Абонаментът дава работещ AI инструмент за търговски решения, а не просто достъп до данни. Фокусът е по-бърз избор на сделки, по-нисък риск и по-добър контрол върху маржа.',
+				pricingBenefit1: 'BUY/HOLD/AVOID логика върху текущия пазарен филтър',
+				pricingBenefit2: 'Клиентски контекст, сертификати и маршрутни рискове на едно място',
+				pricingBenefit3: 'Известия и по-бърз оперативен цикъл за екипа',
 				pricingContactLead: 'Продажби:',
 				pricingContactText: 'всички абонаментни запитвания и оферти се координират от този адрес.',
 				pricingFaqTitle: 'Често задавани въпроси',
@@ -1223,6 +1459,20 @@ export default function App() {
 				'Current setup supports multi-country supply and demand across EU + MENA. The AI chat receives the top filtered deals as context — refine search before asking for BUY/HOLD/AVOID reasoning.',
 			watchlistTitle: 'Watchlist',
 			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
+			watchlistTabSaved: 'Saved deals',
+			watchlistTabCabinet: 'My cabinet',
+			cabinetTitle: 'Trading cabinet',
+			cabinetSubtitle:
+				'Quick access to core modules for clients, marketplace operations and subscriptions.',
+			cabinetSavedCount: 'Saved deals',
+			cabinetAlertsCount: 'Active alerts',
+			cabinetLastSaved: 'Last saved deal',
+			cabinetLastAlert: 'Last enabled alert',
+			cabinetNoActivity: 'No activity yet',
+			cabinetGoMarket: 'Go to Marketplace',
+			cabinetGoClients: 'Go to Clients',
+			cabinetGoCompany: 'Go to Company profile',
+			cabinetGoPricing: 'Go to Pricing',
 			watchSaved: '★ Saved',
 			watchSave: 'Watch',
 			alertOn: 'Alerts on',
@@ -1251,6 +1501,12 @@ export default function App() {
 			filterOilseeds: 'Oilseeds',
 			filterPulses: 'Pulses',
 			filterProcessed: 'Processed',
+			grainInsightTitle: 'Grains quick insight',
+			grainInsightDeals: 'Deals',
+			grainInsightAvgMargin: 'Avg margin',
+			grainInsightBuy: 'BUY signals',
+			grainInsightTopRoute: 'Top route',
+			grainInsightTopProduct: 'Top product',
 			pricingTitle: 'Subscription Plans',
 			pricingWeekly: 'Weekly',
 			pricingMonthly: 'Monthly',
@@ -1262,6 +1518,12 @@ export default function App() {
 			pricingSubscribe: 'Subscribe',
 			pricingPer: 'per',
 			pricingYearlyNote: '+1 month free',
+			pricingConceptTitle: 'What is the concept',
+			pricingConceptBody:
+				'The subscription is a practical AI trade cockpit, not only raw data access. It helps teams decide faster, reduce risk exposure, and protect margin consistency.',
+			pricingBenefit1: 'BUY/HOLD/AVOID logic based on your live marketplace filter',
+			pricingBenefit2: 'Client context, certifications and route risk in one workflow',
+			pricingBenefit3: 'Alerts and faster execution cycle for the trade team',
 			pricingContactLead: 'Contact sales:',
 			pricingContactText:
 				'all subscription inquiries and offers are coordinated through this address.',
@@ -1434,14 +1696,14 @@ export default function App() {
         }
         .deal-card.top { border: 2px solid var(--green); }
 
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-        .pricing-card { text-align: center; padding: 20px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+        .pricing-card { text-align: center; padding: 14px; }
         .pricing-card.popular { border: 2px solid var(--green); }
         .badge {
           position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
           background: var(--green); padding: 5px 10px; border-radius: 999px; font-size: .73rem; font-weight: 800;
         }
-        .pricing-value { font-size: 2rem; font-weight: 900; margin: 10px 0; }
+        .pricing-value { font-size: 1.7rem; font-weight: 900; margin: 8px 0; }
 
         .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
         .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
@@ -1580,6 +1842,12 @@ export default function App() {
           width: 54px; height: 54px; border-radius: 999px; border: none; background: var(--green);
           display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
         }
+        .chat-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(2, 6, 23, 0.5);
+          z-index: 190;
+        }
         .mobile-nav { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.85s linear infinite; display: inline-block; }
@@ -1612,7 +1880,7 @@ export default function App() {
           .pricing-grid::-webkit-scrollbar { height: 6px; }
           .pricing-grid::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
           .pricing-grid .pricing-card {
-            min-width: 255px;
+            min-width: 228px;
             flex: 0 0 auto;
             scroll-snap-align: center;
           }
@@ -1950,6 +2218,46 @@ export default function App() {
 							</button>
 						))}
 					</div>
+					<div className="contact-panel" style={{ marginTop: 0, marginBottom: 12 }}>
+						<h3 style={{ margin: '0 0 8px' }}>{tr.grainInsightTitle}</h3>
+						<div
+							style={{
+								display: 'grid',
+								gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+								gap: 8,
+							}}>
+							<div className="meta-kv">
+								<strong>{tr.grainInsightDeals}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{grainInsights.count}
+								</p>
+							</div>
+							<div className="meta-kv">
+								<strong>{tr.grainInsightAvgMargin}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{grainInsights.avgMargin}%
+								</p>
+							</div>
+							<div className="meta-kv">
+								<strong>{tr.grainInsightBuy}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{grainInsights.buyCount}
+								</p>
+							</div>
+							<div className="meta-kv">
+								<strong>{tr.grainInsightTopProduct}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{grainInsights.topProduct}
+								</p>
+							</div>
+							<div className="meta-kv" style={{ gridColumn: '1 / -1' }}>
+								<strong>{tr.grainInsightTopRoute}</strong>
+								<p className="muted" style={{ margin: '6px 0 0' }}>
+									{grainInsights.topRoute}
+								</p>
+							</div>
+						</div>
+					</div>
 
 					<div className="ticker-wrap">
 						<div className="ticker-track">
@@ -2169,95 +2477,168 @@ export default function App() {
 			{view === 'watchlist' && (
 				<section className="section">
 					<h2 style={{ marginTop: 0 }}>{tr.watchlistTitle}</h2>
-					{watchedDeals.length === 0 ? (
-						<p className="muted">{tr.watchlistEmpty}</p>
-					) : (
-						<div className="grid">
-							{watchedDeals.map(deal => {
-								const delta = deal.profit - deal.prevProfit;
-								return (
-									<div className="deal-card top" key={`w-${deal.id}`}>
-										<div
-											style={{
-												display: 'flex',
-												justifyContent: 'space-between',
-												marginBottom: 8,
-											}}>
-											<span
+					<div className="deal-actions" style={{ margin: '4px 0 14px' }}>
+						<button
+							type="button"
+							className={`deal-chip-btn ${watchlistPanel === 'saved' ? 'active' : ''}`}
+							onClick={() => setWatchlistPanel('saved')}>
+							{tr.watchlistTabSaved}
+						</button>
+						<button
+							type="button"
+							className={`deal-chip-btn ${watchlistPanel === 'cabinet' ? 'active' : ''}`}
+							onClick={() => setWatchlistPanel('cabinet')}>
+							{tr.watchlistTabCabinet}
+						</button>
+					</div>
+					{watchlistPanel === 'saved' ? (
+						watchedDeals.length === 0 ? (
+							<p className="muted">{tr.watchlistEmpty}</p>
+						) : (
+							<div className="grid">
+								{watchedDeals.map(deal => {
+									const delta = deal.profit - deal.prevProfit;
+									return (
+										<div className="deal-card top" key={`w-${deal.id}`}>
+											<div
 												style={{
-													fontSize: '.75rem',
-													background: deal.isMENA ? '#f59e0b' : '#3b82f6',
-													borderRadius: 6,
-													padding: '3px 9px',
+													display: 'flex',
+													justifyContent: 'space-between',
+													marginBottom: 8,
 												}}>
-												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
-											</span>
-											<strong style={{ color: '#22c55e' }}>
-												+{deal.profit}%
-											</strong>
-										</div>
-										<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
-										<div className="muted" style={{ fontSize: '.84rem' }}>
-											{deal.from} → {deal.to}
-										</div>
-										<div
-											className="muted"
-											style={{
-												background: '#0b1221',
-												marginTop: 8,
-												borderRadius: 8,
-												padding: 8,
-												fontSize: '.84rem',
-											}}>
-											<div>📦 {deal.packaging}</div>
-											<div style={{ color: '#22c55e', marginTop: 3 }}>
-												📜 {deal.certification}
+												<span
+													style={{
+														fontSize: '.75rem',
+														background: deal.isMENA ? '#f59e0b' : '#3b82f6',
+														borderRadius: 6,
+														padding: '3px 9px',
+													}}>
+													{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
+												</span>
+												<strong style={{ color: '#22c55e' }}>
+													+{deal.profit}%
+												</strong>
 											</div>
-											<div style={{ marginTop: 3 }}>
-												🏷️ {tr.dealCategory}: {deal.category}
+											<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
+											<div className="muted" style={{ fontSize: '.84rem' }}>
+												{deal.from} → {deal.to}
 											</div>
-											<div style={{ marginTop: 3 }}>
-												🧪 {tr.dealQuality}: {deal.qualitySpec}
+											<div
+												className="muted"
+												style={{
+													background: '#0b1221',
+													marginTop: 8,
+													borderRadius: 8,
+													padding: 8,
+													fontSize: '.84rem',
+												}}>
+												<div>📦 {deal.packaging}</div>
+												<div style={{ color: '#22c55e', marginTop: 3 }}>
+													📜 {deal.certification}
+												</div>
+												<div style={{ marginTop: 3 }}>
+													🏷️ {tr.dealCategory}: {deal.category}
+												</div>
+												<div style={{ marginTop: 3 }}>
+													🧪 {tr.dealQuality}: {deal.qualitySpec}
+												</div>
+												<div style={{ marginTop: 3 }}>
+													📦 {tr.dealVolume}: {deal.availableVolume}
+												</div>
+												<div style={{ marginTop: 3 }}>
+													🚢 {tr.dealIncoterm}: {deal.incoterm}
+												</div>
+												<div style={{ marginTop: 3 }}>
+													📅 {tr.dealDelivery}: {deal.deliveryWindow}
+												</div>
 											</div>
-											<div style={{ marginTop: 3 }}>
-												📦 {tr.dealVolume}: {deal.availableVolume}
+											<div
+												className="muted"
+												style={{ fontSize: '.8rem', marginTop: 6 }}>
+												{tr.terminalVol}: {deal.volatility} · Δ{' '}
+												{delta >= 0 ? '+' : ''}
+												{delta}%
 											</div>
-											<div style={{ marginTop: 3 }}>
-												🚢 {tr.dealIncoterm}: {deal.incoterm}
+											<div style={{ marginTop: 8, fontWeight: 900 }}>
+												{deal.price}
 											</div>
-											<div style={{ marginTop: 3 }}>
-												📅 {tr.dealDelivery}: {deal.deliveryWindow}
+											<div className="deal-actions">
+												<button
+													type="button"
+													className="deal-chip-btn active"
+													onClick={() => toggleWatchlist(deal.id)}>
+													{tr.watchSaved}
+												</button>
+												<button
+													type="button"
+													className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
+													onClick={() => toggleAlert(deal.id)}>
+													{alertsEnabledIds.includes(deal.id)
+														? tr.alertOn
+														: tr.alertOff}
+												</button>
 											</div>
 										</div>
-										<div
-											className="muted"
-											style={{ fontSize: '.8rem', marginTop: 6 }}>
-											{tr.terminalVol}: {deal.volatility} · Δ{' '}
-											{delta >= 0 ? '+' : ''}
-											{delta}%
-										</div>
-										<div style={{ marginTop: 8, fontWeight: 900 }}>
-											{deal.price}
-										</div>
-										<div className="deal-actions">
-											<button
-												type="button"
-												className="deal-chip-btn active"
-												onClick={() => toggleWatchlist(deal.id)}>
-												{tr.watchSaved}
-											</button>
-											<button
-												type="button"
-												className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
-												onClick={() => toggleAlert(deal.id)}>
-												{alertsEnabledIds.includes(deal.id)
-													? tr.alertOn
-													: tr.alertOff}
-											</button>
-										</div>
-									</div>
-								);
-							})}
+									);
+								})}
+							</div>
+						)
+					) : (
+						<div className="contact-panel">
+							<h3 style={{ margin: '0 0 8px' }}>{tr.cabinetTitle}</h3>
+							<p className="muted" style={{ marginTop: 0 }}>
+								{tr.cabinetSubtitle}
+							</p>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+									gap: 8,
+									marginBottom: 12,
+								}}>
+								<div className="meta-kv">
+									<strong>{tr.cabinetSavedCount}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{watchedDeals.length}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>{tr.cabinetAlertsCount}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{alertsEnabledIds.length}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>{tr.cabinetLastSaved}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{lastSavedDeal
+											? `#${lastSavedDeal.id} ${lastSavedDeal.product}`
+											: tr.cabinetNoActivity}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>{tr.cabinetLastAlert}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{lastAlertDeal
+											? `#${lastAlertDeal.id} ${lastAlertDeal.product}`
+											: tr.cabinetNoActivity}
+									</p>
+								</div>
+							</div>
+							<div className="deal-actions">
+								<button type="button" className="deal-chip-btn" onClick={() => setView('market')}>
+									{tr.cabinetGoMarket}
+								</button>
+								<button type="button" className="deal-chip-btn" onClick={() => setView('clients')}>
+									{tr.cabinetGoClients}
+								</button>
+								<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
+									{tr.cabinetGoCompany}
+								</button>
+								<button type="button" className="deal-chip-btn" onClick={() => setView('pricing')}>
+									{tr.cabinetGoPricing}
+								</button>
+							</div>
 						</div>
 					)}
 				</section>
@@ -2302,6 +2683,23 @@ export default function App() {
 								per: tr.pricingPer,
 							}}
 						/>
+					</div>
+					<div className="contact-panel">
+						<h3 style={{ marginTop: 0 }}>{tr.pricingConceptTitle}</h3>
+						<p className="muted" style={{ marginTop: 6 }}>
+							{tr.pricingConceptBody}
+						</p>
+						<div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+							<p className="muted" style={{ margin: 0 }}>
+								• {tr.pricingBenefit1}
+							</p>
+							<p className="muted" style={{ margin: 0 }}>
+								• {tr.pricingBenefit2}
+							</p>
+							<p className="muted" style={{ margin: 0 }}>
+								• {tr.pricingBenefit3}
+							</p>
+						</div>
 					</div>
 					<div className="contact-panel">
 						<p style={{ margin: 0 }}>
@@ -2501,19 +2899,25 @@ export default function App() {
 					</p>
 					<div className="clients-layout">
 						<div className="client-list">
-							{CLIENT_PROFILES.map(profile => (
-								<button
-									key={profile.id}
-									className={`client-list-item ${selectedClient.id === profile.id ? 'active' : ''}`}
-									onClick={() => setSelectedClientId(profile.id)}>
-									<strong>{profile.company}</strong>
-									<div
-										className="muted"
-										style={{ marginTop: 4, fontSize: '.82rem' }}>
-										{profile.contactPerson} · {profile.region}
-									</div>
-								</button>
-							))}
+							{CLIENT_PROFILES.map(profile => {
+								const profileLocalized =
+									lang === 'bg'
+										? { ...profile, ...CLIENT_PROFILE_BG_COPY[profile.id] }
+										: profile;
+								return (
+									<button
+										key={profile.id}
+										className={`client-list-item ${selectedClient.id === profile.id ? 'active' : ''}`}
+										onClick={() => setSelectedClientId(profile.id)}>
+										<strong>{profile.company}</strong>
+										<div
+											className="muted"
+											style={{ marginTop: 4, fontSize: '.82rem' }}>
+											{profile.contactPerson} · {profileLocalized.region}
+										</div>
+									</button>
+								);
+							})}
 						</div>
 						<div className="client-card">
 							<h3
@@ -2523,56 +2927,56 @@ export default function App() {
 									justifyContent: 'space-between',
 									alignItems: 'center',
 								}}>
-								<span>{selectedClient.company}</span>
-								<span className="status-pill">{selectedClient.creditStatus}</span>
+								<span>{selectedClientLocalized.company}</span>
+								<span className="status-pill">{selectedClientStatusLabel}</span>
 							</h3>
 							<p className="muted" style={{ marginTop: 0 }}>
-								{selectedClient.role} · {selectedClient.contactPerson}
+								{selectedClientLocalized.role} · {selectedClientLocalized.contactPerson}
 							</p>
 							<div className="client-meta-grid">
 								<div className="meta-kv">
 									<strong>{tr.clientContact}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.email}
+										{selectedClientLocalized.email}
 										<br />
-										{selectedClient.phone}
+										{selectedClientLocalized.phone}
 									</p>
 								</div>
 								<div className="meta-kv">
 									<strong>{tr.clientMarketFocus}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.focus}
+										{selectedClientLocalized.focus}
 									</p>
 								</div>
 								<div className="meta-kv">
 									<strong>{tr.clientCertifications}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.certifications.join(', ')}
+										{selectedClientLocalized.certifications.join(', ')}
 									</p>
 								</div>
 								<div className="meta-kv">
 									<strong>{tr.clientIncoterms}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.preferredIncoterms.join(', ')}
+										{selectedClientLocalized.preferredIncoterms.join(', ')}
 									</p>
 								</div>
 								<div className="meta-kv">
 									<strong>{tr.clientMonthlyVolume}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.monthlyVolume}
+										{selectedClientLocalized.monthlyVolume}
 									</p>
 								</div>
 								<div className="meta-kv">
 									<strong>{tr.clientInternalNotes}</strong>
 									<p className="muted" style={{ margin: '8px 0 0' }}>
-										{selectedClient.notes}
+										{selectedClientLocalized.notes}
 									</p>
 								</div>
 							</div>
 							<div className="contact-panel" style={{ marginTop: 14 }}>
 								<p style={{ margin: 0 }}>
-									{tr.clientCardLabel}: <strong>{selectedClient.company}</strong>{' '}
-									| {selectedClient.contactPerson} | {selectedClient.email}
+									{tr.clientCardLabel}: <strong>{selectedClientLocalized.company}</strong>{' '}
+									| {selectedClientLocalized.contactPerson} | {selectedClientLocalized.email}
 								</p>
 							</div>
 						</div>
@@ -2627,6 +3031,9 @@ export default function App() {
 					left: isMobileViewport && isChatOpen ? 10 : undefined,
 					right: isMobileViewport && isChatOpen ? 10 : 12,
 				}}>
+				{isMobileViewport && isChatOpen && (
+					<div className="chat-backdrop" onClick={() => setIsChatOpen(false)} />
+				)}
 				{isChatOpen && (
 					<div
 						className="chat-window"
@@ -2648,7 +3055,7 @@ export default function App() {
 							<button
 								className="btn-mini"
 								type="button"
-								onClick={() => setChatMessages([{ role: 'assistant', content: CHAT_BRIEF_WELCOME[lang] }])}>
+								onClick={() => setChatMessages([])}>
 								{tr.chatClear}
 							</button>
 						</div>
@@ -2720,18 +3127,20 @@ export default function App() {
 						</div>
 					</div>
 				)}
-				<button
-					className="chat-trigger"
-					onClick={() =>
-						setIsChatOpen(v => {
-							const next = !v;
-							if (next) setHasUnreadChat(false);
-							return next;
-						})
-					}
-					aria-label={isChatOpen ? tr.chatToggleOn : tr.chatToggleOff}>
-					{isChatOpen ? <X color="white" /> : <MessageSquare color="white" />}
-				</button>
+				{!isMobileViewport && (
+					<button
+						className="chat-trigger"
+						onClick={() =>
+							setIsChatOpen(v => {
+								const next = !v;
+								if (next) setHasUnreadChat(false);
+								return next;
+							})
+						}
+						aria-label={isChatOpen ? tr.chatToggleOn : tr.chatToggleOff}>
+						{isChatOpen ? <X color="white" /> : <MessageSquare color="white" />}
+					</button>
+				)}
 			</div>
 		</div>
 	);
