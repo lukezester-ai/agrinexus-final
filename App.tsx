@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 const {
-	Leaf,
+	Wheat,
 	Search,
 	Lock,
 	MessageSquare,
@@ -1389,6 +1389,8 @@ export default function App() {
 				pricingFaqA2: 'Лимитът е месечен и се обновява автоматично в началото на периода.',
 				pricingFaqQ3: 'Имате ли onboarding за фирми?',
 				pricingFaqA3: 'Да. За Pro и Business има onboarding, съобразен с вашия търговски процес.',
+				pricingBrandMotto:
+					'AgriNexus: AI търговски компас за по-умни решения, по-бързи сделки и по-силен контрол върху маржа.',
 				registerTitle: 'Създай акаунт',
 				registerSubtitle:
 					'Регистрацията изпраща детайли към info@agrinexus.eu и потвърждение към вашия имейл (при SMTP).',
@@ -1542,6 +1544,8 @@ export default function App() {
 			pricingFaqA2: 'The quota is monthly and refreshes automatically at the start of each period.',
 			pricingFaqQ3: 'Do you provide company onboarding?',
 			pricingFaqA3: 'Yes. Pro and Business include onboarding aligned to your trade workflow.',
+			pricingBrandMotto:
+				'AgriNexus: an AI trade compass for smarter decisions, faster deal execution, and tighter margin control.',
 			registerTitle: 'Create Account',
 			registerSubtitle:
 				'Registration sends details to info@agrinexus.eu and a confirmation to your email (when SMTP is enabled).',
@@ -1647,7 +1651,8 @@ export default function App() {
           --panel-2: #0f172a;
           --border: #1e293b;
           --text-muted: #94a3b8;
-          --green: #22c55e;
+          --green: #0f4d3f;
+          --gold: #d6a23a;
         }
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
@@ -1664,6 +1669,9 @@ export default function App() {
           position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
         }
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer; }
+        .brand-wordmark { letter-spacing: .01em; }
+        .brand-agri { color: #e2e8f0; }
+        .brand-nexus { color: var(--gold); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .nav-link {
           color: #fff; opacity: 0.92; padding: 8px 10px; border-radius: 8px; cursor: pointer;
@@ -1731,6 +1739,33 @@ export default function App() {
           font-size: .95rem;
           line-height: 1.55;
           max-width: 72ch;
+        }
+        .pricing-bottom-grid {
+          display: grid;
+          grid-template-columns: 1.35fr 1fr;
+          gap: 12px;
+        }
+        .pricing-brand-panel {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(34, 197, 94, 0.12));
+        }
+        .pricing-brand-head {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: clamp(1.2rem, 2.4vw, 1.9rem);
+          font-weight: 900;
+          color: #dcfce7;
+          margin: 0;
+        }
+        .pricing-brand-motto {
+          margin: 10px 0 0;
+          color: #bbf7d0;
+          line-height: 1.55;
+          font-size: .95rem;
+          max-width: 58ch;
         }
         .badge {
           position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
@@ -1920,6 +1955,8 @@ export default function App() {
           .pricing-value-title { font-size: 1.08rem; }
           .pricing-value-body { font-size: .88rem; }
           .pricing-message-grid { grid-template-columns: 1fr; }
+          .pricing-bottom-grid { grid-template-columns: 1fr; }
+          .pricing-brand-motto { font-size: .88rem; }
 
           .mobile-nav {
             position: fixed;
@@ -1976,8 +2013,11 @@ export default function App() {
 
 			<nav className="nav">
 				<div className="brand" onClick={() => setView('landing')}>
-					<Leaf color="#22c55e" size={24} />
-					<span>AgriNexus</span>
+					<Wheat color="var(--green)" size={24} />
+					<span className="brand-wordmark">
+						<span className="brand-agri">Agri</span>
+						<span className="brand-nexus">Nexus</span>
+					</span>
 				</div>
 				<div className="nav-actions">
 					<span
@@ -2025,7 +2065,10 @@ export default function App() {
 
 			{view === 'landing' && (
 				<section className="section hero">
-					<h1>AgriNexus</h1>
+					<h1 className="brand-wordmark">
+						<span className="brand-agri">Agri</span>
+						<span className="brand-nexus">Nexus</span>
+					</h1>
 					<p>{tr.heroSub}</p>
 					<button className="btn btn-primary" onClick={() => setView('register')}>
 						{tr.createAccount}
@@ -2745,27 +2788,39 @@ export default function App() {
 							— {tr.pricingContactText}
 						</p>
 					</div>
-					<div className="contact-panel">
-						<h3 style={{ marginTop: 0 }}>{tr.pricingFaqTitle}</h3>
-						<div style={{ display: 'grid', gap: 10 }}>
-							<div>
-								<strong>{tr.pricingFaqQ1}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{tr.pricingFaqA1}
-								</p>
+					<div className="pricing-bottom-grid">
+						<div className="contact-panel">
+							<h3 style={{ marginTop: 0 }}>{tr.pricingFaqTitle}</h3>
+							<div style={{ display: 'grid', gap: 10 }}>
+								<div>
+									<strong>{tr.pricingFaqQ1}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{tr.pricingFaqA1}
+									</p>
+								</div>
+								<div>
+									<strong>{tr.pricingFaqQ2}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{tr.pricingFaqA2}
+									</p>
+								</div>
+								<div>
+									<strong>{tr.pricingFaqQ3}</strong>
+									<p className="muted" style={{ margin: '6px 0 0' }}>
+										{tr.pricingFaqA3}
+									</p>
+								</div>
 							</div>
-							<div>
-								<strong>{tr.pricingFaqQ2}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{tr.pricingFaqA2}
-								</p>
-							</div>
-							<div>
-								<strong>{tr.pricingFaqQ3}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{tr.pricingFaqA3}
-								</p>
-							</div>
+						</div>
+						<div className="contact-panel pricing-brand-panel">
+							<p className="pricing-brand-head">
+								<Wheat size={24} color="var(--green)" />
+								<span className="brand-wordmark">
+									<span className="brand-agri">Agri</span>
+									<span className="brand-nexus">Nexus</span>
+								</span>
+							</p>
+							<p className="pricing-brand-motto">{tr.pricingBrandMotto}</p>
 						</div>
 					</div>
 				</section>
@@ -3023,7 +3078,7 @@ export default function App() {
 						type="button"
 						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
 						onClick={() => setView('landing')}>
-						<Leaf size={16} />
+						<Wheat size={16} />
 						{tr.navHome}
 					</button>
 					<button
