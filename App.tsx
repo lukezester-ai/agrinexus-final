@@ -1,0 +1,2143 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as Lucide from 'lucide-react';
+import FileUploadPanel from './FileUploadPanel';
+const {
+	Leaf,
+	Search,
+	Lock,
+	MessageSquare,
+	RefreshCw,
+	CreditCard,
+	X,
+	Bell,
+	Brain,
+	LineChart,
+	Mail,
+	UserPlus,
+	LogIn,
+	Building2,
+	Globe2,
+	Send,
+	Loader2,
+} = Lucide;
+
+const PREVIEW_DEALS = [
+	{
+		id: 'p1',
+		product: 'Peeled Tomatoes',
+		packaging: '400g Tin Can',
+		certification: 'HALAL, ISO',
+		from: 'Bulgaria',
+		to: 'Dubai, UAE',
+		flag: '🇦🇪',
+		profit: 22,
+		price: '1.84 AED',
+		isMENA: true,
+		locked: false,
+	},
+	{
+		id: 'p2',
+		product: 'Wheat (Premium)',
+		packaging: 'Bulk (Silo)',
+		certification: 'SGS Inspection',
+		from: 'Romania',
+		to: 'Berlin, Germany',
+		flag: '🇩🇪',
+		profit: 14,
+		price: '0.43 EUR',
+		isMENA: false,
+		locked: false,
+	},
+	{
+		id: 'p3',
+		product: 'Rose Jam',
+		packaging: '380g Luxury Glass',
+		certification: 'HALAL, Export',
+		from: 'Greece',
+		to: 'Cairo, Egypt',
+		flag: '🇪🇬',
+		profit: 27,
+		price: '55.90 EGP',
+		isMENA: true,
+		locked: true,
+	},
+	{
+		id: 'p4',
+		product: 'Tomato Paste',
+		packaging: '70g Sachet / 24pcs',
+		certification: 'HALAL, Saber',
+		from: 'Turkey',
+		to: 'Riyadh, KSA',
+		flag: '🇸🇦',
+		profit: 21,
+		price: '2.10 SAR',
+		isMENA: true,
+		locked: true,
+	},
+];
+
+const AI_FEATURES = [
+	{
+		icon: Brain,
+		title: 'BUY / HOLD / AVOID',
+		text: 'AI trade logic makes decisions from real market signals and historical deals.',
+	},
+	{
+		icon: LineChart,
+		title: 'Predictive Pricing',
+		text: 'Forecasts future pricing and expected margin before deal execution.',
+	},
+	{
+		icon: Bell,
+		title: 'Smart Alerts',
+		text: 'Email and Telegram-ready notifications for high-margin opportunities.',
+	},
+];
+
+function getDecisionByProfit(profit: number) {
+	if (profit >= 21) return 'BUY';
+	if (profit >= 13) return 'HOLD';
+	return 'AVOID';
+}
+
+function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH' {
+	const delta = Math.abs(current - previous);
+	if (delta >= 5) return 'HIGH';
+	if (delta >= 3) return 'MED';
+	return 'LOW';
+}
+
+type DealRow = {
+	id: number;
+	product: string;
+	packaging: string;
+	certification: string;
+	from: string;
+	to: string;
+	flag: string;
+	profit: number;
+	margin: number;
+	price: string;
+	prevPrice: string;
+	isMENA: boolean;
+	decision: string;
+	prevProfit: number;
+	volatility: 'LOW' | 'MED' | 'HIGH';
+};
+
+type ChatTurn = { role: 'user' | 'assistant'; content: string };
+type Lang = 'bg' | 'en';
+type View =
+	| 'landing'
+	| 'market'
+	| 'pricing'
+	| 'register'
+	| 'login'
+	| 'company'
+	| 'clients'
+	| 'watchlist';
+
+const CHAT_WELCOME: Record<Lang, string> = {
+	bg: 'Здравейте! Аз съм AgriNexus AI. Питайте за маршрути EU/MENA, марж, сертификати или за BUY/HOLD/AVOID — ползвам контекста от текущия ви преглед в Marketplace.',
+	en: 'Hello! I am AgriNexus AI. Ask about EU/MENA routes, margin, certifications, or BUY/HOLD/AVOID — I use your current Marketplace filter as context.',
+};
+
+type ClientProfile = {
+	id: string;
+	company: string;
+	contactPerson: string;
+	role: string;
+	email: string;
+	phone: string;
+	region: string;
+	focus: string;
+	certifications: string[];
+	preferredIncoterms: string[];
+	monthlyVolume: string;
+	creditStatus: 'Approved' | 'Pending' | 'Review';
+	notes: string;
+};
+
+const QUICK_PROMPTS_BG = [
+	'Дай BUY/HOLD/AVOID за домати България -> UAE.',
+	'Кои сертификати са критични за export към KSA?',
+	'Направи бърз risk-check за EU to MENA route.',
+];
+
+const QUICK_PROMPTS_EN = [
+	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
+	'Which certifications matter most for export to KSA?',
+	'Quick risk-check for EU to MENA route.',
+];
+
+const MARKET_FLASH_EN = [
+	'Tomato paste corridor TR → KSA showing tighter spreads this session.',
+	'Sunflower oil bids from Egypt remain strong for next 2 loading windows.',
+	'Premium wheat routes into EU show HOLD bias due to freight pressure.',
+];
+
+const MARKET_FLASH_BG = [
+	'Коридор доматено пюре TR → KSA: по-тесни спредове през тази сесия.',
+	'Оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене.',
+	'Премиум пшенични маршрути към EU: склонност към HOLD заради натиск върху превоза.',
+];
+
+const CLIENT_PROFILES: ClientProfile[] = [
+	{
+		id: 'c-101',
+		company: 'Nile Harvest Foods',
+		contactPerson: 'Omar Hassan',
+		role: 'Procurement Director',
+		email: 'omar@nileharvest.example',
+		phone: '+20 100 221 884',
+		region: 'Egypt (Cairo / Alexandria)',
+		focus: 'Tomato products, sunflower oil',
+		certifications: ['HALAL', 'ISO 22000'],
+		preferredIncoterms: ['FOB', 'CIF'],
+		monthlyVolume: '420 tons',
+		creditStatus: 'Approved',
+		notes: 'High demand before Ramadan period. Prefers stable monthly pricing windows.',
+	},
+	{
+		id: 'c-102',
+		company: 'Desert Gate Trading',
+		contactPerson: 'Maha Al-Saud',
+		role: 'Category Manager',
+		email: 'maha@desertgate.example',
+		phone: '+966 53 882 199',
+		region: 'Saudi Arabia (Riyadh / Jeddah)',
+		focus: 'Tomato paste sachets, pulses',
+		certifications: ['HALAL', 'Saber', 'SGS'],
+		preferredIncoterms: ['CIF', 'DAP'],
+		monthlyVolume: '290 tons',
+		creditStatus: 'Pending',
+		notes: 'Requires fast certificate validation and strict shipment timeline.',
+	},
+	{
+		id: 'c-103',
+		company: 'EuroAgri Distribution',
+		contactPerson: 'Elena Novak',
+		role: 'Import Lead',
+		email: 'elena@euroagri.example',
+		phone: '+49 151 702 611',
+		region: 'Germany / Netherlands',
+		focus: 'Premium wheat, barley',
+		certifications: ['SGS Inspection', 'Phytosanitary'],
+		preferredIncoterms: ['FCA', 'FOB'],
+		monthlyVolume: '680 tons',
+		creditStatus: 'Review',
+		notes: 'Margin sensitive. Prefers split contracts with weekly pricing review.',
+	},
+];
+
+function PricingCard({
+	title,
+	price,
+	period,
+	note = '',
+	popular = false,
+}: {
+	title: string;
+	price: string;
+	period: string;
+	note?: string;
+	popular?: boolean;
+}) {
+	const handleSubscribe = () => {
+		const subject = encodeURIComponent(`Subscription Inquiry: ${title} Plan`);
+		const body = encodeURIComponent(
+			`Hello, I would like to subscribe to the ${title} plan (€${price}/${period}) for AgriNexus. Please reach me at info@agrinexus.eu for onboarding.\n`
+		);
+		window.location.href = `mailto:info@agrinexus.eu?subject=${subject}&body=${body}`;
+	};
+
+	return (
+		<div className={`pricing-card ${popular ? 'popular' : ''}`}>
+			{popular && <div className="badge">BEST VALUE</div>}
+			<h3>{title}</h3>
+			<div className="pricing-value">€{price}</div>
+			<p className="muted">per {period}</p>
+			{note && <p className="green-note">{note}</p>}
+			<button
+				className={`btn ${popular ? 'btn-primary' : 'btn-light'}`}
+				onClick={handleSubscribe}>
+				<CreditCard size={18} /> Subscribe
+			</button>
+		</div>
+	);
+}
+
+async function apiChat(
+	messages: ChatTurn[],
+	dealContext: string,
+	locale: Lang,
+	signal?: AbortSignal
+): Promise<string> {
+	const res = await fetch('/api/chat', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ messages, dealContext, locale }),
+		signal,
+	});
+	let data: { reply?: string; error?: string; hint?: string } = {};
+	try {
+		data = (await res.json()) as typeof data;
+	} catch {
+		throw new Error(
+			locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
+		);
+	}
+	if (!res.ok) {
+		throw new Error(
+			data.hint ||
+				data.error ||
+				(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
+		);
+	}
+	if (!data.reply) throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
+	return data.reply;
+}
+
+export default function App() {
+	const [view, setView] = useState<View>('landing');
+	const [lang, setLang] = useState<Lang>(() =>
+		localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'
+	);
+	const [isPremium] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [isChatOpen, setIsChatOpen] = useState(false);
+	const [nextUpdate, setNextUpdate] = useState(30 * 60);
+	const [refreshTick, setRefreshTick] = useState(0);
+	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
+	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
+	const [chatMessages, setChatMessages] = useState<ChatTurn[]>(() => [
+		{
+			role: 'assistant',
+			content: CHAT_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'],
+		},
+	]);
+	const [chatInput, setChatInput] = useState(
+		() => sessionStorage.getItem('agrinexus-chat-draft') ?? ''
+	);
+	const [chatLoading, setChatLoading] = useState(false);
+	const chatAbortRef = useRef<AbortController | null>(null);
+	const chatEndRef = useRef<HTMLDivElement | null>(null);
+	const chatTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
+	const [regFullName, setRegFullName] = useState('');
+	const [regCompany, setRegCompany] = useState('');
+	const [regEmail, setRegEmail] = useState('');
+	const [regPassword, setRegPassword] = useState('');
+	const [regMarket, setRegMarket] = useState('');
+	const [regPhone, setRegPhone] = useState('');
+	const [regSubscribe, setRegSubscribe] = useState(true);
+	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+	const [regMsg, setRegMsg] = useState('');
+
+	const [contactName, setContactName] = useState('');
+	const [contactEmail, setContactEmail] = useState('');
+	const [contactCompany, setContactCompany] = useState('');
+	const [contactBody, setContactBody] = useState('');
+	const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
+	const [contactFeedback, setContactFeedback] = useState('');
+	const [watchlistIds, setWatchlistIds] = useState<number[]>(() => {
+		try {
+			const raw = localStorage.getItem('agrinexus-watchlist');
+			return raw ? (JSON.parse(raw) as number[]) : [];
+		} catch {
+			return [];
+		}
+	});
+	const [alertsEnabledIds, setAlertsEnabledIds] = useState<number[]>(() => {
+		try {
+			const raw = localStorage.getItem('agrinexus-alerts');
+			return raw ? (JSON.parse(raw) as number[]) : [];
+		} catch {
+			return [];
+		}
+	});
+	const [alertThreshold, setAlertThreshold] = useState<number>(() => {
+		const raw = localStorage.getItem('agrinexus-alert-threshold');
+		const value = raw ? Number(raw) : 20;
+		return Number.isFinite(value) ? value : 20;
+	});
+	const [alertsMuted, setAlertsMuted] = useState<boolean>(
+		() => localStorage.getItem('agrinexus-alerts-muted') === '1'
+	);
+	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+	const formatPhoneInput = (value: string) => {
+		const digitsOnly = value.replace(/\D/g, '');
+		if (!digitsOnly) return '';
+		return `+${digitsOnly}`.slice(0, 16);
+	};
+	const isValidPhoneInput = (value: string) => {
+		const normalized = formatPhoneInput(value);
+		if (!normalized) return true;
+		return /^\+[1-9]\d{7,14}$/.test(normalized);
+	};
+	const canSubmitRegister =
+		regFullName.trim().length > 1 &&
+		regCompany.trim().length > 1 &&
+		isValidEmail(regEmail) &&
+		isValidPhoneInput(regPhone) &&
+		regMarket.trim().length > 1;
+	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
+	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
+	const showRegisterPhoneError = regPhone.trim().length > 0 && !isValidPhoneInput(regPhone);
+	const invalidEmailText =
+		lang === 'bg'
+			? 'Моля, въведи валиден имейл адрес.'
+			: 'Please enter a valid email address.';
+	const invalidPhoneText =
+		lang === 'bg'
+			? 'Моля, въведи телефон в E.164 формат (напр. +359881234567).'
+			: 'Please enter phone in E.164 format (e.g. +359881234567).';
+	const phoneHelperText =
+		lang === 'bg'
+			? 'Използвай международен код и само цифри (формат E.164).'
+			: 'Use country code and digits only (E.164 format).';
+
+	const allDeals = useMemo(() => {
+		const products = [
+			{ name: 'Peeled Tomatoes', pack: '400g Tin Can', cert: 'HALAL, ISO' },
+			{ name: 'Roasted Peppers', pack: '720ml Glass Jar', cert: 'HALAL, Saber' },
+			{ name: 'Wheat (Premium)', pack: 'Bulk (Silo)', cert: 'SGS Inspection' },
+			{ name: 'Rose Jam', pack: '380g Luxury Glass', cert: 'HALAL, Export' },
+			{ name: 'Vegetable Stew', pack: '3kg Horeca Tin', cert: 'HALAL, ISO 22000' },
+			{ name: 'Barley', pack: 'Bulk', cert: 'Phytosanitary Cert' },
+			{ name: 'Tomato Paste', pack: '70g Sachet / 24pcs', cert: 'HALAL, Saber' },
+			{ name: 'Sunflower Oil', pack: '1L / 5L PET', cert: 'ISO 22000, HACCP' },
+			{ name: 'Corn', pack: 'Bulk', cert: 'SGS, Phytosanitary' },
+			{ name: 'Chickpeas', pack: '25kg PP Bags', cert: 'HALAL, Export' },
+		];
+
+		const sourceCountries = [
+			'Bulgaria',
+			'Romania',
+			'Greece',
+			'Turkey',
+			'Serbia',
+			'Poland',
+			'Ukraine',
+			'Spain',
+			'Hungary',
+			'France',
+			'Italy',
+			'Netherlands',
+		];
+
+		const importMarkets = [
+			{
+				to: 'Cairo, Egypt',
+				cur: 'EGP',
+				mult: 56,
+				flag: '🇪🇬',
+				region: 'MENA',
+				demandBoost: 1.2,
+			},
+			{
+				to: 'Alexandria, Egypt',
+				cur: 'EGP',
+				mult: 56,
+				flag: '🇪🇬',
+				region: 'MENA',
+				demandBoost: 1.15,
+			},
+			{ to: 'Dubai, UAE', cur: 'AED', mult: 4, flag: '🇦🇪', region: 'MENA', demandBoost: 1.1 },
+			{
+				to: 'Abu Dhabi, UAE',
+				cur: 'AED',
+				mult: 4,
+				flag: '🇦🇪',
+				region: 'MENA',
+				demandBoost: 1.05,
+			},
+			{
+				to: 'Riyadh, KSA',
+				cur: 'SAR',
+				mult: 4.1,
+				flag: '🇸🇦',
+				region: 'MENA',
+				demandBoost: 1.1,
+			},
+			{
+				to: 'Jeddah, KSA',
+				cur: 'SAR',
+				mult: 4.1,
+				flag: '🇸🇦',
+				region: 'MENA',
+				demandBoost: 1.08,
+			},
+			{
+				to: 'Doha, Qatar',
+				cur: 'QAR',
+				mult: 4,
+				flag: '🇶🇦',
+				region: 'MENA',
+				demandBoost: 1.07,
+			},
+			{
+				to: 'Kuwait City, Kuwait',
+				cur: 'KWD',
+				mult: 0.31,
+				flag: '🇰🇼',
+				region: 'MENA',
+				demandBoost: 1.08,
+			},
+			{
+				to: 'Amman, Jordan',
+				cur: 'JOD',
+				mult: 0.71,
+				flag: '🇯🇴',
+				region: 'MENA',
+				demandBoost: 1.04,
+			},
+			{
+				to: 'Casablanca, Morocco',
+				cur: 'MAD',
+				mult: 10.7,
+				flag: '🇲🇦',
+				region: 'MENA',
+				demandBoost: 1.02,
+			},
+			{
+				to: 'Berlin, Germany',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇩🇪',
+				region: 'EU',
+				demandBoost: 0.96,
+			},
+			{
+				to: 'Milan, Italy',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇮🇹',
+				region: 'EU',
+				demandBoost: 0.95,
+			},
+			{
+				to: 'Paris, France',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇫🇷',
+				region: 'EU',
+				demandBoost: 0.95,
+			},
+			{
+				to: 'Madrid, Spain',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇪🇸',
+				region: 'EU',
+				demandBoost: 0.94,
+			},
+			{
+				to: 'Amsterdam, Netherlands',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇳🇱',
+				region: 'EU',
+				demandBoost: 0.93,
+			},
+			{
+				to: 'Warsaw, Poland',
+				cur: 'PLN',
+				mult: 4.3,
+				flag: '🇵🇱',
+				region: 'EU',
+				demandBoost: 0.96,
+			},
+			{
+				to: 'Athens, Greece',
+				cur: 'EUR',
+				mult: 1,
+				flag: '🇬🇷',
+				region: 'EU',
+				demandBoost: 0.94,
+			},
+			{
+				to: 'Bucharest, Romania',
+				cur: 'RON',
+				mult: 5,
+				flag: '🇷🇴',
+				region: 'EU',
+				demandBoost: 0.95,
+			},
+		];
+
+		const seededRand = (seed: number) => {
+			const x = Math.sin(seed) * 10000;
+			return x - Math.floor(x);
+		};
+
+		return Array.from({ length: 240 }, (_, i) => {
+			const product = products[i % products.length];
+			const market = importMarkets[i % importMarkets.length];
+			const base = market.region === 'MENA' ? 13 : 8;
+			const randomFactor = Math.floor(seededRand(i + 1 + refreshTick) * 13);
+			const prevRandomFactor = Math.floor(
+				seededRand(i + 1 + Math.max(0, refreshTick - 1)) * 13
+			);
+			const profit = Math.round((base + randomFactor) * market.demandBoost);
+			const prevProfit = Math.round((base + prevRandomFactor) * market.demandBoost);
+			const margin = Math.max(5, profit - 4);
+			const currentPrice = `${(seededRand(i + 99 + refreshTick) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
+			const prevPrice = `${(seededRand(i + 99 + Math.max(0, refreshTick - 1)) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
+
+			return {
+				id: i + 1,
+				product: product.name,
+				packaging: product.pack,
+				certification: product.cert,
+				from: sourceCountries[i % sourceCountries.length],
+				to: market.to,
+				flag: market.flag,
+				profit,
+				prevProfit,
+				margin,
+				price: currentPrice,
+				prevPrice,
+				isMENA: market.region === 'MENA',
+				decision: getDecisionByProfit(profit),
+				volatility: getVolatility(profit, prevProfit),
+			} satisfies DealRow;
+		});
+	}, [refreshTick]);
+
+	const filteredDeals = allDeals.filter(d => {
+		const q = searchQuery.toLowerCase();
+		return (
+			d.product.toLowerCase().includes(q) ||
+			d.from.toLowerCase().includes(q) ||
+			d.to.toLowerCase().includes(q)
+		);
+	});
+
+	const dealContextForAI = useMemo(() => {
+		const slice = filteredDeals.slice(0, 18);
+		return slice
+			.map(
+				d =>
+					`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}`
+			)
+			.join('\n');
+	}, [filteredDeals]);
+
+	const topMovers = useMemo(
+		() =>
+			[...filteredDeals]
+				.sort(
+					(a, b) => Math.abs(b.profit - b.prevProfit) - Math.abs(a.profit - a.prevProfit)
+				)
+				.slice(0, 4),
+		[filteredDeals]
+	);
+
+	useEffect(() => {
+		const timer = setInterval(() => {
+			setNextUpdate(prev => {
+				if (prev <= 1) {
+					setRefreshTick(v => v + 1);
+					return 30 * 60;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+		return () => clearInterval(timer);
+	}, []);
+
+	useEffect(() => {
+		const flashTimer = setInterval(() => {
+			const flashes = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+			setMarketFlashIndex(v => (v + 1) % flashes.length);
+		}, 9000);
+		return () => clearInterval(flashTimer);
+	}, [lang]);
+
+	useEffect(() => {
+		localStorage.setItem('agrinexus-watchlist', JSON.stringify(watchlistIds));
+	}, [watchlistIds]);
+
+	useEffect(() => {
+		localStorage.setItem('agrinexus-alerts', JSON.stringify(alertsEnabledIds));
+	}, [alertsEnabledIds]);
+
+	useEffect(() => {
+		localStorage.setItem('agrinexus-lang', lang);
+	}, [lang]);
+
+	useEffect(() => {
+		localStorage.setItem('agrinexus-alert-threshold', String(alertThreshold));
+	}, [alertThreshold]);
+
+	useEffect(() => {
+		localStorage.setItem('agrinexus-alerts-muted', alertsMuted ? '1' : '0');
+	}, [alertsMuted]);
+
+	const formatTime = `${Math.floor(nextUpdate / 60)}:${(nextUpdate % 60).toString().padStart(2, '0')}`;
+	const selectedClient =
+		CLIENT_PROFILES.find(profile => profile.id === selectedClientId) || CLIENT_PROFILES[0];
+	const tickerItems = filteredDeals.slice(0, 12);
+	const watchedDeals = allDeals.filter(deal => watchlistIds.includes(deal.id));
+
+	const toggleWatchlist = (dealId: number) => {
+		setWatchlistIds(prev =>
+			prev.includes(dealId) ? prev.filter(id => id !== dealId) : [...prev, dealId]
+		);
+	};
+
+	const toggleAlert = (dealId: number) => {
+		setAlertsEnabledIds(prev =>
+			prev.includes(dealId) ? prev.filter(id => id !== dealId) : [...prev, dealId]
+		);
+	};
+
+	const forceRefreshDeals = () => {
+		setRefreshTick(v => v + 1);
+		setNextUpdate(30 * 60);
+	};
+
+	const sendChat = useCallback(async () => {
+		const trimmed = chatInput.trim();
+		if (!trimmed || chatLoading) return;
+		chatAbortRef.current?.abort();
+		const controller = new AbortController();
+		chatAbortRef.current = controller;
+
+		const nextUser: ChatTurn = { role: 'user', content: trimmed };
+		const history = [...chatMessages, nextUser];
+		setChatMessages(history);
+		setChatInput('');
+		sessionStorage.removeItem('agrinexus-chat-draft');
+		setChatLoading(true);
+		try {
+			const payload = history
+				.filter(m => m.role === 'user' || m.role === 'assistant')
+				.slice(-16);
+			const reply = await apiChat(payload, dealContextForAI, lang, controller.signal);
+			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+		} catch (e) {
+			const name =
+				typeof e === 'object' && e && 'name' in e
+					? String((e as { name: string }).name)
+					: '';
+			if (name === 'AbortError') return;
+			const msg =
+				e instanceof Error
+					? e.message
+					: lang === 'bg'
+						? 'Грешка при AI заявка'
+						: 'AI request error';
+			const normalized = msg.includes('OpenAI is not configured')
+				? lang === 'bg'
+					? 'AI чатът не е конфигуриран. Създай .env с OPENAI_API_KEY и пусни npm run dev (Vite + локален API). На Vercel добави ключа в Environment Variables.'
+					: 'AI chat is not configured. Create .env with OPENAI_API_KEY and run npm run dev (Vite + local API). On Vercel add the key in Environment Variables.'
+				: msg;
+			setChatMessages(prev => [...prev, { role: 'assistant', content: normalized }]);
+		} finally {
+			if (chatAbortRef.current === controller) chatAbortRef.current = null;
+			setChatLoading(false);
+		}
+	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
+
+	useEffect(() => {
+		sessionStorage.setItem('agrinexus-chat-draft', chatInput);
+	}, [chatInput]);
+
+	useEffect(() => {
+		if (!isChatOpen) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setIsChatOpen(false);
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, [isChatOpen]);
+
+	useEffect(() => {
+		chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+	}, [chatMessages, chatLoading, isChatOpen]);
+
+	useEffect(() => () => chatAbortRef.current?.abort(), []);
+
+	useEffect(() => {
+		if (!isChatOpen) return;
+		const id = window.setTimeout(() => chatTextAreaRef.current?.focus(), 80);
+		return () => clearTimeout(id);
+	}, [isChatOpen]);
+
+	const applyQuickPrompt = (prompt: string) => {
+		setChatInput(prompt);
+		setIsChatOpen(true);
+	};
+
+	const submitRegister = async () => {
+		if (!canSubmitRegister || regStatus === 'loading') return;
+		if (!isValidEmail(regEmail)) {
+			setRegStatus('err');
+			setRegMsg(
+				lang === 'bg'
+					? 'Моля, въведи валиден имейл адрес.'
+					: 'Please enter a valid email address.'
+			);
+			return;
+		}
+		if (!isValidPhoneInput(regPhone)) {
+			setRegStatus('err');
+			setRegMsg(invalidPhoneText);
+			return;
+		}
+		setRegStatus('loading');
+		setRegMsg('');
+		try {
+			const res = await fetch('/api/register-interest', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					fullName: regFullName,
+					companyName: regCompany,
+					businessEmail: regEmail,
+					phone: formatPhoneInput(regPhone),
+					marketFocus: regMarket,
+					subscribeAlerts: regSubscribe,
+				}),
+			});
+			let data: {
+				ok?: boolean;
+				error?: string;
+				hint?: string;
+				preview?: string;
+			} = {};
+			try {
+				data = (await res.json()) as typeof data;
+			} catch {
+				data = {};
+			}
+			if (!res.ok) {
+				setRegStatus('err');
+				setRegMsg(
+					data.hint ||
+						data.error ||
+						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
+				);
+				return;
+			}
+			setRegStatus('ok');
+			setRegMsg(
+				lang === 'bg'
+					? 'Изпратено до info@agrinexus.eu — очаквайте потвърждение на имейла ви.'
+					: 'Sent to info@agrinexus.eu — please expect a confirmation by email.'
+			);
+			setRegPassword('');
+		} catch {
+			setRegStatus('err');
+			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
+		}
+	};
+
+	const submitContact = async () => {
+		if (contactStatus === 'loading' || !contactEmail.trim() || !contactBody.trim()) return;
+		if (!isValidEmail(contactEmail)) {
+			setContactStatus('err');
+			setContactFeedback(
+				lang === 'bg'
+					? 'Моля, въведи валиден имейл адрес.'
+					: 'Please enter a valid email address.'
+			);
+			return;
+		}
+		setContactStatus('loading');
+		setContactFeedback('');
+		try {
+			const res = await fetch('/api/contact', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					name: contactName,
+					email: contactEmail,
+					company: contactCompany,
+					message: contactBody,
+				}),
+			});
+			let data: { ok?: boolean; error?: string; hint?: string } = {};
+			try {
+				data = (await res.json()) as typeof data;
+			} catch {
+				data = {};
+			}
+			if (!res.ok) {
+				setContactStatus('err');
+				setContactFeedback(
+					data.hint ||
+						data.error ||
+						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
+				);
+				return;
+			}
+			setContactStatus('ok');
+			setContactFeedback(
+				lang === 'bg'
+					? 'Съобщението е изпратено. Отговорът идва от info@agrinexus.eu.'
+					: 'Message sent. A reply will come from info@agrinexus.eu.'
+			);
+			setContactBody('');
+		} catch {
+			setContactStatus('err');
+			setContactFeedback(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
+		}
+	};
+
+	const handleDemoSignIn = () => {
+		setView('company');
+	};
+
+	const tr = useMemo(() => {
+		if (lang === 'bg') {
+			return {
+				navHome: 'Начало',
+				navMarket: 'Пазар',
+				navPricing: 'Абонаменти',
+				navClients: 'Клиенти',
+				navWatchlist: 'Списък',
+				navLogin: 'Вход',
+				navGetStarted: 'Започни',
+				langAria: 'Превключи език',
+				heroSub:
+					'Специализиран AI слой за агротърговия с реални данни и цени за Европа и MENA — жива поддръжка с OpenAI на бекенда.',
+				createAccount: 'Създай акаунт',
+				livePreview: 'Преглед на жив пазар',
+				activeOpps: 'Активни възможности',
+				liveDealsHint: '4 от 240+ живи сделки — Египет като основен вносител',
+				openMarketplace: 'Целият пазар',
+				clientDossiers: 'Клиентски досиета',
+				menaBadge: 'ПАЗАР MENA',
+				euBadge: 'ПАЗАР EU',
+				premiumAccess: 'Premium достъп',
+				contactSales: 'Продажби — info@agrinexus.eu',
+				contactHelp:
+					'Изпратете запитване към екипа. При активиран SMTP записваме съобщението и изпращаме копие до вас.',
+				phName: 'Име',
+				phEmail: 'Имейл',
+				phCompany: 'Компания',
+				phMessage: 'Съобщение',
+				send: 'Изпрати',
+				searchPh: 'Търсене по продукт, страна или дестинация…',
+				aiUpdateIn: 'Следваща AI актуализация след',
+				decision: 'Решение',
+				estMargin: 'Очакван марж',
+				unlock: 'Отключи',
+				coverageTitle: 'Капацитет и покритие',
+				coverageBody:
+					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. AI чатът получава топ филтрираните сделки като контекст.',
+				watchlistTitle: 'Моят списък',
+				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
+				watchSaved: '★ Запазено',
+				watchSave: 'Запази',
+				alertOn: 'Известия вкл.',
+				alertOff: 'Известия',
+				alertMute: 'Без звук за известия',
+				alertThreshold: 'Праг %',
+				terminalVol: 'Волатилност',
+				marketPulse: 'Пазарен импулс',
+				chatThinking: 'Мисля…',
+				chatTitle: 'AgriNexus AI',
+				chatSubtitle:
+					'Жив чат през OpenAI (gpt-4o-mini по подразбиране). Контекст: до 18 от филтрираните сделки в Пазара.',
+				chatPromptsLabel: 'Бързи подкани',
+				chatClear: 'Изчисти',
+				chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
+				chatToggleOn: 'Затвори чата',
+				chatToggleOff: 'Отвори чата',
+			};
+		}
+		return {
+			navHome: 'Home',
+			navMarket: 'Marketplace',
+			navPricing: 'Pricing',
+			navClients: 'Clients',
+			navWatchlist: 'Watchlist',
+			navLogin: 'Sign In',
+			navGetStarted: 'Get Started',
+			langAria: 'Switch language',
+			heroSub:
+				'Domain-specific AI layer on top of a powerful model for agricultural trading. Real data, real prices, real markets, and decision logic for Europe and MENA — powered by OpenAI on the backend for live chat.',
+			createAccount: 'Create your account',
+			livePreview: 'Live Market Preview',
+			activeOpps: 'Active Trade Opportunities',
+			liveDealsHint: '4 of 240+ live deals — Egypt included as a major importer',
+			openMarketplace: 'Open full marketplace',
+			clientDossiers: 'Client dossiers',
+			menaBadge: 'MENA MARKET',
+			euBadge: 'EU MARKET',
+			premiumAccess: 'Premium Access',
+			contactSales: 'Contact sales — info@agrinexus.eu',
+			contactHelp:
+				'Send a message directly to the team. When SMTP is enabled we store it and email you a copy.',
+			phName: 'Name',
+			phEmail: 'Email',
+			phCompany: 'Company',
+			phMessage: 'Message',
+			send: 'Send',
+			searchPh: 'Search by product, supplier country or destination…',
+			aiUpdateIn: 'AI update in:',
+			decision: 'Decision',
+			estMargin: 'Estimated margin',
+			unlock: 'Unlock',
+			coverageTitle: 'Coverage capacity',
+			coverageBody:
+				'Current setup supports multi-country supply and demand across EU + MENA. The AI chat receives the top filtered deals as context — refine search before asking for BUY/HOLD/AVOID reasoning.',
+			watchlistTitle: 'Watchlist',
+			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
+			watchSaved: '★ Saved',
+			watchSave: 'Watch',
+			alertOn: 'Alerts on',
+			alertOff: 'Alerts',
+			alertMute: 'Mute alerts',
+			alertThreshold: 'Threshold %',
+			terminalVol: 'Volatility',
+			marketPulse: 'Market pulse',
+			chatThinking: 'Thinking…',
+			chatTitle: 'AgriNexus AI',
+			chatSubtitle:
+				'Live chat via OpenAI (gpt-4o-mini by default). Context: up to 18 deals from your current Marketplace filter.',
+			chatPromptsLabel: 'Quick prompts',
+			chatClear: 'Clear',
+			chatPlaceholder: 'Ask about routes, margin, certifications…',
+			chatToggleOn: 'Close chat',
+			chatToggleOff: 'Open chat',
+		};
+	}, [lang]);
+
+	const landingAiCards = useMemo(() => {
+		const bgCopy = [
+			{
+				title: 'КУПИ / ЗАДРЪЖ / ИЗБЕГНИ',
+				text: 'AI търговска логика от реални сигнали и исторически сделки.',
+			},
+			{
+				title: 'Прогнозни цени',
+				text: 'Оценка на бъдеща цена и марж преди затваряне на сделка.',
+			},
+			{
+				title: 'Умни известия',
+				text: 'Известия по имейл или Telegram при висок марж.',
+			},
+		];
+		const texts =
+			lang === 'bg' ? bgCopy : AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
+		return AI_FEATURES.map((f, i) => ({ ...f, ...texts[i] }));
+	}, [lang]);
+
+	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
+	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+
+	return (
+		<div className="app">
+			<style>{`
+        :root {
+          --bg: #0b1221;
+          --panel: #161f32;
+          --panel-2: #0f172a;
+          --border: #1e293b;
+          --text-muted: #94a3b8;
+          --green: #22c55e;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
+        .app { min-height: 100vh; background: var(--bg); color: #fff; }
+
+        @keyframes scrollDeals {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .nav {
+          display: flex; justify-content: space-between; align-items: center; gap: 12px;
+          padding: 14px 18px; background: var(--panel-2); border-bottom: 1px solid var(--border);
+          position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer; }
+        .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .nav-link {
+          color: #fff; opacity: 0.92; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+          border: 1px solid transparent;
+        }
+        .nav-link.active { color: var(--green); background: rgba(34, 197, 94, 0.08); }
+
+        .btn {
+          border: none; border-radius: 12px; cursor: pointer; font-weight: 700;
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
+        }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-primary { background: var(--green); color: white; }
+        .btn-light { background: white; color: #0f172a; }
+        .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); }
+
+        .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
+        .hero { text-align: center; padding-top: 42px; }
+        .hero h1 { font-size: clamp(2.1rem, 8vw, 4.6rem); margin: 0 0 12px; }
+        .hero p { color: var(--text-muted); max-width: 860px; margin: 0 auto 20px; }
+
+        .ai-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
+        .ai-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: left; }
+        .ai-card h4 { margin: 10px 0 6px; }
+        .ai-card p { margin: 0; color: var(--text-muted); font-size: .9rem; }
+
+        .preview-mask {
+          overflow: hidden;
+          mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
+          -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
+        }
+        .deals-track { display: flex; gap: 16px; width: max-content; animation: scrollDeals 24s linear infinite; }
+        .deals-track:hover { animation-play-state: paused; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+        .deal-card, .pricing-card {
+          background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
+        }
+        .deal-card.top { border: 2px solid var(--green); }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+        .pricing-card { text-align: center; padding: 20px; }
+        .pricing-card.popular { border: 2px solid var(--green); }
+        .badge {
+          position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+          background: var(--green); padding: 5px 10px; border-radius: 999px; font-size: .73rem; font-weight: 800;
+        }
+        .pricing-value { font-size: 2rem; font-weight: 900; margin: 10px 0; }
+
+        .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+        .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
+        .ticker-track { display: flex; gap: 20px; width: max-content; padding: 10px 0; animation: scrollDeals 35s linear infinite; }
+        .ticker-track:hover { animation-play-state: paused; }
+        .ticker-item { white-space: nowrap; font-size: .86rem; color: #d1fae5; }
+        .ticker-item strong { color: #22c55e; margin-left: 8px; }
+        .market-flash-line {
+          margin: 0; flex: 1; min-width: 180px;
+          background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 10px;
+          padding: 11px 13px; color: #bbf7d0; font-size: .9rem;
+        }
+        .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
+        .terminal-metric { background: #0b1221; border: 1px solid #1f2937; border-radius: 8px; padding: 8px 10px; }
+        .terminal-metric strong { color: #86efac; display: block; font-size: 1.05rem; }
+        .terminal-metric span { color: #94a3b8; font-size: .76rem; }
+        .deal-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .deal-chip-btn {
+          border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
+          padding: 5px 10px; font-size: .74rem; cursor: pointer;
+        }
+        .deal-chip-btn.active { border-color: #22c55e; color: #86efac; }
+        .live-dot {
+          width: 8px; height: 8px; background: #22c55e; border-radius: 999px; display: inline-block; margin-right: 6px;
+          animation: pulseDot 1.6s infinite;
+        }
+        @keyframes pulseDot {
+          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); }
+          100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+        }
+        .pulse-toolbar {
+          display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .search-wrap { position: relative; width: min(100%, 480px); flex: 1; }
+        .search-wrap input {
+          width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; outline: none;
+          background: #1e293b; color: #fff; border: 1px solid #334155;
+        }
+        .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
+
+        .locked-overlay {
+          position: absolute; inset: 0; border-radius: 16px;
+          background: rgba(11, 18, 33, 0.56); display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .muted { color: var(--text-muted); }
+        .green-note { color: var(--green); font-weight: 700; }
+        .contact-panel {
+          background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 16px;
+        }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-grid input, .form-grid select, .form-grid textarea {
+          width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff;
+          font-family: inherit;
+        }
+
+        .chat-box { position: fixed; right: 12px; bottom: 12px; z-index: 200; }
+        .chat-window {
+          width: min(92vw, 380px); background: #1e293b; border: 1px solid #334155;
+          border-radius: 14px; padding: 12px; margin-bottom: 8px;
+          display: flex; flex-direction: column; max-height: min(70vh, 520px);
+        }
+        .chat-messages {
+          flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+          margin-bottom: 10px; padding-right: 4px;
+        }
+        .chat-bubble {
+          align-self: flex-start; max-width: 100%; padding: 10px 12px; border-radius: 12px;
+          font-size: .9rem; line-height: 1.45;
+        }
+        .chat-bubble.user {
+          align-self: flex-end; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .chat-bubble.assistant {
+          background: #0f172a; border: 1px solid #334155;
+        }
+        .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
+        .chat-input-row textarea {
+          flex: 1; resize: none; min-height: 44px; max-height: 120px; padding: 10px;
+          border-radius: 10px; border: 1px solid #334155; background: #0b1221; color: #fff; font-family: inherit;
+        }
+        .chat-prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .chat-prompt-chip {
+          border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
+          padding: 6px 10px; font-size: .76rem; cursor: pointer;
+        }
+        .chat-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .btn-mini {
+          background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 8px;
+          padding: 5px 9px; cursor: pointer; font-size: .76rem;
+        }
+
+        .clients-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
+        .client-list { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
+        .client-list-item {
+          width: 100%; text-align: left; border: 1px solid transparent; background: #0f172a; color: #fff;
+          padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
+        }
+        .client-list-item.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.08); }
+        .client-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+        .client-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+        .meta-kv { background: #0f172a; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; }
+        .status-pill {
+          display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
+          background: rgba(34, 197, 94, 0.13); color: #4ade80;
+        }
+        .chat-trigger {
+          width: 54px; height: 54px; border-radius: 999px; border: none; background: var(--green);
+          display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.85s linear infinite; display: inline-block; }
+
+        @media (max-width: 700px) {
+          .form-grid { grid-template-columns: 1fr; }
+          .grid, .pricing-grid { grid-template-columns: 1fr; }
+          .clients-layout, .client-meta-grid { grid-template-columns: 1fr; }
+          .terminal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+      `}</style>
+
+			<nav className="nav">
+				<div className="brand" onClick={() => setView('landing')}>
+					<Leaf color="#22c55e" size={24} />
+					<span>AgriNexus</span>
+				</div>
+				<div className="nav-actions">
+					<span
+						className={`nav-link ${view === 'landing' ? 'active' : ''}`}
+						onClick={() => setView('landing')}>
+						{tr.navHome}
+					</span>
+					<span
+						className={`nav-link ${view === 'market' ? 'active' : ''}`}
+						onClick={() => setView('market')}>
+						{tr.navMarket}
+					</span>
+					<span
+						className={`nav-link ${view === 'pricing' ? 'active' : ''}`}
+						onClick={() => setView('pricing')}>
+						{tr.navPricing}
+					</span>
+					<span
+						className={`nav-link ${view === 'clients' ? 'active' : ''}`}
+						onClick={() => setView('clients')}>
+						{tr.navClients}
+					</span>
+					<span
+						className={`nav-link ${view === 'watchlist' ? 'active' : ''}`}
+						onClick={() => setView('watchlist')}>
+						{tr.navWatchlist}
+					</span>
+					<span
+						className={`nav-link ${view === 'login' ? 'active' : ''}`}
+						onClick={() => setView('login')}>
+						<LogIn size={14} /> {tr.navLogin}
+					</span>
+					<button
+						type="button"
+						className="btn-mini"
+						aria-label={tr.langAria}
+						onClick={() => setLang(x => (x === 'bg' ? 'en' : 'bg'))}>
+						<Globe2 size={14} /> {lang === 'bg' ? 'EN' : 'BG'}
+					</button>
+					<button className="btn btn-primary" onClick={() => setView('register')}>
+						<UserPlus size={14} /> {tr.navGetStarted}
+					</button>
+				</div>
+			</nav>
+
+			{view === 'landing' && (
+				<section className="section hero">
+					<h1>AgriNexus</h1>
+					<p>{tr.heroSub}</p>
+					<button className="btn btn-primary" onClick={() => setView('register')}>
+						{tr.createAccount}
+					</button>
+
+					<div className="ai-grid">
+						{landingAiCards.map(f => {
+							const Icon = f.icon;
+							return (
+								<div className="ai-card" key={f.title}>
+									<Icon color="#22c55e" size={20} />
+									<h4>{f.title}</h4>
+									<p>{f.text}</p>
+								</div>
+							);
+						})}
+					</div>
+
+					<div style={{ marginTop: 24 }}>
+						<p
+							style={{
+								color: '#22c55e',
+								letterSpacing: 2,
+								fontSize: '.75rem',
+								fontWeight: 700,
+								textTransform: 'uppercase',
+								marginBottom: 6,
+							}}>
+							{tr.livePreview}
+						</p>
+						<h2 style={{ margin: '6px 0' }}>{tr.activeOpps}</h2>
+						<p className="muted" style={{ marginTop: 0 }}>
+							{tr.liveDealsHint}
+						</p>
+					</div>
+
+					<div className="preview-mask">
+						<div className="deals-track">
+							{[...PREVIEW_DEALS, ...PREVIEW_DEALS].map((deal, idx) => (
+								<div
+									key={`${deal.id}-${idx}`}
+									className="deal-card"
+									style={{ width: 260, flexShrink: 0 }}>
+									<div
+										style={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											marginBottom: 8,
+										}}>
+										<span
+											style={{
+												fontSize: '.74rem',
+												background: deal.isMENA ? '#b45309' : '#1d4ed8',
+												borderRadius: 8,
+												padding: '4px 8px',
+											}}>
+											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
+										</span>
+										<strong style={{ color: '#22c55e' }}>
+											+{deal.profit}%
+										</strong>
+									</div>
+									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
+									<div
+										className="muted"
+										style={{
+											background: '#0b1221',
+											padding: 8,
+											borderRadius: 8,
+											fontSize: '.84rem',
+										}}>
+										<div>📦 {deal.packaging}</div>
+										<div style={{ color: '#22c55e', marginTop: 4 }}>
+											📜 {deal.certification}
+										</div>
+									</div>
+									<div
+										className="muted"
+										style={{ marginTop: 8, fontSize: '.84rem' }}>
+										{deal.from} → {deal.to}
+									</div>
+									<div style={{ marginTop: 8, fontWeight: 900 }}>
+										{deal.price}
+									</div>
+									{deal.locked && (
+										<div className="locked-overlay">
+											<Lock color="#22c55e" size={24} />
+											<span
+												style={{
+													color: '#22c55e',
+													fontSize: '.8rem',
+													fontWeight: 700,
+												}}>
+												{tr.premiumAccess}
+											</span>
+										</div>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
+
+					<div style={{ marginTop: 16 }}>
+						<button className="btn btn-outline" onClick={() => setView('market')}>
+							{tr.openMarketplace}
+						</button>
+						<button
+							className="btn btn-outline"
+							style={{ marginLeft: 8 }}
+							onClick={() => setView('clients')}>
+							{tr.clientDossiers}
+						</button>
+					</div>
+
+					<div className="contact-panel" style={{ marginTop: 28, textAlign: 'left' }}>
+						<h3 style={{ marginTop: 0 }}>{tr.contactSales}</h3>
+						<p className="muted" style={{ marginTop: 6 }}>
+							{tr.contactHelp}
+						</p>
+						<div className="form-grid" style={{ marginTop: 12 }}>
+							<input
+								placeholder={tr.phName}
+								value={contactName}
+								onChange={e => setContactName(e.target.value)}
+							/>
+							<input
+								placeholder={tr.phEmail}
+								value={contactEmail}
+								onChange={e => setContactEmail(e.target.value)}
+							/>
+							{showContactEmailError && (
+								<p
+									style={{
+										gridColumn: '1 / -1',
+										margin: '-6px 0 0',
+										color: '#f87171',
+										fontSize: '.84rem',
+									}}>
+									{invalidEmailText}
+								</p>
+							)}
+							<input
+								placeholder={tr.phCompany}
+								value={contactCompany}
+								onChange={e => setContactCompany(e.target.value)}
+							/>
+							<textarea
+								placeholder={tr.phMessage}
+								rows={3}
+								value={contactBody}
+								onChange={e => setContactBody(e.target.value)}
+								style={{ gridColumn: '1 / -1' }}
+							/>
+						</div>
+						<div style={{ marginTop: 10 }}>
+							<button
+								className="btn btn-primary"
+								disabled={
+									contactStatus === 'loading' ||
+									!contactEmail.trim() ||
+									!contactBody.trim()
+								}
+								onClick={() => void submitContact()}>
+								{contactStatus === 'loading' ? (
+									<Loader2 className="spin" size={18} />
+								) : (
+									<Mail size={18} />
+								)}{' '}
+								{tr.send}
+							</button>
+							{contactFeedback && (
+								<p
+									className={contactStatus === 'ok' ? 'green-note' : 'muted'}
+									style={{ marginTop: 10 }}>
+									{contactFeedback}
+								</p>
+							)}
+						</div>
+					</div>
+
+					<FileUploadPanel senderEmail={contactEmail} lang={lang} />
+				</section>
+			)}
+
+			{view === 'market' && (
+				<section className="section">
+					<div className="market-head">
+						<div className="search-wrap">
+							<Search className="search-icon" size={18} />
+							<input
+								type="text"
+								placeholder={tr.searchPh}
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+							/>
+						</div>
+						<div
+							style={{
+								color: '#22c55e',
+								fontWeight: 700,
+								display: 'flex',
+								alignItems: 'center',
+								gap: 12,
+								flexWrap: 'wrap',
+							}}>
+							<button
+								type="button"
+								className="btn-mini"
+								onClick={() => forceRefreshDeals()}>
+								<RefreshCw size={16} />
+							</button>
+							<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+								<RefreshCw size={16} />
+								{tr.aiUpdateIn} {formatTime}
+							</span>
+						</div>
+					</div>
+
+					<div className="ticker-wrap">
+						<div className="ticker-track">
+							{[...tickerItems, ...tickerItems].map((deal, idx) => (
+								<span key={`${deal.id}-tk-${idx}`} className="ticker-item">
+									#{deal.id} {deal.product}
+									<strong>+{deal.profit}%</strong> · {deal.from} → {deal.to}
+								</span>
+							))}
+						</div>
+					</div>
+
+					<div className="terminal-strip">
+						{topMovers.map(deal => (
+							<div key={deal.id} className="terminal-metric">
+								<strong>
+									{deal.product.length > 26
+										? `${deal.product.slice(0, 26)}…`
+										: deal.product}
+								</strong>
+								<span>
+									{tr.terminalVol}: {deal.volatility} · Δ{' '}
+									{deal.profit - deal.prevProfit >= 0 ? '+' : ''}
+									{deal.profit - deal.prevProfit}%
+								</span>
+							</div>
+						))}
+					</div>
+
+					<div className="pulse-toolbar">
+						<p className="market-flash-line">
+							<span className="live-dot" />
+							{tr.marketPulse}:{' '}
+							{marketFlashLines[marketFlashIndex % marketFlashLines.length]}
+						</p>
+						<label
+							className="muted"
+							style={{
+								fontSize: '.82rem',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 6,
+							}}>
+							<input
+								type="checkbox"
+								checked={alertsMuted}
+								onChange={e => setAlertsMuted(e.target.checked)}
+							/>
+							{tr.alertMute}
+						</label>
+						<label
+							className="muted"
+							style={{
+								fontSize: '.82rem',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 8,
+							}}>
+							{tr.alertThreshold}
+							<input
+								type="number"
+								min={5}
+								max={45}
+								value={alertThreshold}
+								onChange={e => setAlertThreshold(Number(e.target.value))}
+								style={{
+									width: 56,
+									padding: '4px 6px',
+									borderRadius: 8,
+									border: '1px solid #334155',
+									background: '#0f172a',
+									color: '#fff',
+								}}
+							/>
+						</label>
+					</div>
+
+					<div className="grid">
+						{filteredDeals.map((deal, i) => {
+							const isLocked = !isPremium && i >= 5;
+							const delta = deal.profit - deal.prevProfit;
+							return (
+								<div className={`deal-card ${i < 5 ? 'top' : ''}`} key={deal.id}>
+									<div
+										style={{
+											filter: isLocked ? 'blur(7px)' : 'none',
+											opacity: isLocked ? 0.35 : 1,
+										}}>
+										<div
+											style={{
+												display: 'flex',
+												justifyContent: 'space-between',
+												marginBottom: 8,
+											}}>
+											<span
+												style={{
+													fontSize: '.75rem',
+													background: deal.isMENA ? '#f59e0b' : '#3b82f6',
+													borderRadius: 6,
+													padding: '3px 9px',
+												}}>
+												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
+											</span>
+											<strong style={{ color: '#22c55e' }}>
+												+{deal.profit}%
+											</strong>
+										</div>
+										<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
+										<div className="muted" style={{ fontSize: '.84rem' }}>
+											{deal.from} → {deal.to}
+										</div>
+										<div
+											className="muted"
+											style={{
+												background: '#0b1221',
+												marginTop: 8,
+												borderRadius: 8,
+												padding: 8,
+												fontSize: '.84rem',
+											}}>
+											<div>📦 {deal.packaging}</div>
+											<div style={{ color: '#22c55e', marginTop: 3 }}>
+												📜 {deal.certification}
+											</div>
+										</div>
+										<div
+											className="muted"
+											style={{ fontSize: '.8rem', marginTop: 6 }}>
+											{tr.terminalVol}: {deal.volatility} · Δ{' '}
+											{delta >= 0 ? '+' : ''}
+											{delta}%
+										</div>
+										<div style={{ marginTop: 8, fontSize: '.86rem' }}>
+											{tr.decision}:{' '}
+											<strong
+												style={{
+													color:
+														deal.decision === 'BUY'
+															? '#22c55e'
+															: deal.decision === 'HOLD'
+																? '#f59e0b'
+																: '#ef4444',
+												}}>
+												{deal.decision}
+											</strong>
+										</div>
+										<div className="muted" style={{ fontSize: '.84rem' }}>
+											{tr.estMargin}: {deal.margin}%
+										</div>
+										<div style={{ marginTop: 8, fontWeight: 900 }}>
+											{deal.price}
+										</div>
+										{!isLocked && (
+											<div className="deal-actions">
+												<button
+													type="button"
+													className={`deal-chip-btn ${watchlistIds.includes(deal.id) ? 'active' : ''}`}
+													onClick={() => toggleWatchlist(deal.id)}>
+													{watchlistIds.includes(deal.id)
+														? tr.watchSaved
+														: tr.watchSave}
+												</button>
+												<button
+													type="button"
+													className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
+													onClick={() => toggleAlert(deal.id)}>
+													{alertsEnabledIds.includes(deal.id)
+														? tr.alertOn
+														: tr.alertOff}
+													{!alertsMuted && deal.profit >= alertThreshold
+														? ' ●'
+														: ''}
+												</button>
+											</div>
+										)}
+									</div>
+
+									{isLocked && (
+										<div className="locked-overlay">
+											<Lock color="#22c55e" size={24} />
+											<button
+												className="btn btn-primary"
+												onClick={() => setView('pricing')}>
+												{tr.unlock}
+											</button>
+										</div>
+									)}
+								</div>
+							);
+						})}
+					</div>
+
+					<div className="contact-panel">
+						<h3 style={{ margin: 0 }}>{tr.coverageTitle}</h3>
+						<p className="muted" style={{ margin: '8px 0 0' }}>
+							{tr.coverageBody}
+						</p>
+					</div>
+				</section>
+			)}
+
+			{view === 'watchlist' && (
+				<section className="section">
+					<h2 style={{ marginTop: 0 }}>{tr.watchlistTitle}</h2>
+					{watchedDeals.length === 0 ? (
+						<p className="muted">{tr.watchlistEmpty}</p>
+					) : (
+						<div className="grid">
+							{watchedDeals.map(deal => {
+								const delta = deal.profit - deal.prevProfit;
+								return (
+									<div className="deal-card top" key={`w-${deal.id}`}>
+										<div
+											style={{
+												display: 'flex',
+												justifyContent: 'space-between',
+												marginBottom: 8,
+											}}>
+											<span
+												style={{
+													fontSize: '.75rem',
+													background: deal.isMENA ? '#f59e0b' : '#3b82f6',
+													borderRadius: 6,
+													padding: '3px 9px',
+												}}>
+												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
+											</span>
+											<strong style={{ color: '#22c55e' }}>
+												+{deal.profit}%
+											</strong>
+										</div>
+										<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
+										<div className="muted" style={{ fontSize: '.84rem' }}>
+											{deal.from} → {deal.to}
+										</div>
+										<div
+											className="muted"
+											style={{
+												background: '#0b1221',
+												marginTop: 8,
+												borderRadius: 8,
+												padding: 8,
+												fontSize: '.84rem',
+											}}>
+											<div>📦 {deal.packaging}</div>
+											<div style={{ color: '#22c55e', marginTop: 3 }}>
+												📜 {deal.certification}
+											</div>
+										</div>
+										<div
+											className="muted"
+											style={{ fontSize: '.8rem', marginTop: 6 }}>
+											{tr.terminalVol}: {deal.volatility} · Δ{' '}
+											{delta >= 0 ? '+' : ''}
+											{delta}%
+										</div>
+										<div style={{ marginTop: 8, fontWeight: 900 }}>
+											{deal.price}
+										</div>
+										<div className="deal-actions">
+											<button
+												type="button"
+												className="deal-chip-btn active"
+												onClick={() => toggleWatchlist(deal.id)}>
+												{tr.watchSaved}
+											</button>
+											<button
+												type="button"
+												className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
+												onClick={() => toggleAlert(deal.id)}>
+												{alertsEnabledIds.includes(deal.id)
+													? tr.alertOn
+													: tr.alertOff}
+											</button>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+				</section>
+			)}
+
+			{view === 'pricing' && (
+				<section className="section">
+					<h2 style={{ textAlign: 'center', marginBottom: 16 }}>Subscription Plans</h2>
+					<div className="pricing-grid">
+						<PricingCard title="Weekly" price="25" period="week" />
+						<PricingCard title="Monthly" price="49" period="month" popular />
+						<PricingCard
+							title="Yearly"
+							price="365"
+							period="year"
+							note="+1 month free"
+						/>
+					</div>
+					<div className="contact-panel">
+						<p style={{ margin: 0 }}>
+							Contact sales:{' '}
+							<a
+								href="mailto:info@agrinexus.eu"
+								style={{ color: '#22c55e', textDecoration: 'none' }}>
+								info@agrinexus.eu
+							</a>{' '}
+							— всички абонаментни запитвания и оферти се координират от този адрес.
+						</p>
+					</div>
+				</section>
+			)}
+
+			{view === 'register' && (
+				<section className="section">
+					<h2>Create Account</h2>
+					<p className="muted">
+						Регистрация изпраща детайли към info@agrinexus.eu и потвърждение към вашия
+						имейл (при SMTP).
+					</p>
+					<div className="form-grid">
+						<input
+							placeholder="Full Name"
+							value={regFullName}
+							onChange={e => setRegFullName(e.target.value)}
+						/>
+						<input
+							placeholder="Company Name"
+							value={regCompany}
+							onChange={e => setRegCompany(e.target.value)}
+						/>
+						<input
+							placeholder="Business Email"
+							value={regEmail}
+							onChange={e => setRegEmail(e.target.value)}
+						/>
+						{showRegisterEmailError && (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{invalidEmailText}
+							</p>
+						)}
+						<input
+							placeholder="Password"
+							type="password"
+							value={regPassword}
+							onChange={e => setRegPassword(e.target.value)}
+						/>
+						<select value={regMarket} onChange={e => setRegMarket(e.target.value)}>
+							<option value="" disabled>
+								Market Focus
+							</option>
+							<option value="Europe">Europe</option>
+							<option value="MENA">MENA</option>
+							<option value="Both">Both</option>
+						</select>
+						<input
+							placeholder="Phone (optional, e.g. +359881234567)"
+							value={regPhone}
+							inputMode="tel"
+							autoComplete="tel"
+							maxLength={16}
+							onChange={e => setRegPhone(formatPhoneInput(e.target.value))}
+						/>
+						<p
+							className="muted"
+							style={{
+								gridColumn: '1 / -1',
+								margin: '-6px 0 0',
+								fontSize: '.82rem',
+							}}>
+							{phoneHelperText}
+						</p>
+						{showRegisterPhoneError && (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{invalidPhoneText}
+							</p>
+						)}
+					</div>
+					<div style={{ marginTop: 10 }}>
+						<label className="muted" style={{ fontSize: '.92rem' }}>
+							<input
+								type="checkbox"
+								checked={regSubscribe}
+								style={{ marginRight: 8 }}
+								onChange={e => setRegSubscribe(e.target.checked)}
+							/>
+							I agree to receive market updates and trade alerts by email.
+						</label>
+					</div>
+					<div
+						style={{
+							marginTop: 12,
+							display: 'flex',
+							gap: 8,
+							flexWrap: 'wrap',
+							alignItems: 'center',
+						}}>
+						<button
+							className="btn btn-primary"
+							disabled={regStatus === 'loading' || !canSubmitRegister}
+							onClick={() => void submitRegister()}>
+							{regStatus === 'loading' ? <Loader2 size={18} /> : null} Create my
+							account
+						</button>
+						<button className="btn btn-outline" onClick={() => setView('login')}>
+							Already have account
+						</button>
+						{regMsg && (
+							<span
+								className={regStatus === 'ok' ? 'green-note' : 'muted'}
+								style={{ width: '100%' }}>
+								{regMsg}
+							</span>
+						)}
+					</div>
+				</section>
+			)}
+
+			{view === 'login' && (
+				<section className="section">
+					<h2>Sign In</h2>
+					<p className="muted">
+						Production authentication ще се върже към вашия identity provider. За демо
+						ползвайте регистрацията по имейл.
+					</p>
+					<div className="form-grid">
+						<input placeholder="Email" />
+						<input type="password" placeholder="Password" />
+					</div>
+					<div style={{ marginTop: 12 }}>
+						<button className="btn btn-primary" onClick={handleDemoSignIn}>
+							Sign In
+						</button>
+					</div>
+				</section>
+			)}
+
+			{view === 'company' && (
+				<section className="section">
+					<h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+						<Building2 size={22} color="#22c55e" /> AgriNexus - Company Card
+					</h2>
+					<p className="muted">
+						Domain-specific AI layer for agricultural trade optimization. Real market
+						data integration, predictive pricing, buyer-seller matching, and trade
+						alerts.
+					</p>
+					<div className="contact-panel">
+						<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+							<Globe2 size={16} color="#22c55e" /> Regions: Europe / MENA
+						</p>
+						<p
+							style={{
+								margin: '8px 0 0',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 8,
+							}}>
+							<Mail size={16} color="#22c55e" /> info@agrinexus.eu
+						</p>
+					</div>
+				</section>
+			)}
+
+			{view === 'clients' && (
+				<section className="section">
+					<h2 style={{ marginTop: 0 }}>Client Portfolio</h2>
+					<p className="muted" style={{ marginTop: 6 }}>
+						Professional profile page for each client with decision context,
+						certifications and trading preferences.
+					</p>
+					<div className="clients-layout">
+						<div className="client-list">
+							{CLIENT_PROFILES.map(profile => (
+								<button
+									key={profile.id}
+									className={`client-list-item ${selectedClient.id === profile.id ? 'active' : ''}`}
+									onClick={() => setSelectedClientId(profile.id)}>
+									<strong>{profile.company}</strong>
+									<div
+										className="muted"
+										style={{ marginTop: 4, fontSize: '.82rem' }}>
+										{profile.contactPerson} · {profile.region}
+									</div>
+								</button>
+							))}
+						</div>
+						<div className="client-card">
+							<h3
+								style={{
+									marginTop: 0,
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+								}}>
+								<span>{selectedClient.company}</span>
+								<span className="status-pill">{selectedClient.creditStatus}</span>
+							</h3>
+							<p className="muted" style={{ marginTop: 0 }}>
+								{selectedClient.role} · {selectedClient.contactPerson}
+							</p>
+							<div className="client-meta-grid">
+								<div className="meta-kv">
+									<strong>Contact</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.email}
+										<br />
+										{selectedClient.phone}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>Market focus</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.focus}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>Certifications</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.certifications.join(', ')}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>Preferred incoterms</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.preferredIncoterms.join(', ')}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>Monthly volume</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.monthlyVolume}
+									</p>
+								</div>
+								<div className="meta-kv">
+									<strong>Internal notes</strong>
+									<p className="muted" style={{ margin: '8px 0 0' }}>
+										{selectedClient.notes}
+									</p>
+								</div>
+							</div>
+							<div className="contact-panel" style={{ marginTop: 14 }}>
+								<p style={{ margin: 0 }}>
+									Digital business card: <strong>{selectedClient.company}</strong>{' '}
+									| {selectedClient.contactPerson} | {selectedClient.email}
+								</p>
+							</div>
+						</div>
+					</div>
+				</section>
+			)}
+
+			<div className="chat-box">
+				{isChatOpen && (
+					<div className="chat-window">
+						<div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>
+							{tr.chatTitle}
+						</div>
+						<p className="muted" style={{ margin: '0 0 8px', fontSize: '.82rem' }}>
+							{tr.chatSubtitle}
+						</p>
+						<div className="chat-actions">
+							<span className="muted" style={{ fontSize: '.75rem' }}>
+								{tr.chatPromptsLabel}
+							</span>
+							<button
+								className="btn-mini"
+								type="button"
+								onClick={() =>
+									setChatMessages([
+										{ role: 'assistant', content: CHAT_WELCOME[lang] },
+									])
+								}>
+								{tr.chatClear}
+							</button>
+						</div>
+						<div className="chat-prompt-row">
+							{quickPrompts.map(prompt => (
+								<button
+									key={prompt}
+									className="chat-prompt-chip"
+									type="button"
+									onClick={() => applyQuickPrompt(prompt)}>
+									{prompt}
+								</button>
+							))}
+						</div>
+						<div className="chat-messages">
+							{chatMessages.map((m, idx) => (
+								<div key={`${idx}-${m.role}`} className={`chat-bubble ${m.role}`}>
+									{m.content}
+								</div>
+							))}
+							{chatLoading && (
+								<div
+									className="chat-bubble assistant"
+									style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<Loader2 size={16} className="spin" /> {tr.chatThinking}
+								</div>
+							)}
+							<div ref={chatEndRef} />
+						</div>
+						<div className="chat-input-row">
+							<textarea
+								ref={chatTextAreaRef}
+								placeholder={tr.chatPlaceholder}
+								value={chatInput}
+								onChange={e => setChatInput(e.target.value)}
+								onKeyDown={e => {
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault();
+										void sendChat();
+									}
+								}}
+							/>
+							<button
+								className="btn btn-primary"
+								type="button"
+								disabled={chatLoading}
+								onClick={() => void sendChat()}>
+								<Send size={18} />
+							</button>
+						</div>
+					</div>
+				)}
+				<button
+					className="chat-trigger"
+					onClick={() => setIsChatOpen(v => !v)}
+					aria-label={isChatOpen ? tr.chatToggleOn : tr.chatToggleOff}>
+					{isChatOpen ? <X color="white" /> : <MessageSquare color="white" />}
+				</button>
+			</div>
+		</div>
+	);
+}
