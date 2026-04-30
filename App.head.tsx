@@ -152,6 +152,11 @@ const QUICK_PROMPTS = [
   'ÐÐ°Ð¿Ñ€Ð°Ð²Ð¸ Ð±ÑŠÑ€Ð· risk-check Ð·Ð° EU to MENA route.',
 ];
 
+const CHAT_BRIEF_WELCOME: Record<Lang, string> = {
+  bg: 'Здравей! Как мога да помогна?',
+  en: 'Hi! How can I help?',
+};
+
 const MARKET_FLASH = [
   'Tomato paste corridor TR -> KSA showing tighter spreads this session.',
   'Sunflower oil bids from Egypt remain strong for next 2 loading windows.',
@@ -266,11 +271,10 @@ export default function App() {
   const [lastRefreshAt, setLastRefreshAt] = useState(new Date());
   const [marketFlashIndex, setMarketFlashIndex] = useState(0);
   const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
-  const [chatMessages, setChatMessages] = useState<ChatTurn[]>([
+  const [chatMessages, setChatMessages] = useState<ChatTurn[]>(() => [
     {
       role: 'assistant',
-      content:
-        'Ð—Ð´Ñ€Ð°Ð²ÐµÐ¹Ñ‚Ðµ! ÐÐ· ÑÑŠÐ¼ AgriNexus AI. ÐŸÐ¸Ñ‚Ð°Ð¹Ñ‚Ðµ Ð·Ð° Ð¼Ð°Ñ€ÑˆÑ€ÑƒÑ‚Ð¸ EU/MENA, Ð¼Ð°Ñ€Ð¶, ÑÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¸ Ð¸Ð»Ð¸ Ð·Ð° BUY/HOLD/AVOID â€” Ð¼Ð¾Ð³Ð° Ð´Ð° Ð¿Ð¾Ð»Ð·Ð²Ð°Ð¼ ÐºÐ¾Ð½Ñ‚ÐµÐºÑÑ‚Ð° Ð¾Ñ‚ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ñ Ð²Ð¸ marketplace Ð¿Ñ€ÐµÐ³Ð»ÐµÐ´.',
+      content: CHAT_BRIEF_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'],
     },
   ]);
   const [chatInput, setChatInput] = useState('');

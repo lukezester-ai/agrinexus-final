@@ -143,11 +143,6 @@ type View =
 	| 'clients'
 	| 'watchlist';
 
-const CHAT_WELCOME: Record<Lang, string> = {
-	bg: 'Здравейте! С какво да помогна?',
-	en: 'Hello! How can I help?',
-};
-
 type ClientProfile = {
 	id: string;
 	company: string;
@@ -175,6 +170,11 @@ const QUICK_PROMPTS_EN = [
 	'Which certifications matter most for export to KSA?',
 	'Quick risk-check for EU to MENA route.',
 ];
+
+const CHAT_BRIEF_WELCOME: Record<Lang, string> = {
+	bg: 'Здравей! Как мога да помогна?',
+	en: 'Hi! How can I help?',
+};
 
 const MARKET_FLASH_EN = [
 	'Tomato paste corridor TR → KSA showing tighter spreads this session.',
@@ -335,16 +335,15 @@ export default function App() {
 	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>(() => [
-		{
-			role: 'assistant',
-			content: CHAT_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'],
-		},
+		{ role: 'assistant', content: CHAT_BRIEF_WELCOME[localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'] },
 	]);
 	const [chatInput, setChatInput] = useState(
 		() => sessionStorage.getItem('agrinexus-chat-draft') ?? ''
 	);
 	const [chatLoading, setChatLoading] = useState(false);
 	const [chatKeyboardOffset, setChatKeyboardOffset] = useState(12);
+	const [chatViewportHeight, setChatViewportHeight] = useState<number>(() => window.innerHeight);
+	const chatBaseInnerHeightRef = useRef<number>(window.innerHeight);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
@@ -865,26 +864,42 @@ export default function App() {
 	}, [chatMessages, isChatOpen]);
 
 	useEffect(() => {
-		const viewport = window.visualViewport;
-		if (!viewport) return;
-
 		const updateKeyboardOffset = () => {
-			const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-			// Keep a small margin above the keyboard on mobile.
+			const viewport = window.visualViewport;
+			const viewportHeight = viewport?.height ?? window.innerHeight;
+			setChatViewportHeight(viewportHeight);
+			if (!isMobileViewport) {
+				setChatKeyboardOffset(12);
+				return;
+			}
+			const keyboardHeightFromViewport = viewport
+				? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+				: 0;
+			const keyboardHeightFromInnerResize = Math.max(
+				0,
+				chatBaseInnerHeightRef.current - window.innerHeight
+			);
+			const keyboardHeight = Math.max(
+				keyboardHeightFromViewport,
+				keyboardHeightFromInnerResize
+			);
+			// Keep a small margin above mobile keyboard.
 			setChatKeyboardOffset(keyboardHeight > 0 ? keyboardHeight + 10 : 12);
 		};
 
 		updateKeyboardOffset();
-		viewport.addEventListener('resize', updateKeyboardOffset);
-		viewport.addEventListener('scroll', updateKeyboardOffset);
+		window.addEventListener('resize', updateKeyboardOffset);
+		window.visualViewport?.addEventListener('resize', updateKeyboardOffset);
+		window.visualViewport?.addEventListener('scroll', updateKeyboardOffset);
 		window.addEventListener('orientationchange', updateKeyboardOffset);
 
 		return () => {
-			viewport.removeEventListener('resize', updateKeyboardOffset);
-			viewport.removeEventListener('scroll', updateKeyboardOffset);
+			window.removeEventListener('resize', updateKeyboardOffset);
+			window.visualViewport?.removeEventListener('resize', updateKeyboardOffset);
+			window.visualViewport?.removeEventListener('scroll', updateKeyboardOffset);
 			window.removeEventListener('orientationchange', updateKeyboardOffset);
 		};
-	}, []);
+	}, [isMobileViewport]);
 
 	useEffect(() => {
 		const media = window.matchMedia('(max-width: 900px)');
@@ -2607,9 +2622,19 @@ export default function App() {
 
 			<div
 				className="chat-box"
-				style={{ bottom: chatKeyboardOffset + (isMobileViewport ? 70 : 0) }}>
+				style={{
+					bottom: chatKeyboardOffset + (isMobileViewport ? 70 : 0),
+					left: isMobileViewport && isChatOpen ? 10 : undefined,
+					right: isMobileViewport && isChatOpen ? 10 : 12,
+				}}>
 				{isChatOpen && (
-					<div className="chat-window">
+					<div
+						className="chat-window"
+						style={
+							isMobileViewport
+								? { width: '100%', maxHeight: Math.max(280, chatViewportHeight - 140) }
+								: undefined
+						}>
 						<div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>
 							{tr.chatTitle}
 						</div>
@@ -2623,11 +2648,7 @@ export default function App() {
 							<button
 								className="btn-mini"
 								type="button"
-								onClick={() =>
-									setChatMessages([
-										{ role: 'assistant', content: CHAT_WELCOME[lang] },
-									])
-								}>
+								onClick={() => setChatMessages([{ role: 'assistant', content: CHAT_BRIEF_WELCOME[lang] }])}>
 								{tr.chatClear}
 							</button>
 						</div>
