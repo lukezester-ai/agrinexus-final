@@ -3,6 +3,7 @@ import http from 'node:http';
 import { handleChatPost } from '../lib/chat-handler';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
+import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
 
@@ -44,6 +45,11 @@ http
           path: '/api/chat',
           openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
         });
+        return;
+      }
+
+      if (path === '/api/market-quotes' && req.method === 'GET') {
+        send(res, 200, await handleMarketQuotesGet());
         return;
       }
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
+import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
 const {
 	Leaf,
 	Search,
@@ -80,7 +81,7 @@ const AI_FEATURES = [
 	{
 		icon: Brain,
 		title: 'BUY / HOLD / AVOID',
-		text: 'AI trade logic makes decisions from real market signals and historical deals.',
+		text: 'AI trade logic ranks deals from your filters and illustrative scenarios — ready to plug in exchange feeds when connected.',
 	},
 	{
 		icon: LineChart,
@@ -118,6 +119,17 @@ function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH
 	if (delta >= 3) return 'MED';
 	return 'LOW';
 }
+
+type MarketQuotesApi =
+	| { ok: true; mode: 'demo'; quotes: []; fetchedAt: string; source: null }
+	| {
+			ok: true;
+			mode: 'live';
+			quotes: Array<{ symbol: string; open: number; close: number; date: string; time: string }>;
+			fetchedAt: string;
+			source: 'stooq_delayed';
+	  }
+	| { ok: false; mode: 'error'; quotes: []; fetchedAt: string; source: null; error: string };
 
 /** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) — those crash the whole app with a blank screen. */
 function safeLocalGet(key: string): string | null {
@@ -183,12 +195,55 @@ type DealRow = {
 	decision: string;
 	prevProfit: number;
 	volatility: 'LOW' | 'MED' | 'HIGH';
+	/** Present when marketplace merges delayed futures references. */
+	priceSource?: 'synthetic' | 'futures_delayed';
+	referenceSymbol?: string;
 };
 type DealCategoryFilter = 'all' | DealRow['category'];
 type SearchableDeal = DealRow & { searchText: string };
 type WatchlistPanel = 'saved' | 'cabinet';
 
 type Lang = 'bg' | 'en';
+
+function mergeLiveIntoDeals(
+	deals: DealRow[],
+	quotes: Array<{ symbol: string; open: number; close: number }>,
+	lang: Lang,
+): DealRow[] {
+	const bySym = new Map(quotes.map(q => [q.symbol.toLowerCase(), q]));
+	return deals.map(deal => {
+		const inst = PRODUCT_INSTRUMENT[deal.product];
+		if (!inst) {
+			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
+		}
+		const q = bySym.get(inst.symbol.toLowerCase());
+		if (!q) {
+			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
+		}
+		const unit = lang === 'bg' ? inst.unitBg : inst.unitEn;
+		const pct = q.open !== 0 ? ((q.close - q.open) / q.open) * 100 : 0;
+		const profit = Math.min(34, Math.max(6, Math.round(16 + pct * 1.8)));
+		const prevProfit = Math.min(34, Math.max(6, Math.round(16 + (pct - 0.35) * 1.8)));
+		const volatility: DealRow['volatility'] =
+			Math.abs(pct) >= 2 ? 'HIGH' : Math.abs(pct) >= 0.85 ? 'MED' : 'LOW';
+		const decimals = inst.symbol === 'zr.f' ? 3 : 2;
+		const price = `${q.close.toFixed(decimals)} ${unit}`;
+		const prevPrice = `${q.open.toFixed(decimals)} ${unit}`;
+		return {
+			...deal,
+			price,
+			prevPrice,
+			profit,
+			prevProfit,
+			margin: Math.max(5, profit - 4),
+			volatility,
+			decision: getDecisionBySignals({ profit, volatility, category: deal.category }),
+			priceSource: 'futures_delayed' as const,
+			referenceSymbol: inst.symbol,
+		};
+	});
+}
+
 type View =
 	| 'landing'
 	| 'market'
@@ -237,15 +292,15 @@ const CATEGORY_BG_ALIASES: Record<DealRow['category'], string[]> = {
 };
 
 const MARKET_FLASH_EN = [
-	'Tomato paste corridor TR → KSA showing tighter spreads this session.',
-	'Sunflower oil bids from Egypt remain strong for next 2 loading windows.',
-	'Premium wheat routes into EU show HOLD bias due to freight pressure.',
+	'Illustrative: tomato paste corridor TR → KSA with tighter spreads in this demo scenario.',
+	'Illustrative: sunflower oil bids from Egypt stay strong for the next loading windows in the demo set.',
+	'Illustrative: premium wheat routes into the EU skew HOLD due to freight pressure in the demo narrative.',
 ];
 
 const MARKET_FLASH_BG = [
-	'Коридор доматено пюре TR → KSA: по-тесни спредове през тази сесия.',
-	'Оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене.',
-	'Премиум пшенични маршрути към EU: склонност към HOLD заради натиск върху превоза.',
+	'Илюстративно: коридор доматено пюре TR → KSA с по-тесни спредове в демо сценария.',
+	'Илюстративно: оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене (демо).',
+	'Илюстративно: премиум пшенични маршрути към EU — склонност към HOLD заради натиск върху превоза (демо).',
 ];
 
 const QUICK_PROMPTS_BG = [
@@ -350,6 +405,7 @@ function PricingCard({
 	period,
 	note = '',
 	popular = false,
+	badgeText = '',
 	lang,
 	labels,
 }: {
@@ -358,6 +414,7 @@ function PricingCard({
 	period: string;
 	note?: string;
 	popular?: boolean;
+	badgeText?: string;
 	lang: Lang;
 	labels: {
 		bestValue: string;
@@ -381,7 +438,7 @@ function PricingCard({
 
 	return (
 		<div className={`pricing-card ${popular ? 'popular' : ''}`}>
-			{popular && <div className="badge">{labels.bestValue}</div>}
+			{(popular || badgeText) && <div className="badge">{badgeText || labels.bestValue}</div>}
 			<h3>{title}</h3>
 			<div className="pricing-value">€{price}</div>
 			<p className="muted">
@@ -492,6 +549,8 @@ export default function App() {
 	const [watchlistPanel, setWatchlistPanel] = useState<WatchlistPanel>('saved');
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
+	const [marketQuotes, setMarketQuotes] = useState<MarketQuotesApi | null>(null);
+	const [quotesLoading, setQuotesLoading] = useState(false);
 	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
@@ -579,7 +638,7 @@ export default function App() {
 			? 'Използвай международен код и само цифри (формат E.164).'
 			: 'Use country code and digits only (E.164 format).';
 
-	const allDeals = useMemo(() => {
+	const demoDeals = useMemo(() => {
 		const products = [
 			{
 				name: 'Wheat (Premium)',
@@ -859,6 +918,18 @@ export default function App() {
 		});
 	}, [refreshTick]);
 
+	const allDeals = useMemo((): DealRow[] => {
+		if (
+			marketQuotes &&
+			marketQuotes.ok &&
+			marketQuotes.mode === 'live' &&
+			marketQuotes.quotes.length > 0
+		) {
+			return mergeLiveIntoDeals(demoDeals, marketQuotes.quotes, lang);
+		}
+		return demoDeals;
+	}, [demoDeals, marketQuotes, lang]);
+
 	const searchableDeals = useMemo<SearchableDeal[]>(
 		() =>
 			allDeals.map(deal => {
@@ -876,6 +947,8 @@ export default function App() {
 					deal.to,
 					deal.deliveryWindow,
 					deal.incoterm,
+					deal.referenceSymbol ?? '',
+					deal.priceSource ?? '',
 				]
 					.join(' ')
 					.toLowerCase();
@@ -926,13 +999,22 @@ export default function App() {
 
 	const dealContextForAI = useMemo(() => {
 		const slice = filteredDeals.slice(0, 18);
-		return slice
-			.map(
-				d =>
-					`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}`
-			)
-			.join('\n');
-	}, [filteredDeals]);
+		const feedNote =
+			marketQuotes?.ok && marketQuotes.mode === 'live'
+				? lang === 'bg'
+					? '[Пазар: забавени фючърсни референции от Stooq за мапнати стоки; редове без инструмент са илюстративни; не са оферти.]\n'
+					: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
+				: '';
+		return (
+			feedNote +
+			slice
+				.map(
+					d =>
+						`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}${d.priceSource === 'futures_delayed' ? ` | ref:${d.referenceSymbol ?? ''}` : ''}`
+				)
+				.join('\n')
+		);
+	}, [filteredDeals, marketQuotes, lang]);
 
 	const topMovers = useMemo(
 		() =>
@@ -984,6 +1066,47 @@ export default function App() {
 	useEffect(() => {
 		safeLocalSet('agrinexus-alerts-muted', alertsMuted ? '1' : '0');
 	}, [alertsMuted]);
+
+	useEffect(() => {
+		if (import.meta.env.VITE_SKIP_MARKET_QUOTES === '1') {
+			setMarketQuotes({
+				ok: true,
+				mode: 'demo',
+				quotes: [],
+				fetchedAt: new Date().toISOString(),
+				source: null,
+			});
+			setQuotesLoading(false);
+			return;
+		}
+
+		let cancelled = false;
+		setQuotesLoading(true);
+		void fetch('/api/market-quotes')
+			.then(r => r.json() as Promise<MarketQuotesApi>)
+			.then(data => {
+				if (!cancelled) setMarketQuotes(data);
+			})
+			.catch(() => {
+				if (!cancelled) {
+					setMarketQuotes({
+						ok: false,
+						mode: 'error',
+						quotes: [],
+						fetchedAt: new Date().toISOString(),
+						source: null,
+						error: 'network',
+					});
+				}
+			})
+			.finally(() => {
+				if (!cancelled) setQuotesLoading(false);
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [refreshTick]);
 
 	const formatTime = `${Math.floor(nextUpdate / 60)}:${(nextUpdate % 60).toString().padStart(2, '0')}`;
 	const selectedClient =
@@ -1236,15 +1359,20 @@ export default function App() {
 				brandHomeAria: 'AgriNexus — начало',
 				langAria: 'Превключи език',
 				heroSub:
-					'Специализиран AI слой за агротърговия с реални данни и цени за Европа и MENA — прозорец към пазара и решения BUY/HOLD/AVOID на едно място.',
+					'AI слой за агротърговия в Европа и MENA — BUY/HOLD/AVOID и работен поток на едно място. Целта е интеграция с борси и консолидирани котировки по коридори; прегледът в сайта днес е илюстративен демо каталог, не живи борсови цени.',
 				createAccount: 'Създай акаунт',
-				livePreview: 'Преглед на жив пазар',
+				livePreview: 'Преглед на пазара (демо)',
 				activeOpps: 'Активни възможности',
 				liveDealsHint:
 					'Илюстративни примери за ориентация — не са реални сключени сделки или оферти.',
 				demoBadge: 'Демо',
 				demoMarketBanner:
 					'Пазарът показва синтетични примери за демонстрация на продукта. Цените, маршрутите и маржовете не са реални котировки или договори.',
+				marketQuotesLoading: 'Зареждане на пазарни котировки…',
+				liveMarketBannerStooq:
+					'Живи забавени фючърсни референции (Stooq) за мапнатите стоки — не са оферти за физически товар. Продукти без ликвиден глобален фючърс (напр. домати) показват илюстративни числа за подредба на екрана.',
+				liveMarketErrorBanner:
+					'Живият поток от котировки е временно недостъпен — показват се синтетични примери. Опитайте „Обнови“ или проверете сървъра.',
 				unlockSub:
 					'С абонамент премахваме ограничението за преглед на всички редове и детайли в този демо каталог.',
 				openMarketplace: 'Целият пазар',
@@ -1267,7 +1395,7 @@ export default function App() {
 				unlock: 'Пълен достъп',
 				coverageTitle: 'Капацитет и покритие',
 				coverageBody:
-					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. Оценките BUY/HOLD/AVOID следват вашите филтри и сделките, които виждате на екрана.',
+					'Мулти-държавно търсене и предлагане в EU + MENA в демо каталога. Оценките BUY/HOLD/AVOID следват вашите филтри и показаните редове — при реални борсови потоци ще се подменят с актуални данни.',
 				watchlistTitle: 'Моят списък',
 				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
 				watchlistStorageHint:
@@ -1293,7 +1421,7 @@ export default function App() {
 				alertMute: 'Без звук за известия',
 				alertThreshold: 'Праг %',
 				terminalVol: 'Волатилност',
-				marketPulse: 'Пазарен импулс',
+				marketPulse: 'Пазарен импулс (демо)',
 				assistantTitle: 'AI помощник',
 				assistantSubtitle:
 					'Контекстът идва от текущите ви филтри в Пазара (до 18 от показаните сделки). Отговорите са ориентировъчни — не са правни или финансови съвети.',
@@ -1322,6 +1450,9 @@ export default function App() {
 				grainInsightTopRoute: 'Топ маршрут',
 				grainInsightTopProduct: 'Топ продукт',
 				pricingTitle: 'Абонаментни планове',
+				pricingBetaBadge: 'Beta pricing',
+				pricingBetaNote:
+					'Текущите цени са early-access до пълната интеграция с борсови и vendor потоци, планирана в следващите 2–3 месеца.',
 				pricingWeekly: 'Седмичен',
 				pricingMonthly: 'Месечен',
 				pricingYearly: 'Годишен',
@@ -1329,12 +1460,13 @@ export default function App() {
 				pricingMonth: 'месец',
 				pricingYear: 'година',
 				pricingBestValue: 'НАЙ-ИЗГОДЕН',
+				pricingRecommendedStart: 'ПРЕПОРЪЧАНО ЗА СТАРТ',
 				pricingSubscribe: 'Абонирай се',
 				pricingPer: 'на',
 				pricingYearlyNote: '+1 месец безплатно',
 				pricingConceptTitle: 'AI двигател за по-силни търговски решения',
 				pricingConceptBody:
-					'Абонаментът превръща AgriNexus в практичен AI търговски инструмент: анализира текущия пазарен контекст, подрежда приоритетите и подпомага екипа в бързи, уверени решения.',
+					'Абонаментът превръща AgriNexus в практичен AI търговски инструмент: работи върху контекста от прегледа на пазара (демо днес; при връзка с борси — върху живи потоци), подрежда приоритетите и подпомага екипа в бързи, уверени решения.',
 				pricingPlanExplainTitle: 'Как работят абонаментните планове',
 				pricingPlanExplainBody:
 					'Плановете са според интензитета на работа: Седмичен за бърз старт, Месечен за регулярна търговия и Годишен за екипи, които искат най-добра цена и предвидимост.',
@@ -1375,7 +1507,7 @@ export default function App() {
 				loginBtn: 'Вход',
 				companyTitle: 'AgriNexus - Фирмена карта',
 				companySubtitle:
-					'Специализиран AI слой за оптимизация на агротърговията. Интеграция на реални пазарни данни, прогнозни цени, buyer-seller matching и търговски известия.',
+					'Специализиран AI слой за оптимизация на агротърговията (EU / MENA). По пътя са интеграции към борси и доставчици на котировки, buyer–seller matching, прогнозни цени и търговски известия.',
 				companyRegions: 'Региони: Европа / MENA',
 				clientsTitle: 'Клиентско портфолио',
 				clientsSubtitle:
@@ -1404,15 +1536,20 @@ export default function App() {
 			brandHomeAria: 'AgriNexus — home',
 			langAria: 'Switch language',
 			heroSub:
-				'Domain-specific AI layer for agricultural trading: real data, real prices, and decision logic for Europe and MENA — marketplace signals and BUY/HOLD/AVOID guidance in one place.',
+				'Domain-specific AI layer for agricultural trading in Europe and MENA — BUY/HOLD/AVOID and deal workflow in one place. The roadmap targets exchange feeds and consolidated corridor pricing; what you see today is an illustrative demo catalog, not live exchange quotes.',
 			createAccount: 'Create your account',
-			livePreview: 'Live Market Preview',
+			livePreview: 'Market preview (demo)',
 			activeOpps: 'Active Trade Opportunities',
 			liveDealsHint:
 				'Illustrative examples for orientation — not real executed trades or binding offers.',
 			demoBadge: 'Demo',
 			demoMarketBanner:
 				'The marketplace shows synthetic examples for product demonstration. Prices, routes and margins are not live quotes or contracts.',
+			marketQuotesLoading: 'Loading market quotes…',
+			liveMarketBannerStooq:
+				'Live delayed futures references (Stooq) for mapped commodities — not offers for physical cargo. Products without a liquid listed future (e.g. tomato lines) keep illustrative numbers for layout.',
+			liveMarketErrorBanner:
+				'Live quote feed unavailable — showing synthetic examples. Try refresh or check the API.',
 			unlockSub:
 				'With a subscription you can browse every row and detail without this demo limitation.',
 			openMarketplace: 'Open full marketplace',
@@ -1435,7 +1572,7 @@ export default function App() {
 			unlock: 'Full access',
 			coverageTitle: 'Coverage capacity',
 			coverageBody:
-				'Current setup supports multi-country supply and demand across EU + MENA. BUY/HOLD/AVOID reflects your filters and the deals visible on screen.',
+				'Multi-country supply and demand across EU + MENA in the demo catalog. BUY/HOLD/AVOID follows your filters and the rows shown — when exchange feeds are connected, those estimates will reflect live data.',
 			watchlistTitle: 'Watchlist',
 			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
 			watchlistStorageHint:
@@ -1461,7 +1598,7 @@ export default function App() {
 			alertMute: 'Mute alerts',
 			alertThreshold: 'Threshold %',
 			terminalVol: 'Volatility',
-			marketPulse: 'Market pulse',
+			marketPulse: 'Market pulse (demo)',
 			assistantTitle: 'AI assistant',
 			assistantSubtitle:
 				'Context comes from your current Marketplace filters (up to 18 visible deals). Answers are indicative — not legal or financial advice.',
@@ -1490,6 +1627,9 @@ export default function App() {
 			grainInsightTopRoute: 'Top route',
 			grainInsightTopProduct: 'Top product',
 			pricingTitle: 'Subscription Plans',
+			pricingBetaBadge: 'Beta pricing',
+			pricingBetaNote:
+				'Current prices are early-access until full exchange and vendor feed integrations are completed, planned within the next 2–3 months.',
 			pricingWeekly: 'Weekly',
 			pricingMonthly: 'Monthly',
 			pricingYearly: 'Yearly',
@@ -1497,12 +1637,13 @@ export default function App() {
 			pricingMonth: 'month',
 			pricingYear: 'year',
 			pricingBestValue: 'BEST VALUE',
+			pricingRecommendedStart: 'RECOMMENDED FOR START',
 			pricingSubscribe: 'Subscribe',
 			pricingPer: 'per',
 			pricingYearlyNote: '+1 month free',
 			pricingConceptTitle: 'AI engine for stronger trade decisions',
 			pricingConceptBody:
-				'The subscription turns AgriNexus into a practical AI trade layer: it interprets live market context, prioritizes opportunities, and helps teams act faster with confidence.',
+				'The subscription turns AgriNexus into a practical AI trade layer: it works off the marketplace context you are viewing (demo today; live streams once feeds are connected), prioritizes opportunities, and helps teams act faster with confidence.',
 			pricingPlanExplainTitle: 'How the subscription plans work',
 			pricingPlanExplainBody:
 				'Plans match your operating intensity: Weekly for fast onboarding, Monthly for steady trading rhythm, and Yearly for teams that need the best value and planning stability.',
@@ -1544,7 +1685,7 @@ export default function App() {
 			loginBtn: 'Sign In',
 			companyTitle: 'AgriNexus - Company Card',
 			companySubtitle:
-				'Domain-specific AI layer for agricultural trade optimization. Real market data integration, predictive pricing, buyer-seller matching, and trade alerts.',
+				'Domain-specific AI layer for agricultural trade optimization (Europe / MENA). Roadmap: exchange and vendor price feeds, buyer–seller matching, predictive pricing, and trade alerts.',
 			companyRegions: 'Regions: Europe / MENA',
 			clientsTitle: 'Client Portfolio',
 			clientsSubtitle:
@@ -1559,11 +1700,27 @@ export default function App() {
 		};
 	}, [lang]);
 
+	const marketBannerMessage = useMemo(() => {
+		if (quotesLoading && marketQuotes === null) return tr.marketQuotesLoading;
+		if (!marketQuotes || (marketQuotes.ok && marketQuotes.mode === 'demo'))
+			return tr.demoMarketBanner;
+		if (marketQuotes.ok && marketQuotes.mode === 'live') {
+			const ts = marketQuotes.fetchedAt
+				? new Date(marketQuotes.fetchedAt).toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-GB', {
+						dateStyle: 'short',
+						timeStyle: 'medium',
+					})
+				: '';
+			return ts ? `${tr.liveMarketBannerStooq} (${ts})` : tr.liveMarketBannerStooq;
+		}
+		return `${tr.liveMarketErrorBanner}${marketQuotes.error ? ` (${marketQuotes.error})` : ''}`;
+	}, [quotesLoading, marketQuotes, tr, lang]);
+
 	const landingAiCards = useMemo(() => {
 		const bgCopy = [
 			{
 				title: 'КУПИ / ЗАДРЪЖ / ИЗБЕГНИ',
-				text: 'AI търговска логика от реални сигнали и исторически сделки.',
+				text: 'AI логика подрежда сделки според филтрите и демо сценариите — готова за реални котировки и борсови потоци, когато са свързани.',
 			},
 			{
 				title: 'Прогнозни цени',
@@ -2352,7 +2509,13 @@ export default function App() {
 						</div>
 					</div>
 					<div className="demo-banner" role="note">
-						{tr.demoMarketBanner}
+						{quotesLoading && marketQuotes === null ? (
+							<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+								<Loader2 className="spin" size={16} /> {marketBannerMessage}
+							</span>
+						) : (
+							marketBannerMessage
+						)}
 					</div>
 					<div className="deal-actions" style={{ margin: '2px 0 14px' }}>
 						{categoryFilterOptions.map(option => (
@@ -2889,11 +3052,19 @@ export default function App() {
 			{view === 'pricing' && (
 				<section className="section">
 					<h2 style={{ textAlign: 'center', marginBottom: 16 }}>{tr.pricingTitle}</h2>
+					<div style={{ textAlign: 'center', marginBottom: 14 }}>
+						<span className="chip chip-demo" style={{ marginRight: 8 }}>
+							{tr.pricingBetaBadge}
+						</span>
+						<span className="muted">{tr.pricingBetaNote}</span>
+					</div>
 					<div className="pricing-grid">
 						<PricingCard
 							title={tr.pricingWeekly}
-							price="25"
+							price="12"
 							period={tr.pricingWeek}
+							popular
+							badgeText={tr.pricingRecommendedStart}
 							lang={lang}
 							labels={{
 								bestValue: tr.pricingBestValue,
@@ -2903,9 +3074,8 @@ export default function App() {
 						/>
 						<PricingCard
 							title={tr.pricingMonthly}
-							price="49"
+							price="29"
 							period={tr.pricingMonth}
-							popular
 							lang={lang}
 							labels={{
 								bestValue: tr.pricingBestValue,
@@ -2915,7 +3085,7 @@ export default function App() {
 						/>
 						<PricingCard
 							title={tr.pricingYearly}
-							price="365"
+							price="249"
 							period={tr.pricingYear}
 							note={tr.pricingYearlyNote}
 							lang={lang}
