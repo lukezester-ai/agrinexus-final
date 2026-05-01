@@ -1331,6 +1331,10 @@ export default function App() {
 				navWatchlist: 'Списък',
 				navLogin: 'Вход',
 				navGetStarted: 'Започни',
+				skipToContent: 'Към съдържанието',
+				navPrimaryAria: 'Основна навигация',
+				mobileNavAria: 'Мобилно меню',
+				brandHomeAria: 'AgriNexus — начало',
 				langAria: 'Превключи език',
 				heroSub:
 					'Специализиран AI слой за агротърговия с реални данни и цени за Европа и MENA — жива поддръжка с OpenAI на бекенда.',
@@ -1485,6 +1489,10 @@ export default function App() {
 			navWatchlist: 'Watchlist',
 			navLogin: 'Sign In',
 			navGetStarted: 'Get Started',
+			skipToContent: 'Skip to content',
+			navPrimaryAria: 'Primary navigation',
+			mobileNavAria: 'Mobile menu',
+			brandHomeAria: 'AgriNexus — home',
 			langAria: 'Switch language',
 			heroSub:
 				'Domain-specific AI layer on top of a powerful model for agricultural trading. Real data, real prices, real markets, and decision logic for Europe and MENA — powered by OpenAI on the backend for live chat.',
@@ -1707,6 +1715,27 @@ export default function App() {
         body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
         .app { min-height: 100vh; background: var(--bg); color: #fff; }
 
+        .skip-link {
+          position: absolute;
+          left: -9999px;
+          top: 0;
+          z-index: 300;
+          padding: 10px 14px;
+          border-radius: 10px;
+          background: #14532d;
+          color: #ecfdf5;
+          font-weight: 700;
+          font-size: .9rem;
+          text-decoration: none;
+          border: 2px solid rgba(255, 255, 255, 0.35);
+        }
+        .skip-link:focus,
+        .skip-link:focus-visible {
+          left: 12px;
+          top: 12px;
+          outline: none;
+        }
+
         @keyframes scrollDeals {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -1717,20 +1746,55 @@ export default function App() {
           padding: 14px 18px; background: var(--panel-2); border-bottom: 1px solid var(--border);
           position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
         }
-        .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer; }
+        .brand {
+          display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer;
+          border: none;
+          margin: 0;
+          padding: 0;
+          font: inherit;
+          color: inherit;
+          background: transparent;
+          border-radius: 10px;
+        }
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #e2e8f0; }
         .brand-nexus { color: var(--green); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .nav-link {
-          color: #fff; opacity: 0.92; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: #fff;
+          opacity: 0.92;
+          padding: 8px 10px;
+          border-radius: 8px;
+          cursor: pointer;
           border: 1px solid transparent;
         }
-        .nav-link.active { color: var(--green); background: rgba(34, 197, 94, 0.08); }
+        button.nav-link {
+          margin: 0;
+          font: inherit;
+          text-align: inherit;
+          background: transparent;
+          appearance: none;
+          -webkit-appearance: none;
+        }
+        .nav-link:hover:not(.active) {
+          background: rgba(255, 255, 255, 0.06);
+          opacity: 1;
+        }
+        .nav-link.active {
+          color: var(--green);
+          opacity: 1;
+          background: rgba(34, 197, 94, 0.12);
+          border-color: rgba(34, 197, 94, 0.35);
+        }
+        .nav-link.active svg { color: var(--green); }
 
         .btn {
           border: none; border-radius: 12px; cursor: pointer; font-weight: 700;
           display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
+          font-family: inherit;
         }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
         .btn-primary { background: var(--green); color: white; }
@@ -1878,6 +1942,15 @@ export default function App() {
           width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff;
           font-family: inherit;
         }
+        .search-wrap input:focus-visible,
+        .form-grid input:focus-visible,
+        .form-grid select:focus-visible,
+        .form-grid textarea:focus-visible,
+        .chat-input-row textarea:focus-visible {
+          outline: 2px solid rgba(134, 239, 172, 0.95);
+          outline-offset: 2px;
+          border-color: rgba(134, 239, 172, 0.45);
+        }
 
         .chat-box { position: fixed; right: 12px; bottom: 12px; z-index: 200; }
         .chat-window {
@@ -1959,6 +2032,19 @@ export default function App() {
           width: 54px; height: 54px; border-radius: 999px; border: none; background: var(--green);
           display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
         }
+
+        .btn:focus-visible,
+        .btn-mini:focus-visible,
+        .brand:focus-visible,
+        .nav-link:focus-visible,
+        .chat-trigger:focus-visible,
+        .chat-prompt-chip:focus-visible,
+        .deal-chip-btn:focus-visible,
+        .client-list-item:focus-visible,
+        .mobile-nav-btn:focus-visible {
+          outline: 2px solid rgba(134, 239, 172, 0.95);
+          outline-offset: 2px;
+        }
         .chat-backdrop {
           position: fixed;
           inset: 0;
@@ -2027,16 +2113,19 @@ export default function App() {
             background: #0b1221;
             color: #cbd5e1;
             border-radius: 10px;
-          padding: 8px 8px;
-            font-size: .78rem;
+            padding: 10px 8px;
+            min-height: 48px;
+            font-size: .76rem;
             font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 4px;
-          transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
-        }
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
+          }
         .mobile-nav-btn:active {
           transform: scale(0.97);
         }
@@ -2058,60 +2147,86 @@ export default function App() {
             display: inline-block;
           }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .deals-track,
+          .ticker-track {
+            animation: none !important;
+          }
+          .live-dot {
+            animation: none !important;
+          }
+          .spin {
+            animation: none !important;
+          }
+          .mobile-nav-btn {
+            transition: none;
+          }
+        }
       `}</style>
 
-			<nav className="nav">
-				<div className="brand" onClick={() => setView('landing')}>
-					<Leaf color="var(--green)" size={24} />
+			<a href="#main-content" className="skip-link">
+				{tr.skipToContent}
+			</a>
+			<nav className="nav" aria-label={tr.navPrimaryAria}>
+				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
+					<Leaf color="var(--green)" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
 					</span>
-				</div>
+				</button>
 				<div className="nav-actions">
-					<span
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'landing' ? 'active' : ''}`}
 						onClick={() => setView('landing')}>
 						{tr.navHome}
-					</span>
-					<span
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
 						onClick={() => setView('market')}>
 						{tr.navMarket}
-					</span>
-					<span
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
 						onClick={() => setView('pricing')}>
 						{tr.navPricing}
-					</span>
-					<span
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
 						onClick={() => setView('clients')}>
 						{tr.navClients}
-					</span>
-					<span
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
 						onClick={() => setView('watchlist')}>
 						{tr.navWatchlist}
-					</span>
-					<span
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'login' ? 'active' : ''}`}
 						onClick={() => setView('login')}>
-						<LogIn size={14} /> {tr.navLogin}
-					</span>
+						<LogIn size={14} aria-hidden /> {tr.navLogin}
+					</button>
 					<button
 						type="button"
 						className="btn-mini"
 						aria-label={tr.langAria}
 						onClick={() => setLang(x => (x === 'bg' ? 'en' : 'bg'))}>
-						<Globe2 size={14} /> {lang === 'bg' ? 'EN' : 'BG'}
+						<Globe2 size={14} aria-hidden /> {lang === 'bg' ? 'EN' : 'BG'}
 					</button>
-					<button className="btn btn-primary" onClick={() => setView('register')}>
-						<UserPlus size={14} /> {tr.navGetStarted}
+					<button type="button" className="btn btn-primary" onClick={() => setView('register')}>
+						<UserPlus size={14} aria-hidden /> {tr.navGetStarted}
 					</button>
 				</div>
 			</nav>
 
+			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
 				<section className="section hero">
 					<h1 className="brand-wordmark">
@@ -3120,9 +3235,10 @@ export default function App() {
 					</div>
 				</section>
 			)}
+			</main>
 
 			{isMobileViewport && (
-				<div className="mobile-nav">
+				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>
 					<button
 						type="button"
 						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
@@ -3272,6 +3388,7 @@ export default function App() {
 				)}
 				{!isMobileViewport && (
 					<button
+						type="button"
 						className="chat-trigger"
 						onClick={() =>
 							setIsChatOpen(v => {
