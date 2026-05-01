@@ -38,6 +38,15 @@ http
     }
 
     try {
+      if (path === '/api/chat' && req.method === 'GET') {
+        send(res, 200, {
+          ok: true,
+          path: '/api/chat',
+          openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
+        });
+        return;
+      }
+
       if (path === '/api/chat' && req.method === 'POST') {
         const body = await readJson(req);
         if (body === null) {
