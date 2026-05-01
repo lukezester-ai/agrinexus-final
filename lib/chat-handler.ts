@@ -108,6 +108,22 @@ function isChatTurn(v: unknown): v is ChatTurn {
 export async function handleChatPost(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
+  try {
+    return await handleChatPostInner(rawBody);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Chat handler error';
+    return {
+      ok: false,
+      status: 500,
+      error: msg,
+      hint: 'Unexpected error in chat handler. Check Vercel logs.',
+    };
+  }
+}
+
+async function handleChatPostInner(rawBody: unknown): Promise<
+  { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
+> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey || apiKey.trim() === '') {
     return {
@@ -189,10 +205,29 @@ export async function handleChatPost(rawBody: unknown): Promise<
     return { ok: false, status: 502, error: 'Upstream OpenAI request failed' };
   }
 
-  const data = (await res.json()) as {
+  let data: {
     error?: { message?: string };
     choices?: { message?: { content?: string } }[];
   };
+  try {
+    const raw = await res.text();
+    if (!raw.trim()) {
+      return {
+        ok: false,
+        status: 502,
+        error: 'Empty upstream response body',
+        hint: 'OpenAI returned no body. Check API connectivity and routing.',
+      };
+    }
+    data = JSON.parse(raw) as typeof data;
+  } catch {
+    return {
+      ok: false,
+      status: 502,
+      error: 'Upstream returned invalid JSON',
+      hint: 'Could not parse OpenAI response. Check OPENAI_API_KEY and model availability.',
+    };
+  }
 
   if (!res.ok) {
     const detail = data.error?.message || res.statusText || 'OpenAI error';
@@ -212,16 +247,6 @@ export async function handleChatPost(rawBody: unknown): Promise<
         locale === 'bg'
           ? 'Не успях да валидирам AI отговора в безопасен формат. Моля, преформулирайте въпроса или се свържете с екипа.'
           : 'I could not validate the AI response in a safe format. Please rephrase your question or contact the team.',
-    };
-  }
-
-  if (!envelope.in_scope || envelope.confidence === 'low') {
-    return {
-      ok: true,
-      reply:
-        locale === 'bg'
-          ? 'Нямам достатъчно валиден контекст за надежден отговор по тази заявка. Моля, конкретизирайте продукта/маршрута или се свържете с търговски експерт.'
-          : 'I do not have enough validated context for a reliable answer to this request. Please specify product/route details or contact a trade expert.',
     };
   }
 

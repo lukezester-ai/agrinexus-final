@@ -427,13 +427,18 @@ async function apiChat(
 				body: requestBody,
 				signal: requestController.signal,
 			});
+			const rawText = await res.text();
 			let data: { reply?: string; error?: string; hint?: string } = {};
-			try {
-				data = (await res.json()) as typeof data;
-			} catch {
-				throw new Error(
-					locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
-				);
+			if (rawText.trim()) {
+				try {
+					data = JSON.parse(rawText) as typeof data;
+				} catch {
+					throw new Error(
+						locale === 'bg'
+							? `Сървърът не върна валиден JSON (код ${res.status}). Проверете дали /api/chat работи на хостинга.`
+							: `Server did not return valid JSON (HTTP ${res.status}). Check that /api/chat is deployed.`
+					);
+				}
 			}
 			if (!res.ok) {
 				throw new Error(
