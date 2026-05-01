@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 const {
@@ -17,7 +17,13 @@ const {
 	Building2,
 	Globe2,
 	Loader2,
+	MessageSquare,
+	Send,
+	ArrowLeft,
 } = Lucide;
+
+/** Guest users see full detail for this many marketplace rows before soft-lock teasers. */
+const FREE_MARKET_DEALS_FOR_GUEST = 18;
 
 const PREVIEW_DEALS = [
 	{
@@ -31,7 +37,6 @@ const PREVIEW_DEALS = [
 		profit: 22,
 		price: '1.84 AED',
 		isMENA: true,
-		locked: false,
 	},
 	{
 		id: 'p2',
@@ -44,7 +49,6 @@ const PREVIEW_DEALS = [
 		profit: 14,
 		price: '0.43 EUR',
 		isMENA: false,
-		locked: false,
 	},
 	{
 		id: 'p3',
@@ -57,7 +61,6 @@ const PREVIEW_DEALS = [
 		profit: 27,
 		price: '55.90 EGP',
 		isMENA: true,
-		locked: true,
 	},
 	{
 		id: 'p4',
@@ -70,7 +73,6 @@ const PREVIEW_DEALS = [
 		profit: 21,
 		price: '2.10 SAR',
 		isMENA: true,
-		locked: true,
 	},
 ];
 
@@ -134,6 +136,32 @@ function safeLocalSet(key: string, value: string): void {
 	}
 }
 
+function safeSessionGet(key: string): string | null {
+	try {
+		return sessionStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+
+function safeSessionSet(key: string, value: string): void {
+	try {
+		sessionStorage.setItem(key, value);
+	} catch {
+		/* ignore */
+	}
+}
+
+function safeSessionRemove(key: string): void {
+	try {
+		sessionStorage.removeItem(key);
+	} catch {
+		/* ignore */
+	}
+}
+
+type ChatTurn = { role: 'user' | 'assistant'; content: string };
+
 type DealRow = {
 	id: number;
 	product: string;
@@ -164,6 +192,7 @@ type Lang = 'bg' | 'en';
 type View =
 	| 'landing'
 	| 'market'
+	| 'assistant'
 	| 'pricing'
 	| 'register'
 	| 'login'
@@ -217,6 +246,18 @@ const MARKET_FLASH_BG = [
 	'Коридор доматено пюре TR → KSA: по-тесни спредове през тази сесия.',
 	'Оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене.',
 	'Премиум пшенични маршрути към EU: склонност към HOLD заради натиск върху превоза.',
+];
+
+const QUICK_PROMPTS_BG = [
+	'Дай BUY/HOLD/AVOID за домати България → UAE.',
+	'Кои сертификати са критични за export към KSA?',
+	'Бърз risk-check за EU → MENA маршрут.',
+];
+
+const QUICK_PROMPTS_EN = [
+	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
+	'Which certifications matter most for export to KSA?',
+	'Quick risk-check for EU → MENA route.',
 ];
 
 const CLIENT_PROFILES: ClientProfile[] = [
@@ -356,6 +397,85 @@ function PricingCard({
 	);
 }
 
+async function apiChat(
+	messages: ChatTurn[],
+	dealContext: string,
+	locale: Lang,
+	signal?: AbortSignal
+): Promise<string> {
+	const timeoutMs = 15000;
+	const maxAttempts = 2;
+	const requestBody = JSON.stringify({ messages, dealContext, locale });
+
+	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+		const timeoutController = new AbortController();
+		const requestController = new AbortController();
+		let timeoutFired = false;
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+		const abortRequest = () => requestController.abort();
+		signal?.addEventListener('abort', abortRequest);
+		timeoutId = setTimeout(() => {
+			timeoutFired = true;
+			requestController.abort();
+		}, timeoutMs);
+
+		try {
+			const res = await fetch('/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: requestBody,
+				signal: requestController.signal,
+			});
+			let data: { reply?: string; error?: string; hint?: string } = {};
+			try {
+				data = (await res.json()) as typeof data;
+			} catch {
+				throw new Error(
+					locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
+				);
+			}
+			if (!res.ok) {
+				throw new Error(
+					data.hint ||
+						data.error ||
+						(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
+				);
+			}
+			if (!data.reply) {
+				throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
+			}
+			return data.reply;
+		} catch (err) {
+			if (signal?.aborted) {
+				const abortError = new Error('Chat request aborted');
+				abortError.name = 'AbortError';
+				throw abortError;
+			}
+			const isNetworkError = err instanceof TypeError;
+			const isRetryable = timeoutFired || isNetworkError;
+			const shouldRetry = isRetryable && attempt < maxAttempts;
+			if (!shouldRetry) {
+				if (timeoutFired) {
+					throw new Error(
+						locale === 'bg'
+							? 'Чат заявката изтече по време. Проверете връзката и опитайте отново.'
+							: 'Chat request timed out. Check your connection and try again.'
+					);
+				}
+				throw err;
+			}
+			await new Promise(resolve => setTimeout(resolve, 450));
+		} finally {
+			if (timeoutId) clearTimeout(timeoutId);
+			signal?.removeEventListener('abort', abortRequest);
+			timeoutController.abort();
+		}
+	}
+
+	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
+}
+
 export default function App() {
 	const [view, setView] = useState<View>('landing');
 	const [lang, setLang] = useState<Lang>(() =>
@@ -372,6 +492,14 @@ export default function App() {
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
+
+	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
+	const [chatInput, setChatInput] = useState(
+		() => safeSessionGet('agrinexus-chat-draft') ?? ''
+	);
+	const [chatLoading, setChatLoading] = useState(false);
+	const chatAbortRef = useRef<AbortController | null>(null);
+	const chatEndRef = useRef<HTMLDivElement | null>(null);
 
 	const [regFullName, setRegFullName] = useState('');
 	const [regCompany, setRegCompany] = useState('');
@@ -791,6 +919,16 @@ export default function App() {
 		};
 	}, [filteredDeals, grainUniverse, selectedCategory]);
 
+	const dealContextForAI = useMemo(() => {
+		const slice = filteredDeals.slice(0, 18);
+		return slice
+			.map(
+				d =>
+					`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}`
+			)
+			.join('\n');
+	}, [filteredDeals]);
+
 	const topMovers = useMemo(
 		() =>
 			[...filteredDeals]
@@ -888,6 +1026,64 @@ export default function App() {
 	const forceRefreshDeals = () => {
 		setRefreshTick(v => v + 1);
 		setNextUpdate(30 * 60);
+	};
+
+	const sendChat = useCallback(async () => {
+		const trimmed = chatInput.trim();
+		if (!trimmed || chatLoading) return;
+		chatAbortRef.current?.abort();
+		const controller = new AbortController();
+		chatAbortRef.current = controller;
+
+		const nextUser: ChatTurn = { role: 'user', content: trimmed };
+		const history = [...chatMessages, nextUser];
+		setChatMessages(history);
+		setChatInput('');
+		safeSessionRemove('agrinexus-chat-draft');
+		setChatLoading(true);
+		try {
+			const payload = history
+				.filter(m => m.role === 'user' || m.role === 'assistant')
+				.slice(-16);
+			const reply = await apiChat(payload, dealContextForAI, lang, controller.signal);
+			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+		} catch (e) {
+			const name =
+				typeof e === 'object' && e && 'name' in e
+					? String((e as { name: string }).name)
+					: '';
+			if (name === 'AbortError') return;
+			const msg =
+				e instanceof Error
+					? e.message
+					: lang === 'bg'
+						? 'Грешка при AI заявка'
+						: 'AI request error';
+			const normalized = msg.includes('OpenAI is not configured')
+				? lang === 'bg'
+					? 'AI не е конфигуриран на сървъра. Добавете OPENAI_API_KEY в променливите на средата (напр. Vercel).'
+					: 'AI is not configured on the server. Add OPENAI_API_KEY to environment variables (e.g. Vercel).'
+				: msg;
+			setChatMessages(prev => [...prev, { role: 'assistant', content: normalized }]);
+		} finally {
+			if (chatAbortRef.current === controller) chatAbortRef.current = null;
+			setChatLoading(false);
+		}
+	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
+
+	useEffect(() => {
+		safeSessionSet('agrinexus-chat-draft', chatInput);
+	}, [chatInput]);
+
+	useEffect(() => {
+		if (view !== 'assistant') return;
+		chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+	}, [chatMessages, chatLoading, view]);
+
+	useEffect(() => () => chatAbortRef.current?.abort(), []);
+
+	const applyQuickPrompt = (prompt: string) => {
+		setChatInput(prompt);
 	};
 
 	useEffect(() => {
@@ -1023,6 +1219,7 @@ export default function App() {
 			return {
 				navHome: 'Начало',
 				navMarket: 'Пазар',
+				navAssistant: 'AI помощник',
 				navPricing: 'Абонаменти',
 				navClients: 'Клиенти',
 				navWatchlist: 'Списък',
@@ -1038,7 +1235,13 @@ export default function App() {
 				createAccount: 'Създай акаунт',
 				livePreview: 'Преглед на жив пазар',
 				activeOpps: 'Активни възможности',
-				liveDealsHint: '4 от 240+ живи сделки — Египет като основен вносител',
+				liveDealsHint:
+					'Илюстративни примери за ориентация — не са реални сключени сделки или оферти.',
+				demoBadge: 'Демо',
+				demoMarketBanner:
+					'Пазарът показва синтетични примери за демонстрация на продукта. Цените, маршрутите и маржовете не са реални котировки или договори.',
+				unlockSub:
+					'С абонамент премахваме ограничението за преглед на всички редове и детайли в този демо каталог.',
 				openMarketplace: 'Целият пазар',
 				clientDossiers: 'Клиентски досиета',
 				menaBadge: 'ПАЗАР MENA',
@@ -1056,12 +1259,14 @@ export default function App() {
 				aiUpdateIn: 'Следваща AI актуализация след',
 				decision: 'Решение',
 				estMargin: 'Очакван марж',
-				unlock: 'Отключи',
+				unlock: 'Пълен достъп',
 				coverageTitle: 'Капацитет и покритие',
 				coverageBody:
 					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. Оценките BUY/HOLD/AVOID следват вашите филтри и сделките, които виждате на екрана.',
 				watchlistTitle: 'Моят списък',
 				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
+				watchlistStorageHint:
+					'Не се изисква вход за преглед: запазеното се записва локално в този браузър (до изчистване на данните).',
 				watchlistTabSaved: 'Запазени сделки',
 				watchlistTabCabinet: 'Моят кабинет',
 				cabinetTitle: 'Търговски кабинет',
@@ -1084,6 +1289,17 @@ export default function App() {
 				alertThreshold: 'Праг %',
 				terminalVol: 'Волатилност',
 				marketPulse: 'Пазарен импулс',
+				assistantTitle: 'AI помощник',
+				assistantSubtitle:
+					'Контекстът идва от текущите ви филтри в Пазара (до 18 от показаните сделки). Отговорите са ориентировъчни — не са правни или финансови съвети.',
+				assistantBack: 'Към Пазара',
+				assistantLegalFooter:
+					'AgriNexus не поема отговорност за действия въз основа на AI отговори. За реални сделки потърсете потвърждение от вашия екип.',
+				chatThinking: 'Мисля…',
+				chatPromptsLabel: 'Бързи подкани',
+				chatClear: 'Изчисти',
+				chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
+				mobileAssistantTab: 'AI',
 				dealCategory: 'Категория',
 				dealQuality: 'Качество',
 				dealVolume: 'Обем',
@@ -1171,6 +1387,7 @@ export default function App() {
 		return {
 			navHome: 'Home',
 			navMarket: 'Marketplace',
+			navAssistant: 'AI assistant',
 			navPricing: 'Pricing',
 			navClients: 'Clients',
 			navWatchlist: 'Watchlist',
@@ -1186,7 +1403,13 @@ export default function App() {
 			createAccount: 'Create your account',
 			livePreview: 'Live Market Preview',
 			activeOpps: 'Active Trade Opportunities',
-			liveDealsHint: '4 of 240+ live deals — Egypt included as a major importer',
+			liveDealsHint:
+				'Illustrative examples for orientation — not real executed trades or binding offers.',
+			demoBadge: 'Demo',
+			demoMarketBanner:
+				'The marketplace shows synthetic examples for product demonstration. Prices, routes and margins are not live quotes or contracts.',
+			unlockSub:
+				'With a subscription you can browse every row and detail without this demo limitation.',
 			openMarketplace: 'Open full marketplace',
 			clientDossiers: 'Client dossiers',
 			menaBadge: 'MENA MARKET',
@@ -1204,12 +1427,14 @@ export default function App() {
 			aiUpdateIn: 'AI update in:',
 			decision: 'Decision',
 			estMargin: 'Estimated margin',
-			unlock: 'Unlock',
+			unlock: 'Full access',
 			coverageTitle: 'Coverage capacity',
 			coverageBody:
 				'Current setup supports multi-country supply and demand across EU + MENA. BUY/HOLD/AVOID reflects your filters and the deals visible on screen.',
 			watchlistTitle: 'Watchlist',
 			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
+			watchlistStorageHint:
+				'No sign-in needed for this screen — saves stay in this browser until cleared.',
 			watchlistTabSaved: 'Saved deals',
 			watchlistTabCabinet: 'My cabinet',
 			cabinetTitle: 'Trading cabinet',
@@ -1232,6 +1457,17 @@ export default function App() {
 			alertThreshold: 'Threshold %',
 			terminalVol: 'Volatility',
 			marketPulse: 'Market pulse',
+			assistantTitle: 'AI assistant',
+			assistantSubtitle:
+				'Context comes from your current Marketplace filters (up to 18 visible deals). Answers are indicative — not legal or financial advice.',
+			assistantBack: 'Back to marketplace',
+			assistantLegalFooter:
+				'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
+			chatThinking: 'Thinking…',
+			chatPromptsLabel: 'Quick prompts',
+			chatClear: 'Clear',
+			chatPlaceholder: 'Ask about routes, margin, certifications…',
+			mobileAssistantTab: 'AI',
 			dealCategory: 'Category',
 			dealQuality: 'Quality',
 			dealVolume: 'Volume',
@@ -1339,6 +1575,7 @@ export default function App() {
 	}, [lang]);
 
 	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
 			all: allDeals.length,
@@ -1491,6 +1728,75 @@ export default function App() {
           background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
         }
         .deal-card.top { border: 2px solid var(--green); }
+        .demo-pill {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          z-index: 2;
+          font-size: .65rem;
+          font-weight: 800;
+          padding: 4px 8px;
+          border-radius: 999px;
+          background: rgba(245, 158, 11, 0.18);
+          border: 1px solid rgba(245, 158, 11, 0.45);
+          color: #fcd34d;
+          letter-spacing: .05em;
+          text-transform: uppercase;
+        }
+        .demo-banner {
+          background: rgba(245, 158, 11, 0.07);
+          border: 1px solid rgba(245, 158, 11, 0.32);
+          border-radius: 12px;
+          padding: 11px 14px;
+          margin-bottom: 14px;
+          color: #fef3c7;
+          font-size: .88rem;
+          line-height: 1.5;
+        }
+        .assistant-msgs {
+          max-height: min(52vh, 480px);
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin: 12px 0;
+          padding-right: 4px;
+        }
+        .assistant-bubble {
+          max-width: 100%;
+          padding: 10px 12px;
+          border-radius: 12px;
+          font-size: .9rem;
+          line-height: 1.45;
+        }
+        .assistant-bubble.user {
+          align-self: flex-end;
+          background: rgba(34, 197, 94, 0.15);
+          border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .assistant-bubble.assistant {
+          align-self: flex-start;
+          background: #0f172a;
+          border: 1px solid #334155;
+        }
+        .assistant-input-row {
+          display: flex;
+          gap: 8px;
+          align-items: flex-end;
+          margin-top: 8px;
+        }
+        .assistant-input-row textarea {
+          flex: 1;
+          resize: none;
+          min-height: 48px;
+          max-height: 160px;
+          padding: 10px;
+          border-radius: 10px;
+          border: 1px solid #334155;
+          background: #0b1221;
+          color: #fff;
+          font-family: inherit;
+        }
 
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
         .pricing-card { text-align: center; padding: 14px; }
@@ -1612,7 +1918,8 @@ export default function App() {
         .search-wrap input:focus-visible,
         .form-grid input:focus-visible,
         .form-grid select:focus-visible,
-        .form-grid textarea:focus-visible {
+        .form-grid textarea:focus-visible,
+        .assistant-input-row textarea:focus-visible {
           outline: 2px solid rgba(134, 239, 172, 0.95);
           outline-offset: 2px;
           border-color: rgba(134, 239, 172, 0.45);
@@ -1621,6 +1928,13 @@ export default function App() {
         .btn-mini {
           background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 8px;
           padding: 5px 9px; cursor: pointer; font-size: .76rem;
+        }
+        .chat-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
         }
 
         .clients-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
@@ -1700,8 +2014,8 @@ export default function App() {
             border-radius: 14px;
             padding: 8px;
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 6px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 4px;
             backdrop-filter: blur(6px);
           }
           .mobile-nav-btn {
@@ -1709,9 +2023,9 @@ export default function App() {
             background: #0b1221;
             color: #cbd5e1;
             border-radius: 10px;
-            padding: 10px 8px;
+            padding: 8px 4px;
             min-height: 48px;
-            font-size: .76rem;
+            font-size: .65rem;
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
@@ -1726,8 +2040,8 @@ export default function App() {
           transform: scale(0.97);
         }
         .mobile-nav-btn svg {
-          width: 16px;
-          height: 16px;
+          width: 15px;
+          height: 15px;
           }
           .mobile-nav-btn.active {
             border-color: rgba(34, 197, 94, 0.45);
@@ -1776,6 +2090,12 @@ export default function App() {
 						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
 						onClick={() => setView('market')}>
 						{tr.navMarket}
+					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
+						onClick={() => setView('assistant')}>
+						<Brain size={14} aria-hidden /> {tr.navAssistant}
 					</button>
 					<button
 						type="button"
@@ -1863,7 +2183,8 @@ export default function App() {
 								<div
 									key={`${deal.id}-${idx}`}
 									className="deal-card"
-									style={{ width: 260, flexShrink: 0 }}>
+									style={{ width: 260, flexShrink: 0, position: 'relative' }}>
+									<span className="demo-pill">{tr.demoBadge}</span>
 									<div
 										style={{
 											display: 'flex',
@@ -1905,32 +2226,19 @@ export default function App() {
 									<div style={{ marginTop: 8, fontWeight: 900 }}>
 										{deal.price}
 									</div>
-									{deal.locked && (
-										<div className="locked-overlay">
-											<Lock color="#22c55e" size={24} />
-											<span
-												style={{
-													color: '#22c55e',
-													fontSize: '.8rem',
-													fontWeight: 700,
-												}}>
-												{tr.premiumAccess}
-											</span>
-										</div>
-									)}
 								</div>
 							))}
 						</div>
 					</div>
 
-					<div style={{ marginTop: 16 }}>
-						<button className="btn btn-outline" onClick={() => setView('market')}>
+					<div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+						<button type="button" className="btn btn-outline" onClick={() => setView('market')}>
 							{tr.openMarketplace}
 						</button>
-						<button
-							className="btn btn-outline"
-							style={{ marginLeft: 8 }}
-							onClick={() => setView('clients')}>
+						<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
+							<Brain size={16} aria-hidden /> {tr.navAssistant}
+						</button>
+						<button type="button" className="btn btn-outline" onClick={() => setView('clients')}>
 							{tr.clientDossiers}
 						</button>
 					</div>
@@ -2037,6 +2345,9 @@ export default function App() {
 								{tr.aiUpdateIn} {formatTime}
 							</span>
 						</div>
+					</div>
+					<div className="demo-banner" role="note">
+						{tr.demoMarketBanner}
 					</div>
 					<div className="deal-actions" style={{ margin: '2px 0 14px' }}>
 						{categoryFilterOptions.map(option => (
@@ -2168,10 +2479,10 @@ export default function App() {
 
 					<div className="grid">
 						{filteredDeals.map((deal, i) => {
-							const isLocked = !isPremium && i >= 5;
+							const isLocked = !isPremium && i >= FREE_MARKET_DEALS_FOR_GUEST;
 							const delta = deal.profit - deal.prevProfit;
 							return (
-								<div className={`deal-card ${i < 5 ? 'top' : ''}`} key={deal.id}>
+								<div className={`deal-card ${i < 8 ? 'top' : ''}`} key={deal.id}>
 									<div
 										style={{
 											filter: isLocked ? 'blur(7px)' : 'none',
@@ -2283,12 +2594,24 @@ export default function App() {
 
 									{isLocked && (
 										<div className="locked-overlay">
-											<Lock color="#22c55e" size={24} />
+											<Lock color="#22c55e" size={24} aria-hidden />
 											<button
+												type="button"
 												className="btn btn-primary"
 												onClick={() => setView('pricing')}>
 												{tr.unlock}
 											</button>
+											<p
+												style={{
+													margin: 0,
+													textAlign: 'center',
+													fontSize: '.78rem',
+													color: '#cbd5e1',
+													maxWidth: 220,
+													lineHeight: 1.35,
+												}}>
+												{tr.unlockSub}
+											</p>
 										</div>
 									)}
 								</div>
@@ -2300,6 +2623,84 @@ export default function App() {
 						<h3 style={{ margin: 0 }}>{tr.coverageTitle}</h3>
 						<p className="muted" style={{ margin: '8px 0 0' }}>
 							{tr.coverageBody}
+						</p>
+					</div>
+				</section>
+			)}
+
+			{view === 'assistant' && (
+				<section className="section">
+					<button
+						type="button"
+						className="btn btn-outline"
+						style={{ marginBottom: 14 }}
+						onClick={() => setView('market')}>
+						<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
+					</button>
+					<h2 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
+						<MessageSquare color="#22c55e" size={26} aria-hidden />
+						{tr.assistantTitle}
+					</h2>
+					<p className="muted" style={{ margin: '0 0 14px', maxWidth: 720 }}>
+						{tr.assistantSubtitle}
+					</p>
+					<div className="contact-panel">
+						<div className="chat-actions" style={{ marginBottom: 8 }}>
+							<span className="muted" style={{ fontSize: '.8rem' }}>
+								{tr.chatPromptsLabel}
+							</span>
+							<button type="button" className="btn-mini" onClick={() => setChatMessages([])}>
+								{tr.chatClear}
+							</button>
+						</div>
+						<div className="deal-actions" style={{ marginBottom: 10 }}>
+							{quickPrompts.map(prompt => (
+								<button
+									key={prompt}
+									type="button"
+									className="deal-chip-btn"
+									onClick={() => applyQuickPrompt(prompt)}>
+									{prompt}
+								</button>
+							))}
+						</div>
+						<div className="assistant-msgs">
+							{chatMessages.map((m, idx) => (
+								<div key={`${idx}-${m.role}`} className={`assistant-bubble ${m.role}`}>
+									{m.content}
+								</div>
+							))}
+							{chatLoading && (
+								<div
+									className="assistant-bubble assistant"
+									style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<Loader2 size={16} className="spin" aria-hidden /> {tr.chatThinking}
+								</div>
+							)}
+							<div ref={chatEndRef} />
+						</div>
+						<div className="assistant-input-row">
+							<textarea
+								placeholder={tr.chatPlaceholder}
+								value={chatInput}
+								onChange={e => setChatInput(e.target.value)}
+								onKeyDown={e => {
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault();
+										void sendChat();
+									}
+								}}
+							/>
+							<button
+								type="button"
+								className="btn btn-primary"
+								disabled={chatLoading}
+								onClick={() => void sendChat()}>
+								<Send size={18} aria-hidden />
+							</button>
+						</div>
+						<p className="muted" style={{ margin: '14px 0 0', fontSize: '.78rem', lineHeight: 1.45 }}>
+							{tr.assistantLegalFooter}
 						</p>
 					</div>
 				</section>
@@ -2324,7 +2725,12 @@ export default function App() {
 					</div>
 					{watchlistPanel === 'saved' ? (
 						watchedDeals.length === 0 ? (
-							<p className="muted">{tr.watchlistEmpty}</p>
+							<div>
+								<p className="muted">{tr.watchlistEmpty}</p>
+								<p className="muted" style={{ marginTop: 10, fontSize: '.86rem' }}>
+									{tr.watchlistStorageHint}
+								</p>
+							</div>
 						) : (
 							<div className="grid">
 								{watchedDeals.map(deal => {
@@ -2840,6 +3246,14 @@ export default function App() {
 						onClick={() => setView('market')}>
 						<Search size={16} />
 						{tr.navMarket}
+					</button>
+					<button
+						type="button"
+						className={`mobile-nav-btn ${view === 'assistant' ? 'active' : ''}`}
+						onClick={() => setView('assistant')}
+						aria-label={tr.navAssistant}>
+						<Brain size={16} aria-hidden />
+						{tr.mobileAssistantTab}
 					</button>
 					<button
 						type="button"
