@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 const {
 	Leaf,
 	Search,
 	Lock,
-	MessageSquare,
+	Bookmark,
 	RefreshCw,
 	CreditCard,
-	X,
 	Bell,
 	Brain,
 	LineChart,
@@ -17,7 +16,6 @@ const {
 	LogIn,
 	Building2,
 	Globe2,
-	Send,
 	Loader2,
 } = Lucide;
 
@@ -128,43 +126,11 @@ function safeLocalGet(key: string): string | null {
 	}
 }
 
-function safeSessionGet(key: string): string | null {
-	try {
-		return sessionStorage.getItem(key);
-	} catch {
-		return null;
-	}
-}
-
 function safeLocalSet(key: string, value: string): void {
 	try {
 		localStorage.setItem(key, value);
 	} catch {
 		/* ignore */
-	}
-}
-
-function safeSessionSet(key: string, value: string): void {
-	try {
-		sessionStorage.setItem(key, value);
-	} catch {
-		/* ignore */
-	}
-}
-
-function safeSessionRemove(key: string): void {
-	try {
-		sessionStorage.removeItem(key);
-	} catch {
-		/* ignore */
-	}
-}
-
-function safeInnerHeight(): number {
-	try {
-		return typeof window !== 'undefined' ? window.innerHeight : 720;
-	} catch {
-		return 720;
 	}
 }
 
@@ -194,7 +160,6 @@ type DealCategoryFilter = 'all' | DealRow['category'];
 type SearchableDeal = DealRow & { searchText: string };
 type WatchlistPanel = 'saved' | 'cabinet';
 
-type ChatTurn = { role: 'user' | 'assistant'; content: string };
 type Lang = 'bg' | 'en';
 type View =
 	| 'landing'
@@ -222,12 +187,6 @@ type ClientProfile = {
 	notes: string;
 };
 
-const QUICK_PROMPTS_BG = [
-	'Дай BUY/HOLD/AVOID за домати България -> UAE.',
-	'Кои сертификати са критични за export към KSA?',
-	'Направи бърз risk-check за EU to MENA route.',
-];
-
 const PRODUCT_BG_ALIASES: Record<string, string[]> = {
 	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно'],
 	Corn: ['царевица', 'зърно'],
@@ -247,12 +206,6 @@ const CATEGORY_BG_ALIASES: Record<DealRow['category'], string[]> = {
 	Pulses: ['бобови'],
 	'Processed Foods': ['преработени', 'преработени храни'],
 };
-
-const QUICK_PROMPTS_EN = [
-	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
-	'Which certifications matter most for export to KSA?',
-	'Quick risk-check for EU to MENA route.',
-];
 
 const MARKET_FLASH_EN = [
 	'Tomato paste corridor TR → KSA showing tighter spreads this session.',
@@ -403,85 +356,6 @@ function PricingCard({
 	);
 }
 
-async function apiChat(
-	messages: ChatTurn[],
-	dealContext: string,
-	locale: Lang,
-	signal?: AbortSignal
-): Promise<string> {
-	const timeoutMs = 15000;
-	const maxAttempts = 2;
-	const requestBody = JSON.stringify({ messages, dealContext, locale });
-
-	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-		const timeoutController = new AbortController();
-		const requestController = new AbortController();
-		let timeoutFired = false;
-		let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-		const abortRequest = () => requestController.abort();
-		signal?.addEventListener('abort', abortRequest);
-		timeoutId = setTimeout(() => {
-			timeoutFired = true;
-			requestController.abort();
-		}, timeoutMs);
-
-		try {
-			const res = await fetch('/api/chat', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: requestBody,
-				signal: requestController.signal,
-			});
-			let data: { reply?: string; error?: string; hint?: string } = {};
-			try {
-				data = (await res.json()) as typeof data;
-			} catch {
-				throw new Error(
-					locale === 'bg' ? 'Невалиден отговор от сървъра' : 'Invalid server response'
-				);
-			}
-			if (!res.ok) {
-				throw new Error(
-					data.hint ||
-						data.error ||
-						(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
-				);
-			}
-			if (!data.reply) {
-				throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
-			}
-			return data.reply;
-		} catch (err) {
-			if (signal?.aborted) {
-				const abortError = new Error('Chat request aborted');
-				abortError.name = 'AbortError';
-				throw abortError;
-			}
-			const isNetworkError = err instanceof TypeError;
-			const isRetryable = timeoutFired || isNetworkError;
-			const shouldRetry = isRetryable && attempt < maxAttempts;
-			if (!shouldRetry) {
-				if (timeoutFired) {
-					throw new Error(
-						locale === 'bg'
-							? 'Чат заявката изтече по време. Проверете връзката и опитайте отново.'
-							: 'Chat request timed out. Check your connection and try again.'
-					);
-				}
-				throw err;
-			}
-			await new Promise(resolve => setTimeout(resolve, 450));
-		} finally {
-			if (timeoutId) clearTimeout(timeoutId);
-			signal?.removeEventListener('abort', abortRequest);
-			timeoutController.abort();
-		}
-	}
-
-	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
-}
-
 export default function App() {
 	const [view, setView] = useState<View>('landing');
 	const [lang, setLang] = useState<Lang>(() =>
@@ -491,27 +365,13 @@ export default function App() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
 	const [watchlistPanel, setWatchlistPanel] = useState<WatchlistPanel>('saved');
-	const [isChatOpen, setIsChatOpen] = useState(false);
-	const [hasUnreadChat, setHasUnreadChat] = useState(false);
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
 	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
-	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
-	const [chatInput, setChatInput] = useState(
-		() => safeSessionGet('agrinexus-chat-draft') ?? ''
-	);
-	const [chatLoading, setChatLoading] = useState(false);
-	const [chatKeyboardOffset, setChatKeyboardOffset] = useState(12);
-	const [chatViewportHeight, setChatViewportHeight] = useState<number>(() => safeInnerHeight());
-	const [chatViewportTop, setChatViewportTop] = useState(0);
-	const chatBaseInnerHeightRef = useRef<number>(safeInnerHeight());
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
-	const chatAbortRef = useRef<AbortController | null>(null);
-	const chatEndRef = useRef<HTMLDivElement | null>(null);
-	const chatTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	const [regFullName, setRegFullName] = useState('');
 	const [regCompany, setRegCompany] = useState('');
@@ -931,16 +791,6 @@ export default function App() {
 		};
 	}, [filteredDeals, grainUniverse, selectedCategory]);
 
-	const dealContextForAI = useMemo(() => {
-		const slice = filteredDeals.slice(0, 18);
-		return slice
-			.map(
-				d =>
-					`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}`
-			)
-			.join('\n');
-	}, [filteredDeals]);
-
 	const topMovers = useMemo(
 		() =>
 			[...filteredDeals]
@@ -1040,113 +890,6 @@ export default function App() {
 		setNextUpdate(30 * 60);
 	};
 
-	const sendChat = useCallback(async () => {
-		const trimmed = chatInput.trim();
-		if (!trimmed || chatLoading) return;
-		chatAbortRef.current?.abort();
-		const controller = new AbortController();
-		chatAbortRef.current = controller;
-
-		const nextUser: ChatTurn = { role: 'user', content: trimmed };
-		const history = [...chatMessages, nextUser];
-		setChatMessages(history);
-		setChatInput('');
-		safeSessionRemove('agrinexus-chat-draft');
-		setChatLoading(true);
-		try {
-			const payload = history
-				.filter(m => m.role === 'user' || m.role === 'assistant')
-				.slice(-16);
-			const reply = await apiChat(payload, dealContextForAI, lang, controller.signal);
-			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-		} catch (e) {
-			const name =
-				typeof e === 'object' && e && 'name' in e
-					? String((e as { name: string }).name)
-					: '';
-			if (name === 'AbortError') return;
-			const msg =
-				e instanceof Error
-					? e.message
-					: lang === 'bg'
-						? 'Грешка при AI заявка'
-						: 'AI request error';
-			const normalized = msg.includes('OpenAI is not configured')
-				? lang === 'bg'
-					? 'AI чатът не е конфигуриран. Създай .env с OPENAI_API_KEY и пусни npm run dev (Vite + локален API). На Vercel добави ключа в Environment Variables.'
-					: 'AI chat is not configured. Create .env with OPENAI_API_KEY and run npm run dev (Vite + local API). On Vercel add the key in Environment Variables.'
-				: msg;
-			setChatMessages(prev => [...prev, { role: 'assistant', content: normalized }]);
-		} finally {
-			if (chatAbortRef.current === controller) chatAbortRef.current = null;
-			setChatLoading(false);
-		}
-	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
-
-	useEffect(() => {
-		safeSessionSet('agrinexus-chat-draft', chatInput);
-	}, [chatInput]);
-
-	useEffect(() => {
-		if (!isChatOpen) return;
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setIsChatOpen(false);
-		};
-		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
-	}, [isChatOpen]);
-
-	useEffect(() => {
-		chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-	}, [chatMessages, chatLoading, isChatOpen]);
-
-	useEffect(() => {
-		const last = chatMessages[chatMessages.length - 1];
-		if (!last) return;
-		if (last.role === 'assistant' && !isChatOpen) {
-			setHasUnreadChat(true);
-		}
-	}, [chatMessages, isChatOpen]);
-
-	useEffect(() => {
-		const updateKeyboardOffset = () => {
-			const viewport = window.visualViewport;
-			const viewportHeight = viewport?.height ?? window.innerHeight;
-			setChatViewportHeight(viewportHeight);
-			setChatViewportTop(viewport?.offsetTop ?? 0);
-			if (!isMobileViewport) {
-				setChatKeyboardOffset(12);
-				return;
-			}
-			const keyboardHeightFromViewport = viewport
-				? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
-				: 0;
-			const keyboardHeightFromInnerResize = Math.max(
-				0,
-				chatBaseInnerHeightRef.current - window.innerHeight
-			);
-			const keyboardHeight = Math.max(
-				keyboardHeightFromViewport,
-				keyboardHeightFromInnerResize
-			);
-			// Keep a small margin above mobile keyboard.
-			setChatKeyboardOffset(keyboardHeight > 0 ? keyboardHeight + 10 : 12);
-		};
-
-		updateKeyboardOffset();
-		window.addEventListener('resize', updateKeyboardOffset);
-		window.visualViewport?.addEventListener('resize', updateKeyboardOffset);
-		window.visualViewport?.addEventListener('scroll', updateKeyboardOffset);
-		window.addEventListener('orientationchange', updateKeyboardOffset);
-
-		return () => {
-			window.removeEventListener('resize', updateKeyboardOffset);
-			window.visualViewport?.removeEventListener('resize', updateKeyboardOffset);
-			window.visualViewport?.removeEventListener('scroll', updateKeyboardOffset);
-			window.removeEventListener('orientationchange', updateKeyboardOffset);
-		};
-	}, [isMobileViewport]);
-
 	useEffect(() => {
 		const media = window.matchMedia('(max-width: 900px)');
 		const updateMobile = () => setIsMobileViewport(media.matches);
@@ -1154,52 +897,6 @@ export default function App() {
 		media.addEventListener('change', updateMobile);
 		return () => media.removeEventListener('change', updateMobile);
 	}, []);
-
-	useEffect(() => () => chatAbortRef.current?.abort(), []);
-
-	useEffect(() => {
-		if (!isChatOpen) return;
-		const id = window.setTimeout(() => chatTextAreaRef.current?.focus(), 80);
-		return () => clearTimeout(id);
-	}, [isChatOpen]);
-
-	useEffect(() => {
-		const inputEl = chatTextAreaRef.current;
-		if (!inputEl) return;
-
-		const scrollChatIntoView = () => {
-			// Mobile-first: ensure input stays above virtual keyboard.
-			const isMobile = window.matchMedia('(max-width: 900px)').matches;
-			if (!isMobile) return;
-			window.setTimeout(() => {
-				inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-			}, 120);
-		};
-
-		inputEl.addEventListener('focus', scrollChatIntoView);
-		return () => inputEl.removeEventListener('focus', scrollChatIntoView);
-	}, [isChatOpen]);
-
-	useEffect(() => {
-		// Prevent background scroll when chat is open on mobile.
-		if (!(isMobileViewport && isChatOpen)) return;
-		const prev = document.body.style.overflow;
-		document.body.style.overflow = 'hidden';
-		return () => {
-			document.body.style.overflow = prev;
-		};
-	}, [isMobileViewport, isChatOpen]);
-
-	useEffect(() => {
-		// Close chat while navigating across pages on mobile.
-		if (isMobileViewport) setIsChatOpen(false);
-	}, [view, isMobileViewport]);
-
-	const applyQuickPrompt = (prompt: string) => {
-		setChatInput(prompt);
-		setIsChatOpen(true);
-		setHasUnreadChat(false);
-	};
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
@@ -1337,7 +1034,7 @@ export default function App() {
 				brandHomeAria: 'AgriNexus — начало',
 				langAria: 'Превключи език',
 				heroSub:
-					'Специализиран AI слой за агротърговия с реални данни и цени за Европа и MENA — жива поддръжка с OpenAI на бекенда.',
+					'Специализиран AI слой за агротърговия с реални данни и цени за Европа и MENA — прозорец към пазара и решения BUY/HOLD/AVOID на едно място.',
 				createAccount: 'Създай акаунт',
 				livePreview: 'Преглед на жив пазар',
 				activeOpps: 'Активни възможности',
@@ -1362,7 +1059,7 @@ export default function App() {
 				unlock: 'Отключи',
 				coverageTitle: 'Капацитет и покритие',
 				coverageBody:
-					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. AI чатът получава топ филтрираните сделки като контекст.',
+					'Поддържаме мулти-държавно търсене и предлагане в EU + MENA. Оценките BUY/HOLD/AVOID следват вашите филтри и сделките, които виждате на екрана.',
 				watchlistTitle: 'Моят списък',
 				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
 				watchlistTabSaved: 'Запазени сделки',
@@ -1387,16 +1084,6 @@ export default function App() {
 				alertThreshold: 'Праг %',
 				terminalVol: 'Волатилност',
 				marketPulse: 'Пазарен импулс',
-				chatThinking: 'Мисля…',
-				chatTitle: 'AgriNexus AI',
-				chatSubtitle:
-					'Жив чат през OpenAI (gpt-4o-mini по подразбиране). Контекст: до 18 от филтрираните сделки в Пазара.',
-				chatPromptsLabel: 'Бързи подкани',
-				chatClear: 'Изчисти',
-				chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
-				chatToggleOn: 'Затвори чата',
-				chatToggleOff: 'Отвори чата',
-				mobileChat: 'Чат',
 				dealCategory: 'Категория',
 				dealQuality: 'Качество',
 				dealVolume: 'Обем',
@@ -1495,7 +1182,7 @@ export default function App() {
 			brandHomeAria: 'AgriNexus — home',
 			langAria: 'Switch language',
 			heroSub:
-				'Domain-specific AI layer on top of a powerful model for agricultural trading. Real data, real prices, real markets, and decision logic for Europe and MENA — powered by OpenAI on the backend for live chat.',
+				'Domain-specific AI layer for agricultural trading: real data, real prices, and decision logic for Europe and MENA — marketplace signals and BUY/HOLD/AVOID guidance in one place.',
 			createAccount: 'Create your account',
 			livePreview: 'Live Market Preview',
 			activeOpps: 'Active Trade Opportunities',
@@ -1520,7 +1207,7 @@ export default function App() {
 			unlock: 'Unlock',
 			coverageTitle: 'Coverage capacity',
 			coverageBody:
-				'Current setup supports multi-country supply and demand across EU + MENA. The AI chat receives the top filtered deals as context — refine search before asking for BUY/HOLD/AVOID reasoning.',
+				'Current setup supports multi-country supply and demand across EU + MENA. BUY/HOLD/AVOID reflects your filters and the deals visible on screen.',
 			watchlistTitle: 'Watchlist',
 			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
 			watchlistTabSaved: 'Saved deals',
@@ -1545,16 +1232,6 @@ export default function App() {
 			alertThreshold: 'Threshold %',
 			terminalVol: 'Volatility',
 			marketPulse: 'Market pulse',
-			chatThinking: 'Thinking…',
-			chatTitle: 'AgriNexus AI',
-			chatSubtitle:
-				'Live chat via OpenAI (gpt-4o-mini by default). Context: up to 18 deals from your current Marketplace filter.',
-			chatPromptsLabel: 'Quick prompts',
-			chatClear: 'Clear',
-			chatPlaceholder: 'Ask about routes, margin, certifications…',
-			chatToggleOn: 'Close chat',
-			chatToggleOff: 'Open chat',
-			mobileChat: 'Chat',
 			dealCategory: 'Category',
 			dealQuality: 'Quality',
 			dealVolume: 'Volume',
@@ -1661,7 +1338,6 @@ export default function App() {
 		return AI_FEATURES.map((f, i) => ({ ...f, ...texts[i] }));
 	}, [lang]);
 
-	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
 	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
@@ -1689,15 +1365,6 @@ export default function App() {
 			label: `${tr.filterProcessed} (${categoryCounts['Processed Foods']})`,
 		},
 	];
-
-	const getConfidenceMeta = (text: string): { label: string; tone: 'low' | 'medium' | 'high' } | null => {
-		const match = text.match(/(?:Confidence|Ниво на увереност):\s*(LOW|MEDIUM|HIGH)/i);
-		if (!match) return null;
-		const raw = match[1].toUpperCase();
-		if (raw === 'LOW') return { label: 'LOW', tone: 'low' };
-		if (raw === 'MEDIUM') return { label: 'MEDIUM', tone: 'medium' };
-		return { label: 'HIGH', tone: 'high' };
-	};
 
 	return (
 		<div className="app">
@@ -1945,70 +1612,12 @@ export default function App() {
         .search-wrap input:focus-visible,
         .form-grid input:focus-visible,
         .form-grid select:focus-visible,
-        .form-grid textarea:focus-visible,
-        .chat-input-row textarea:focus-visible {
+        .form-grid textarea:focus-visible {
           outline: 2px solid rgba(134, 239, 172, 0.95);
           outline-offset: 2px;
           border-color: rgba(134, 239, 172, 0.45);
         }
 
-        .chat-box { position: fixed; right: 12px; bottom: 12px; z-index: 200; }
-        .chat-window {
-          width: min(92vw, 380px); background: #1e293b; border: 1px solid #334155;
-          border-radius: 14px; padding: 12px; margin-bottom: 8px;
-          display: flex; flex-direction: column; max-height: min(70vh, 520px);
-        }
-        .chat-messages {
-          flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
-          margin-bottom: 10px; padding-right: 4px;
-        }
-        .chat-bubble {
-          align-self: flex-start; max-width: 100%; padding: 10px 12px; border-radius: 12px;
-          font-size: .9rem; line-height: 1.45;
-        }
-        .chat-bubble.user {
-          align-self: flex-end; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.35);
-        }
-        .chat-bubble.assistant {
-          background: #0f172a; border: 1px solid #334155;
-        }
-        .confidence-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 999px;
-          font-size: .68rem;
-          font-weight: 800;
-          padding: 3px 8px;
-          margin-bottom: 7px;
-          letter-spacing: .02em;
-        }
-        .confidence-badge.high {
-          background: rgba(34, 197, 94, 0.16);
-          border: 1px solid rgba(34, 197, 94, 0.42);
-          color: #86efac;
-        }
-        .confidence-badge.medium {
-          background: rgba(245, 158, 11, 0.16);
-          border: 1px solid rgba(245, 158, 11, 0.45);
-          color: #fcd34d;
-        }
-        .confidence-badge.low {
-          background: rgba(239, 68, 68, 0.16);
-          border: 1px solid rgba(239, 68, 68, 0.45);
-          color: #fca5a5;
-        }
-        .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
-        .chat-input-row textarea {
-          flex: 1; resize: none; min-height: 44px; max-height: 120px; padding: 10px;
-          border-radius: 10px; border: 1px solid #334155; background: #0b1221; color: #fff; font-family: inherit;
-        }
-        .chat-prompt-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-        .chat-prompt-chip {
-          border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
-          padding: 6px 10px; font-size: .76rem; cursor: pointer;
-        }
-        .chat-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
         .btn-mini {
           background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 8px;
           padding: 5px 9px; cursor: pointer; font-size: .76rem;
@@ -2028,28 +1637,15 @@ export default function App() {
           display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
           background: rgba(34, 197, 94, 0.13); color: #4ade80;
         }
-        .chat-trigger {
-          width: 54px; height: 54px; border-radius: 999px; border: none; background: var(--green);
-          display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-
         .btn:focus-visible,
         .btn-mini:focus-visible,
         .brand:focus-visible,
         .nav-link:focus-visible,
-        .chat-trigger:focus-visible,
-        .chat-prompt-chip:focus-visible,
         .deal-chip-btn:focus-visible,
         .client-list-item:focus-visible,
         .mobile-nav-btn:focus-visible {
           outline: 2px solid rgba(134, 239, 172, 0.95);
           outline-offset: 2px;
-        }
-        .chat-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(2, 6, 23, 0.5);
-          z-index: 190;
         }
         .mobile-nav { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -2137,14 +1733,6 @@ export default function App() {
             border-color: rgba(34, 197, 94, 0.45);
             color: #86efac;
             background: rgba(34, 197, 94, 0.08);
-          }
-          .unread-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: #22c55e;
-            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.18);
-            display: inline-block;
           }
         }
 
@@ -3262,146 +2850,13 @@ export default function App() {
 					</button>
 					<button
 						type="button"
-						className={`mobile-nav-btn ${isChatOpen ? 'active' : ''}`}
-						onClick={() =>
-							setIsChatOpen(v => {
-								const next = !v;
-								if (next) setHasUnreadChat(false);
-								return next;
-							})
-						}>
-						<MessageSquare size={16} />
-						{tr.mobileChat}
-						{hasUnreadChat && !isChatOpen && <span className="unread-dot" />}
+						className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
+						onClick={() => setView('watchlist')}>
+						<Bookmark size={16} aria-hidden />
+						{tr.navWatchlist}
 					</button>
 				</div>
 			)}
-
-			<div
-				className="chat-box"
-				style={{
-					top: isMobileViewport && isChatOpen ? chatViewportTop + 8 : undefined,
-					bottom: isMobileViewport ? undefined : chatKeyboardOffset,
-					left: isMobileViewport && isChatOpen ? 10 : undefined,
-					right: isMobileViewport && isChatOpen ? 10 : 12,
-				}}>
-				{isMobileViewport && isChatOpen && (
-					<div className="chat-backdrop" onClick={() => setIsChatOpen(false)} />
-				)}
-				{isChatOpen && (
-					<div
-						className="chat-window"
-						style={
-							isMobileViewport
-								? {
-										width: '100%',
-										// Keep chat fully inside the visual viewport above mobile nav.
-										height: Math.max(260, chatViewportHeight - 86),
-										maxHeight: Math.max(260, chatViewportHeight - 86),
-									}
-								: undefined
-						}>
-						<div style={{ fontWeight: 700, color: '#22c55e', marginBottom: 6 }}>
-							{tr.chatTitle}
-						</div>
-						<p className="muted" style={{ margin: '0 0 8px', fontSize: '.82rem' }}>
-							{tr.chatSubtitle}
-						</p>
-						<div className="chat-actions">
-							<span className="muted" style={{ fontSize: '.75rem' }}>
-								{tr.chatPromptsLabel}
-							</span>
-							<button
-								className="btn-mini"
-								type="button"
-								onClick={() => setChatMessages([])}>
-								{tr.chatClear}
-							</button>
-						</div>
-						<div className="chat-prompt-row">
-							{quickPrompts.map(prompt => (
-								<button
-									key={prompt}
-									className="chat-prompt-chip"
-									type="button"
-									onClick={() => applyQuickPrompt(prompt)}>
-									{prompt}
-								</button>
-							))}
-						</div>
-						<div className="chat-messages">
-							{chatMessages.map((m, idx) => {
-								const confidenceMeta =
-									m.role === 'assistant' ? getConfidenceMeta(m.content) : null;
-								const renderedContent =
-									m.role === 'assistant'
-										? m.content
-												.replace(
-													/(?:^|\n)(?:Confidence|Ниво на увереност):\s*(LOW|MEDIUM|HIGH)\s*(?:\n|$)/i,
-													'\n'
-												)
-												.replace(/\n{3,}/g, '\n\n')
-												.trim()
-										: m.content;
-								return (
-									<div key={`${idx}-${m.role}`} className={`chat-bubble ${m.role}`}>
-										{confidenceMeta && (
-											<div className={`confidence-badge ${confidenceMeta.tone}`}>
-												Confidence: {confidenceMeta.label}
-											</div>
-										)}
-										{renderedContent}
-									</div>
-								);
-							})}
-							{chatLoading && (
-								<div
-									className="chat-bubble assistant"
-									style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-									<Loader2 size={16} className="spin" /> {tr.chatThinking}
-								</div>
-							)}
-							<div ref={chatEndRef} />
-						</div>
-						<div className="chat-input-row">
-							<textarea
-								ref={chatTextAreaRef}
-								placeholder={tr.chatPlaceholder}
-								value={chatInput}
-								onChange={e => setChatInput(e.target.value)}
-								onKeyDown={e => {
-									if (e.key === 'Enter' && !e.shiftKey) {
-										e.preventDefault();
-										void sendChat();
-									}
-								}}
-							/>
-							<button
-								className="btn btn-primary"
-								type="button"
-								disabled={chatLoading}
-								onClick={() => void sendChat()}>
-								<Send size={18} />
-							</button>
-						</div>
-					</div>
-				)}
-				{!isMobileViewport && (
-					<button
-						type="button"
-						className="chat-trigger"
-						onClick={() =>
-							setIsChatOpen(v => {
-								const next = !v;
-								if (next) setHasUnreadChat(false);
-								return next;
-							})
-						}
-						aria-label={isChatOpen ? tr.chatToggleOn : tr.chatToggleOff}>
-						{isChatOpen ? <X color="white" /> : <MessageSquare color="white" />}
-					</button>
-				)}
-			</div>
 		</div>
 	);
 }
