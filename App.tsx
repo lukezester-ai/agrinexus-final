@@ -119,6 +119,55 @@ function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH
 	return 'LOW';
 }
 
+/** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) — those crash the whole app with a blank screen. */
+function safeLocalGet(key: string): string | null {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+
+function safeSessionGet(key: string): string | null {
+	try {
+		return sessionStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+
+function safeLocalSet(key: string, value: string): void {
+	try {
+		localStorage.setItem(key, value);
+	} catch {
+		/* ignore */
+	}
+}
+
+function safeSessionSet(key: string, value: string): void {
+	try {
+		sessionStorage.setItem(key, value);
+	} catch {
+		/* ignore */
+	}
+}
+
+function safeSessionRemove(key: string): void {
+	try {
+		sessionStorage.removeItem(key);
+	} catch {
+		/* ignore */
+	}
+}
+
+function safeInnerHeight(): number {
+	try {
+		return typeof window !== 'undefined' ? window.innerHeight : 720;
+	} catch {
+		return 720;
+	}
+}
+
 type DealRow = {
 	id: number;
 	product: string;
@@ -436,7 +485,7 @@ async function apiChat(
 export default function App() {
 	const [view, setView] = useState<View>('landing');
 	const [lang, setLang] = useState<Lang>(() =>
-		localStorage.getItem('agrinexus-lang') === 'en' ? 'en' : 'bg'
+		safeLocalGet('agrinexus-lang') === 'en' ? 'en' : 'bg'
 	);
 	const [isPremium] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
@@ -450,13 +499,13 @@ export default function App() {
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
 	const [chatInput, setChatInput] = useState(
-		() => sessionStorage.getItem('agrinexus-chat-draft') ?? ''
+		() => safeSessionGet('agrinexus-chat-draft') ?? ''
 	);
 	const [chatLoading, setChatLoading] = useState(false);
 	const [chatKeyboardOffset, setChatKeyboardOffset] = useState(12);
-	const [chatViewportHeight, setChatViewportHeight] = useState<number>(() => window.innerHeight);
+	const [chatViewportHeight, setChatViewportHeight] = useState<number>(() => safeInnerHeight());
 	const [chatViewportTop, setChatViewportTop] = useState(0);
-	const chatBaseInnerHeightRef = useRef<number>(window.innerHeight);
+	const chatBaseInnerHeightRef = useRef<number>(safeInnerHeight());
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
@@ -482,7 +531,7 @@ export default function App() {
 	const [contactFeedback, setContactFeedback] = useState('');
 	const [watchlistIds, setWatchlistIds] = useState<number[]>(() => {
 		try {
-			const raw = localStorage.getItem('agrinexus-watchlist');
+			const raw = safeLocalGet('agrinexus-watchlist');
 			return raw ? (JSON.parse(raw) as number[]) : [];
 		} catch {
 			return [];
@@ -490,19 +539,19 @@ export default function App() {
 	});
 	const [alertsEnabledIds, setAlertsEnabledIds] = useState<number[]>(() => {
 		try {
-			const raw = localStorage.getItem('agrinexus-alerts');
+			const raw = safeLocalGet('agrinexus-alerts');
 			return raw ? (JSON.parse(raw) as number[]) : [];
 		} catch {
 			return [];
 		}
 	});
 	const [alertThreshold, setAlertThreshold] = useState<number>(() => {
-		const raw = localStorage.getItem('agrinexus-alert-threshold');
+		const raw = safeLocalGet('agrinexus-alert-threshold');
 		const value = raw ? Number(raw) : 20;
 		return Number.isFinite(value) ? value : 20;
 	});
 	const [alertsMuted, setAlertsMuted] = useState<boolean>(
-		() => localStorage.getItem('agrinexus-alerts-muted') === '1'
+		() => safeLocalGet('agrinexus-alerts-muted') === '1'
 	);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const formatPhoneInput = (value: string) => {
@@ -924,23 +973,23 @@ export default function App() {
 	}, [lang]);
 
 	useEffect(() => {
-		localStorage.setItem('agrinexus-watchlist', JSON.stringify(watchlistIds));
+		safeLocalSet('agrinexus-watchlist', JSON.stringify(watchlistIds));
 	}, [watchlistIds]);
 
 	useEffect(() => {
-		localStorage.setItem('agrinexus-alerts', JSON.stringify(alertsEnabledIds));
+		safeLocalSet('agrinexus-alerts', JSON.stringify(alertsEnabledIds));
 	}, [alertsEnabledIds]);
 
 	useEffect(() => {
-		localStorage.setItem('agrinexus-lang', lang);
+		safeLocalSet('agrinexus-lang', lang);
 	}, [lang]);
 
 	useEffect(() => {
-		localStorage.setItem('agrinexus-alert-threshold', String(alertThreshold));
+		safeLocalSet('agrinexus-alert-threshold', String(alertThreshold));
 	}, [alertThreshold]);
 
 	useEffect(() => {
-		localStorage.setItem('agrinexus-alerts-muted', alertsMuted ? '1' : '0');
+		safeLocalSet('agrinexus-alerts-muted', alertsMuted ? '1' : '0');
 	}, [alertsMuted]);
 
 	const formatTime = `${Math.floor(nextUpdate / 60)}:${(nextUpdate % 60).toString().padStart(2, '0')}`;
@@ -1002,7 +1051,7 @@ export default function App() {
 		const history = [...chatMessages, nextUser];
 		setChatMessages(history);
 		setChatInput('');
-		sessionStorage.removeItem('agrinexus-chat-draft');
+		safeSessionRemove('agrinexus-chat-draft');
 		setChatLoading(true);
 		try {
 			const payload = history
@@ -1035,7 +1084,7 @@ export default function App() {
 	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
 
 	useEffect(() => {
-		sessionStorage.setItem('agrinexus-chat-draft', chatInput);
+		safeSessionSet('agrinexus-chat-draft', chatInput);
 	}, [chatInput]);
 
 	useEffect(() => {

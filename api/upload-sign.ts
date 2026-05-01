@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleUploadSignPost } from '../lib/upload-sign';
+import { vercelJsonBody } from '../lib/vercel-json-body';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -14,7 +15,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const result = await handleUploadSignPost(req.body);
+  const parsed = vercelJsonBody(req.body);
+  if (parsed === null) {
+    res.status(400).json({ error: 'Invalid JSON body' });
+    return;
+  }
+
+  const result = await handleUploadSignPost(parsed);
   if (result.ok) {
     res.status(200).json({
       uploadUrl: result.uploadUrl,

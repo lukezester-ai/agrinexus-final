@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleContactPost } from '../lib/leads-handler';
+import { vercelJsonBody } from '../lib/vercel-json-body';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -14,7 +15,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const result = await handleContactPost(req.body);
+  const parsed = vercelJsonBody(req.body);
+  if (parsed === null) {
+    res.status(400).json({ ok: false, error: 'Invalid JSON body' });
+    return;
+  }
+
+  const result = await handleContactPost(parsed);
   if (result.ok) {
     res.status(200).json({ ok: true });
     return;
