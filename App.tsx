@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
+import {
+	cycleUiLang,
+	getUiStrings,
+	isRtl,
+	localeTagFor,
+	parseStoredLang,
+	speechRecognitionLang,
+	uiLangShortLabel,
+	type UiLang,
+} from './lib/i18n';
 import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
+import { recordBrowserVisitOncePerSession } from './lib/track-browser-visit';
+
+function uiPickThree(lang: UiLang, bg: string, en: string, ar: string): string {
+	if (lang === 'bg') return bg;
+	if (lang === 'ar') return ar;
+	return en;
+}
 const {
 	Leaf,
 	Search,
-	Lock,
 	Bookmark,
 	RefreshCw,
-	CreditCard,
 	Bell,
 	Brain,
 	LineChart,
@@ -21,12 +36,12 @@ const {
 	MessageSquare,
 	Send,
 	ArrowLeft,
+	Mic,
+	FileImage,
+	Users,
 } = Lucide;
 
-/** Guest users see full detail for this many marketplace rows before soft-lock teasers. */
-const FREE_MARKET_DEALS_FOR_GUEST = 18;
-
-/** When `VITE_MVP_MODE=1` in `.env`, hides pricing/clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
+/** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 
 const PREVIEW_DEALS = [
@@ -177,6 +192,32 @@ function safeSessionRemove(key: string): void {
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 
+/** Minimal typings — DOM lib does not always expose Web Speech API types. */
+type SpeechRecognitionResultEvt = {
+	results: ArrayLike<{ 0: { transcript: string } }>;
+};
+
+type SpeechRecognitionInstance = {
+	lang: string;
+	continuous: boolean;
+	interimResults: boolean;
+	start(): void;
+	stop(): void;
+	onresult: ((ev: SpeechRecognitionResultEvt) => void) | null;
+	onerror: (() => void) | null;
+	onend: (() => void) | null;
+};
+
+function getSpeechRecognitionCtor(): (new () => SpeechRecognitionInstance) | null {
+	if (typeof window === 'undefined') return null;
+	const w = window as Window &
+		typeof globalThis & {
+			SpeechRecognition?: new () => SpeechRecognitionInstance;
+			webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+		};
+	return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
 type DealRow = {
 	id: number;
 	product: string;
@@ -206,7 +247,7 @@ type DealCategoryFilter = 'all' | DealRow['category'];
 type SearchableDeal = DealRow & { searchText: string };
 type WatchlistPanel = 'saved' | 'cabinet';
 
-type Lang = 'bg' | 'en';
+type Lang = UiLang;
 
 function mergeLiveIntoDeals(
 	deals: DealRow[],
@@ -251,7 +292,6 @@ type View =
 	| 'landing'
 	| 'market'
 	| 'assistant'
-	| 'pricing'
 	| 'register'
 	| 'login'
 	| 'company'
@@ -318,6 +358,18 @@ const QUICK_PROMPTS_EN = [
 	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
 	'Which certifications matter most for export to KSA?',
 	'Quick risk-check for EU → MENA route.',
+];
+
+const MARKET_FLASH_AR = [
+	'توضيحي: ممر معجون الطماطم TR → KSA بفروق أضيق في سيناريو العرض التجريبي.',
+	'توضيحي: عروض زيت عباد الشمس من مصر تبقى قوية لنوافذ التحميل التالية في المجموعة التجريبية.',
+	'توضيحي: مسارات القمح الممتاز نحو الاتحاد الأوروبي تميل إلى HOLD بسبب ضغط الشحن في السرد التجريبي.',
+];
+
+const QUICK_PROMPTS_AR = [
+	'أعطِ BUY/HOLD/AVOID لطماطم بلغاريا → الإمارات.',
+	'ما أهم الشهادات لتصدير السعودية (KSA)؟',
+	'فحص مخاطر سريع لمسار الاتحاد الأوروبي → الشرق الأوسط وشمال أفريقيا.',
 ];
 
 const CLIENT_PROFILES: ClientProfile[] = [
@@ -404,61 +456,6 @@ const CLIENT_PROFILE_BG_COPY: Record<
 	},
 };
 
-function PricingCard({
-	title,
-	price,
-	period,
-	note = '',
-	popular = false,
-	badgeText = '',
-	lang,
-	labels,
-}: {
-	title: string;
-	price: string;
-	period: string;
-	note?: string;
-	popular?: boolean;
-	badgeText?: string;
-	lang: Lang;
-	labels: {
-		bestValue: string;
-		subscribe: string;
-		per: string;
-	};
-}) {
-	const handleSubscribe = () => {
-		const subject = encodeURIComponent(
-			lang === 'bg'
-				? `Запитване за абонамент: план ${title}`
-				: `Subscription Inquiry: ${title} Plan`
-		);
-		const body = encodeURIComponent(
-			lang === 'bg'
-				? `Здравейте, искам да се абонирам за плана ${title} (€${price}/${period}) в AgriNexus. Моля за съдействие за onboarding на info@agrinexus.eu.\n`
-				: `Hello, I would like to subscribe to the ${title} plan (€${price}/${period}) for AgriNexus. Please reach me at info@agrinexus.eu for onboarding.\n`
-		);
-		window.location.href = `mailto:info@agrinexus.eu?subject=${subject}&body=${body}`;
-	};
-
-	return (
-		<div className={`pricing-card ${popular ? 'popular' : ''}`}>
-			{(popular || badgeText) && <div className="badge">{badgeText || labels.bestValue}</div>}
-			<h3>{title}</h3>
-			<div className="pricing-value">€{price}</div>
-			<p className="muted">
-				{labels.per} {period}
-			</p>
-			{note && <p className="green-note">{note}</p>}
-			<button
-				className={`btn ${popular ? 'btn-primary' : 'btn-light'}`}
-				onClick={handleSubscribe}>
-				<CreditCard size={18} /> {labels.subscribe}
-			</button>
-		</div>
-	);
-}
-
 async function apiChat(
 	messages: ChatTurn[],
 	dealContext: string,
@@ -490,15 +487,28 @@ async function apiChat(
 				signal: requestController.signal,
 			});
 			const rawText = await res.text();
+			const ct = res.headers.get('content-type') || '';
+			const trimmed = rawText.trim();
+			const looksLikeHtml =
+				trimmed.startsWith('<!DOCTYPE') ||
+				trimmed.startsWith('<html') ||
+				trimmed.startsWith('<HTML');
 			let data: { reply?: string; error?: string; hint?: string } = {};
-			if (rawText.trim()) {
+			if (trimmed) {
+				if (looksLikeHtml || (!ct.includes('json') && !trimmed.startsWith('{'))) {
+					throw new Error(
+						locale === 'bg'
+							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ в браузър — очаква се „openaiConfigured“. Във Vercel: Settings → Environment Variables → OPENAI_API_KEY за Production, после Redeploy; вижте Logs → Functions при грешка.`
+							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat in the browser — you should see JSON with openaiConfigured. In Vercel set OPENAI_API_KEY for Production and Redeploy; check Functions logs.`
+					);
+				}
 				try {
-					data = JSON.parse(rawText) as typeof data;
+					data = JSON.parse(trimmed) as typeof data;
 				} catch {
 					throw new Error(
 						locale === 'bg'
-							? `Сървърът не върна валиден JSON (код ${res.status}). Проверете дали /api/chat работи на хостинга.`
-							: `Server did not return valid JSON (HTTP ${res.status}). Check that /api/chat is deployed.`
+							? `Сървърът не върна валиден JSON (код ${res.status}). Проверете дали /api/chat се деплойва (папка api/) и логовете във Vercel.`
+							: `Server did not return valid JSON (HTTP ${res.status}). Verify /api/chat is deployed and check Vercel function logs.`
 					);
 				}
 			}
@@ -548,14 +558,21 @@ export default function App() {
 
 	useEffect(() => {
 		if (!MVP_MODE) return;
-		if (view === 'pricing' || view === 'clients' || view === 'watchlist') {
+		if (view === 'clients' || view === 'watchlist') {
 			setView('landing');
 		}
 	}, [view]);
-	const [lang, setLang] = useState<Lang>(() =>
-		safeLocalGet('agrinexus-lang') === 'en' ? 'en' : 'bg'
-	);
-	const [isPremium] = useState(false);
+	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
+
+	useEffect(() => {
+		document.documentElement.lang = lang === 'bg' ? 'bg' : lang === 'ar' ? 'ar' : 'en';
+		document.documentElement.dir = isRtl(lang) ? 'rtl' : 'ltr';
+	}, [lang]);
+
+	useEffect(() => {
+		recordBrowserVisitOncePerSession();
+	}, []);
+
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
 	const [watchlistPanel, setWatchlistPanel] = useState<WatchlistPanel>('saved');
@@ -576,6 +593,18 @@ export default function App() {
 	const [chatLoading, setChatLoading] = useState(false);
 	const chatAbortRef = useRef<AbortController | null>(null);
 	const chatEndRef = useRef<HTMLDivElement | null>(null);
+	const [sessionTick, setSessionTick] = useState(0);
+	const [voiceListening, setVoiceListening] = useState(false);
+	const [docExplainLoading, setDocExplainLoading] = useState(false);
+	const [assistantNotice, setAssistantNotice] = useState<string | null>(null);
+	const docImageInputRef = useRef<HTMLInputElement>(null);
+	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
+
+	const demoSessionEmail = useMemo(() => {
+		const e = safeLocalGet('agrinexus-demo-email');
+		return e?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) ? e.trim() : null;
+	}, [sessionTick]);
+	const [chatHealth, setChatHealth] = useState<'idle' | 'ready' | 'no_key' | 'offline'>('idle');
 
 	const [regFullName, setRegFullName] = useState('');
 	const [regCompany, setRegCompany] = useState('');
@@ -1019,7 +1048,9 @@ export default function App() {
 			marketQuotes?.ok && marketQuotes.mode === 'live'
 				? lang === 'bg'
 					? '[Пазар: забавени фючърсни референции от Stooq за мапнати стоки; редове без инструмент са илюстративни; не са оферти.]\n'
-					: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
+					: lang === 'ar'
+						? '[السوق: مراجع آجلة متأخرة من Stooq للسلع المعينة؛ الصفوف بلا أداة مستقبلية توضيحية وليست عروضاً.]\n'
+						: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
 				: '';
 		return (
 			feedNote +
@@ -1057,7 +1088,8 @@ export default function App() {
 
 	useEffect(() => {
 		const flashTimer = setInterval(() => {
-			const flashes = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+			const flashes =
+				lang === 'bg' ? MARKET_FLASH_BG : lang === 'ar' ? MARKET_FLASH_AR : MARKET_FLASH_EN;
 			setMarketFlashIndex(v => (v + 1) % flashes.length);
 		}, 9000);
 		return () => clearInterval(flashTimer);
@@ -1203,17 +1235,193 @@ export default function App() {
 					: lang === 'bg'
 						? 'Грешка при AI заявка'
 						: 'AI request error';
-			const normalized = msg.includes('OpenAI is not configured')
-				? lang === 'bg'
-					? 'AI не е конфигуриран на сървъра. Добавете OPENAI_API_KEY в променливите на средата (напр. Vercel).'
-					: 'AI is not configured on the server. Add OPENAI_API_KEY to environment variables (e.g. Vercel).'
-				: msg;
+			let normalized = msg;
+			if (msg.includes('OpenAI is not configured')) {
+				normalized =
+					lang === 'bg'
+						? 'AI не е конфигуриран на сървъра. Добавете OPENAI_API_KEY в променливите на средата (напр. Vercel).'
+						: 'AI is not configured on the server. Add OPENAI_API_KEY to environment variables (e.g. Vercel).';
+			} else if (/incorrect api key|invalid_api_key|authentication/i.test(msg)) {
+				normalized =
+					lang === 'bg'
+						? 'Ключът за OpenAI не е приет (грешен, оттеглен или с интервал). Вземете нов секретен ключ от platform.openai.com/api-keys, сложете го в .env като OPENAI_API_KEY=sk-... без кавички, рестартирайте npm run dev; за Vercel — обновете Environment Variables.'
+						: 'OpenAI rejected the API key (wrong, revoked, or extra spaces). Create a new secret at platform.openai.com/api-keys, set OPENAI_API_KEY in .env (no quotes), restart npm run dev; update Vercel env for production.';
+			}
 			setChatMessages(prev => [...prev, { role: 'assistant', content: normalized }]);
 		} finally {
 			if (chatAbortRef.current === controller) chatAbortRef.current = null;
 			setChatLoading(false);
 		}
 	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
+
+	const toggleVoiceInput = useCallback(() => {
+		if (!demoSessionEmail) {
+			setAssistantNotice(
+				lang === 'bg'
+					? 'Влез с имейл през „Вход“ (демо), за да ползваш микрофона.'
+					: 'Use demo Sign In with email to enable the microphone.'
+			);
+			return;
+		}
+		if (voiceListening) {
+			try {
+				speechRef.current?.stop();
+			} catch {
+				/* ignore */
+			}
+			speechRef.current = null;
+			setVoiceListening(false);
+			return;
+		}
+		const Ctor = getSpeechRecognitionCtor();
+		if (!Ctor) {
+			setAssistantNotice(
+				lang === 'bg'
+					? 'Този браузър не поддържа гласово разпознаване — опитайте Chrome или Edge.'
+					: 'Speech recognition is not supported — try Chrome or Edge.'
+			);
+			return;
+		}
+		const rec = new Ctor();
+		rec.lang = speechRecognitionLang(lang);
+		rec.continuous = false;
+		rec.interimResults = false;
+		rec.onresult = (ev: SpeechRecognitionResultEvt) => {
+			const t = ev.results[0]?.[0]?.transcript?.trim();
+			if (t)
+				setChatInput(prev => {
+					const next = prev.trim() ? `${prev.trim()} ${t}` : t;
+					return next.trim();
+				});
+		};
+		rec.onerror = () => {
+			setVoiceListening(false);
+			speechRef.current = null;
+			setAssistantNotice(lang === 'bg' ? 'Грешка при разпознаване на глас.' : 'Speech recognition error.');
+		};
+		rec.onend = () => {
+			setVoiceListening(false);
+			speechRef.current = null;
+		};
+		speechRef.current = rec;
+		setVoiceListening(true);
+		try {
+			rec.start();
+		} catch {
+			setVoiceListening(false);
+			speechRef.current = null;
+			setAssistantNotice(
+				lang === 'bg' ? 'Неуспешно стартиране на микрофона.' : 'Could not start microphone.'
+			);
+		}
+	}, [demoSessionEmail, voiceListening, lang]);
+
+	const onDocImageChange = useCallback(
+		async (e: React.ChangeEvent<HTMLInputElement>) => {
+			const file = e.target.files?.[0];
+			e.target.value = '';
+			if (!file || docExplainLoading) return;
+			if (!demoSessionEmail) {
+				setAssistantNotice(
+					lang === 'bg'
+						? 'Влез през „Вход“ (демо), за да обясним документ.'
+						: 'Demo sign-in is required to explain a document.'
+				);
+				return;
+			}
+			if (!file.type.startsWith('image/')) {
+				setAssistantNotice(
+					lang === 'bg' ? 'Избери изображение (JPEG, PNG, WebP, GIF).' : 'Choose an image file.'
+				);
+				return;
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				setAssistantNotice(lang === 'bg' ? 'Файлът е над 5 MB.' : 'File is over 5 MB.');
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.onload = async () => {
+				const result = reader.result;
+				if (typeof result !== 'string') return;
+
+				const comma = result.indexOf(',');
+				const b64 = comma >= 0 ? result.slice(comma + 1) : result;
+
+				const userLabel =
+					lang === 'bg' ? `[Документ — снимка] ${file.name}` : `[Document image] ${file.name}`;
+				setChatMessages(prev => [...prev, { role: 'user', content: userLabel }]);
+				setDocExplainLoading(true);
+				try {
+					const q = chatInput.trim();
+					const res = await fetch('/api/document-explain', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							sessionEmail: demoSessionEmail,
+							locale: lang,
+							imageBase64: b64,
+							mimeType: file.type || 'image/jpeg',
+							...(q ? { question: q } : {}),
+						}),
+					});
+					let data: { reply?: string; error?: string; hint?: string } = {};
+					try {
+						data = (await res.json()) as typeof data;
+					} catch {
+						data = {};
+					}
+					const text =
+						res.ok && data.reply
+							? data.reply
+							: data.hint ||
+								data.error ||
+								(lang === 'bg'
+									? 'Грешка при обяснение на документ.'
+									: 'Document explain failed.');
+					setChatMessages(prev => [...prev, { role: 'assistant', content: text }]);
+				} catch {
+					setChatMessages(prev => [
+						...prev,
+						{
+							role: 'assistant',
+							content:
+								lang === 'bg'
+									? 'Мрежова грешка към /api/document-explain.'
+									: 'Network error calling /api/document-explain.',
+						},
+					]);
+				} finally {
+					setDocExplainLoading(false);
+				}
+			};
+			reader.readAsDataURL(file);
+		},
+		[demoSessionEmail, docExplainLoading, lang, chatInput]
+	);
+
+	useEffect(() => {
+		const onStorage = (ev: StorageEvent) => {
+			if (ev.key === 'agrinexus-demo-email') setSessionTick(t => t + 1);
+		};
+		window.addEventListener('storage', onStorage);
+		return () => window.removeEventListener('storage', onStorage);
+	}, []);
+
+	useEffect(() => {
+		if (!assistantNotice) return;
+		const t = window.setTimeout(() => setAssistantNotice(null), 6500);
+		return () => window.clearTimeout(t);
+	}, [assistantNotice]);
+
+	useEffect(() => () => {
+		try {
+			speechRef.current?.stop();
+		} catch {
+			/* ignore */
+		}
+		speechRef.current = null;
+	}, []);
 
 	useEffect(() => {
 		safeSessionSet('agrinexus-chat-draft', chatInput);
@@ -1237,6 +1445,32 @@ export default function App() {
 		media.addEventListener('change', updateMobile);
 		return () => media.removeEventListener('change', updateMobile);
 	}, []);
+
+	useEffect(() => {
+		if (view !== 'assistant') {
+			setChatHealth('idle');
+			return;
+		}
+		let cancelled = false;
+		setChatHealth('idle');
+		fetch('/api/chat')
+			.then(async res => {
+				const raw = await res.text();
+				if (cancelled) return;
+				try {
+					const data = JSON.parse(raw) as { openaiConfigured?: boolean };
+					setChatHealth(data.openaiConfigured ? 'ready' : 'no_key');
+				} catch {
+					setChatHealth('offline');
+				}
+			})
+			.catch(() => {
+				if (!cancelled) setChatHealth('offline');
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [view]);
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
@@ -1395,411 +1629,11 @@ export default function App() {
 			return;
 		}
 		safeLocalSet('agrinexus-demo-email', loginEmail.trim());
+		setSessionTick(t => t + 1);
 		setView('company');
 	};
 
-	const tr = useMemo(() => {
-		if (lang === 'bg') {
-			return {
-				navHome: 'Начало',
-				navMarket: 'Пазар',
-				navAssistant: 'AI помощник',
-				navPricing: 'Абонаменти',
-				navClients: 'Клиенти',
-				navWatchlist: 'Списък',
-				navLogin: 'Вход',
-				navGetStarted: 'Започни',
-				skipToContent: 'Към съдържанието',
-				navPrimaryAria: 'Основна навигация',
-				mobileNavAria: 'Мобилно меню',
-				brandHomeAria: 'AgriNexus — начало',
-				langAria: 'Превключи език',
-				heroSub:
-					'AI слой за агротърговия в Европа и MENA — BUY/HOLD/AVOID и работен поток на едно място. Целта е интеграция с борси и консолидирани котировки по коридори; прегледът в сайта днес е илюстративен демо каталог, не живи борсови цени.',
-				createAccount: 'Създай акаунт',
-				livePreview: 'Преглед на пазара (демо)',
-				activeOpps: 'Активни възможности',
-				liveDealsHint:
-					'Илюстративни примери за ориентация — не са реални сключени сделки или оферти.',
-				demoBadge: 'Демо',
-				demoMarketBanner:
-					'Пазарът показва синтетични примери за демонстрация на продукта. Цените, маршрутите и маржовете не са реални котировки или договори.',
-				marketQuotesLoading: 'Зареждане на пазарни котировки…',
-				liveMarketBannerStooq:
-					'Живи забавени фючърсни референции (Stooq) за мапнатите стоки — не са оферти за физически товар. Продукти без ликвиден глобален фючърс (напр. домати) показват илюстративни числа за подредба на екрана.',
-				liveMarketErrorBanner:
-					'Живият поток от котировки е временно недостъпен — показват се синтетични примери. Опитайте „Обнови“ или проверете сървъра.',
-				unlockSub:
-					'С абонамент премахваме ограничението за преглед на всички редове и детайли в този демо каталог.',
-				openMarketplace: 'Целият пазар',
-				clientDossiers: 'Клиентски досиета',
-				menaBadge: 'ПАЗАР MENA',
-				euBadge: 'ПАЗАР EU',
-				premiumAccess: 'Premium достъп',
-				contactSales: 'Продажби — info@agrinexus.eu',
-				contactHelp:
-					'Изпратете запитване към екипа. При активиран SMTP записваме съобщението и изпращаме копие до вас.',
-				phName: 'Име',
-				phEmail: 'Имейл',
-				phCompany: 'Компания',
-				phMessage: 'Съобщение',
-				send: 'Изпрати',
-				searchPh: 'Търсене по продукт, страна или дестинация…',
-				aiUpdateIn: 'Следваща AI актуализация след',
-				decision: 'Решение',
-				estMargin: 'Очакван марж',
-				unlock: 'Пълен достъп',
-				coverageTitle: 'Капацитет и покритие',
-				coverageBody:
-					'Мулти-държавно търсене и предлагане в EU + MENA в демо каталога. Оценките BUY/HOLD/AVOID следват вашите филтри и показаните редове — при реални борсови потоци ще се подменят с актуални данни.',
-				watchlistTitle: 'Моят списък',
-				watchlistEmpty: 'Няма запазени сделки. Отвори Пазара и натисни „Запази“.',
-				watchlistStorageHint:
-					'Не се изисква вход за преглед: запазеното се записва локално в този браузър (до изчистване на данните).',
-				watchlistTabSaved: 'Запазени сделки',
-				watchlistTabCabinet: 'Моят кабинет',
-				cabinetTitle: 'Търговски кабинет',
-				cabinetSubtitle:
-					'Бърз достъп до важните модули за работа с клиенти, пазар и абонаменти.',
-				cabinetSavedCount: 'Запазени сделки',
-				cabinetAlertsCount: 'Активни известия',
-				cabinetLastSaved: 'Последно запазена сделка',
-				cabinetLastAlert: 'Последно включено известие',
-				cabinetNoActivity: 'Няма активност',
-				cabinetGoMarket: 'Към Пазар',
-				cabinetGoClients: 'Към Клиенти',
-				cabinetGoCompany: 'Към Фирмен профил',
-				cabinetGoPricing: 'Към Абонаменти',
-				watchSaved: '★ Запазено',
-				watchSave: 'Запази',
-				alertOn: 'Известия вкл.',
-				alertOff: 'Известия',
-				alertMute: 'Без звук за известия',
-				alertThreshold: 'Праг %',
-				terminalVol: 'Волатилност',
-				marketPulse: 'Пазарен импулс (демо)',
-				assistantTitle: 'AI помощник',
-				assistantSubtitle:
-					'Контекстът идва от текущите ви филтри в Пазара (до 18 от показаните сделки). Отговорите са ориентировъчни — не са правни или финансови съвети.',
-				assistantBack: 'Към Пазара',
-				assistantLegalFooter:
-					'AgriNexus не поема отговорност за действия въз основа на AI отговори. За реални сделки потърсете потвърждение от вашия екип.',
-				chatThinking: 'Мисля…',
-				chatPromptsLabel: 'Бързи подкани',
-				chatClear: 'Изчисти',
-				chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
-				mobileAssistantTab: 'AI',
-				dealCategory: 'Категория',
-				dealQuality: 'Качество',
-				dealVolume: 'Обем',
-				dealIncoterm: 'Incoterm',
-				dealDelivery: 'Доставка',
-				filterAll: 'Всички',
-				filterGrains: 'Зърнени',
-				filterOilseeds: 'Маслодайни',
-				filterPulses: 'Бобови',
-				filterProcessed: 'Преработени',
-				grainInsightTitle: 'Зърнени: бърз обзор',
-				grainInsightDeals: 'Сделки',
-				grainInsightAvgMargin: 'Среден марж',
-				grainInsightBuy: 'BUY сигнали',
-				grainInsightTopRoute: 'Топ маршрут',
-				grainInsightTopProduct: 'Топ продукт',
-				pricingTitle: 'Абонаментни планове',
-				pricingBetaBadge: 'Beta pricing',
-				pricingBetaNote:
-					'Текущите цени са early-access до пълната интеграция с борсови и vendor потоци, планирана в следващите 2–3 месеца.',
-				pricingWeekly: 'Седмичен',
-				pricingMonthly: 'Месечен',
-				pricingYearly: 'Годишен',
-				pricingWeek: 'седмица',
-				pricingMonth: 'месец',
-				pricingYear: 'година',
-				pricingBestValue: 'НАЙ-ИЗГОДЕН',
-				pricingRecommendedStart: 'ПРЕПОРЪЧАНО ЗА СТАРТ',
-				pricingSubscribe: 'Абонирай се',
-				pricingPer: 'на',
-				pricingYearlyNote: '+1 месец безплатно',
-				pricingConceptTitle: 'AI двигател за по-силни търговски решения',
-				pricingConceptBody:
-					'Абонаментът превръща AgriNexus в практичен AI търговски инструмент: работи върху контекста от прегледа на пазара (демо днес; при връзка с борси — върху живи потоци), подрежда приоритетите и подпомага екипа в бързи, уверени решения.',
-				pricingPlanExplainTitle: 'Как работят абонаментните планове',
-				pricingPlanExplainBody:
-					'Плановете са според интензитета на работа: Седмичен за бърз старт, Месечен за регулярна търговия и Годишен за екипи, които искат най-добра цена и предвидимост.',
-				pricingResultTitle: 'Какво печелите в практиката',
-				pricingResultBody:
-					'По-малко време за анализ, по-ясни приоритети и по-уверени сделки с подкрепа от AI във всеки етап — от филтър до финално решение.',
-				pricingContactLead: 'Продажби:',
-				pricingContactText: 'всички абонаментни запитвания и оферти се координират от този адрес.',
-				pricingFaqTitle: 'Често задавани въпроси',
-				pricingFaqQ1: 'Има ли минимален срок на договора?',
-				pricingFaqA1: 'Не. Можете да променяте или ъпгрейдвате плана според нуждите си.',
-				pricingFaqQ2: 'Как се отчитат AI заявките?',
-				pricingFaqA2: 'Лимитът е месечен и се обновява автоматично в началото на периода.',
-				pricingFaqQ3: 'Имате ли onboarding за фирми?',
-				pricingFaqA3: 'Да. За Pro и Business има onboarding, съобразен с вашия търговски процес.',
-				pricingBrandMotto:
-					'AgriNexus: AI търговски компас за по-умни решения, по-бързи сделки и по-силен контрол върху маржа.',
-				registerTitle: 'Създай акаунт',
-				registerSubtitle:
-					'Регистрацията изпраща детайли към info@agrinexus.eu и потвърждение към вашия имейл (при SMTP).',
-				fullNamePh: 'Име и фамилия',
-				companyNamePh: 'Име на компания',
-				businessEmailPh: 'Служебен имейл',
-				passwordPh: 'Парола',
-				marketFocusPh: 'Пазарен фокус',
-				marketEurope: 'Европа',
-				marketMena: 'MENA',
-				marketBoth: 'И двете',
-				phonePh: 'Телефон (по избор, напр. +359881234567)',
-				agreeUpdates: 'Съгласен съм да получавам пазарни ъпдейти и търговски известия по имейл.',
-				createMyAccount: 'Създай акаунт',
-				alreadyHaveAccount: 'Вече имам акаунт',
-				loginTitle: 'Вход',
-				loginSubtitle:
-					'Реалният вход ще се свърже с вашия доставчик на самоличност (SSO/OIDC). Полетата по-долу са само за демо — данните не се изпращат към сървъра.',
-				loginEmailPh: 'Имейл',
-				loginPasswordPh: 'Парола',
-				loginPasswordDemoHint: 'Минимум 4 знака за демо; не се записват на сървъра.',
-				loginContinueDemo: 'Продължи към демо',
-				loginNoAccount: 'Нямате акаунт? Регистрация',
-				companyTitle: 'AgriNexus - Фирмена карта',
-				companySubtitle:
-					'Специализиран AI слой за оптимизация на агротърговията (EU / MENA). По пътя са интеграции към борси и доставчици на котировки, buyer–seller matching, прогнозни цени и търговски известия.',
-				companyRegions: 'Региони: Европа / MENA',
-				clientsTitle: 'Клиентско портфолио',
-				clientsSubtitle:
-					'Професионална страница за всеки клиент с контекст за решения, сертификати и търговски предпочитания.',
-				clientContact: 'Контакт',
-				clientMarketFocus: 'Пазарен фокус',
-				clientCertifications: 'Сертификати',
-				clientIncoterms: 'Предпочитани Incoterms',
-				clientMonthlyVolume: 'Месечен обем',
-				clientInternalNotes: 'Вътрешни бележки',
-				clientCardLabel: 'Дигитална визитка',
-				footerRightsTagline: 'Илюстративна платформа за агротърговия EU ↔ MENA.',
-				footerPrivacy: 'Поверителност',
-				footerTerms: 'Условия',
-				privacyTitle: 'Политика за поверителност',
-				privacyBackHome: 'Към началото',
-				privacyP1:
-					'Този сайт обработва данни, които доброволно подавате чрез контактната форма, регистрацията на интерес или запитвания към екипа. Използват се за отговор на вашето съобщение и, при дадено съгласие, за пазарни известия.',
-				privacyP2:
-					'Част от функциите използват локално съхранение в браузъра (език, чернова на чата, списък за наблюдение). Това не се изпраща автоматично към AgriNexus, докато не подадете форма.',
-				privacyP3:
-					'При конфигуриран имейл транспорт (напр. SMTP/Resend) съобщенията се предават към посочения получател според настройките на проекта. Не продаваме лични данни на трети страни.',
-				privacyP4:
-					'За въпроси относно данните: info@agrinexus.eu',
-				termsTitle: 'Общи условия',
-				termsBackHome: 'Към началото',
-				termsP1:
-					'Съдържанието на AgriNexus, включително пазарният каталог и AI асистентът, са с илюстративен и демонстрационен характер, освен ако изрично не е уговорено друго по договор.',
-				termsP2:
-					'Информацията не представлява правен, финансов или инвестиционен съвет. Решения за сделки вземате въз основа на собствен анализ и външни потвърждения.',
-				termsP3:
-					'AgriNexus и операторите на сайта не носят отговорност за загуби въз основа на демо данни или автоматични отговори на асистента.',
-			};
-		}
-		return {
-			navHome: 'Home',
-			navMarket: 'Marketplace',
-			navAssistant: 'AI assistant',
-			navPricing: 'Pricing',
-			navClients: 'Clients',
-			navWatchlist: 'Watchlist',
-			navLogin: 'Sign In',
-			navGetStarted: 'Get Started',
-			skipToContent: 'Skip to content',
-			navPrimaryAria: 'Primary navigation',
-			mobileNavAria: 'Mobile menu',
-			brandHomeAria: 'AgriNexus — home',
-			langAria: 'Switch language',
-			heroSub:
-				'Domain-specific AI layer for agricultural trading in Europe and MENA — BUY/HOLD/AVOID and deal workflow in one place. The roadmap targets exchange feeds and consolidated corridor pricing; what you see today is an illustrative demo catalog, not live exchange quotes.',
-			createAccount: 'Create your account',
-			livePreview: 'Market preview (demo)',
-			activeOpps: 'Active Trade Opportunities',
-			liveDealsHint:
-				'Illustrative examples for orientation — not real executed trades or binding offers.',
-			demoBadge: 'Demo',
-			demoMarketBanner:
-				'The marketplace shows synthetic examples for product demonstration. Prices, routes and margins are not live quotes or contracts.',
-			marketQuotesLoading: 'Loading market quotes…',
-			liveMarketBannerStooq:
-				'Live delayed futures references (Stooq) for mapped commodities — not offers for physical cargo. Products without a liquid listed future (e.g. tomato lines) keep illustrative numbers for layout.',
-			liveMarketErrorBanner:
-				'Live quote feed unavailable — showing synthetic examples. Try refresh or check the API.',
-			unlockSub:
-				'With a subscription you can browse every row and detail without this demo limitation.',
-			openMarketplace: 'Open full marketplace',
-			clientDossiers: 'Client dossiers',
-			menaBadge: 'MENA MARKET',
-			euBadge: 'EU MARKET',
-			premiumAccess: 'Premium Access',
-			contactSales: 'Contact sales — info@agrinexus.eu',
-			contactHelp:
-				'Send a message directly to the team. When SMTP is enabled we store it and email you a copy.',
-			phName: 'Name',
-			phEmail: 'Email',
-			phCompany: 'Company',
-			phMessage: 'Message',
-			send: 'Send',
-			searchPh: 'Search by product, supplier country or destination…',
-			aiUpdateIn: 'AI update in:',
-			decision: 'Decision',
-			estMargin: 'Estimated margin',
-			unlock: 'Full access',
-			coverageTitle: 'Coverage capacity',
-			coverageBody:
-				'Multi-country supply and demand across EU + MENA in the demo catalog. BUY/HOLD/AVOID follows your filters and the rows shown — when exchange feeds are connected, those estimates will reflect live data.',
-			watchlistTitle: 'Watchlist',
-			watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
-			watchlistStorageHint:
-				'No sign-in needed for this screen — saves stay in this browser until cleared.',
-			watchlistTabSaved: 'Saved deals',
-			watchlistTabCabinet: 'My cabinet',
-			cabinetTitle: 'Trading cabinet',
-			cabinetSubtitle:
-				'Quick access to core modules for clients, marketplace operations and subscriptions.',
-			cabinetSavedCount: 'Saved deals',
-			cabinetAlertsCount: 'Active alerts',
-			cabinetLastSaved: 'Last saved deal',
-			cabinetLastAlert: 'Last enabled alert',
-			cabinetNoActivity: 'No activity yet',
-			cabinetGoMarket: 'Go to Marketplace',
-			cabinetGoClients: 'Go to Clients',
-			cabinetGoCompany: 'Go to Company profile',
-			cabinetGoPricing: 'Go to Pricing',
-			watchSaved: '★ Saved',
-			watchSave: 'Watch',
-			alertOn: 'Alerts on',
-			alertOff: 'Alerts',
-			alertMute: 'Mute alerts',
-			alertThreshold: 'Threshold %',
-			terminalVol: 'Volatility',
-			marketPulse: 'Market pulse (demo)',
-			assistantTitle: 'AI assistant',
-			assistantSubtitle:
-				'Context comes from your current Marketplace filters (up to 18 visible deals). Answers are indicative — not legal or financial advice.',
-			assistantBack: 'Back to marketplace',
-			assistantLegalFooter:
-				'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
-			chatThinking: 'Thinking…',
-			chatPromptsLabel: 'Quick prompts',
-			chatClear: 'Clear',
-			chatPlaceholder: 'Ask about routes, margin, certifications…',
-			mobileAssistantTab: 'AI',
-			dealCategory: 'Category',
-			dealQuality: 'Quality',
-			dealVolume: 'Volume',
-			dealIncoterm: 'Incoterm',
-			dealDelivery: 'Delivery',
-			filterAll: 'All',
-			filterGrains: 'Grains',
-			filterOilseeds: 'Oilseeds',
-			filterPulses: 'Pulses',
-			filterProcessed: 'Processed',
-			grainInsightTitle: 'Grains quick insight',
-			grainInsightDeals: 'Deals',
-			grainInsightAvgMargin: 'Avg margin',
-			grainInsightBuy: 'BUY signals',
-			grainInsightTopRoute: 'Top route',
-			grainInsightTopProduct: 'Top product',
-			pricingTitle: 'Subscription Plans',
-			pricingBetaBadge: 'Beta pricing',
-			pricingBetaNote:
-				'Current prices are early-access until full exchange and vendor feed integrations are completed, planned within the next 2–3 months.',
-			pricingWeekly: 'Weekly',
-			pricingMonthly: 'Monthly',
-			pricingYearly: 'Yearly',
-			pricingWeek: 'week',
-			pricingMonth: 'month',
-			pricingYear: 'year',
-			pricingBestValue: 'BEST VALUE',
-			pricingRecommendedStart: 'RECOMMENDED FOR START',
-			pricingSubscribe: 'Subscribe',
-			pricingPer: 'per',
-			pricingYearlyNote: '+1 month free',
-			pricingConceptTitle: 'AI engine for stronger trade decisions',
-			pricingConceptBody:
-				'The subscription turns AgriNexus into a practical AI trade layer: it works off the marketplace context you are viewing (demo today; live streams once feeds are connected), prioritizes opportunities, and helps teams act faster with confidence.',
-			pricingPlanExplainTitle: 'How the subscription plans work',
-			pricingPlanExplainBody:
-				'Plans match your operating intensity: Weekly for fast onboarding, Monthly for steady trading rhythm, and Yearly for teams that need the best value and planning stability.',
-			pricingResultTitle: 'What you gain in practice',
-			pricingResultBody:
-				'Less time spent on manual analysis, clearer priorities, and more confident deals with AI support from market filtering to final trade decision.',
-			pricingContactLead: 'Contact sales:',
-			pricingContactText:
-				'all subscription inquiries and offers are coordinated through this address.',
-			pricingFaqTitle: 'Frequently Asked Questions',
-			pricingFaqQ1: 'Is there a minimum contract period?',
-			pricingFaqA1: 'No. You can change or upgrade your plan based on business needs.',
-			pricingFaqQ2: 'How are AI requests counted?',
-			pricingFaqA2: 'The quota is monthly and refreshes automatically at the start of each period.',
-			pricingFaqQ3: 'Do you provide company onboarding?',
-			pricingFaqA3: 'Yes. Pro and Business include onboarding aligned to your trade workflow.',
-			pricingBrandMotto:
-				'AgriNexus: an AI trade compass for smarter decisions, faster deal execution, and tighter margin control.',
-			registerTitle: 'Create Account',
-			registerSubtitle:
-				'Registration sends details to info@agrinexus.eu and a confirmation to your email (when SMTP is enabled).',
-			fullNamePh: 'Full Name',
-			companyNamePh: 'Company Name',
-			businessEmailPh: 'Business Email',
-			passwordPh: 'Password',
-			marketFocusPh: 'Market Focus',
-			marketEurope: 'Europe',
-			marketMena: 'MENA',
-			marketBoth: 'Both',
-			phonePh: 'Phone (optional, e.g. +359881234567)',
-			agreeUpdates: 'I agree to receive market updates and trade alerts by email.',
-			createMyAccount: 'Create my account',
-			alreadyHaveAccount: 'Already have account',
-			loginTitle: 'Sign In',
-			loginSubtitle:
-				'Production authentication will connect to your identity provider (SSO/OIDC). The fields below are demo-only — credentials are not sent to any server.',
-			loginEmailPh: 'Email',
-			loginPasswordPh: 'Password',
-			loginPasswordDemoHint: 'At least 4 characters for demo; nothing is stored server-side.',
-			loginContinueDemo: 'Continue to demo',
-			loginNoAccount: 'No account? Register',
-			companyTitle: 'AgriNexus - Company Card',
-			companySubtitle:
-				'Domain-specific AI layer for agricultural trade optimization (Europe / MENA). Roadmap: exchange and vendor price feeds, buyer–seller matching, predictive pricing, and trade alerts.',
-			companyRegions: 'Regions: Europe / MENA',
-			clientsTitle: 'Client Portfolio',
-			clientsSubtitle:
-				'Professional profile page for each client with decision context, certifications and trading preferences.',
-			clientContact: 'Contact',
-			clientMarketFocus: 'Market focus',
-			clientCertifications: 'Certifications',
-			clientIncoterms: 'Preferred incoterms',
-			clientMonthlyVolume: 'Monthly volume',
-			clientInternalNotes: 'Internal notes',
-			clientCardLabel: 'Digital business card',
-			footerRightsTagline: 'Illustrative EU ↔ MENA agricultural trade workspace.',
-			footerPrivacy: 'Privacy',
-			footerTerms: 'Terms',
-			privacyTitle: 'Privacy policy',
-			privacyBackHome: 'Back to home',
-			privacyP1:
-				'This site processes information you voluntarily submit via the contact form, interest registration, or direct team inquiries. We use it to respond and, where you opt in, for market alerts.',
-			privacyP2:
-				'Some features rely on browser-local storage (language, chat draft, watchlist). That data is not sent to AgriNexus until you submit a form.',
-			privacyP3:
-				'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
-			privacyP4: 'Questions about data: info@agrinexus.eu',
-			termsTitle: 'Terms of use',
-			termsBackHome: 'Back to home',
-			termsP1:
-				'AgriNexus content, including the marketplace catalog and AI assistant, is illustrative and for demonstration unless expressly agreed otherwise under contract.',
-			termsP2:
-				'Nothing here is legal, financial, or investment advice. Trade decisions remain your responsibility with independent verification.',
-			termsP3:
-				'AgriNexus and site operators are not liable for losses based on demo data or automated assistant replies.',
-		};
-	}, [lang]);
+	const tr = useMemo(() => getUiStrings(lang), [lang]);
 
 	const marketBannerMessage = useMemo(() => {
 		if (quotesLoading && marketQuotes === null) return tr.marketQuotesLoading;
@@ -1807,7 +1641,7 @@ export default function App() {
 			return tr.demoMarketBanner;
 		if (marketQuotes.ok && marketQuotes.mode === 'live') {
 			const ts = marketQuotes.fetchedAt
-				? new Date(marketQuotes.fetchedAt).toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-GB', {
+				? new Date(marketQuotes.fetchedAt).toLocaleString(localeTagFor(lang), {
 						dateStyle: 'short',
 						timeStyle: 'medium',
 					})
@@ -1832,13 +1666,33 @@ export default function App() {
 				text: 'Известия по имейл или Telegram при висок марж.',
 			},
 		];
+		const arCopy = [
+			{
+				title: 'شراء / تعليق / تجنب',
+				text: 'ترتّب منطق الذكاء الاصطناعي الصفوف وفق عواملك والسيناريوهات التوضيحية — جاهز لربط تغذيات البورصات عند الاتصال.',
+			},
+			{
+				title: 'تسعير تنبؤي',
+				text: 'يقدّر الأسعار والهامش المتوقع قبل إتمام الصفقة.',
+			},
+			{
+				title: 'تنبيهات ذكية',
+				text: 'إشعارات جاهزة للبريد أو Telegram عند فرص بهامش عالٍ.',
+			},
+		];
 		const texts =
-			lang === 'bg' ? bgCopy : AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
+			lang === 'bg'
+				? bgCopy
+				: lang === 'ar'
+					? arCopy
+					: AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
 		return AI_FEATURES.map((f, i) => ({ ...f, ...texts[i] }));
 	}, [lang]);
 
-	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
-	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
+	const marketFlashLines =
+		lang === 'bg' ? MARKET_FLASH_BG : lang === 'ar' ? MARKET_FLASH_AR : MARKET_FLASH_EN;
+	const quickPrompts =
+		lang === 'bg' ? QUICK_PROMPTS_BG : lang === 'ar' ? QUICK_PROMPTS_AR : QUICK_PROMPTS_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
 			all: allDeals.length,
@@ -1962,6 +1816,19 @@ export default function App() {
         .brand-agri { color: #e2e8f0; }
         .brand-nexus { color: var(--green); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        html[dir="rtl"] body {
+          font-family: Inter, "Segoe UI", "Noto Sans Arabic", Arial, sans-serif;
+        }
+        html[dir="rtl"] .nav { flex-direction: row-reverse; }
+        html[dir="rtl"] .nav-actions { flex-direction: row-reverse; }
+        html[dir="rtl"] .brand { flex-direction: row-reverse; }
+        html[dir="rtl"] .skip-link:focus,
+        html[dir="rtl"] .skip-link:focus-visible { left: auto; right: 12px; }
+        html[dir="rtl"] .demo-pill { right: auto; left: 10px; }
+        html[dir="rtl"] .assistant-msgs { padding-right: 0; padding-left: 4px; }
+        html[dir="rtl"] .chat-actions { flex-direction: row-reverse; }
+        html[dir="rtl"] .assistant-doc-toolbar { flex-direction: row-reverse; flex-wrap: wrap; }
         .nav-link {
           display: inline-flex;
           align-items: center;
@@ -2022,7 +1889,7 @@ export default function App() {
         .deals-track:hover { animation-play-state: paused; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-        .deal-card, .pricing-card {
+        .deal-card {
           background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
         }
         .deal-card.top { border: 2px solid var(--green); }
@@ -2077,6 +1944,44 @@ export default function App() {
           background: #0f172a;
           border: 1px solid #334155;
         }
+        .assistant-doc-toolbar {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .assistant-icon-btn {
+          flex-shrink: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 46px;
+          min-height: 46px;
+          padding: 10px;
+          border-radius: 10px;
+          border: 1px solid #334155;
+          background: #0f172a;
+          color: #e2e8f0;
+          cursor: pointer;
+        }
+        .assistant-icon-btn:hover:not(:disabled) {
+          border-color: rgba(134, 239, 172, 0.45);
+          color: #86efac;
+        }
+        .assistant-icon-btn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+        .assistant-icon-btn.listening {
+          border-color: rgba(248, 113, 113, 0.65);
+          color: #fca5a5;
+          animation: pulseMic 1.2s ease-in-out infinite;
+        }
+        @keyframes pulseMic {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.35); }
+          50% { box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+        }
         .assistant-input-row {
           display: flex;
           gap: 8px;
@@ -2095,67 +2000,6 @@ export default function App() {
           color: #fff;
           font-family: inherit;
         }
-
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-        .pricing-card { text-align: center; padding: 14px; }
-        .pricing-card.popular { border: 2px solid var(--green); }
-        .pricing-value-panel {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(11, 18, 33, 0.92));
-          border: 1px solid rgba(34, 197, 94, 0.35);
-        }
-        .pricing-message-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-top: 14px;
-        }
-        .pricing-value-title {
-          margin: 0;
-          font-size: clamp(1.1rem, 2.3vw, 1.5rem);
-          line-height: 1.25;
-          letter-spacing: .01em;
-          color: #dcfce7;
-          text-wrap: balance;
-        }
-        .pricing-value-body {
-          margin-top: 10px;
-          color: #d1fae5;
-          font-size: .95rem;
-          line-height: 1.55;
-          max-width: 72ch;
-        }
-        .pricing-bottom-grid {
-          display: grid;
-          grid-template-columns: 1.35fr 1fr;
-          gap: 12px;
-        }
-        .pricing-brand-panel {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(34, 197, 94, 0.12));
-        }
-        .pricing-brand-head {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          font-size: clamp(1.2rem, 2.4vw, 1.9rem);
-          font-weight: 900;
-          color: #dcfce7;
-          margin: 0;
-        }
-        .pricing-brand-motto {
-          margin: 10px 0 0;
-          color: #bbf7d0;
-          line-height: 1.55;
-          font-size: .95rem;
-          max-width: 58ch;
-        }
-        .badge {
-          position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-          background: var(--green); padding: 5px 10px; border-radius: 999px; font-size: .73rem; font-weight: 800;
-        }
-        .pricing-value { font-size: 1.7rem; font-weight: 900; margin: 8px 0; }
 
         .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
         .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
@@ -2195,12 +2039,6 @@ export default function App() {
           background: #1e293b; color: #fff; border: 1px solid #334155;
         }
         .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
-
-        .locked-overlay {
-          position: absolute; inset: 0; border-radius: 16px;
-          background: rgba(11, 18, 33, 0.56); display: flex; flex-direction: column;
-          align-items: center; justify-content: center; gap: 8px;
-        }
 
         .muted { color: var(--text-muted); }
         .green-note { color: var(--green); font-weight: 700; }
@@ -2266,7 +2104,7 @@ export default function App() {
 
         @media (max-width: 700px) {
           .form-grid { grid-template-columns: 1fr; }
-          .grid, .pricing-grid { grid-template-columns: 1fr; }
+          .grid { grid-template-columns: 1fr; }
           .clients-layout, .client-meta-grid { grid-template-columns: 1fr; }
           .terminal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -2278,29 +2116,9 @@ export default function App() {
           .nav-link { padding: 7px 8px; font-size: .86rem; }
           .nav-link-mobile-hide { display: none !important; }
           .btn { padding: 10px 12px; border-radius: 10px; }
-          .deal-card, .pricing-card, .ai-card, .contact-panel, .client-card { padding: 12px; border-radius: 12px; }
-          .deal-card h3, .pricing-card h3 { font-size: 1rem; }
+          .deal-card, .ai-card, .contact-panel, .client-card { padding: 12px; border-radius: 12px; }
+          .deal-card h3 { font-size: 1rem; }
           .muted { font-size: .9rem; }
-
-          .pricing-grid {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            scroll-snap-type: x mandatory;
-            padding-bottom: 6px;
-          }
-          .pricing-grid::-webkit-scrollbar { height: 6px; }
-          .pricing-grid::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
-          .pricing-grid .pricing-card {
-            min-width: 228px;
-            flex: 0 0 auto;
-            scroll-snap-align: center;
-          }
-          .pricing-value-title { font-size: 1.08rem; }
-          .pricing-value-body { font-size: .88rem; }
-          .pricing-message-grid { grid-template-columns: 1fr; }
-          .pricing-bottom-grid { grid-template-columns: 1fr; }
-          .pricing-brand-motto { font-size: .88rem; }
 
           .site-footer { padding-bottom: 92px; }
 
@@ -2402,12 +2220,6 @@ export default function App() {
 						<>
 							<button
 								type="button"
-								className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
-								onClick={() => setView('pricing')}>
-								{tr.navPricing}
-							</button>
-							<button
-								type="button"
 								className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
 								onClick={() => setView('clients')}>
 								{tr.navClients}
@@ -2430,8 +2242,8 @@ export default function App() {
 						type="button"
 						className="btn-mini"
 						aria-label={tr.langAria}
-						onClick={() => setLang(x => (x === 'bg' ? 'en' : 'bg'))}>
-						<Globe2 size={14} aria-hidden /> {lang === 'bg' ? 'EN' : 'BG'}
+						onClick={() => setLang(x => cycleUiLang(x))}>
+						<Globe2 size={14} aria-hidden /> {uiLangShortLabel(lang)}
 					</button>
 					<button type="button" className="btn btn-primary" onClick={() => setView('register')}>
 						<UserPlus size={14} aria-hidden /> {tr.navGetStarted}
@@ -2793,15 +2605,10 @@ export default function App() {
 
 					<div className="grid">
 						{filteredDeals.map((deal, i) => {
-							const isLocked = !isPremium && i >= FREE_MARKET_DEALS_FOR_GUEST;
 							const delta = deal.profit - deal.prevProfit;
 							return (
 								<div className={`deal-card ${i < 8 ? 'top' : ''}`} key={deal.id}>
-									<div
-										style={{
-											filter: isLocked ? 'blur(7px)' : 'none',
-											opacity: isLocked ? 0.35 : 1,
-										}}>
+									<div>
 										<div
 											style={{
 												display: 'flex',
@@ -2881,53 +2688,28 @@ export default function App() {
 										<div style={{ marginTop: 8, fontWeight: 900 }}>
 											{deal.price}
 										</div>
-										{!isLocked && (
-											<div className="deal-actions">
-												<button
-													type="button"
-													className={`deal-chip-btn ${watchlistIds.includes(deal.id) ? 'active' : ''}`}
-													onClick={() => toggleWatchlist(deal.id)}>
-													{watchlistIds.includes(deal.id)
-														? tr.watchSaved
-														: tr.watchSave}
-												</button>
-												<button
-													type="button"
-													className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
-													onClick={() => toggleAlert(deal.id)}>
-													{alertsEnabledIds.includes(deal.id)
-														? tr.alertOn
-														: tr.alertOff}
-													{!alertsMuted && deal.profit >= alertThreshold
-														? ' ●'
-														: ''}
-												</button>
-											</div>
-										)}
-									</div>
-
-									{isLocked && (
-										<div className="locked-overlay">
-											<Lock color="#22c55e" size={24} aria-hidden />
+										<div className="deal-actions">
 											<button
 												type="button"
-												className="btn btn-primary"
-												onClick={() => setView(MVP_MODE ? 'register' : 'pricing')}>
-												{tr.unlock}
+												className={`deal-chip-btn ${watchlistIds.includes(deal.id) ? 'active' : ''}`}
+												onClick={() => toggleWatchlist(deal.id)}>
+												{watchlistIds.includes(deal.id)
+													? tr.watchSaved
+													: tr.watchSave}
 											</button>
-											<p
-												style={{
-													margin: 0,
-													textAlign: 'center',
-													fontSize: '.78rem',
-													color: '#cbd5e1',
-													maxWidth: 220,
-													lineHeight: 1.35,
-												}}>
-												{tr.unlockSub}
-											</p>
+											<button
+												type="button"
+												className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
+												onClick={() => toggleAlert(deal.id)}>
+												{alertsEnabledIds.includes(deal.id)
+													? tr.alertOn
+													: tr.alertOff}
+												{!alertsMuted && deal.profit >= alertThreshold
+													? ' ●'
+													: ''}
+											</button>
 										</div>
-									)}
+									</div>
 								</div>
 							);
 						})}
@@ -2958,6 +2740,42 @@ export default function App() {
 					<p className="muted" style={{ margin: '0 0 14px', maxWidth: 720 }}>
 						{tr.assistantSubtitle}
 					</p>
+					{chatHealth === 'offline' && (
+						<div
+							className="contact-panel"
+							style={{
+								marginBottom: 12,
+								borderColor: 'rgba(248, 113, 113, 0.45)',
+								background: 'rgba(127, 29, 29, 0.2)',
+							}}>
+							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
+								{uiPickThree(
+									lang,
+									'Локалният API не отговаря (/api/chat). В папката на проекта пуснете npm run dev — стартират и сайтът, и сървъра на порт 8788 (прокси през Vite). Отворете адреса, който показва терминалът (обикновено http://localhost:3000).',
+									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:3000).',
+									'واجهة API المحلية غير متاحة (/api/chat). من مجلد المشروع شغّل npm run dev — يبدأ الموقع والخادم على المنفذ 8788 (عبر وكيل Vite). افتح الرابط الذي يظهر في الطرفية (غالباً http://localhost:3000).'
+								)}
+							</p>
+						</div>
+					)}
+					{chatHealth === 'no_key' && (
+						<div
+							className="contact-panel"
+							style={{
+								marginBottom: 12,
+								borderColor: 'rgba(251, 191, 36, 0.45)',
+								background: 'rgba(120, 53, 15, 0.25)',
+							}}>
+							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
+								{uiPickThree(
+									lang,
+									'Липсва OPENAI_API_KEY. Добавете го във файла .env в корена на проекта и рестартирайте npm run dev. За продукция/Vercel ключът се задава в Environment Variables.',
+									'OPENAI_API_KEY is missing. Add it to the project root .env file and restart npm run dev. On Vercel, set it under Environment Variables.',
+									'OPENAI_API_KEY غير موجود. أضفه إلى ملف .env في جذر المشروع وأعد تشغيل npm run dev. على Vercel عيّنه ضمن Environment Variables.'
+								)}
+							</p>
+						</div>
+					)}
 					<div className="contact-panel">
 						<div className="chat-actions" style={{ marginBottom: 8 }}>
 							<span className="muted" style={{ fontSize: '.8rem' }}>
@@ -2978,6 +2796,45 @@ export default function App() {
 								</button>
 							))}
 						</div>
+						{assistantNotice && (
+							<p
+								className="muted"
+								style={{
+									margin: '0 0 10px',
+									fontSize: '.82rem',
+									color: '#fbbf24',
+									lineHeight: 1.45,
+								}}>
+								{assistantNotice}
+							</p>
+						)}
+						{demoSessionEmail && (
+							<div className="assistant-doc-toolbar">
+								<input
+									ref={docImageInputRef}
+									type="file"
+									hidden
+									accept="image/jpeg,image/png,image/webp,image/gif"
+									onChange={onDocImageChange}
+								/>
+								<button
+									type="button"
+									className="btn btn-outline"
+									style={{ fontSize: '.82rem', padding: '8px 12px' }}
+									disabled={docExplainLoading || chatLoading}
+									onClick={() => docImageInputRef.current?.click()}>
+									<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+									{docExplainLoading ? (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											<Loader2 size={14} className="spin" aria-hidden />
+											…
+										</span>
+									) : (
+										tr.chatExplainDoc
+									)}
+								</button>
+							</div>
+						)}
 						<div className="assistant-msgs">
 							{chatMessages.map((m, idx) => (
 								<div key={`${idx}-${m.role}`} className={`assistant-bubble ${m.role}`}>
@@ -3005,6 +2862,18 @@ export default function App() {
 									}
 								}}
 							/>
+							{demoSessionEmail && (
+								<button
+									type="button"
+									className={`assistant-icon-btn${voiceListening ? ' listening' : ''}`}
+									disabled={chatLoading || docExplainLoading}
+									onClick={() => toggleVoiceInput()}
+									aria-pressed={voiceListening}
+									title={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}
+									aria-label={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}>
+									<Mic size={20} aria-hidden />
+								</button>
+							)}
 							<button
 								type="button"
 								className="btn btn-primary"
@@ -3200,124 +3069,14 @@ export default function App() {
 										<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
 											{tr.cabinetGoCompany}
 										</button>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('pricing')}>
-											{tr.cabinetGoPricing}
+										<button type="button" className="deal-chip-btn" onClick={() => setView('assistant')}>
+											{tr.navAssistant}
 										</button>
 									</>
 								)}
 							</div>
 						</div>
 					)}
-				</section>
-			)}
-
-			{view === 'pricing' && (
-				<section className="section">
-					<h2 style={{ textAlign: 'center', marginBottom: 16 }}>{tr.pricingTitle}</h2>
-					<div style={{ textAlign: 'center', marginBottom: 14 }}>
-						<span className="chip chip-demo" style={{ marginRight: 8 }}>
-							{tr.pricingBetaBadge}
-						</span>
-						<span className="muted">{tr.pricingBetaNote}</span>
-					</div>
-					<div className="pricing-grid">
-						<PricingCard
-							title={tr.pricingWeekly}
-							price="12"
-							period={tr.pricingWeek}
-							popular
-							badgeText={tr.pricingRecommendedStart}
-							lang={lang}
-							labels={{
-								bestValue: tr.pricingBestValue,
-								subscribe: tr.pricingSubscribe,
-								per: tr.pricingPer,
-							}}
-						/>
-						<PricingCard
-							title={tr.pricingMonthly}
-							price="29"
-							period={tr.pricingMonth}
-							lang={lang}
-							labels={{
-								bestValue: tr.pricingBestValue,
-								subscribe: tr.pricingSubscribe,
-								per: tr.pricingPer,
-							}}
-						/>
-						<PricingCard
-							title={tr.pricingYearly}
-							price="249"
-							period={tr.pricingYear}
-							note={tr.pricingYearlyNote}
-							lang={lang}
-							labels={{
-								bestValue: tr.pricingBestValue,
-								subscribe: tr.pricingSubscribe,
-								per: tr.pricingPer,
-							}}
-						/>
-					</div>
-					<div className="pricing-message-grid">
-						<div className="contact-panel pricing-value-panel">
-							<h3 className="pricing-value-title">{tr.pricingConceptTitle}</h3>
-							<p className="pricing-value-body">{tr.pricingConceptBody}</p>
-						</div>
-						<div className="contact-panel pricing-value-panel">
-							<h3 className="pricing-value-title">{tr.pricingPlanExplainTitle}</h3>
-							<p className="pricing-value-body">{tr.pricingPlanExplainBody}</p>
-						</div>
-						<div className="contact-panel pricing-value-panel">
-							<h3 className="pricing-value-title">{tr.pricingResultTitle}</h3>
-							<p className="pricing-value-body">{tr.pricingResultBody}</p>
-						</div>
-					</div>
-					<div className="contact-panel">
-						<p style={{ margin: 0 }}>
-							{tr.pricingContactLead}{' '}
-							<a
-								href="mailto:info@agrinexus.eu"
-								style={{ color: '#22c55e', textDecoration: 'none' }}>
-								info@agrinexus.eu
-							</a>{' '}
-							— {tr.pricingContactText}
-						</p>
-					</div>
-					<div className="pricing-bottom-grid">
-						<div className="contact-panel">
-							<h3 style={{ marginTop: 0 }}>{tr.pricingFaqTitle}</h3>
-							<div style={{ display: 'grid', gap: 10 }}>
-								<div>
-									<strong>{tr.pricingFaqQ1}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{tr.pricingFaqA1}
-									</p>
-								</div>
-								<div>
-									<strong>{tr.pricingFaqQ2}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{tr.pricingFaqA2}
-									</p>
-								</div>
-								<div>
-									<strong>{tr.pricingFaqQ3}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{tr.pricingFaqA3}
-									</p>
-								</div>
-							</div>
-						</div>
-						<div className="contact-panel pricing-brand-panel">
-							<p className="pricing-brand-head">
-								<Leaf size={24} color="var(--green)" />
-								<span className="brand-wordmark">
-									<span className="brand-agri">Agri</span>
-									<span className="brand-nexus">Nexus</span>
-								</span>
-							</p>
-							<p className="pricing-brand-motto">{tr.pricingBrandMotto}</p>
-						</div>
-					</div>
 				</section>
 			)}
 
@@ -3714,10 +3473,10 @@ export default function App() {
 						<>
 							<button
 								type="button"
-								className={`mobile-nav-btn ${view === 'pricing' ? 'active' : ''}`}
-								onClick={() => setView('pricing')}>
-								<CreditCard size={16} />
-								{tr.navPricing}
+								className={`mobile-nav-btn ${view === 'clients' ? 'active' : ''}`}
+								onClick={() => setView('clients')}>
+								<Users size={16} aria-hidden />
+								{tr.navClients}
 							</button>
 							<button
 								type="button"

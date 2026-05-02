@@ -1,5 +1,5 @@
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
-export type ChatLocale = 'bg' | 'en';
+export type ChatLocale = 'bg' | 'en' | 'ar';
 
 const MAX_MESSAGES = 16;
 const MAX_MESSAGE_CHARS = 6000;
@@ -16,7 +16,9 @@ function systemPrompt(locale: ChatLocale, dealContext: string): string {
   const langRule =
     locale === 'bg'
       ? 'Отговаряй на български, освен ако потребителят изрично иска друг език.'
-      : 'Reply in English unless the user clearly asks for another language.';
+      : locale === 'ar'
+        ? 'أجب بالعربية الفصحى المبسطة ما لم يطلب المستخدم صراحةً لغة أخرى.'
+        : 'Reply in English unless the user clearly asks for another language.';
 
   return `You are AgriNexus AI — a strict, cautious assistant for agricultural commodity trading between EU suppliers and MENA importers.
 ${langRule}
@@ -94,6 +96,11 @@ function formatReply(locale: ChatLocale, envelope: ChatModelEnvelope): string {
       safeSource || 'Текущия marketplace snapshot'
     }`;
   }
+  if (locale === 'ar') {
+    return `${safeAnswer}\n\nمستوى الثقة: ${envelope.confidence.toUpperCase()}\nالمصدر: ${
+      safeSource || 'لقطة عوامل السوق الحالية'
+    }`;
+  }
   return `${safeAnswer}\n\nConfidence: ${envelope.confidence.toUpperCase()}\nSource: ${
     safeSource || 'Current marketplace snapshot'
   }`;
@@ -141,8 +148,8 @@ export async function handleChatPost(rawBody: unknown): Promise<
 async function handleChatPostInner(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey.trim() === '') {
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? '';
+  if (!apiKey) {
     return {
       ok: false,
       status: 503,
@@ -156,7 +163,9 @@ async function handleChatPostInner(rawBody: unknown): Promise<
   }
 
   const body = rawBody as Record<string, unknown>;
-  const locale: ChatLocale = body.locale === 'en' ? 'en' : 'bg';
+  const rawLocale = typeof body.locale === 'string' ? body.locale : '';
+  const locale: ChatLocale =
+    rawLocale === 'en' ? 'en' : rawLocale === 'ar' ? 'ar' : 'bg';
   const dealContext = typeof body.dealContext === 'string' ? body.dealContext : '';
   const messagesRaw = body.messages;
 
@@ -247,7 +256,9 @@ async function handleChatPostInner(rawBody: unknown): Promise<
       reply:
         locale === 'bg'
           ? 'Не успях да валидирам AI отговора в безопасен формат. Моля, преформулирайте въпроса или се свържете с екипа.'
-          : 'I could not validate the AI response in a safe format. Please rephrase your question or contact the team.',
+          : locale === 'ar'
+            ? 'تعذّر التحقق من رد الذكاء الاصطناعي بتنسيق آمن. أعد صياغة السؤال أو تواصل مع الفريق.'
+            : 'I could not validate the AI response in a safe format. Please rephrase your question or contact the team.',
     };
   }
 
@@ -257,7 +268,9 @@ async function handleChatPostInner(rawBody: unknown): Promise<
       reply:
         locale === 'bg'
           ? 'Отговорът беше ограничен поради политика за защита на чувствителна информация. Свържете се с екипа за сигурен преглед.'
-          : 'The response was restricted due to sensitive-information policy. Contact the team for a secure review.',
+          : locale === 'ar'
+            ? 'تم تقييد الرد وفق سياسة المعلومات الحساسة. تواصل مع الفريق لمراجعة آمنة.'
+            : 'The response was restricted due to sensitive-information policy. Contact the team for a secure review.',
     };
   }
 

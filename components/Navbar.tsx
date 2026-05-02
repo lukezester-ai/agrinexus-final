@@ -18,7 +18,7 @@ export const Navbar = (): ReactElement => {
 		<nav className="navbar bg-body-tertiary">
 			<div className="container-fluid px-3">
 				<NavLink className={'navbar-brand'} to="/">
-					React v19 TSX Starter
+					AgriNexus
 				</NavLink>
 
 				<ul className="navbar-nav ms-auto flex-row gap-3">

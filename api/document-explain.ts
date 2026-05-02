@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleChatPost } from '../lib/chat-handler';
+import { handleDocumentExplainPost } from '../lib/document-explain-handler';
 import { vercelJsonBody } from '../lib/vercel-json-body';
 
-/** Per-route limits (see also root vercel.json). */
 export const config = {
   maxDuration: 60,
 };
@@ -20,15 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    if (req.method === 'GET') {
-      sendJson(res, 200, {
-        ok: true,
-        path: '/api/chat',
-        openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
-      });
-      return;
-    }
-
     if (req.method !== 'POST') {
       sendJson(res, 405, { error: 'Method not allowed' });
       return;
@@ -40,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const result = await handleChatPost(parsed);
+    const result = await handleDocumentExplainPost(parsed);
     if (result.ok) {
       sendJson(res, 200, { reply: result.reply });
       return;
@@ -51,12 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(result.hint ? { hint: result.hint } : {}),
     });
   } catch (e) {
-    console.error('[api/chat]', e);
+    console.error('[api/document-explain]', e);
     const msg = e instanceof Error ? e.message : 'Unexpected server error';
-    sendJson(res, 500, {
-      error: msg,
-      hint:
-        'Chat handler crashed. In Vercel: Logs → filter api/chat; confirm OPENAI_API_KEY exists for Production and redeploy.',
-    });
+    sendJson(res, 500, { error: msg });
   }
 }

@@ -14,7 +14,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",
     "@aws-sdk/s3-request-presigner": "^3.716.0",
-    "@supabase/supabase-js": "2.39.0",
     "@vercel/node": "^5.0.4",
     "nodemailer": "^6.9.16",
     "lucide-react": "0.284.0",

@@ -4,6 +4,8 @@ import { handleChatPost } from '../lib/chat-handler';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
+import { handleDocumentExplainPost } from '../lib/document-explain-handler';
+import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
 
@@ -60,6 +62,21 @@ http
           return;
         }
         const result = await handleChatPost(body);
+        if (result.ok) {
+          send(res, 200, { reply: result.reply });
+          return;
+        }
+        send(res, result.status, { error: result.error, hint: result.hint });
+        return;
+      }
+
+      if (path === '/api/document-explain' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleDocumentExplainPost(body);
         if (result.ok) {
           send(res, 200, { reply: result.reply });
           return;
@@ -133,6 +150,44 @@ http
           return;
         }
         send(res, result.status, { ok: false, error: result.error });
+        return;
+      }
+
+      if (path === '/api/visit' && req.method === 'GET') {
+        const auth =
+          typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
+        const result = await handleVisitStatsGet(auth);
+        if (!result.ok) {
+          send(res, result.status, { ok: false, error: result.error });
+          return;
+        }
+        send(res, 200, {
+          ok: true,
+          totalSessions: result.totalSessions,
+          uniqueVisitors: result.uniqueVisitors,
+          updatedAt: result.updatedAt,
+          storage: result.storage,
+        });
+        return;
+      }
+
+      if (path === '/api/visit' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleVisitPost(body);
+        if (!result.ok) {
+          send(res, result.status, { ok: false, error: result.error });
+          return;
+        }
+        send(res, 200, {
+          ok: true,
+          totalSessions: result.totalSessions,
+          uniqueVisitors: result.uniqueVisitors,
+          storage: result.storage,
+        });
         return;
       }
 
