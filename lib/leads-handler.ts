@@ -25,7 +25,10 @@ async function maybeAppendJsonl(record: Record<string, unknown>): Promise<void> 
 
 export async function handleContactPost(
   rawBody: unknown
-): Promise<{ ok: true } | { ok: false; status: number; error: string; hint?: string }> {
+): Promise<
+  | { ok: true; mailDelivery: 'sent' | 'skipped' }
+  | { ok: false; status: number; error: string; hint?: string }
+> {
   if (!rawBody || typeof rawBody !== 'object') {
     return { ok: false, status: 400, error: 'Invalid JSON body' };
   }
@@ -62,12 +65,15 @@ export async function handleContactPost(
     };
   }
 
-  return { ok: true };
+  return { ok: true, mailDelivery: mail.status === 'sent' ? 'sent' : 'skipped' };
 }
 
 export async function handleRegisterInterestPost(
   rawBody: unknown
-): Promise<{ ok: true; preview?: string } | { ok: false; status: number; error: string; hint?: string }> {
+): Promise<
+  | { ok: true; preview?: string; mailDelivery: 'sent' | 'skipped' }
+  | { ok: false; status: number; error: string; hint?: string }
+> {
   if (!rawBody || typeof rawBody !== 'object') {
     return { ok: false, status: 400, error: 'Invalid JSON body' };
   }
@@ -125,7 +131,7 @@ export async function handleRegisterInterestPost(
     };
   }
 
-  return { ok: true, preview };
+  return { ok: true, preview, mailDelivery: mail.status === 'sent' ? 'sent' : 'skipped' };
 }
 
 export async function handleFileMetaPost(

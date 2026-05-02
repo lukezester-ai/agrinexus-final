@@ -76,7 +76,7 @@ http
         }
         const result = await handleContactPost(body);
         if (result.ok) {
-          send(res, 200, { ok: true });
+          send(res, 200, { ok: true, mailDelivery: result.mailDelivery });
           return;
         }
         send(res, result.status, { ok: false, error: result.error, hint: result.hint });
@@ -91,7 +91,11 @@ http
         }
         const result = await handleRegisterInterestPost(body);
         if (result.ok) {
-          send(res, 200, { ok: true, preview: result.preview });
+          send(res, 200, {
+            ok: true,
+            preview: result.preview,
+            mailDelivery: result.mailDelivery,
+          });
           return;
         }
         send(res, result.status, { ok: false, error: result.error, hint: result.hint });

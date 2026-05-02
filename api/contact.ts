@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const result = await handleContactPost(parsed);
   if (result.ok) {
-    res.status(200).json({ ok: true });
+    res.status(200).json({ ok: true, mailDelivery: result.mailDelivery });
     return;
   }
 

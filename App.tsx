@@ -26,6 +26,9 @@ const {
 /** Guest users see full detail for this many marketplace rows before soft-lock teasers. */
 const FREE_MARKET_DEALS_FOR_GUEST = 18;
 
+/** When `VITE_MVP_MODE=1` in `.env`, hides pricing/clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
+const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
+
 const PREVIEW_DEALS = [
 	{
 		id: 'p1',
@@ -253,7 +256,9 @@ type View =
 	| 'login'
 	| 'company'
 	| 'clients'
-	| 'watchlist';
+	| 'watchlist'
+	| 'privacy'
+	| 'terms';
 
 type ClientProfile = {
 	id: string;
@@ -540,6 +545,13 @@ async function apiChat(
 
 export default function App() {
 	const [view, setView] = useState<View>('landing');
+
+	useEffect(() => {
+		if (!MVP_MODE) return;
+		if (view === 'pricing' || view === 'clients' || view === 'watchlist') {
+			setView('landing');
+		}
+	}, [view]);
 	const [lang, setLang] = useState<Lang>(() =>
 		safeLocalGet('agrinexus-lang') === 'en' ? 'en' : 'bg'
 	);
@@ -574,6 +586,10 @@ export default function App() {
 	const [regSubscribe, setRegSubscribe] = useState(true);
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
+
+	const [loginEmail, setLoginEmail] = useState('');
+	const [loginPassword, setLoginPassword] = useState('');
+	const [loginMsg, setLoginMsg] = useState('');
 
 	const [contactName, setContactName] = useState('');
 	const [contactEmail, setContactEmail] = useState('');
@@ -1258,6 +1274,7 @@ export default function App() {
 				error?: string;
 				hint?: string;
 				preview?: string;
+				mailDelivery?: 'sent' | 'skipped';
 			} = {};
 			try {
 				data = (await res.json()) as typeof data;
@@ -1274,11 +1291,19 @@ export default function App() {
 				return;
 			}
 			setRegStatus('ok');
-			setRegMsg(
-				lang === 'bg'
-					? 'Изпратено до info@agrinexus.eu — очаквайте потвърждение на имейла ви.'
-					: 'Sent to info@agrinexus.eu — please expect a confirmation by email.'
-			);
+			if (data.mailDelivery === 'skipped') {
+				setRegMsg(
+					lang === 'bg'
+						? 'Заявката е приета, но имейлът не е изпратен: на сървъра задайте RESEND_API_KEY и MAIL_FROM (напр. във Vercel → Environment Variables).'
+						: 'Request received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. Vercel → Environment Variables).'
+				);
+			} else {
+				setRegMsg(
+					lang === 'bg'
+						? 'Изпратено до info@agrinexus.eu — очаквайте потвърждение на имейла ви.'
+						: 'Sent to info@agrinexus.eu — please expect a confirmation by email.'
+				);
+			}
 			setRegPassword('');
 		} catch {
 			setRegStatus('err');
@@ -1310,7 +1335,12 @@ export default function App() {
 					message: contactBody,
 				}),
 			});
-			let data: { ok?: boolean; error?: string; hint?: string } = {};
+			let data: {
+				ok?: boolean;
+				error?: string;
+				hint?: string;
+				mailDelivery?: 'sent' | 'skipped';
+			} = {};
 			try {
 				data = (await res.json()) as typeof data;
 			} catch {
@@ -1326,11 +1356,19 @@ export default function App() {
 				return;
 			}
 			setContactStatus('ok');
-			setContactFeedback(
-				lang === 'bg'
-					? 'Съобщението е изпратено. Отговорът идва от info@agrinexus.eu.'
-					: 'Message sent. A reply will come from info@agrinexus.eu.'
-			);
+			if (data.mailDelivery === 'skipped') {
+				setContactFeedback(
+					lang === 'bg'
+						? 'Съобщението е прието, но имейлът не е изпратен: на сървъра задайте RESEND_API_KEY и MAIL_FROM (напр. във Vercel).'
+						: 'Message received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. in Vercel).'
+				);
+			} else {
+				setContactFeedback(
+					lang === 'bg'
+						? 'Съобщението е изпратено. Отговорът идва от info@agrinexus.eu.'
+						: 'Message sent. A reply will come from info@agrinexus.eu.'
+				);
+			}
 			setContactBody('');
 		} catch {
 			setContactStatus('err');
@@ -1339,6 +1377,24 @@ export default function App() {
 	};
 
 	const handleDemoSignIn = () => {
+		setLoginMsg('');
+		if (!isValidEmail(loginEmail)) {
+			setLoginMsg(
+				lang === 'bg'
+					? 'Въведи валиден имейл, за да продължиш към демо изгледа.'
+					: 'Enter a valid email to continue to the demo workspace.'
+			);
+			return;
+		}
+		if (loginPassword.trim().length < 4) {
+			setLoginMsg(
+				lang === 'bg'
+					? 'За демо въведи поне 4 знака в полето за парола (не се изпраща към сървъра).'
+					: 'For demo, enter at least 4 characters in the password field (not sent to any server).'
+			);
+			return;
+		}
+		safeLocalSet('agrinexus-demo-email', loginEmail.trim());
 		setView('company');
 	};
 
@@ -1501,10 +1557,12 @@ export default function App() {
 				alreadyHaveAccount: 'Вече имам акаунт',
 				loginTitle: 'Вход',
 				loginSubtitle:
-					'Production authentication ще се върже към вашия identity provider. За демо ползвайте регистрацията по имейл.',
+					'Реалният вход ще се свърже с вашия доставчик на самоличност (SSO/OIDC). Полетата по-долу са само за демо — данните не се изпращат към сървъра.',
 				loginEmailPh: 'Имейл',
 				loginPasswordPh: 'Парола',
-				loginBtn: 'Вход',
+				loginPasswordDemoHint: 'Минимум 4 знака за демо; не се записват на сървъра.',
+				loginContinueDemo: 'Продължи към демо',
+				loginNoAccount: 'Нямате акаунт? Регистрация',
 				companyTitle: 'AgriNexus - Фирмена карта',
 				companySubtitle:
 					'Специализиран AI слой за оптимизация на агротърговията (EU / MENA). По пътя са интеграции към борси и доставчици на котировки, buyer–seller matching, прогнозни цени и търговски известия.',
@@ -1519,6 +1577,27 @@ export default function App() {
 				clientMonthlyVolume: 'Месечен обем',
 				clientInternalNotes: 'Вътрешни бележки',
 				clientCardLabel: 'Дигитална визитка',
+				footerRightsTagline: 'Илюстративна платформа за агротърговия EU ↔ MENA.',
+				footerPrivacy: 'Поверителност',
+				footerTerms: 'Условия',
+				privacyTitle: 'Политика за поверителност',
+				privacyBackHome: 'Към началото',
+				privacyP1:
+					'Този сайт обработва данни, които доброволно подавате чрез контактната форма, регистрацията на интерес или запитвания към екипа. Използват се за отговор на вашето съобщение и, при дадено съгласие, за пазарни известия.',
+				privacyP2:
+					'Част от функциите използват локално съхранение в браузъра (език, чернова на чата, списък за наблюдение). Това не се изпраща автоматично към AgriNexus, докато не подадете форма.',
+				privacyP3:
+					'При конфигуриран имейл транспорт (напр. SMTP/Resend) съобщенията се предават към посочения получател според настройките на проекта. Не продаваме лични данни на трети страни.',
+				privacyP4:
+					'За въпроси относно данните: info@agrinexus.eu',
+				termsTitle: 'Общи условия',
+				termsBackHome: 'Към началото',
+				termsP1:
+					'Съдържанието на AgriNexus, включително пазарният каталог и AI асистентът, са с илюстративен и демонстрационен характер, освен ако изрично не е уговорено друго по договор.',
+				termsP2:
+					'Информацията не представлява правен, финансов или инвестиционен съвет. Решения за сделки вземате въз основа на собствен анализ и външни потвърждения.',
+				termsP3:
+					'AgriNexus и операторите на сайта не носят отговорност за загуби въз основа на демо данни или автоматични отговори на асистента.',
 			};
 		}
 		return {
@@ -1679,10 +1758,12 @@ export default function App() {
 			alreadyHaveAccount: 'Already have account',
 			loginTitle: 'Sign In',
 			loginSubtitle:
-				'Production authentication will connect to your identity provider. For demo, use email registration.',
+				'Production authentication will connect to your identity provider (SSO/OIDC). The fields below are demo-only — credentials are not sent to any server.',
 			loginEmailPh: 'Email',
 			loginPasswordPh: 'Password',
-			loginBtn: 'Sign In',
+			loginPasswordDemoHint: 'At least 4 characters for demo; nothing is stored server-side.',
+			loginContinueDemo: 'Continue to demo',
+			loginNoAccount: 'No account? Register',
 			companyTitle: 'AgriNexus - Company Card',
 			companySubtitle:
 				'Domain-specific AI layer for agricultural trade optimization (Europe / MENA). Roadmap: exchange and vendor price feeds, buyer–seller matching, predictive pricing, and trade alerts.',
@@ -1697,6 +1778,26 @@ export default function App() {
 			clientMonthlyVolume: 'Monthly volume',
 			clientInternalNotes: 'Internal notes',
 			clientCardLabel: 'Digital business card',
+			footerRightsTagline: 'Illustrative EU ↔ MENA agricultural trade workspace.',
+			footerPrivacy: 'Privacy',
+			footerTerms: 'Terms',
+			privacyTitle: 'Privacy policy',
+			privacyBackHome: 'Back to home',
+			privacyP1:
+				'This site processes information you voluntarily submit via the contact form, interest registration, or direct team inquiries. We use it to respond and, where you opt in, for market alerts.',
+			privacyP2:
+				'Some features rely on browser-local storage (language, chat draft, watchlist). That data is not sent to AgriNexus until you submit a form.',
+			privacyP3:
+				'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
+			privacyP4: 'Questions about data: info@agrinexus.eu',
+			termsTitle: 'Terms of use',
+			termsBackHome: 'Back to home',
+			termsP1:
+				'AgriNexus content, including the marketplace catalog and AI assistant, is illustrative and for demonstration unless expressly agreed otherwise under contract.',
+			termsP2:
+				'Nothing here is legal, financial, or investment advice. Trade decisions remain your responsibility with independent verification.',
+			termsP3:
+				'AgriNexus and site operators are not liable for losses based on demo data or automated assistant replies.',
 		};
 	}, [lang]);
 
@@ -1779,7 +1880,42 @@ export default function App() {
         }
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
-        .app { min-height: 100vh; background: var(--bg); color: #fff; }
+        .app { min-height: 100vh; background: var(--bg); color: #fff; display: flex; flex-direction: column; }
+        main#main-content { flex: 1; }
+
+        .site-footer {
+          border-top: 1px solid var(--border);
+          background: rgba(11, 18, 33, 0.92);
+          padding: 18px 16px 22px;
+        }
+        .site-footer-inner {
+          max-width: 1100px;
+          margin: 0 auto;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .site-footer-copy { margin: 0; font-size: .82rem; line-height: 1.45; max-width: 52ch; }
+        .site-footer-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .footer-link-btn {
+          background: none;
+          border: none;
+          color: #86efac;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: .84rem;
+          font-weight: 600;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+          padding: 2px 0;
+        }
+        .footer-link-btn:hover { color: #bbf7d0; }
+        .site-footer-sep { color: #64748b; user-select: none; font-size: .9rem; }
+        .legal-panel p { margin: 0 0 12px; }
+        .legal-panel p:last-child { margin-bottom: 0; }
+        .legal-section .btn { margin-top: 14px; }
 
         .skip-link {
           position: absolute;
@@ -2119,7 +2255,8 @@ export default function App() {
         .nav-link:focus-visible,
         .deal-chip-btn:focus-visible,
         .client-list-item:focus-visible,
-        .mobile-nav-btn:focus-visible {
+        .mobile-nav-btn:focus-visible,
+        .footer-link-btn:focus-visible {
           outline: 2px solid rgba(134, 239, 172, 0.95);
           outline-offset: 2px;
         }
@@ -2164,6 +2301,8 @@ export default function App() {
           .pricing-message-grid { grid-template-columns: 1fr; }
           .pricing-bottom-grid { grid-template-columns: 1fr; }
           .pricing-brand-motto { font-size: .88rem; }
+
+          .site-footer { padding-bottom: 92px; }
 
           .mobile-nav {
             position: fixed;
@@ -2259,24 +2398,28 @@ export default function App() {
 						onClick={() => setView('assistant')}>
 						<Brain size={14} aria-hidden /> {tr.navAssistant}
 					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
-						onClick={() => setView('pricing')}>
-						{tr.navPricing}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
-						onClick={() => setView('clients')}>
-						{tr.navClients}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
-						onClick={() => setView('watchlist')}>
-						{tr.navWatchlist}
-					</button>
+					{!MVP_MODE && (
+						<>
+							<button
+								type="button"
+								className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
+								onClick={() => setView('pricing')}>
+								{tr.navPricing}
+							</button>
+							<button
+								type="button"
+								className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
+								onClick={() => setView('clients')}>
+								{tr.navClients}
+							</button>
+							<button
+								type="button"
+								className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
+								onClick={() => setView('watchlist')}>
+								{tr.navWatchlist}
+							</button>
+						</>
+					)}
 					<button
 						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'login' ? 'active' : ''}`}
@@ -2400,8 +2543,11 @@ export default function App() {
 						<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
 							<Brain size={16} aria-hidden /> {tr.navAssistant}
 						</button>
-						<button type="button" className="btn btn-outline" onClick={() => setView('clients')}>
-							{tr.clientDossiers}
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView(MVP_MODE ? 'register' : 'clients')}>
+							{MVP_MODE ? tr.createAccount : tr.clientDossiers}
 						</button>
 					</div>
 
@@ -2766,7 +2912,7 @@ export default function App() {
 											<button
 												type="button"
 												className="btn btn-primary"
-												onClick={() => setView('pricing')}>
+												onClick={() => setView(MVP_MODE ? 'register' : 'pricing')}>
 												{tr.unlock}
 											</button>
 											<p
@@ -3034,15 +3180,31 @@ export default function App() {
 								<button type="button" className="deal-chip-btn" onClick={() => setView('market')}>
 									{tr.cabinetGoMarket}
 								</button>
-								<button type="button" className="deal-chip-btn" onClick={() => setView('clients')}>
-									{tr.cabinetGoClients}
-								</button>
-								<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
-									{tr.cabinetGoCompany}
-								</button>
-								<button type="button" className="deal-chip-btn" onClick={() => setView('pricing')}>
-									{tr.cabinetGoPricing}
-								</button>
+								{MVP_MODE ? (
+									<>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('register')}>
+											{tr.createAccount}
+										</button>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('assistant')}>
+											{tr.navAssistant}
+										</button>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
+											{tr.cabinetGoCompany}
+										</button>
+									</>
+								) : (
+									<>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('clients')}>
+											{tr.cabinetGoClients}
+										</button>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
+											{tr.cabinetGoCompany}
+										</button>
+										<button type="button" className="deal-chip-btn" onClick={() => setView('pricing')}>
+											{tr.cabinetGoPricing}
+										</button>
+									</>
+								)}
 							</div>
 						</div>
 					)}
@@ -3278,14 +3440,96 @@ export default function App() {
 					<h2>{tr.loginTitle}</h2>
 					<p className="muted">{tr.loginSubtitle}</p>
 					<div className="form-grid">
-						<input placeholder={tr.loginEmailPh} />
-						<input type="password" placeholder={tr.loginPasswordPh} />
+						<input
+							type="email"
+							autoComplete="email"
+							placeholder={tr.loginEmailPh}
+							value={loginEmail}
+							onChange={e => {
+								setLoginEmail(e.target.value);
+								if (loginMsg) setLoginMsg('');
+							}}
+						/>
+						{loginEmail.trim().length > 0 && !isValidEmail(loginEmail) ? (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{invalidEmailText}
+							</p>
+						) : null}
+						<input
+							type="password"
+							autoComplete="current-password"
+							placeholder={tr.loginPasswordPh}
+							value={loginPassword}
+							onChange={e => {
+								setLoginPassword(e.target.value);
+								if (loginMsg) setLoginMsg('');
+							}}
+						/>
+						<p
+							className="muted"
+							style={{
+								gridColumn: '1 / -1',
+								margin: '-6px 0 0',
+								fontSize: '.82rem',
+							}}>
+							{tr.loginPasswordDemoHint}
+						</p>
 					</div>
-					<div style={{ marginTop: 12 }}>
-						<button className="btn btn-primary" onClick={handleDemoSignIn}>
-							{tr.loginBtn}
+					<div
+						style={{
+							marginTop: 12,
+							display: 'flex',
+							gap: 8,
+							flexWrap: 'wrap',
+							alignItems: 'center',
+						}}>
+						<button type="button" className="btn btn-primary" onClick={handleDemoSignIn}>
+							{tr.loginContinueDemo}
 						</button>
+						<button type="button" className="btn btn-outline" onClick={() => setView('register')}>
+							{tr.loginNoAccount}
+						</button>
+						{loginMsg ? (
+							<span className="muted" style={{ width: '100%', fontSize: '.9rem' }}>
+								{loginMsg}
+							</span>
+						) : null}
 					</div>
+				</section>
+			)}
+
+			{view === 'privacy' && (
+				<section className="section legal-section">
+					<h2>{tr.privacyTitle}</h2>
+					<div className="contact-panel legal-panel">
+						<p className="muted">{tr.privacyP1}</p>
+						<p className="muted">{tr.privacyP2}</p>
+						<p className="muted">{tr.privacyP3}</p>
+						<p className="muted">{tr.privacyP4}</p>
+					</div>
+					<button type="button" className="btn btn-outline" onClick={() => setView('landing')}>
+						{tr.privacyBackHome}
+					</button>
+				</section>
+			)}
+
+			{view === 'terms' && (
+				<section className="section legal-section">
+					<h2>{tr.termsTitle}</h2>
+					<div className="contact-panel legal-panel">
+						<p className="muted">{tr.termsP1}</p>
+						<p className="muted">{tr.termsP2}</p>
+						<p className="muted">{tr.termsP3}</p>
+					</div>
+					<button type="button" className="btn btn-outline" onClick={() => setView('landing')}>
+						{tr.termsBackHome}
+					</button>
 				</section>
 			)}
 
@@ -3406,6 +3650,25 @@ export default function App() {
 			)}
 			</main>
 
+			<footer className="site-footer">
+				<div className="site-footer-inner">
+					<p className="site-footer-copy muted">
+						© {new Date().getFullYear()} AgriNexus — {tr.footerRightsTagline}
+					</p>
+					<div className="site-footer-links">
+						<button type="button" className="footer-link-btn" onClick={() => setView('privacy')}>
+							{tr.footerPrivacy}
+						</button>
+						<span className="site-footer-sep" aria-hidden>
+							·
+						</span>
+						<button type="button" className="footer-link-btn" onClick={() => setView('terms')}>
+							{tr.footerTerms}
+						</button>
+					</div>
+				</div>
+			</footer>
+
 			{isMobileViewport && (
 				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>
 					<button
@@ -3430,20 +3693,41 @@ export default function App() {
 						<Brain size={16} aria-hidden />
 						{tr.mobileAssistantTab}
 					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'pricing' ? 'active' : ''}`}
-						onClick={() => setView('pricing')}>
-						<CreditCard size={16} />
-						{tr.navPricing}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
-						onClick={() => setView('watchlist')}>
-						<Bookmark size={16} aria-hidden />
-						{tr.navWatchlist}
-					</button>
+					{MVP_MODE ? (
+						<>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'register' ? 'active' : ''}`}
+								onClick={() => setView('register')}>
+								<UserPlus size={16} aria-hidden />
+								{tr.navGetStarted}
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'login' ? 'active' : ''}`}
+								onClick={() => setView('login')}>
+								<LogIn size={16} aria-hidden />
+								{tr.navLogin}
+							</button>
+						</>
+					) : (
+						<>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'pricing' ? 'active' : ''}`}
+								onClick={() => setView('pricing')}>
+								<CreditCard size={16} />
+								{tr.navPricing}
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
+								onClick={() => setView('watchlist')}>
+								<Bookmark size={16} aria-hidden />
+								{tr.navWatchlist}
+							</button>
+						</>
+					)}
 				</div>
 			)}
 		</div>
