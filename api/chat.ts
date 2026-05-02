@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleChatPost } from '../lib/chat-handler';
-import { vercelJsonBody } from '../lib/vercel-json-body';
 
-/** Per-route limits (see also root vercel.json). */
+/** Limits: see root vercel.json (functions for api routes). */
 export const config = {
   maxDuration: 60,
 };
@@ -33,6 +31,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sendJson(res, 405, { error: 'Method not allowed' });
       return;
     }
+
+    const [{ vercelJsonBody }, { handleChatPost }] = await Promise.all([
+      import('../lib/vercel-json-body'),
+      import('../lib/chat-handler'),
+    ]);
 
     const parsed = vercelJsonBody(req.body);
     if (parsed === null) {
