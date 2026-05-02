@@ -19,7 +19,6 @@ export const STR_EN = {
 	activeOpps: 'Active Trade Opportunities',
 	liveDealsHint:
 		'Illustrative examples for orientation — not real executed trades or binding offers.',
-	demoBadge: 'Demo',
 	demoMarketBanner:
 		'The marketplace shows synthetic examples for product demonstration. Prices, routes and margins are not live quotes or contracts.',
 	marketQuotesLoading: 'Loading market quotes…',

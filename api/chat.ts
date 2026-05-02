@@ -1,4 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { handleChatPost } from '../lib/chat-handler';
+import { vercelJsonBody } from '../lib/vercel-json-body';
 
 /** Limits: see root vercel.json (functions for api routes). */
 export const config = {
@@ -32,11 +34,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const [{ vercelJsonBody }, { handleChatPost }] = await Promise.all([
-      import('../lib/vercel-json-body'),
-      import('../lib/chat-handler'),
-    ]);
-
     const parsed = vercelJsonBody(req.body);
     if (parsed === null) {
       sendJson(res, 400, { error: 'Invalid JSON body' });
@@ -59,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sendJson(res, 500, {
       error: msg,
       hint:
-        'Chat handler crashed. In Vercel: Logs → filter api/chat; confirm OPENAI_API_KEY exists for Production and redeploy.',
+        'If this persists: Vercel → Logs → api/chat; confirm OPENAI_API_KEY for Production and Redeploy.',
     });
   }
 }

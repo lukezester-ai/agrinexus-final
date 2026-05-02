@@ -514,8 +514,8 @@ async function apiChat(
 			}
 			if (!res.ok) {
 				throw new Error(
-					data.hint ||
-						data.error ||
+					data.error ||
+						data.hint ||
 						(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
 				);
 			}
@@ -1825,7 +1825,6 @@ export default function App() {
         html[dir="rtl"] .brand { flex-direction: row-reverse; }
         html[dir="rtl"] .skip-link:focus,
         html[dir="rtl"] .skip-link:focus-visible { left: auto; right: 12px; }
-        html[dir="rtl"] .demo-pill { right: auto; left: 10px; }
         html[dir="rtl"] .assistant-msgs { padding-right: 0; padding-left: 4px; }
         html[dir="rtl"] .chat-actions { flex-direction: row-reverse; }
         html[dir="rtl"] .assistant-doc-toolbar { flex-direction: row-reverse; flex-wrap: wrap; }
@@ -1893,21 +1892,6 @@ export default function App() {
           background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
         }
         .deal-card.top { border: 2px solid var(--green); }
-        .demo-pill {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          z-index: 2;
-          font-size: .65rem;
-          font-weight: 800;
-          padding: 4px 8px;
-          border-radius: 999px;
-          background: rgba(245, 158, 11, 0.18);
-          border: 1px solid rgba(245, 158, 11, 0.45);
-          color: #fcd34d;
-          letter-spacing: .05em;
-          text-transform: uppercase;
-        }
         .demo-banner {
           background: rgba(245, 158, 11, 0.07);
           border: 1px solid rgba(245, 158, 11, 0.32);
@@ -2300,12 +2284,13 @@ export default function App() {
 								<div
 									key={`${deal.id}-${idx}`}
 									className="deal-card"
-									style={{ width: 260, flexShrink: 0, position: 'relative' }}>
-									<span className="demo-pill">{tr.demoBadge}</span>
+									style={{ width: 260, flexShrink: 0 }}>
 									<div
 										style={{
 											display: 'flex',
 											justifyContent: 'space-between',
+											alignItems: 'center',
+											gap: 8,
 											marginBottom: 8,
 										}}>
 										<span
@@ -2317,9 +2302,7 @@ export default function App() {
 											}}>
 											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
 										</span>
-										<strong style={{ color: '#22c55e' }}>
-											+{deal.profit}%
-										</strong>
+										<strong style={{ color: '#22c55e' }}>+{deal.profit}%</strong>
 									</div>
 									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
 									<div
