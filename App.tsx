@@ -3305,8 +3305,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									'Локалният API не отговаря (/api/chat). В папката на проекта пуснете npm run dev — стартират и сайтът, и сървъра на порт 8788 (прокси през Vite). Отворете адреса от терминала (обикновено http://localhost:5173).',
-									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:5173).'
+									'Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — стартират Vite на :5173 и API на :8788. Отворете http://localhost:5173. Ако порт 8788 е зает, спрете другата програма или сменете DEV_API_PORT в .env.',
+									'Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the API on :8788. Open http://localhost:5173. If port 8788 is busy, free it or set DEV_API_PORT in .env.'
 								)}
 							</p>
 						</div>
