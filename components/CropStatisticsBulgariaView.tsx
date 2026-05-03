@@ -13,10 +13,13 @@ import {
 import { BarChart3, Droplets, TrendingUp } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import {
+	analyzeCropOutlook,
 	CROP_PROFILES,
 	type CropKey,
 	forecastProductionKt,
 	isDryStressLikely,
+	OUTLOOK_FACTOR_LABELS,
+	OUTLOOK_FACTORS_NONE,
 	pickL,
 } from '../lib/crop-statistics-data';
 
@@ -47,7 +50,31 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 		() => CROP_PROFILES.find(c => c.key === cropKey) ?? CROP_PROFILES[0],
 		[cropKey],
 	);
-	const { rows, nextYear, forecastKt, dry } = useMemo(() => buildChartRows(profile), [profile]);
+	const { rows, nextYear, forecastKt, slopeKtPerYear, dry } = useMemo(
+		() => buildChartRows(profile),
+		[profile],
+	);
+	const outlook = useMemo(
+		() => analyzeCropOutlook(profile.series, slopeKtPerYear, forecastKt, dry),
+		[profile.series, slopeKtPerYear, forecastKt, dry],
+	);
+
+	const fmtPctSigned = (p: number) => {
+		const sign = p > 0 ? '+' : '';
+		return `${sign}${p.toFixed(1)}%`;
+	};
+
+	const outlookReasons =
+		outlook.factors.length === 0
+			? pickL(OUTLOOK_FACTORS_NONE, lang)
+			: outlook.factors.map(f => pickL(OUTLOOK_FACTOR_LABELS[f], lang)).join('; ');
+
+	const outlookNarrative =
+		outlook.tone === 'headwind'
+			? tr.cropStatsOutlookHeadwind.replace('{reasons}', outlookReasons)
+			: outlook.tone === 'tailwind'
+				? tr.cropStatsOutlookTailwind.replace('{reasons}', outlookReasons)
+				: tr.cropStatsOutlookMixed.replace('{reasons}', outlookReasons);
 
 	return (
 		<section className="section">
@@ -194,7 +221,63 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 							.replace(/\{year\}/g, String(nextYear))
 							.replace(/\{kt\}/g, String(Math.round(forecastKt)))}
 					</p>
-					<p className="muted" style={{ margin: '10px 0 0', fontSize: '.88rem', lineHeight: 1.5 }}>
+					<p
+						className="muted"
+						style={{
+							margin: '14px 0 8px',
+							fontWeight: 700,
+							fontSize: '.82rem',
+							letterSpacing: '0.04em',
+							textTransform: 'uppercase',
+							color: '#94a3b8',
+						}}>
+						{tr.cropStatsCompareHeading}
+					</p>
+					<ul
+						className="muted"
+						style={{
+							margin: '0 0 12px',
+							paddingLeft: '1.15rem',
+							lineHeight: 1.55,
+							fontSize: '.92rem',
+						}}>
+						<li style={{ marginBottom: 6 }}>
+							{tr.cropStatsVsLastDetail
+								.replace(/\{year\}/g, String(outlook.lastYear))
+								.replace(/\{lastKt\}/g, String(Math.round(outlook.lastKt)))
+								.replace(/\{pctSigned\}/g, fmtPctSigned(outlook.pctVsLast))
+								.replace(/\{nextYear\}/g, String(nextYear))}
+						</li>
+						<li style={{ marginBottom: 6 }}>
+							{tr.cropStatsVsAvgDetail
+								.replace(/\{avgKt\}/g, String(Math.round(outlook.avgKt)))
+								.replace(/\{pctSigned\}/g, fmtPctSigned(outlook.pctVsAvg))}
+						</li>
+						<li>
+							{tr.cropStatsRangeDetail
+								.replace(/\{minKt\}/g, String(Math.round(outlook.minKt)))
+								.replace(/\{maxKt\}/g, String(Math.round(outlook.maxKt)))
+								.replace(/\{minYear\}/g, String(outlook.minYear))
+								.replace(/\{maxYear\}/g, String(outlook.maxYear))}
+						</li>
+					</ul>
+					<p
+						className="muted"
+						style={{
+							margin: '0 0 12px',
+							lineHeight: 1.58,
+							fontSize: '.93rem',
+							paddingLeft: 12,
+							borderLeft:
+								outlook.tone === 'headwind'
+									? '3px solid rgba(251, 146, 60, 0.85)'
+									: outlook.tone === 'tailwind'
+										? '3px solid rgba(93, 189, 154, 0.9)'
+										: '3px solid rgba(148, 163, 184, 0.65)',
+						}}>
+						{outlookNarrative}
+					</p>
+					<p className="muted" style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 						{pickL(profile.genNotes, lang)}
 					</p>
 				</div>

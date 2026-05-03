@@ -54,6 +54,7 @@ const {
 	FileText,
 	BarChart3,
 	Truck,
+	ChevronDown,
 } = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
@@ -320,6 +321,10 @@ type View =
 	| 'crop-statistics'
 	| 'transport-directory'
 	| 'command';
+
+const TRADING_VIEWS = new Set<View>(['market', 'crop-statistics']);
+const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar']);
+const LOGISTICS_VIEWS = new Set<View>(['trade-documents', 'transport-directory']);
 
 type ClientProfile = {
 	id: string;
@@ -594,8 +599,49 @@ async function apiChat(
 	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
 }
 
+/** Compact mobile nav caption; `hint` becomes tooltip + clearer aria when provided. */
+function MobileNavLabel({ text, hint }: { text: string; hint?: string }) {
+	const title = hint ?? text;
+	return (
+		<span className="mobile-nav-label" title={title}>
+			{text}
+		</span>
+	);
+}
+
 export default function App() {
 	const [view, setView] = useState<View>('landing');
+	const [navMenuOpen, setNavMenuOpen] = useState<'markets' | 'farm' | 'logistics' | null>(null);
+	const [mobileNavExpand, setMobileNavExpand] = useState<'markets' | 'farm' | 'logistics' | null>(
+		null
+	);
+	const navFlyoutRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		setNavMenuOpen(null);
+		setMobileNavExpand(null);
+	}, [view]);
+
+	useEffect(() => {
+		const onDoc = (e: MouseEvent) => {
+			const el = navFlyoutRef.current;
+			if (!el || !(e.target instanceof Node)) return;
+			if (!el.contains(e.target)) setNavMenuOpen(null);
+		};
+		document.addEventListener('mousedown', onDoc);
+		return () => document.removeEventListener('mousedown', onDoc);
+	}, []);
+
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				setNavMenuOpen(null);
+				setMobileNavExpand(null);
+			}
+		};
+		document.addEventListener('keydown', onKey);
+		return () => document.removeEventListener('keydown', onKey);
+	}, []);
 
 	useEffect(() => {
 		if (!MVP_MODE) return;
@@ -1913,6 +1959,55 @@ export default function App() {
         }
         .nav-link.active svg { color: var(--accent); }
 
+        .nav-dropdown {
+          position: relative;
+        }
+        .nav-dropdown-trigger svg.chevron {
+          opacity: 0.85;
+        }
+        .nav-dropdown-panel {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          min-width: 260px;
+          z-index: 120;
+          background: rgba(12, 28, 24, 0.97);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+        }
+        [dir='rtl'] .nav-dropdown-panel {
+          left: auto;
+          right: 0;
+        }
+        .nav-dropdown-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          text-align: start;
+          padding: 10px 12px;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          color: inherit;
+          font: inherit;
+          cursor: pointer;
+          font-weight: 650;
+        }
+        .nav-dropdown-item:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+        .nav-dropdown-item.active {
+          color: var(--accent-text);
+          background: var(--accent-muted);
+          border: 1px solid var(--accent-border);
+        }
+
         .btn {
           border: none; border-radius: 12px; cursor: pointer; font-weight: 700;
           display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
@@ -2224,7 +2319,17 @@ export default function App() {
             gap: 4px;
           }
           .mobile-nav-row.tools {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .mobile-nav-subrow {
+            display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 4px;
+            padding: 4px 0 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+          }
+          .mobile-nav-subrow.cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
           .mobile-nav-btn {
             border: 1px solid transparent;
@@ -2243,13 +2348,27 @@ export default function App() {
             flex-direction: column;
             gap: 4px;
             transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
+            touch-action: manipulation;
           }
-        .mobile-nav-btn:active {
-          transform: scale(0.97);
-        }
-        .mobile-nav-btn svg {
-          width: 15px;
-          height: 15px;
+          .mobile-nav-btn:active {
+            transform: scale(0.97);
+          }
+          .mobile-nav-btn svg {
+            width: 15px;
+            height: 15px;
+          }
+          .mobile-nav-label {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            line-height: 1.14;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            hyphens: auto;
           }
           .mobile-nav-btn.active {
             border-color: var(--accent-border);
@@ -2286,61 +2405,143 @@ export default function App() {
 						<span className="brand-nexus">Nexus</span>
 					</span>
 				</button>
-				<div className="nav-actions">
+				<div className="nav-actions" ref={navFlyoutRef}>
 					<button
 						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'landing' ? 'active' : ''}`}
 						onClick={() => setView('landing')}>
 						{tr.navHome}
 					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'command' ? 'active' : ''}`}
-						onClick={() => setView('command')}>
-						<ClipboardList size={14} aria-hidden /> {tr.navCommand}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
-						onClick={() => setView('market')}>
-						{tr.navMarket}
-					</button>
+					<div className="nav-dropdown nav-link-mobile-hide">
+						<button
+							type="button"
+							className={`nav-link nav-dropdown-trigger ${TRADING_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={navMenuOpen === 'markets'}
+							aria-haspopup="menu"
+							onClick={e => {
+								e.stopPropagation();
+								setNavMenuOpen(prev => (prev === 'markets' ? null : 'markets'));
+							}}>
+							{tr.navGroupMarkets}{' '}
+							<ChevronDown size={14} className="chevron" aria-hidden />
+						</button>
+						{navMenuOpen === 'markets' && (
+							<div className="nav-dropdown-panel" role="menu">
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'market' ? 'active' : ''}`}
+									onClick={() => {
+										setView('market');
+										setNavMenuOpen(null);
+									}}>
+									<Search size={14} aria-hidden /> {tr.navMarket}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'crop-statistics' ? 'active' : ''}`}
+									onClick={() => {
+										setView('crop-statistics');
+										setNavMenuOpen(null);
+									}}>
+									<BarChart3 size={14} aria-hidden /> {tr.navCropStatistics}
+								</button>
+							</div>
+						)}
+					</div>
+					<div className="nav-dropdown nav-link-mobile-hide">
+						<button
+							type="button"
+							className={`nav-link nav-dropdown-trigger ${FARM_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={navMenuOpen === 'farm'}
+							aria-haspopup="menu"
+							onClick={e => {
+								e.stopPropagation();
+								setNavMenuOpen(prev => (prev === 'farm' ? null : 'farm'));
+							}}>
+							{tr.navGroupFarm}{' '}
+							<ChevronDown size={14} className="chevron" aria-hidden />
+						</button>
+						{navMenuOpen === 'farm' && (
+							<div className="nav-dropdown-panel" role="menu">
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'command' ? 'active' : ''}`}
+									onClick={() => {
+										setView('command');
+										setNavMenuOpen(null);
+									}}>
+									<ClipboardList size={14} aria-hidden /> {tr.navCommand}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'subsidy-calculator' ? 'active' : ''}`}
+									onClick={() => {
+										setView('subsidy-calculator');
+										setNavMenuOpen(null);
+									}}>
+									<Calculator size={14} aria-hidden /> {tr.navSubsidyCalculator}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'season-calendar' ? 'active' : ''}`}
+									onClick={() => {
+										setView('season-calendar');
+										setNavMenuOpen(null);
+									}}>
+									<CalendarDays size={14} aria-hidden /> {tr.navSeasonCalendar}
+								</button>
+							</div>
+						)}
+					</div>
 					<button
 						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
 						onClick={() => setView('assistant')}>
 						<Brain size={14} aria-hidden /> {tr.navAssistant}
 					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'subsidy-calculator' ? 'active' : ''}`}
-						onClick={() => setView('subsidy-calculator')}>
-						<Calculator size={14} aria-hidden /> {tr.navSubsidyCalculator}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'season-calendar' ? 'active' : ''}`}
-						onClick={() => setView('season-calendar')}>
-						<CalendarDays size={14} aria-hidden /> {tr.navSeasonCalendar}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'trade-documents' ? 'active' : ''}`}
-						onClick={() => setView('trade-documents')}>
-						<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'crop-statistics' ? 'active' : ''}`}
-						onClick={() => setView('crop-statistics')}>
-						<BarChart3 size={14} aria-hidden /> {tr.navCropStatistics}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'transport-directory' ? 'active' : ''}`}
-						onClick={() => setView('transport-directory')}>
-						<Truck size={14} aria-hidden /> {tr.navTransportDirectory}
-					</button>
+					<div className="nav-dropdown nav-link-mobile-hide">
+						<button
+							type="button"
+							className={`nav-link nav-dropdown-trigger ${LOGISTICS_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={navMenuOpen === 'logistics'}
+							aria-haspopup="menu"
+							onClick={e => {
+								e.stopPropagation();
+								setNavMenuOpen(prev => (prev === 'logistics' ? null : 'logistics'));
+							}}>
+							{tr.navLogistics}{' '}
+							<ChevronDown size={14} className="chevron" aria-hidden />
+						</button>
+						{navMenuOpen === 'logistics' && (
+							<div className="nav-dropdown-panel" role="menu">
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'trade-documents' ? 'active' : ''}`}
+									onClick={() => {
+										setView('trade-documents');
+										setNavMenuOpen(null);
+									}}>
+									<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'transport-directory' ? 'active' : ''}`}
+									onClick={() => {
+										setView('transport-directory');
+										setNavMenuOpen(null);
+									}}>
+									<Truck size={14} aria-hidden /> {tr.navTransportDirectory}
+								</button>
+							</div>
+						)}
+					</div>
 					{!MVP_MODE && (
 						<>
 							<button
@@ -2479,49 +2680,110 @@ export default function App() {
 						</div>
 					</div>
 
-					<div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-						<button type="button" className="btn btn-outline" onClick={() => setView('market')}>
-							{tr.openMarketplace}
-						</button>
-						<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
-							<Brain size={16} aria-hidden /> {tr.navAssistant}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView(MVP_MODE ? 'register' : 'clients')}>
-							{MVP_MODE ? tr.createAccount : tr.clientDossiers}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView('subsidy-calculator')}>
-							<Calculator size={16} aria-hidden /> {tr.navSubsidyCalculator}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView('season-calendar')}>
-							<CalendarDays size={16} aria-hidden /> {tr.navSeasonCalendar}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView('trade-documents')}>
-							<FileText size={16} aria-hidden /> {tr.navTradeDocuments}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView('crop-statistics')}>
-							<BarChart3 size={16} aria-hidden /> {tr.navCropStatistics}
-						</button>
-						<button
-							type="button"
-							className="btn btn-outline"
-							onClick={() => setView('transport-directory')}>
-							<Truck size={16} aria-hidden /> {tr.navTransportDirectory}
-						</button>
+					<div
+						style={{
+							marginTop: 16,
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							gap: 18,
+							maxWidth: 720,
+							marginLeft: 'auto',
+							marginRight: 'auto',
+						}}>
+						<div style={{ width: '100%', textAlign: 'left' }}>
+							<p
+								className="muted"
+								style={{
+									margin: '0 0 8px',
+									fontSize: '.72rem',
+									fontWeight: 800,
+									letterSpacing: '0.07em',
+									textTransform: 'uppercase',
+								}}>
+								{tr.navGroupMarkets}
+							</p>
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+								<button type="button" className="btn btn-outline" onClick={() => setView('market')}>
+									<Search size={16} aria-hidden /> {tr.openMarketplace}
+								</button>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => setView('crop-statistics')}>
+									<BarChart3 size={16} aria-hidden /> {tr.navCropStatistics}
+								</button>
+							</div>
+						</div>
+						<div style={{ width: '100%', textAlign: 'left' }}>
+							<p
+								className="muted"
+								style={{
+									margin: '0 0 8px',
+									fontSize: '.72rem',
+									fontWeight: 800,
+									letterSpacing: '0.07em',
+									textTransform: 'uppercase',
+								}}>
+								{tr.navGroupFarm}
+							</p>
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+								<button type="button" className="btn btn-outline" onClick={() => setView('command')}>
+									<ClipboardList size={16} aria-hidden /> {tr.navCommand}
+								</button>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => setView('subsidy-calculator')}>
+									<Calculator size={16} aria-hidden /> {tr.navSubsidyCalculator}
+								</button>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => setView('season-calendar')}>
+									<CalendarDays size={16} aria-hidden /> {tr.navSeasonCalendar}
+								</button>
+							</div>
+						</div>
+						<div style={{ width: '100%', textAlign: 'left' }}>
+							<p
+								className="muted"
+								style={{
+									margin: '0 0 8px',
+									fontSize: '.72rem',
+									fontWeight: 800,
+									letterSpacing: '0.07em',
+									textTransform: 'uppercase',
+								}}>
+								{tr.navLogistics}
+							</p>
+							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => setView('trade-documents')}>
+									<FileText size={16} aria-hidden /> {tr.navTradeDocuments}
+								</button>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => setView('transport-directory')}
+									aria-label={tr.transportDirTitle}>
+									<Truck size={16} aria-hidden /> {tr.navTransportDirectory}
+								</button>
+							</div>
+						</div>
+						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+							<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
+								<Brain size={16} aria-hidden /> {tr.navAssistant}
+							</button>
+							<button
+								type="button"
+								className="btn btn-outline"
+								onClick={() => setView(MVP_MODE ? 'register' : 'clients')}>
+								{MVP_MODE ? tr.createAccount : tr.clientDossiers}
+							</button>
+						</div>
 					</div>
 
 					<div className="contact-panel" style={{ marginTop: 28, textAlign: 'left' }}>
@@ -3650,16 +3912,21 @@ export default function App() {
 						<button
 							type="button"
 							className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
-							onClick={() => setView('landing')}>
+							onClick={() => setView('landing')}
+							aria-label={tr.navHome}>
 							<Leaf size={16} />
-							{tr.navHome}
+							<MobileNavLabel text={tr.navHome} />
 						</button>
 						<button
 							type="button"
-							className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
-							onClick={() => setView('market')}>
-							<Search size={16} />
-							{tr.navMarket}
+							className={`mobile-nav-btn ${TRADING_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={mobileNavExpand === 'markets'}
+							aria-label={tr.navGroupMarkets}
+							onClick={() =>
+								setMobileNavExpand(prev => (prev === 'markets' ? null : 'markets'))
+							}>
+							<ChevronDown size={16} aria-hidden />
+							<MobileNavLabel text={tr.navGroupMarketsShort} hint={tr.navGroupMarkets} />
 						</button>
 						<button
 							type="button"
@@ -3667,23 +3934,25 @@ export default function App() {
 							onClick={() => setView('assistant')}
 							aria-label={tr.navAssistant}>
 							<Brain size={16} aria-hidden />
-							{tr.mobileAssistantTab}
+							<MobileNavLabel text={tr.mobileAssistantTab} hint={tr.navAssistant} />
 						</button>
 						{MVP_MODE ? (
 							<>
 								<button
 									type="button"
 									className={`mobile-nav-btn ${view === 'register' ? 'active' : ''}`}
-									onClick={() => setView('register')}>
+									onClick={() => setView('register')}
+									aria-label={tr.navGetStarted}>
 									<UserPlus size={16} aria-hidden />
-									{tr.navGetStarted}
+									<MobileNavLabel text={tr.navGetStarted} />
 								</button>
 								<button
 									type="button"
 									className={`mobile-nav-btn ${view === 'login' ? 'active' : ''}`}
-									onClick={() => setView('login')}>
+									onClick={() => setView('login')}
+									aria-label={tr.navLogin}>
 									<LogIn size={16} aria-hidden />
-									{tr.navLogin}
+									<MobileNavLabel text={tr.navLogin} />
 								</button>
 							</>
 						) : (
@@ -3691,64 +3960,135 @@ export default function App() {
 								<button
 									type="button"
 									className={`mobile-nav-btn ${view === 'clients' ? 'active' : ''}`}
-									onClick={() => setView('clients')}>
+									onClick={() => setView('clients')}
+									aria-label={tr.navClients}>
 									<Users size={16} aria-hidden />
-									{tr.navClients}
+									<MobileNavLabel text={tr.navClients} />
 								</button>
 								<button
 									type="button"
 									className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
-									onClick={() => setView('watchlist')}>
+									onClick={() => setView('watchlist')}
+									aria-label={tr.navWatchlist}>
 									<Bookmark size={16} aria-hidden />
-									{tr.navWatchlist}
+									<MobileNavLabel text={tr.navWatchlist} />
 								</button>
 							</>
 						)}
 					</div>
+					{mobileNavExpand === 'markets' && (
+						<div className="mobile-nav-subrow cols-2">
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
+								aria-label={tr.navMarket}
+								onClick={() => {
+									setView('market');
+									setMobileNavExpand(null);
+								}}>
+								<Search size={16} aria-hidden />
+								<MobileNavLabel text={tr.navMarketShort} hint={tr.navMarket} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'crop-statistics' ? 'active' : ''}`}
+								aria-label={tr.navCropStatistics}
+								onClick={() => {
+									setView('crop-statistics');
+									setMobileNavExpand(null);
+								}}>
+								<BarChart3 size={16} aria-hidden />
+								<MobileNavLabel text={tr.navCropStatisticsShort} hint={tr.navCropStatistics} />
+							</button>
+						</div>
+					)}
 					<div className="mobile-nav-row tools">
 						<button
 							type="button"
-							className={`mobile-nav-btn ${view === 'command' ? 'active' : ''}`}
-							onClick={() => setView('command')}>
-							<ClipboardList size={16} aria-hidden />
-							{tr.navCommand}
+							className={`mobile-nav-btn ${FARM_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={mobileNavExpand === 'farm'}
+							aria-label={tr.navGroupFarm}
+							onClick={() =>
+								setMobileNavExpand(prev => (prev === 'farm' ? null : 'farm'))
+							}>
+							<ChevronDown size={16} aria-hidden />
+							<MobileNavLabel text={tr.navGroupFarmShort} hint={tr.navGroupFarm} />
 						</button>
 						<button
 							type="button"
-							className={`mobile-nav-btn ${view === 'subsidy-calculator' ? 'active' : ''}`}
-							onClick={() => setView('subsidy-calculator')}>
-							<Calculator size={16} aria-hidden />
-							{tr.navSubsidyCalculator}
-						</button>
-						<button
-							type="button"
-							className={`mobile-nav-btn ${view === 'season-calendar' ? 'active' : ''}`}
-							onClick={() => setView('season-calendar')}>
-							<CalendarDays size={16} aria-hidden />
-							{tr.navSeasonCalendar}
-						</button>
-						<button
-							type="button"
-							className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}
-							onClick={() => setView('trade-documents')}>
-							<FileText size={16} aria-hidden />
-							{tr.navTradeDocuments}
-						</button>
-						<button
-							type="button"
-							className={`mobile-nav-btn ${view === 'crop-statistics' ? 'active' : ''}`}
-							onClick={() => setView('crop-statistics')}>
-							<BarChart3 size={16} aria-hidden />
-							{tr.navCropStatistics}
-						</button>
-						<button
-							type="button"
-							className={`mobile-nav-btn ${view === 'transport-directory' ? 'active' : ''}`}
-							onClick={() => setView('transport-directory')}>
-							<Truck size={16} aria-hidden />
-							{tr.navTransportDirectory}
+							className={`mobile-nav-btn ${LOGISTICS_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={mobileNavExpand === 'logistics'}
+							aria-label={tr.navLogistics}
+							onClick={() =>
+								setMobileNavExpand(prev => (prev === 'logistics' ? null : 'logistics'))
+							}>
+							<ChevronDown size={16} aria-hidden />
+							<MobileNavLabel text={tr.navLogisticsShort} hint={tr.navLogistics} />
 						</button>
 					</div>
+					{mobileNavExpand === 'farm' && (
+						<div className="mobile-nav-subrow">
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'command' ? 'active' : ''}`}
+								aria-label={tr.navCommand}
+								onClick={() => {
+									setView('command');
+									setMobileNavExpand(null);
+								}}>
+								<ClipboardList size={16} aria-hidden />
+								<MobileNavLabel text={tr.navCommandShort} hint={tr.navCommand} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'subsidy-calculator' ? 'active' : ''}`}
+								aria-label={tr.navSubsidyCalculator}
+								onClick={() => {
+									setView('subsidy-calculator');
+									setMobileNavExpand(null);
+								}}>
+								<Calculator size={16} aria-hidden />
+								<MobileNavLabel text={tr.navSubsidyCalculatorShort} hint={tr.navSubsidyCalculator} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'season-calendar' ? 'active' : ''}`}
+								aria-label={tr.navSeasonCalendar}
+								onClick={() => {
+									setView('season-calendar');
+									setMobileNavExpand(null);
+								}}>
+								<CalendarDays size={16} aria-hidden />
+								<MobileNavLabel text={tr.navSeasonCalendarShort} hint={tr.navSeasonCalendar} />
+							</button>
+						</div>
+					)}
+					{mobileNavExpand === 'logistics' && (
+						<div className="mobile-nav-subrow cols-2">
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}
+								aria-label={tr.navTradeDocuments}
+								onClick={() => {
+									setView('trade-documents');
+									setMobileNavExpand(null);
+								}}>
+								<FileText size={16} aria-hidden />
+								<MobileNavLabel text={tr.navTradeDocumentsShort} hint={tr.navTradeDocuments} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'transport-directory' ? 'active' : ''}`}
+								aria-label={tr.navTransportDirectory}
+								onClick={() => {
+									setView('transport-directory');
+									setMobileNavExpand(null);
+								}}>
+								<Truck size={16} aria-hidden />
+								<MobileNavLabel text={tr.navTransportShort} hint={tr.navTransportDirectory} />
+							</button>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

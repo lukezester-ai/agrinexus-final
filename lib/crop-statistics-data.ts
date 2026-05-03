@@ -67,6 +67,143 @@ export function isDryStressLikely(series: YearPoint[], slope: number): boolean {
 	return false;
 }
 
+/** Коефициент на вариация σ/μ по серията kt — колко „рискова“ е година спрямо година. */
+export function coefficientOfVariationKt(values: number[]): number {
+	if (values.length < 2) return 0;
+	const mean = values.reduce((a, b) => a + b, 0) / values.length;
+	if (mean === 0) return 0;
+	const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+	return Math.sqrt(variance) / mean;
+}
+
+export type OutlookFactor =
+	| 'trend_down'
+	| 'trend_up'
+	| 'dry_heuristic'
+	| 'forecast_below_avg'
+	| 'forecast_above_avg'
+	| 'high_volatility';
+
+export const OUTLOOK_FACTOR_LABELS: Record<OutlookFactor, Localized> = {
+	trend_down: {
+		bg: 'отрицателен наклон на тенденцията в примерните данни (спад обем при екстраполация)',
+		en: 'negative slope in the demo trend (declining volumes if extrapolated)',
+		ar: 'انحدار سالب في الاتجاه التجريبي (تراجع حجم إذا استُقرئ)',
+	},
+	trend_up: {
+		bg: 'положителен наклон на тенденцията в примерните данни',
+		en: 'positive slope in the demo trend',
+		ar: 'ميل إيجابي في الاتجاه التجريبي',
+	},
+	dry_heuristic: {
+		bg: 'сигнал за суша по евристика (рязък спад последна спрямо предходна година или стръмен отрицателен наклон)',
+		en: 'dry-pattern heuristic (sharp drop vs prior year or steep negative slope)',
+		ar: 'مؤشر جفاف تجريبي (هبوط حاد مقارنة بالسنة السابقة أو ميل سلبي حاد)',
+	},
+	forecast_below_avg: {
+		bg: 'прогнозният обем е под средното на петте години в серията',
+		en: 'forecast volume sits below the five-year demo average',
+		ar: 'حجم التوقع أدنى من متوسط السنوات الخمس التجريبية',
+	},
+	forecast_above_avg: {
+		bg: 'прогнозният обем е над средното на петте години в серията',
+		en: 'forecast volume sits above the five-year demo average',
+		ar: 'حجم التوقع أعلى من متوسط السنوات الخمس التجريبية',
+	},
+	high_volatility: {
+		bg: 'големи колебания между годините (непостоянен добив в примерните данни)',
+		en: 'large year-to-year swings (uneven harvest in the demo series)',
+		ar: 'تقلبات كبيرة بين السنوات (محصول غير مستقر في السلسلة التجريبية)',
+	},
+};
+
+export const OUTLOOK_FACTORS_NONE: Localized = {
+	bg: 'няма отделни сигнали извън малки отклонения от средното — картината е умерена.',
+	en: 'no standout signals beyond small deviations from average — a moderate picture.',
+	ar: 'لا مؤشرات بارزة غير انحرافات بسيطة عن المتوسط — صورة متوسطة.',
+};
+
+export type CropOutlookAnalysis = {
+	lastYear: number;
+	lastKt: number;
+	minKt: number;
+	maxKt: number;
+	minYear: number;
+	maxYear: number;
+	avgKt: number;
+	pctVsLast: number;
+	pctVsAvg: number;
+	cvSeries: number;
+	factors: OutlookFactor[];
+	tone: 'headwind' | 'tailwind' | 'mixed';
+};
+
+export function analyzeCropOutlook(
+	series: YearPoint[],
+	slopeKtPerYear: number,
+	forecastKt: number,
+	dry: boolean,
+): CropOutlookAnalysis {
+	const n = series.length;
+	const last = series[n - 1];
+	const lastKt = last.kt;
+	const lastYear = last.year;
+	const kts = series.map(p => p.kt);
+	const avgKt = kts.reduce((a, b) => a + b, 0) / n;
+	const pctVsLast = lastKt === 0 ? 0 : ((forecastKt - lastKt) / lastKt) * 100;
+	const pctVsAvg = avgKt === 0 ? 0 : ((forecastKt - avgKt) / avgKt) * 100;
+	const cvSeries = coefficientOfVariationKt(kts);
+
+	let minPt = series[0];
+	let maxPt = series[0];
+	for (const p of series) {
+		if (p.kt < minPt.kt) minPt = p;
+		if (p.kt > maxPt.kt) maxPt = p;
+	}
+
+	const relSlope = avgKt > 0 ? slopeKtPerYear / avgKt : 0;
+
+	const factors: OutlookFactor[] = [];
+	if (relSlope < -0.007) factors.push('trend_down');
+	if (relSlope > 0.007) factors.push('trend_up');
+	if (dry) factors.push('dry_heuristic');
+	if (forecastKt < avgKt * 0.988) factors.push('forecast_below_avg');
+	if (forecastKt > avgKt * 1.012) factors.push('forecast_above_avg');
+	if (cvSeries > 0.055) factors.push('high_volatility');
+
+	const hard =
+		dry ||
+		relSlope < -0.011 ||
+		(forecastKt < avgKt * 0.985 && pctVsLast < -1.5);
+	const easy =
+		!dry &&
+		relSlope > 0.011 &&
+		forecastKt > avgKt * 1.01 &&
+		pctVsLast >= -0.5;
+
+	let tone: CropOutlookAnalysis['tone'];
+	if (hard && !easy) tone = 'headwind';
+	else if (easy && !hard) tone = 'tailwind';
+	else tone = 'mixed';
+
+	if (factors.length === 0) tone = 'mixed';
+
+	return {
+		lastYear,
+		lastKt,
+		minKt: minPt.kt,
+		maxKt: maxPt.kt,
+		minYear: minPt.year,
+		maxYear: maxPt.year,
+		avgKt,
+		pctVsLast,
+		pctVsAvg,
+		cvSeries,
+		factors,
+		tone,
+	};
+}
+
 export const CROP_PROFILES: CropProfile[] = [
 	{
 		key: 'wheat_barley',
