@@ -107,6 +107,8 @@ export const STR_EN = {
 	chatThinking: 'Thinking…',
 	chatPromptsLabel: 'Quick prompts',
 	chatPromptsScrollHint: 'More prompts — scroll this list',
+	assistantCertPdfSectionTitle: 'Bio certification — reference PDFs',
+	assistantCertPdfPickPersona: 'Pick Legal, Agronomy, or Finance above to see curated PDFs for that role.',
 	chatClear: 'Clear',
 	chatPlaceholder: 'Ask about routes, margin, certifications…',
 	chatExplainDoc: 'Explain document photo',

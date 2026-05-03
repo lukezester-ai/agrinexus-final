@@ -2,7 +2,7 @@
  * Състояние на инфраструктурните слоеве (без секрети) — за /api/platform и мониторинг.
  */
 
-import { isChatLlmConfigured } from '../ollama-env';
+import { isChatLlmConfigured } from '../llm-env';
 
 export type AgriPlatformLayers = {
 	/** HTTP API (Vercel Functions / dev-server) */
@@ -57,7 +57,11 @@ export function getPlatformPayload(): {
 } {
 	const layers = getAgriPlatformLayers();
 	const hints: string[] = [];
-	if (!layers.openai) hints.push('Set OPENAI_API_KEY or OLLAMA_BASE_URL (local Ollama) for AI chat.');
+	if (!layers.openai) {
+		hints.push(
+			'Set MISTRAL_API_KEY (recommended EU cloud), OPENAI_API_KEY, or OLLAMA_BASE_URL (local Ollama) for AI chat. If several are set: Mistral wins, then Ollama, then OpenAI.',
+		);
+	}
 	if (!layers.supabaseServer && !layers.supabaseClientEnv) {
 		hints.push('Add Supabase: VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (frontend); SUPABASE_URL + keys on server for API sync.');
 	}

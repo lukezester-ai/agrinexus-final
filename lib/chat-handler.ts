@@ -1,7 +1,6 @@
 import type { ChatPersona } from './chat-persona';
 import { parseChatPersona } from './chat-persona';
-import { readOpenAiApiKey } from './openai-api-key';
-import { readOllamaBaseUrl } from './ollama-env';
+import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type ChatLocale = 'bg' | 'en';
@@ -168,23 +167,6 @@ function isChatTurn(v: unknown): v is ChatTurn {
   return (o.role === 'user' || o.role === 'assistant') && typeof o.content === 'string';
 }
 
-/** OpenAI chat completions may return string content or structured parts depending on model/API version. */
-function openAIMessageContentToString(content: unknown): string {
-  if (content == null) return '';
-  if (typeof content === 'string') return content.trim();
-  if (Array.isArray(content)) {
-    const parts: string[] = [];
-    for (const item of content) {
-      if (item && typeof item === 'object' && 'type' in item) {
-        const p = item as { type?: string; text?: string };
-        if (p.type === 'text' && typeof p.text === 'string') parts.push(p.text);
-      }
-    }
-    return parts.join('\n').trim();
-  }
-  return '';
-}
-
 export async function handleChatPost(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
@@ -204,14 +186,13 @@ export async function handleChatPost(rawBody: unknown): Promise<
 async function handleChatPostInner(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const ollamaBase = readOllamaBaseUrl();
-  const apiKey = readOpenAiApiKey();
-  if (!ollamaBase && !apiKey) {
+  const upstream = resolveTextChatUpstream();
+  if (!upstream) {
     return {
       ok: false,
       status: 503,
       error: 'LLM is not configured',
-      hint: 'Set OPENAI_API_KEY or local OLLAMA_BASE_URL (e.g. http://127.0.0.1:11434).',
+      hint: 'Set MISTRAL_API_KEY, OPENAI_API_KEY, or local OLLAMA_BASE_URL (e.g. http://127.0.0.1:11434).',
     };
   }
 
@@ -244,10 +225,8 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     return { ok: false, status: 400, error: 'No valid messages' };
   }
 
-  const useOllama = Boolean(ollamaBase);
-  const model = useOllama
-    ? process.env.OLLAMA_MODEL?.trim() || 'llama3.2'
-    : process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+  const { provider, completionUrl, bearer, model, useJsonObjectFormat } = upstream;
+
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
@@ -256,40 +235,75 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     ...cleaned.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
   ];
 
-  const completionUrl = useOllama
-    ? `${ollamaBase}/v1/chat/completions`
-    : 'https://api.openai.com/v1/chat/completions';
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (!useOllama) {
-    headers.Authorization = `Bearer ${apiKey}`;
+  if (bearer) {
+    headers.Authorization = `Bearer ${bearer}`;
   }
 
-  const requestBody: Record<string, unknown> = {
-    model,
-    temperature: safeTemp,
-    max_tokens: 1400,
-    messages: chatMessages,
+  const buildBody = (includeJsonFormat: boolean): Record<string, unknown> => {
+    const body: Record<string, unknown> = {
+      model,
+      temperature: safeTemp,
+      max_tokens: 1400,
+      messages: chatMessages,
+    };
+    if (includeJsonFormat && useJsonObjectFormat) {
+      body.response_format = { type: 'json_object' };
+    }
+    return body;
   };
-  if (!useOllama) {
-    requestBody.response_format = { type: 'json_object' };
-  }
 
   let res: Response;
   try {
     res = await fetch(completionUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(buildBody(true)),
     });
   } catch {
+    const label = chatProviderLabel(provider);
     return {
       ok: false,
       status: 502,
-      error: useOllama ? 'Upstream Ollama request failed' : 'Upstream OpenAI request failed',
-      hint: useOllama
-        ? 'Is Ollama running? Try: ollama serve ; pull model: ollama pull ' + model
-        : undefined,
+      error: `Upstream ${label} request failed`,
+      hint:
+        provider === 'ollama'
+          ? 'Is Ollama running? Try: ollama serve ; pull model: ollama pull ' + model
+          : provider === 'mistral'
+            ? 'Check MISTRAL_API_KEY and network (console.mistral.ai).'
+            : undefined,
     };
+  }
+
+  let raw = await res.text();
+
+  if (!res.ok && provider === 'mistral' && useJsonObjectFormat && raw.trim()) {
+    let retryWithoutJson = false;
+    try {
+      const errJson = JSON.parse(raw) as { error?: { message?: string } };
+      const msg = String(errJson?.error?.message ?? raw).toLowerCase();
+      retryWithoutJson =
+        msg.includes('response_format') || msg.includes('json_object') || msg.includes('json mode');
+    } catch {
+      retryWithoutJson = /response_format|json_object|json mode/i.test(raw);
+    }
+    if (retryWithoutJson) {
+      try {
+        res = await fetch(completionUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(buildBody(false)),
+        });
+        raw = await res.text();
+      } catch {
+        return {
+          ok: false,
+          status: 502,
+          error: 'Upstream Mistral request failed',
+          hint: 'Check MISTRAL_API_KEY and network (console.mistral.ai).',
+        };
+      }
+    }
   }
 
   let data: {
@@ -297,31 +311,36 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     choices?: { message?: { content?: unknown } }[];
   };
   try {
-    const raw = await res.text();
     if (!raw.trim()) {
       return {
         ok: false,
         status: 502,
         error: 'Empty upstream response body',
-        hint: useOllama
-          ? 'Ollama returned no body. Check OLLAMA_BASE_URL and that the model is pulled.'
-          : 'OpenAI returned no body. Check API connectivity and routing.',
+        hint:
+          provider === 'ollama'
+            ? 'Ollama returned no body. Check OLLAMA_BASE_URL and that the model is pulled.'
+            : provider === 'mistral'
+              ? 'Mistral returned no body. Check API connectivity.'
+              : 'OpenAI returned no body. Check API connectivity and routing.',
       };
     }
     data = JSON.parse(raw) as typeof data;
   } catch {
+    const label = chatProviderLabel(provider).toLowerCase();
     return {
       ok: false,
       status: 502,
       error: 'Upstream returned invalid JSON',
-      hint: useOllama
-        ? 'Could not parse Ollama response. Check model name (OLLAMA_MODEL) and Ollama logs.'
-        : 'Could not parse OpenAI response. Check OPENAI_API_KEY and model availability.',
+      hint:
+        provider === 'ollama'
+          ? 'Could not parse Ollama response. Check model name (OLLAMA_MODEL) and Ollama logs.'
+          : `Could not parse ${label} response. Check API key, model name, and upstream logs.`,
     };
   }
 
   if (!res.ok) {
-    const detail = data.error?.message || res.statusText || (useOllama ? 'Ollama error' : 'OpenAI error');
+    const fallback = `${chatProviderLabel(provider)} error`;
+    const detail = data.error?.message || res.statusText || fallback;
     return { ok: false, status: res.status >= 400 && res.status < 600 ? res.status : 502, error: detail };
   }
 

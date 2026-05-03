@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleChatPost } from '../lib/chat-handler';
 import { isOpenAiConfigured } from '../lib/openai-api-key';
-import { isChatLlmConfigured, isOllamaConfigured } from '../lib/ollama-env';
+import { isChatLlmConfigured } from '../lib/llm-env';
+import { isMistralConfigured } from '../lib/mistral-env';
+import { isOllamaConfigured } from '../lib/ollama-env';
 import { vercelJsonBody } from '../lib/vercel-json-body';
 
 /** Limits: see root vercel.json (functions for api routes). */
@@ -27,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ok: true,
         path: '/api/chat',
         openaiConfigured: isOpenAiConfigured(),
+        mistralConfigured: isMistralConfigured(),
         ollamaConfigured: isOllamaConfigured(),
         llmConfigured: isChatLlmConfigured(),
       });
@@ -60,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sendJson(res, 500, {
       error: msg,
       hint:
-        'If this persists: Vercel → Logs → api/chat; confirm OPENAI_API_KEY for Production and Redeploy.',
+        'If this persists: Vercel → Logs → api/chat; confirm MISTRAL_API_KEY or OPENAI_API_KEY for Production and Redeploy.',
     });
   }
 }

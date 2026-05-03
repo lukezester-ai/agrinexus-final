@@ -1,5 +1,4 @@
-import { readOpenAiApiKey } from './openai-api-key';
-import { readOllamaBaseUrl } from './ollama-env';
+import { openAIMessageContentToString, resolveVisionUpstream } from './llm-routing';
 
 export type DocumentExplainLocale = 'bg' | 'en';
 
@@ -8,23 +7,6 @@ const MAX_BASE64_CHARS = 6_800_000;
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-/** OpenAI chat completions may return string content or structured parts. */
-function openAIMessageContentToString(content: unknown): string {
-  if (content == null) return '';
-  if (typeof content === 'string') return content.trim();
-  if (Array.isArray(content)) {
-    const parts: string[] = [];
-    for (const item of content) {
-      if (item && typeof item === 'object' && 'type' in item) {
-        const p = item as { type?: string; text?: string };
-        if (p.type === 'text' && typeof p.text === 'string') parts.push(p.text);
-      }
-    }
-    return parts.join('\n').trim();
-  }
-  return '';
 }
 
 function systemPrompt(locale: DocumentExplainLocale): string {
@@ -54,14 +36,14 @@ Plain text only (no JSON).`;
 export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const ollamaBase = readOllamaBaseUrl();
-  const apiKey = readOpenAiApiKey();
-  if (!ollamaBase && !apiKey) {
+  const visionUp = resolveVisionUpstream();
+  if (!visionUp) {
     return {
       ok: false,
       status: 503,
       error: 'LLM is not configured',
-      hint: 'Set OPENAI_API_KEY or local OLLAMA_BASE_URL and a vision model (OLLAMA_VISION_MODEL, e.g. llava).',
+      hint:
+        'Set MISTRAL_API_KEY (Pixtral vision), OPENAI_API_KEY, or local OLLAMA_BASE_URL with OLLAMA_VISION_MODEL (e.g. llava).',
     };
   }
 
@@ -73,15 +55,14 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   const rawLocale = typeof body.locale === 'string' ? body.locale : '';
   const locale: DocumentExplainLocale = rawLocale === 'en' ? 'en' : 'bg';
   const sessionEmail = typeof body.sessionEmail === 'string' ? body.sessionEmail.trim() : '';
-
-  if (!isValidEmail(sessionEmail)) {
+  if (sessionEmail && !isValidEmail(sessionEmail)) {
     return {
       ok: false,
-      status: 401,
+      status: 400,
       error:
         locale === 'bg'
-          ? 'Нужен е демо вход с валиден имейл (Вход в сайта).'
-          : 'Demo sign-in with a valid email is required.',
+          ? 'Невалиден имейл в sessionEmail (или го пропуснете).'
+          : 'Invalid sessionEmail (or omit it).',
     };
   }
 
@@ -126,12 +107,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
         ? 'Обясни какво казва документът и какво е важно за търговец на агрокомодитети.'
         : 'Explain what the document says and what matters for an agri commodity trader.';
 
-  const useOllama = Boolean(ollamaBase);
-  const model = useOllama
-    ? process.env.OLLAMA_VISION_MODEL?.trim() ||
-      process.env.OLLAMA_MODEL?.trim() ||
-      'llava'
-    : process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+  const { provider: visionProvider, completionUrl, bearer, model } = visionUp;
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
@@ -152,12 +128,9 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
     },
   ];
 
-  const completionUrl = useOllama
-    ? `${ollamaBase}/v1/chat/completions`
-    : 'https://api.openai.com/v1/chat/completions';
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (!useOllama) {
-    headers.Authorization = `Bearer ${apiKey}`;
+  if (bearer) {
+    headers.Authorization = `Bearer ${bearer}`;
   }
 
   let res: Response;
@@ -173,13 +146,22 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       }),
     });
   } catch {
+    const label =
+      visionProvider === 'mistral'
+        ? 'Mistral'
+        : visionProvider === 'ollama'
+          ? 'Ollama'
+          : 'OpenAI';
     return {
       ok: false,
       status: 502,
-      error: useOllama ? 'Upstream Ollama request failed' : 'Upstream OpenAI request failed',
-      hint: useOllama
-        ? 'Pull a vision model: ollama pull llava (or set OLLAMA_VISION_MODEL). Is Ollama running?'
-        : undefined,
+      error: `Upstream ${label} request failed`,
+      hint:
+        visionProvider === 'ollama'
+          ? 'Pull a vision model: ollama pull llava (or set OLLAMA_VISION_MODEL). Is Ollama running?'
+          : visionProvider === 'mistral'
+            ? 'Check MISTRAL_API_KEY and MISTRAL_VISION_MODEL (Pixtral) at console.mistral.ai.'
+            : undefined,
     };
   }
 
@@ -198,7 +180,13 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   }
 
   if (!res.ok) {
-    const detail = data.error?.message || res.statusText || (useOllama ? 'Ollama error' : 'OpenAI error');
+    const fallback =
+      visionProvider === 'mistral'
+        ? 'Mistral error'
+        : visionProvider === 'ollama'
+          ? 'Ollama error'
+          : 'OpenAI error';
+    const detail = data.error?.message || res.statusText || fallback;
     return {
       ok: false,
       status: res.status >= 400 && res.status < 600 ? res.status : 502,

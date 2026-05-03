@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { SeasonVisual } from '../lib/season-calendar-visuals';
 
@@ -370,6 +370,10 @@ function ArtSwitch({ visual }: { visual: SeasonVisual }) {
 export function SeasonMonthArtBanner({ visual }: { visual: SeasonVisual }) {
 	const [photoFailed, setPhotoFailed] = useState(false);
 
+	useEffect(() => {
+		setPhotoFailed(false);
+	}, [visual]);
+
 	return (
 		<div
 			aria-hidden
@@ -393,6 +397,7 @@ export function SeasonMonthArtBanner({ visual }: { visual: SeasonVisual }) {
 					<img
 						src={`/season-cal/${visual}.jpg`}
 						alt=""
+						key={visual}
 						width={840}
 						height={472}
 						loading="lazy"

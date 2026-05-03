@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "basePath": "/docs/cert-bio",
+  "categories": [
+    {
+      "id": "01-regulamenti",
+      "titleBg": "Регламенти и нормативни актове (ЕС / БГ)",
+      "titleEn": "Regulations (EU / BG)",
+      "files": [
+        "COMMISSION_IMPLEMENTING_REGULATION_2021_1165_bg.pdf",
+        "naredba__9_ot_2023.pdf",
+        "npdbp_20-02-2025.pdf"
+      ]
+    },
+    {
+      "id": "02-pravila-politiki",
+      "titleBg": "Правила за сертификация и политики за качество",
+      "titleEn": "Certification rules and quality policy",
+      "files": [
+        "Certification_Rules.pdf",
+        "quality-policy.pdf",
+        "Ф-4.1.3-01-в4.6-Правила-за-сертификация-био_03.11.2025.pdf"
+      ]
+    },
+    {
+      "id": "03-zayavleniya",
+      "titleBg": "Заявления и заявки за сертификация по дейност (Ф-7.2 и др.)",
+      "titleEn": "Certification applications by activity",
+      "files": [
+        "1_Ф-7.2-04-в.-3.6-Заявка-за-сертификация-дейност-растениевъдство_04.02.2025.pdf",
+        "F7.2-09_v3.5_Заявление_Пчеларство-14.06.2024.pdf",
+        "1_Ф-7.2-07-в.3.6-Заявление-дейност-Търговия_14.06.2024-1.pdf",
+        "1_Ф-7.2-05-в.-3.6-Заявление-дейност-Раст.-и-Животн._04.02.2025.pdf",
+        "1_Ф-7.2-05-в.-3.6-Заявление-дейност-Раст.-и-Животн._04.02.2025@.pdf",
+        "F7.2-08_v3.5_Заявление_Събиране-на-диворастящи_14.06.2024-1.pdf",
+        "Ф-7.2-06-в.3.5-Заявление-дейност-Преработвател_14.06.2024.pdf"
+      ]
+    },
+    {
+      "id": "04-deklaratsii",
+      "titleBg": "Декларации за сертификация (производство / търговия / преработка)",
+      "titleEn": "Certification declarations",
+      "files": [
+        "Declaration_certification-Production.pdf",
+        "Declaration_Certification-Trade.pdf",
+        "Declaration_Certification-Processing.pdf"
+      ]
+    },
+    {
+      "id": "05-dnevnitsi",
+      "titleBg": "Дневници (операции, пчелни продукти, растително производство)",
+      "titleEn": "Operational diaries",
+      "files": [
+        "Diary_performed_cleaning_disinfection_activities.pdf",
+        "Diary_produced_sold_bee_products.pdf",
+        "Diary_produced_realized_products-Plant_production.pdf"
+      ]
+    },
+    {
+      "id": "06-opp",
+      "titleBg": "Органични производствени планове (ОПП) по дейност",
+      "titleEn": "Organic production plans (OPP) by activity",
+      "files": [
+        "OPP_Plant_Production.pdf",
+        "OPP-Animal_Production.pdf",
+        "OPP-Beekeeping.pdf",
+        "OPP-Wild_Plant_Collection.pdf"
+      ]
+    },
+    {
+      "id": "07-mitnitsa-vnos",
+      "titleBg": "Митница / внос — EORI и пълномощно",
+      "titleEn": "Customs / import — EORI and power of attorney",
+      "files": ["EORI_blanka.pdf", "Obrazec-palnom-2026.pdf"]
+    },
+    {
+      "id": "08-nastavleniya",
+      "titleBg": "Наставления, планове (ЗВПП) и ръководство за ДП",
+      "titleEn": "Guidance and ZVPP plans",
+      "files": ["Ukazania_plan_ZVPP3.pdf", "Ukazania_plan_ZVPP.pdf", "guide_dp_2026_2026_03_11_05.pdf"]
+    },
+    {
+      "id": "09-proizvodstvo-obekti",
+      "titleBg": "Производствени обекти (описание / регистър)",
+      "titleEn": "Production facilities",
+      "files": ["Production_facilities.pdf"]
+    }
+  ]
+}

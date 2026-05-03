@@ -109,6 +109,8 @@ export const STR_BG = {
 	chatThinking: 'Мисля…',
 	chatPromptsLabel: 'Бързи подкани',
 	chatPromptsScrollHint: 'Още подкани — превърти списъка',
+	assistantCertPdfSectionTitle: 'Сертификация био — справочни PDF',
+	assistantCertPdfPickPersona: 'Изберете Юрист, Агроном или Финансист по-горе, за да видите PDF според ролята.',
 	chatClear: 'Изчисти',
 	chatPlaceholder: 'Попитайте за маршрут, марж, сертификати…',
 	chatExplainDoc: 'Обясни снимка на документ',

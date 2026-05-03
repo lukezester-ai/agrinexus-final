@@ -32,6 +32,7 @@ import {
 import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
+import { AssistantPersonaCertPdfs } from './components/AssistantPersonaCertPdfs';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
@@ -674,6 +675,11 @@ export default function App() {
 		return e?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) ? e.trim() : null;
 	}, [sessionTick]);
 	const [chatHealth, setChatHealth] = useState<'idle' | 'ready' | 'no_key' | 'offline'>('idle');
+	/** Микрофон и снимка на документ: при конфигуриран LLM не изискват демо вход. */
+	const mediaAiUnlocked = useMemo(
+		() => chatHealth === 'ready' || Boolean(demoSessionEmail),
+		[chatHealth, demoSessionEmail],
+	);
 
 	const [regFullName, setRegFullName] = useState('');
 	const [regCompany, setRegCompany] = useState('');
@@ -1340,11 +1346,11 @@ export default function App() {
 	);
 
 	const toggleVoiceInput = useCallback(() => {
-		if (!demoSessionEmail) {
+		if (!mediaAiUnlocked) {
 			setAssistantNotice(
 				lang === 'bg'
-					? 'Влез с имейл през „Вход“ (демо), за да ползваш микрофона.'
-					: 'Use demo Sign In with email to enable the microphone.'
+					? 'Микрофонът е достъпен след конфигуриран LLM на сървъра (виж /api/chat) или след вход с имейл (демо).'
+					: 'Microphone is available once a server LLM is configured (see /api/chat) or after demo Sign In with email.'
 			);
 			return;
 		}
@@ -1399,18 +1405,18 @@ export default function App() {
 				lang === 'bg' ? 'Неуспешно стартиране на микрофона.' : 'Could not start microphone.'
 			);
 		}
-	}, [demoSessionEmail, voiceListening, lang]);
+	}, [mediaAiUnlocked, voiceListening, lang]);
 
 	const onDocImageChange = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
 			const file = e.target.files?.[0];
 			e.target.value = '';
 			if (!file || docExplainLoading) return;
-			if (!demoSessionEmail) {
+			if (!mediaAiUnlocked) {
 				setAssistantNotice(
 					lang === 'bg'
-						? 'Влез през „Вход“ (демо), за да обясним документ.'
-						: 'Demo sign-in is required to explain a document.'
+						? 'Обяснение на снимка: нужен е LLM на сървъра или вход с имейл (демо).'
+						: 'Document photo: configure a server LLM or use demo Sign In with email.'
 				);
 				return;
 			}
@@ -1443,7 +1449,7 @@ export default function App() {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
-							sessionEmail: demoSessionEmail,
+							...(demoSessionEmail ? { sessionEmail: demoSessionEmail } : {}),
 							locale: lang,
 							imageBase64: b64,
 							mimeType: file.type || 'image/jpeg',
@@ -1482,7 +1488,7 @@ export default function App() {
 			};
 			reader.readAsDataURL(file);
 		},
-		[demoSessionEmail, docExplainLoading, lang, chatInput]
+		[mediaAiUnlocked, demoSessionEmail, docExplainLoading, lang, chatInput]
 	);
 
 	useEffect(() => {
@@ -3326,8 +3332,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									'Няма конфигуриран LLM за чат: добавете OPENAI_API_KEY или локален Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 и OLLAMA_MODEL). Файл .env в корена на проекта; после рестарт на npm run dev. Ако ползвате само OpenAI — задавате ключа и във Vercel Environment Variables.',
-									'No LLM for chat: set OPENAI_API_KEY or local Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 and OLLAMA_MODEL) in project root .env, then restart npm run dev. OpenAI-only: also set the key in Vercel env.'
+									'Няма конфигуриран LLM за чат: добавете MISTRAL_API_KEY (EU облак), OPENAI_API_KEY или локален Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 и OLLAMA_MODEL). Файл .env в корена; после рестарт на npm run dev. За Vercel задайте същите променливи в Environment Variables.',
+									'No LLM for chat: set MISTRAL_API_KEY (EU cloud), OPENAI_API_KEY, or local Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 and OLLAMA_MODEL) in project root .env, then restart npm run dev. On Vercel, set the same variables under Environment Variables.'
 								)}
 							</p>
 						</div>
@@ -3363,6 +3369,7 @@ export default function App() {
 										</button>
 									))}
 								</div>
+								<AssistantPersonaCertPdfs persona={chatPersona} lang={lang} tr={tr} />
 								<div className="chat-actions" style={{ marginBottom: 8 }}>
 									<span className="muted" style={{ fontSize: '.8rem' }}>
 										{tr.chatPromptsLabel}
@@ -3402,7 +3409,7 @@ export default function App() {
 								)}
 							</div>
 						) : null}
-						{demoSessionEmail && (
+						{mediaAiUnlocked && (
 							<div className="assistant-doc-toolbar">
 								<input
 									ref={docImageInputRef}
@@ -3469,7 +3476,7 @@ export default function App() {
 										}
 									}}
 								/>
-								{demoSessionEmail && (
+								{mediaAiUnlocked && (
 									<button
 										type="button"
 										className={`assistant-icon-btn${voiceListening ? ' listening' : ''}`}

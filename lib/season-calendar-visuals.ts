@@ -40,6 +40,7 @@ export const SEASON_MONTH_VISUAL: Record<CropCalendarKey, Partial<Record<number,
 	},
 	sunflower: {
 		1: 'seeds_plan',
+		2: 'docs_admin',
 		3: 'tractor_soil',
 		4: 'seeding',
 		5: 'docs_admin',
@@ -81,6 +82,8 @@ export const SEASON_MONTH_VISUAL: Record<CropCalendarKey, Partial<Record<number,
 		8: 'orchard_fruit',
 		9: 'orchard_fruit',
 		10: 'orchard_fruit',
+		11: 'orchard_fruit',
+		12: 'docs_admin',
 	},
 };
 

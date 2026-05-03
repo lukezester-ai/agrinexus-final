@@ -160,7 +160,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					const visual = resolveSeasonVisual(crop, m);
 					return (
 						<div
-							key={m}
+							key={`${crop}-${m}`}
 							className="contact-panel season-cal-month-card"
 							style={{
 								margin: 0,
