@@ -288,6 +288,10 @@ export const STR_EN = {
 	tradeDocsExportHandbookBody:
 		'May 2026 reference: fruit & vegetables, cereals, oilseeds and processed goods from Bulgaria to the EU internal market, Turkey and Egypt — registrations (EORI, ODBZ, DAFS), customs export mode, plant passports, A.TR / agricultural regime, Egypt Decree 43/2016, commodity-specific notes and a pre-shipment checklist. Sourced from public guidance (BFSA, Customs, MAFF, Access2Markets, DAFS); not legally binding.',
 	tradeDocsExportHandbookCta: 'Download PDF (BG)',
+	tradeDocsContractsLcTitle: 'Sample clauses: contracts, L/C & ODBH contacts (PDF)',
+	tradeDocsContractsLcBody:
+		'May 2026 practical sheet: structure of export sale contracts, bilingual clause examples (subject matter, quality, price/L/C, documents), Letter of Credit basics under UCP 600, document checklist and common discrepancies, plus regional Food Safety Directorate (ODBH under BFSA) contacts and border phytosanitary inspection points. Based on ICC Incoterms 2020 / GAFTA / FOSFA patterns — not legal advice; verify contacts on bfsa.egov.bg.',
+	tradeDocsContractsLcCta: 'Download PDF (BG)',
 	cropStatsTitle: 'Bulgaria crop production — 5-year view & outlook',
 	cropStatsSubtitle:
 		'Pick a crop to see an illustrative five-year production chart (kt), a simple linear trend line, and a next-year numeric outlook. Drought emphasis uses a heuristic on the demo series — replace with NSI / Eurostat / API feeds for production use.',

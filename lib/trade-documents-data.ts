@@ -16,6 +16,9 @@ export function pickLocalized(doc: LocalizedDoc, lang: UiLang): string {
 /** Път до статичния PDF в `public/docs/` (Vite). */
 export const TRADE_EXPORT_HANDBOOK_PDF = '/docs/iznos-bg-es-turcia-egipet-2026-05.pdf';
 
+/** Примерни договорни клаузи, L/C и контакти ОДБХ (BG PDF). */
+export const TRADE_CONTRACTS_LC_ODBH_PDF = '/docs/dogovori-lc-odbh-2026-05.pdf';
+
 /** Внос в България — ориентировъчен списък (не замества консултация с митник / БАБХ). */
 export const TRADE_DOCS_IMPORT_BG: TradeDocSection[] = [
 	{
