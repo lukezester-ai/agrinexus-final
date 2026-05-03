@@ -1,7 +1,7 @@
 import { type DragEvent, useCallback, useRef, useState } from 'react';
 import { FileUp, Loader2 } from 'lucide-react';
 
-type Lang = 'bg' | 'en' | 'ar';
+type Lang = 'bg' | 'en';
 
 type FileUploadPanelProps = {
   senderEmail?: string;
@@ -33,39 +33,22 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
           corsHint:
             'За R2/S3 задай CORS правило за PUT от твоя localhost / домейн. Виж README в Cloudflare R2 → Settings → CORS.',
         }
-      : lang === 'ar'
-        ? {
-            title: 'مرفقات',
-            hint: 'عند ضبط متغيرات S3_* تُرفَع الملفات عبر PUT موقّع. وإلا يُسجَّل الوصف فقط.',
-            choose: 'اختر ملفات',
-            emailHint: 'البريد للتواصل من النموذج:',
-            none: 'لم يُحدَّد أي ملف.',
-            upload: 'رفع',
-            sending: 'جاري الرفع…',
-            okUpload: 'تم — الملفات في التخزين السحابي ومُسجَّلة.',
-            okMeta: 'تُسجَّل البيانات الوصفية فقط (التخزين غير مهيأ أو تُخطى عملية الرفع).',
-            err: 'فشل طلب API.',
-            errSign: 'تعذّر الحصول على توقيع الرفع.',
-            errPut: 'فشل PUT للتخزين (تحقق من CORS للـ bucket نحو أصل التطبيق).',
-            corsHint:
-              'اضبط CORS في R2/S3 للسماح بـ PUT من localhost أو أصل الإنتاج (راجع Cloudflare R2 → CORS).',
-          }
-        : {
-            title: 'Attachments',
-            hint: 'When S3_* env vars are set, files upload via presigned PUT. Otherwise only metadata is logged.',
-            choose: 'Choose files',
-            emailHint: 'Contact email from the form:',
-            none: 'No files selected.',
-            upload: 'Upload',
-            sending: 'Uploading…',
-            okUpload: 'Done — files are in object storage and logged.',
-            okMeta: 'Metadata logged (storage not configured or upload skipped).',
-            err: 'API request failed.',
-            errSign: 'Could not get upload signature.',
-            errPut: 'PUT to storage failed (check bucket CORS for your app origin).',
-            corsHint:
-              'Configure R2/S3 CORS to allow PUT from your localhost / production origin (see Cloudflare R2 → CORS).',
-          };
+      : {
+          title: 'Attachments',
+          hint: 'When S3_* env vars are set, files upload via presigned PUT. Otherwise only metadata is logged.',
+          choose: 'Choose files',
+          emailHint: 'Contact email from the form:',
+          none: 'No files selected.',
+          upload: 'Upload',
+          sending: 'Uploading…',
+          okUpload: 'Done — files are in object storage and logged.',
+          okMeta: 'Metadata logged (storage not configured or upload skipped).',
+          err: 'API request failed.',
+          errSign: 'Could not get upload signature.',
+          errPut: 'PUT to storage failed (check bucket CORS for your app origin).',
+          corsHint:
+            'Configure R2/S3 CORS to allow PUT from your localhost / production origin (see Cloudflare R2 → CORS).',
+        };
 
   const pushFiles = useCallback((list: FileList | File[]) => {
     const next = Array.from(list).slice(0, 12);

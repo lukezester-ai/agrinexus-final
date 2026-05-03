@@ -239,7 +239,5 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 }
 
 function localeForLang(lang: UiLang): string {
-	if (lang === 'ar') return 'ar-BG';
-	if (lang === 'en') return 'en-GB';
-	return 'bg-BG';
+	return lang === 'en' ? 'en-GB' : 'bg-BG';
 }

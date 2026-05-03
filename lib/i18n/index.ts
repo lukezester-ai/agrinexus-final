@@ -1,50 +1,38 @@
 import type { AppStrings } from './catalog-en';
 import { STR_EN } from './catalog-en';
 import { STR_BG } from './catalog-bg';
-import { STR_AR } from './catalog-ar';
 
-export type UiLang = 'bg' | 'en' | 'ar';
+export type UiLang = 'bg' | 'en';
 
 export type { AppStrings } from './catalog-en';
 
 export function parseStoredLang(raw: string | null | undefined): UiLang {
-	if (raw === 'en' || raw === 'ar' || raw === 'bg') return raw;
+	if (raw === 'en' || raw === 'bg') return raw;
+	/** Former Arabic UI selection → default to English */
+	if (raw === 'ar') return 'en';
 	return 'bg';
-}
-
-export function isRtl(lang: UiLang): boolean {
-	return lang === 'ar';
 }
 
 export function getUiStrings(lang: UiLang): AppStrings {
 	if (lang === 'bg') return STR_BG;
-	if (lang === 'ar') return STR_AR;
 	return STR_EN;
 }
 
-/** Next language when cycling the globe control (BG → EN → AR → BG). */
+/** Next language when cycling the globe control (BG ↔ EN). */
 export function cycleUiLang(current: UiLang): UiLang {
-	if (current === 'bg') return 'en';
-	if (current === 'en') return 'ar';
-	return 'bg';
+	return current === 'bg' ? 'en' : 'bg';
 }
 
 /** Short label for the active UI language (toolbar). */
 export function uiLangShortLabel(lang: UiLang): string {
-	if (lang === 'bg') return 'BG';
-	if (lang === 'en') return 'EN';
-	return 'عربي';
+	return lang === 'bg' ? 'BG' : 'EN';
 }
 
 export function localeTagFor(lang: UiLang): string {
-	if (lang === 'bg') return 'bg-BG';
-	if (lang === 'ar') return 'ar-EG';
-	return 'en-GB';
+	return lang === 'bg' ? 'bg-BG' : 'en-GB';
 }
 
-/** SpeechRecognition.lang — Arabic falls back to ar-SA for broader browser support. */
+/** SpeechRecognition.lang */
 export function speechRecognitionLang(lang: UiLang): string {
-	if (lang === 'bg') return 'bg-BG';
-	if (lang === 'ar') return 'ar-SA';
-	return 'en-US';
+	return lang === 'bg' ? 'bg-BG' : 'en-US';
 }

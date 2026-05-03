@@ -1,6 +1,6 @@
 import type { UiLang } from './i18n';
 
-export type Localized = { bg: string; en: string; ar: string };
+export type Localized = { bg: string; en: string };
 
 export type CropKey =
 	| 'wheat_barley'
@@ -12,7 +12,6 @@ export type CropKey =
 
 export function pickL(t: Localized, lang: UiLang): string {
 	if (lang === 'bg') return t.bg;
-	if (lang === 'ar') return t.ar;
 	return t.en;
 }
 
@@ -88,39 +87,32 @@ export const OUTLOOK_FACTOR_LABELS: Record<OutlookFactor, Localized> = {
 	trend_down: {
 		bg: 'отрицателен наклон на тенденцията в примерните данни (спад обем при екстраполация)',
 		en: 'negative slope in the demo trend (declining volumes if extrapolated)',
-		ar: 'انحدار سالب في الاتجاه التجريبي (تراجع حجم إذا استُقرئ)',
 	},
 	trend_up: {
 		bg: 'положителен наклон на тенденцията в примерните данни',
 		en: 'positive slope in the demo trend',
-		ar: 'ميل إيجابي في الاتجاه التجريبي',
 	},
 	dry_heuristic: {
 		bg: 'сигнал за суша по евристика (рязък спад последна спрямо предходна година или стръмен отрицателен наклон)',
 		en: 'dry-pattern heuristic (sharp drop vs prior year or steep negative slope)',
-		ar: 'مؤشر جفاف تجريبي (هبوط حاد مقارنة بالسنة السابقة أو ميل سلبي حاد)',
 	},
 	forecast_below_avg: {
 		bg: 'прогнозният обем е под средното на петте години в серията',
 		en: 'forecast volume sits below the five-year demo average',
-		ar: 'حجم التوقع أدنى من متوسط السنوات الخمس التجريبية',
 	},
 	forecast_above_avg: {
 		bg: 'прогнозният обем е над средното на петте години в серията',
 		en: 'forecast volume sits above the five-year demo average',
-		ar: 'حجم التوقع أعلى من متوسط السنوات الخمس التجريبية',
 	},
 	high_volatility: {
 		bg: 'големи колебания между годините (непостоянен добив в примерните данни)',
 		en: 'large year-to-year swings (uneven harvest in the demo series)',
-		ar: 'تقلبات كبيرة بين السنوات (محصول غير مستقر في السلسلة التجريبية)',
 	},
 };
 
 export const OUTLOOK_FACTORS_NONE: Localized = {
 	bg: 'няма отделни сигнали извън малки отклонения от средното — картината е умерена.',
 	en: 'no standout signals beyond small deviations from average — a moderate picture.',
-	ar: 'لا مؤشرات بارزة غير انحرافات بسيطة عن المتوسط — صورة متوسطة.',
 };
 
 export type CropOutlookAnalysis = {
@@ -211,7 +203,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Пшеница и ечемик (общо)',
 			en: 'Wheat & barley (combined)',
-			ar: 'قمح وشعير (مجمع)',
 		},
 		series: [
 			{ year: 2021, kt: 5980 },
@@ -223,17 +214,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Зърното доминира в Добруджа и горнотракийската низина; прогнозата следва тенденцията от таблицата (демо).',
 			en: 'Grain is concentrated in Dobruja and the Upper Thracian Plain; the forecast extrapolates the demo trend.',
-			ar: 'تركز إنتاج الحبوب في دوبروجا وسهل ثراسيا العلوي؛ التوقعات تعتمد على اتجاه البيانات التجريبية.',
 		},
 		irrigationGeneral: {
 			bg: 'При зърнено обикновено се разчита на валежи; напояването е ограничено, но напръскване при горещ етап на пшеницата и подпомагане при „фиданкови“ посеви на царевица/слънчоглед по поречия.',
 			en: 'Rainfed dominates for cereals; irrigation is limited — consider supplemental water for critical stages or downstream crops in valleys.',
-			ar: 'يعتمد القمح عادة على المطر؛ الري محدود مع إمكانية ري تكميلي في مراحل حساسة.',
 		},
 		irrigationIfDry: {
 			bg: 'При суша: приоритет на напояване в Добруджа и Източна България (по-ниски валежи през пролетта), както и по Черноморското крайбрежие при дефицит на влага при закласяване.',
 			en: 'In dry spells: prioritise irrigated blocks in Dobruja & eastern Bulgaria, plus coastal strips if moisture fails during grain fill.',
-			ar: 'في الجفاف: أولوية لمناطق دوبروجا وشرق بلغاريا والساحل عند نقص الرطوبة.',
 		},
 	},
 	{
@@ -242,7 +230,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Слънчоглед',
 			en: 'Sunflower',
-			ar: 'عباد الشمس',
 		},
 		series: [
 			{ year: 2021, kt: 1680 },
@@ -254,17 +241,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Слънчогледът е чувствителен на влага при цъфтеж и пълнене на семена — тенденцията в графиката е образец.',
 			en: 'Sunflower is moisture-sensitive at flowering and seed fill — chart shows illustrative volumes.',
-			ar: 'عباد الشمس حساس للرطوبة عند الإزهار وامتلاء البذور؛ البيانات للتوضيح.',
 		},
 		irrigationGeneral: {
 			bg: 'При напояване: равномерна влага по време на цъфтеж; избягване на преполиване преди жътва.',
 			en: 'If irrigating: keep even moisture through flowering; avoid waterlogging before harvest.',
-			ar: 'عند الري: رطوبة متساوية أثناء الإزهار وتجنب الإفراط قبل الحصاد.',
 		},
 		irrigationIfDry: {
 			bg: 'Сухо: силно засегнати са лесните почви в Северна България и участъци без задържане на влага — подпомагане на инвазионни полета по Янтра, Осъм, Дунавска равнина.',
 			en: 'Dry years: lighter soils in northern Bulgaria suffer first — prioritise fields along Yantra, Osam and Danube plain corridors.',
-			ar: 'في الجفاف: التربة الخفيفة في الشمال أولاً — ممرات يانترا وأوسام وسهل الدانوب.',
 		},
 	},
 	{
@@ -273,7 +257,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Царевица',
 			en: 'Maize',
-			ar: 'ذرة',
 		},
 		series: [
 			{ year: 2021, kt: 2100 },
@@ -285,17 +268,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Царевицата отговаря силно на напояване; числата са демо за визуализация на тенденция.',
 			en: 'Maize responds strongly to irrigation; numbers are demo-only for trend visualisation.',
-			ar: 'الذرة تستجيب بقوة للري؛ الأرقام للعرض فقط.',
 		},
 		irrigationGeneral: {
 			bg: 'Критични фази: къмцване, метличина, наливане на зърно — типично напояване по полета в Горна Тракия и край речни корита.',
 			en: 'Critical stages: knee-high, tasselling, grain fill — irrigation clusters often in Upper Thrace and river corridors.',
-			ar: 'المراحل الحرجة: الارتفاع، الإزهار، امتلاء الحبة — الري شائع في ثراسيا العليا والأنهار.',
 		},
 		irrigationIfDry: {
 			bg: 'При продължителна суша: приоритет на напоителни масиви в Пловдивско, Пазарджишко, Свиленград–Харманли и край Марица.',
 			en: 'Prolonged drought: prioritise irrigated blocks around Plovdiv, Pazardzhik, Svilengrad–Harmanli and Maritsa valley.',
-			ar: 'جفاف طويل: أولوية لمناطق بلوفديف وبازارجيك ووادي ماريتسا.',
 		},
 	},
 	{
@@ -304,7 +284,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Домати (пресни)',
 			en: 'Tomatoes (fresh)',
-			ar: 'طماطم (طازجة)',
 		},
 		series: [
 			{ year: 2021, kt: 168 },
@@ -316,17 +295,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Доматите са концентрирани в Южна България и край големи преработватели; колебанията имитират метеорологични години.',
 			en: 'Tomatoes cluster in southern Bulgaria and near processors; swings mimic weather-driven seasons.',
-			ar: 'الطماطم مركزة في الجنوب وقرب المصانع؛ التقلبات تحاكي الأحوال الجوية.',
 		},
 		irrigationGeneral: {
 			bg: 'Капково и фертигация са стандарт при интензивно производство; избягване на мокрене на листата при горещини.',
 			en: 'Drip + fertigation is standard for intensive outdoor/tomato fields; avoid leaf wetting in heat.',
-			ar: 'الري بالتنقيط والتسميد المائي شائع؛ تجنب ترطيب الأوراق في الحر.',
 		},
 		irrigationIfDry: {
 			bg: 'Суша: най-уязвими са ранните полета в Хасковско, Свиленград, Пазарджик и край Струма–Петрич (дефицит на валежи + високи температури).',
 			en: 'Drought: monitor early fields in Haskovo, Svilengrad, Pazardzhik and Struma–Petrich belts first.',
-			ar: 'الجفاف: راقب حقول هاسكوفو وسفيلينغراد وبازارجيك وستروما–بيتريتش.',
 		},
 	},
 	{
@@ -335,7 +311,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Грозде (вино и маса)',
 			en: 'Grapes (wine & table)',
-			ar: 'عنب (خمر ومائدة)',
 		},
 		series: [
 			{ year: 2021, kt: 1180 },
@@ -347,17 +322,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Гроздето варира с пролетни слани и летни горещини; прогнозата е математическа екстраполация на демо данни.',
 			en: 'Grape harvest varies with spring frost and summer heat — forecast is pure extrapolation on demo data.',
-			ar: 'محصول العنب يتأثر بالصقيع والحر؛ التوقع استقراء على بيانات تجريبية.',
 		},
 		irrigationGeneral: {
 			bg: 'Напояването е регламентирано за лозя в различни региони; контрол на вегетацията преди беритба.',
 			en: 'Irrigation rules differ by PDO/PGI areas; manage canopy and water stress before harvest.',
-			ar: 'قواعد الري تختلف حسب المناطق؛ إدارة الماء قبل الحصاد.',
 		},
 		irrigationIfDry: {
 			bg: 'При суша: долините на Розова долина, Мелник, Пловдивско и Черноморието често изискват подпомагане при малки гроздове.',
 			en: 'Dry years: Rose Valley, Melnik, Plovdiv subregions and parts of the coast may need deficit irrigation strategies.',
-			ar: 'في الجفاف: وادي الورد وملنيك وبلوفديف والساحل قد تحتاج استراتيجيات ري محسوبة.',
 		},
 	},
 	{
@@ -366,7 +338,6 @@ export const CROP_PROFILES: CropProfile[] = [
 		label: {
 			bg: 'Ябълки',
 			en: 'Apples',
-			ar: 'تفاح',
 		},
 		series: [
 			{ year: 2021, kt: 62 },
@@ -378,17 +349,14 @@ export const CROP_PROFILES: CropProfile[] = [
 		genNotes: {
 			bg: 'Овощарството е локализирано (Старозагорско, Пловдивско, Родопи); малки обеми спрямо зърното.',
 			en: 'Orchards are localised (Stara Zagora, Plovdiv, Rhodopes) — small volumes vs grains.',
-			ar: 'البساتين موزعة محلياً؛ أحجام أصغر مقارنة بالحبوب.',
 		},
 		irrigationGeneral: {
 			bg: 'Капково на контура; критични периоди цъфтеж и уголемяване на плода.',
 			en: 'Drip along contour; critical periods flowering and fruit sizing.',
-			ar: 'ري بالتنقيط؛ مراحل الإزهار وتكبير الثمرة حرجة.',
 		},
 		irrigationIfDry: {
 			bg: 'Суша: по-нагорни райони в Родопите и Западна България без достъп до язовирна вода са по-уязвими.',
 			en: 'Drought: upland Rhodopes and western pockets without reservoir access are more vulnerable.',
-			ar: 'الجفاف: المرتفعات في رودوب وغرب بلغاريا الأكثر هشاشة.',
 		},
 	},
 ];

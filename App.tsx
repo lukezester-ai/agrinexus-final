@@ -11,7 +11,6 @@ import { TransportDirectoryView } from './components/TransportDirectoryView';
 import {
 	cycleUiLang,
 	getUiStrings,
-	isRtl,
 	localeTagFor,
 	parseStoredLang,
 	speechRecognitionLang,
@@ -23,10 +22,8 @@ import { recordBrowserVisitOncePerSession } from './lib/track-browser-visit';
 import type { ChatPersona } from './lib/chat-persona';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 
-function uiPickThree(lang: UiLang, bg: string, en: string, ar: string): string {
-	if (lang === 'bg') return bg;
-	if (lang === 'ar') return ar;
-	return en;
+function uiPickTwo(lang: UiLang, bg: string, en: string): string {
+	return lang === 'bg' ? bg : en;
 }
 const {
 	Leaf,
@@ -394,22 +391,6 @@ const QUICK_PROMPTS_EN = [
 	'Quick risk-check for EU → MENA route.',
 ];
 
-const MARKET_FLASH_AR = [
-	'توضيحي: ممر معجون الطماطم TR → KSA بفروق أضيق في سيناريو العرض التجريبي.',
-	'توضيحي: عروض زيت عباد الشمس من مصر تبقى قوية لنوافذ التحميل التالية في المجموعة التجريبية.',
-	'توضيحي: مسارات القمح الممتاز نحو الاتحاد الأوروبي تميل إلى HOLD بسبب ضغط الشحن في السرد التجريبي.',
-];
-
-const QUICK_PROMPTS_AR = [
-	'الثلاثة معاً: من ملفي — ماذا أقدّم أولاً، الناقص، المخاطر، وهل المخطط يستحق؟',
-	'تركيز قانوني: ماذا يجب وما لا يجب قبل نهاية نافذة الطلب الموحّد؟',
-	'تركيز زراعي: أرشّ المبيد الفطري — ماذا أسجّل وكيف يظهر في أوراق الوكالة؟',
-	'تركيز مالي: مع هكتاراتي وتكاليفي — هل المخطط مجدٍ مقابل الدفع المتوقع؟',
-	'أعطِ BUY/HOLD/AVOID لطماطم بلغاريا → الإمارات.',
-	'ما أهم الشهادات لتصدير السعودية (KSA)؟',
-	'فحص مخاطر سريع لمسار الاتحاد الأوروبي → الشرق الأوسط وشمال أفريقيا.',
-];
-
 const CLIENT_PROFILES: ClientProfile[] = [
 	{
 		id: 'c-101',
@@ -652,8 +633,8 @@ export default function App() {
 	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
 
 	useEffect(() => {
-		document.documentElement.lang = lang === 'bg' ? 'bg' : lang === 'ar' ? 'ar' : 'en';
-		document.documentElement.dir = isRtl(lang) ? 'rtl' : 'ltr';
+		document.documentElement.lang = lang === 'bg' ? 'bg' : 'en';
+		document.documentElement.dir = 'ltr';
 	}, [lang]);
 
 	useEffect(() => {
@@ -1132,13 +1113,11 @@ export default function App() {
 
 	const dealContextForAI = useMemo(() => {
 		const slice = filteredDeals.slice(0, 18);
-		const feedNote =
+			const feedNote =
 			marketQuotes?.ok && marketQuotes.mode === 'live'
 				? lang === 'bg'
 					? '[Пазар: забавени фючърсни референции от Stooq за мапнати стоки; редове без инструмент са илюстративни; не са оферти.]\n'
-					: lang === 'ar'
-						? '[السوق: مراجع آجلة متأخرة من Stooq للسلع المعينة؛ الصفوف بلا أداة مستقبلية توضيحية وليست عروضاً.]\n'
-						: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
+					: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
 				: '';
 		return (
 			feedNote +
@@ -1176,8 +1155,7 @@ export default function App() {
 
 	useEffect(() => {
 		const flashTimer = setInterval(() => {
-			const flashes =
-				lang === 'bg' ? MARKET_FLASH_BG : lang === 'ar' ? MARKET_FLASH_AR : MARKET_FLASH_EN;
+			const flashes = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
 			setMarketFlashIndex(v => (v + 1) % flashes.length);
 		}, 9000);
 		return () => clearInterval(flashTimer);
@@ -1762,33 +1740,12 @@ export default function App() {
 				text: 'Известия по имейл или Telegram при висок марж.',
 			},
 		];
-		const arCopy = [
-			{
-				title: 'شراء / تعليق / تجنب',
-				text: 'ترتّب منطق الذكاء الاصطناعي الصفوف وفق عواملك والسيناريوهات التوضيحية — جاهز لربط تغذيات البورصات عند الاتصال.',
-			},
-			{
-				title: 'تسعير تنبؤي',
-				text: 'يقدّر الأسعار والهامش المتوقع قبل إتمام الصفقة.',
-			},
-			{
-				title: 'تنبيهات ذكية',
-				text: 'إشعارات جاهزة للبريد أو Telegram عند فرص بهامش عالٍ.',
-			},
-		];
-		const texts =
-			lang === 'bg'
-				? bgCopy
-				: lang === 'ar'
-					? arCopy
-					: AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
+		const texts = lang === 'bg' ? bgCopy : AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
 		return AI_FEATURES.map((f, i) => ({ ...f, ...texts[i] }));
 	}, [lang]);
 
-	const marketFlashLines =
-		lang === 'bg' ? MARKET_FLASH_BG : lang === 'ar' ? MARKET_FLASH_AR : MARKET_FLASH_EN;
-	const quickPrompts =
-		lang === 'bg' ? QUICK_PROMPTS_BG : lang === 'ar' ? QUICK_PROMPTS_AR : QUICK_PROMPTS_EN;
+	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
+	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
 			all: allDeals.length,
@@ -1917,17 +1874,6 @@ export default function App() {
         .brand-nexus { color: var(--accent); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-        html[dir="rtl"] body {
-          font-family: Inter, "Segoe UI", "Noto Sans Arabic", Arial, sans-serif;
-        }
-        html[dir="rtl"] .nav { flex-direction: row-reverse; }
-        html[dir="rtl"] .nav-actions { flex-direction: row-reverse; }
-        html[dir="rtl"] .brand { flex-direction: row-reverse; }
-        html[dir="rtl"] .skip-link:focus,
-        html[dir="rtl"] .skip-link:focus-visible { left: auto; right: 12px; }
-        html[dir="rtl"] .assistant-msgs { padding-right: 0; padding-left: 4px; }
-        html[dir="rtl"] .chat-actions { flex-direction: row-reverse; }
-        html[dir="rtl"] .assistant-doc-toolbar { flex-direction: row-reverse; flex-wrap: wrap; }
         .nav-link {
           display: inline-flex;
           align-items: center;
@@ -1979,10 +1925,6 @@ export default function App() {
           flex-direction: column;
           gap: 2px;
           box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
-        }
-        [dir='rtl'] .nav-dropdown-panel {
-          left: auto;
-          right: 0;
         }
         .nav-dropdown-item {
           display: inline-flex;
@@ -3175,11 +3117,10 @@ export default function App() {
 								background: 'rgba(127, 29, 29, 0.2)',
 							}}>
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
-								{uiPickThree(
+								{uiPickTwo(
 									lang,
 									'Локалният API не отговаря (/api/chat). В папката на проекта пуснете npm run dev — стартират и сайтът, и сървъра на порт 8788 (прокси през Vite). Отворете адреса от терминала (обикновено http://localhost:5173).',
-									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:5173).',
-									'واجهة API المحلية غير متاحة (/api/chat). من مجلد المشروع شغّل npm run dev — يبدأ الموقع والخادم على المنفذ 8788 (عبر وكيل Vite). افتح الرابط الذي يظهر في الطرفية (غالباً http://localhost:5173).'
+									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:5173).'
 								)}
 							</p>
 						</div>
@@ -3193,11 +3134,10 @@ export default function App() {
 								background: 'rgba(120, 53, 15, 0.25)',
 							}}>
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
-								{uiPickThree(
+								{uiPickTwo(
 									lang,
 									'Липсва OPENAI_API_KEY. Добавете го във файла .env в корена на проекта и рестартирайте npm run dev. За продукция/Vercel ключът се задава в Environment Variables.',
-									'OPENAI_API_KEY is missing. Add it to the project root .env file and restart npm run dev. On Vercel, set it under Environment Variables.',
-									'OPENAI_API_KEY غير موجود. أضفه إلى ملف .env في جذر المشروع وأعد تشغيل npm run dev. على Vercel عيّنه ضمن Environment Variables.'
+									'OPENAI_API_KEY is missing. Add it to the project root .env file and restart npm run dev. On Vercel, set it under Environment Variables.'
 								)}
 							</p>
 						</div>

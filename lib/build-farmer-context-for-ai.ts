@@ -8,7 +8,7 @@ import {
 } from './command-center-data';
 import type { UiLang } from './i18n';
 
-function lg(lang: UiLang): 'bg' | 'en' | 'ar' {
+function lg(lang: UiLang): 'bg' | 'en' {
 	return lang;
 }
 

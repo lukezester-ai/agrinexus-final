@@ -1,4 +1,4 @@
-export type DocumentExplainLocale = 'bg' | 'en' | 'ar';
+export type DocumentExplainLocale = 'bg' | 'en';
 
 /** ~5 MiB raw image after base64 decode — rough guard via character count */
 const MAX_BASE64_CHARS = 6_800_000;
@@ -37,18 +37,6 @@ function systemPrompt(locale: DocumentExplainLocale): string {
 Отговорът да е обикновен текст (без JSON).`;
   }
 
-  if (locale === 'ar') {
-    return `أنت AgriNexus AI — مساعد حذر لتجارة السلع الزراعية (الاتحاد الأوروبي ↔ الشرق الأوسط وشمال أفريقيا).
-المستخدم رفع صورة لمستند (خطاب رسمي، شهادة، فاتورة، لقطة شاشة، إلخ).
-
-القواعد:
-- اشرح بالعربية بوضوح ما تراه: نوع المستند، تواريخ مهمة، المبالغ (يفضّل ذكر اليورو EUR عند الحديث عن المال؛ تجنّب عرض BGN كعملة أساسية).
-- إن كان غير مقروء، قُل ذلك بصراحة؛ لا تختلق نصاً.
-- لا ضمانات قانونية أو مالية؛ اقترح التحقق مع الفريق أو المحاسبة عند الإجراءات الفعلية.
-- إن كان الموضوع خارج التجارة/اللوجستيك/الشهادات، أجب بإيجاز واقترح التواصل مع الفريق.
-الرد نص عادي فقط (بدون JSON).`;
-  }
-
   return `You are AgriNexus AI — a cautious assistant for agricultural commodity trading (EU ↔ MENA).
 The user uploaded an image of a document.
 
@@ -79,8 +67,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
 
   const body = rawBody as Record<string, unknown>;
   const rawLocale = typeof body.locale === 'string' ? body.locale : '';
-  const locale: DocumentExplainLocale =
-    rawLocale === 'en' ? 'en' : rawLocale === 'ar' ? 'ar' : 'bg';
+  const locale: DocumentExplainLocale = rawLocale === 'en' ? 'en' : 'bg';
   const sessionEmail = typeof body.sessionEmail === 'string' ? body.sessionEmail.trim() : '';
 
   if (!isValidEmail(sessionEmail)) {
@@ -90,9 +77,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       error:
         locale === 'bg'
           ? 'Нужен е демо вход с валиден имейл (Вход в сайта).'
-          : locale === 'ar'
-            ? 'يلزم تسجيل الدخول التجريبي ببريد إلكتروني صالح من صفحة الدخول.'
-            : 'Demo sign-in with a valid email is required.',
+          : 'Demo sign-in with a valid email is required.',
     };
   }
 
@@ -115,9 +100,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       error:
         locale === 'bg'
           ? 'Поддържаме само изображения: JPEG, PNG, WebP или GIF. За PDF заснемете страницата като снимка.'
-          : locale === 'ar'
-            ? 'ندعم صور JPEG أو PNG أو WebP أو GIF فقط. لملفات PDF صوّر الصفحة كصورة.'
-            : 'Only JPEG, PNG, WebP, or GIF images. For PDF, photograph the page.',
+          : 'Only JPEG, PNG, WebP, or GIF images. For PDF, photograph the page.',
     };
   }
 
@@ -128,9 +111,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       error:
         locale === 'bg'
           ? 'Липсва изображение или файлът е твърде голям (напр. до ~5 MB).'
-          : locale === 'ar'
-            ? 'الصورة مفقودة أو الملف كبير جداً (حدّاً تقريباً ~5 ميجابايت).'
-            : 'Image missing or too large (e.g. max ~5 MB).',
+          : 'Image missing or too large (e.g. max ~5 MB).',
     };
   }
 
@@ -139,9 +120,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       ? body.question.trim().slice(0, 2000)
       : locale === 'bg'
         ? 'Обясни какво казва документът и какво е важно за търговец на агрокомодитети.'
-        : locale === 'ar'
-          ? 'اشرح ماذا يقول المستند وما أهميته لتاجر سلع زراعية.'
-          : 'Explain what the document says and what matters for an agri commodity trader.';
+        : 'Explain what the document says and what matters for an agri commodity trader.';
 
   const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);

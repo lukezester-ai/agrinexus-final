@@ -7,7 +7,7 @@ export const ILLUSTRATIVE_EUR_BGN = 1.956;
 
 export type FarmProductionFocus = 'grain' | 'mixed' | 'horticulture' | 'vine' | 'livestock';
 
-export type SubsidyCalcLang = 'bg' | 'en' | 'ar';
+export type SubsidyCalcLang = 'bg' | 'en';
 
 export interface SubsidyCalculatorInput {
 	decares: number;
@@ -32,7 +32,7 @@ export interface SubsidyEstimateResult {
 export type SubsidyCalcErrorCode = 'DECARES_MIN' | 'DECARES_MAX' | 'COWS_RANGE' | 'COWS_MAX';
 
 const LABELS: Record<
-	SubsidyCalcLang,
+	'bg' | 'en',
 	{
 		livestockCoupled: string;
 		livestockNoCows: string;
@@ -68,18 +68,6 @@ const LABELS: Record<
 		pndpFirst30: 'SAPS-style top-up for the first 30 ha',
 		youngExtra: 'Additional young-farmer payment (up to 30 ha)',
 		eco: 'Eco-scheme / organic (highly simplified — real rates depend on crop and rules)',
-	},
-	ar: {
-		livestockCoupled: 'دعم مرتبط — أبقار الحليب (تقريبي ليف/سنة)',
-		livestockNoCows:
-			'تربية الماشية دون عدد كافٍ من الأبقار لهذا النموذج — اسأل مساعد الذكاء الاصطناعي لحالتك',
-		bissArea: 'مدفوعات مباشرة على المساحة المعلنة (BISS — إذا تقدمت للمساحة)',
-		pndpIfEligible: 'دعم إضافي حتى 30 هكتاراً (إن انطبقت الشروط)',
-		youngOnArea: 'دعم المزارع الشاب على المساحة (حتى 30 هكتاراً)',
-		bissPerHa: 'BISS (دعم مباشر للهكتار — تقريبي)',
-		pndpFirst30: 'دعم إضافي لأول 30 هكتاراً',
-		youngExtra: 'دعم إضافي للمزارع الشاب (حتى 30 هكتاراً)',
-		eco: 'مخطط بيئي / عضوي (مبسط جداً — التعريفات الفعلية تعتمد على المحصول والقواعد)',
 	},
 };
 
@@ -203,14 +191,11 @@ export function formatShareSnippet(
 	lang: SubsidyCalcLang = 'bg',
 ): string {
 	const u = siteUrl.replace(/\/$/, '');
-	const loc = lang === 'ar' ? 'ar-BG' : lang === 'en' ? 'en-GB' : 'bg-BG';
+	const loc = lang === 'en' ? 'en-GB' : 'bg-BG';
 	const low = lowBgn.toLocaleString(loc);
 	const high = highBgn.toLocaleString(loc);
 	if (lang === 'en') {
 		return `AgriNexus indicative subsidy calculator: for ${decares} decares the rough range is ${low}–${high} BGN/year (non-binding). Open: ${u}`;
-	}
-	if (lang === 'ar') {
-		return `حاسبة AgriNexus التقريبية: لـ ${decares} ديكار المدى حوالي ${low}–${high} ليف/سنة (غير ملزم). الرابط: ${u}`;
 	}
 	return `Според ориентировъчния калкулатор на AgriNexus за ${decares} декара приблизителният диапазон е ${low}–${high} лв/година (неофициално, без гаранция). Виж на: ${u}`;
 }

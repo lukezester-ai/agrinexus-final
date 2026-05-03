@@ -33,12 +33,12 @@ type Props = {
 	onExpand?: () => void;
 };
 
-function lang3(l: UiLang): 'bg' | 'en' | 'ar' {
+function lang2(l: UiLang): 'bg' | 'en' {
 	return l;
 }
 
 export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
-	const L = lang3(lang);
+	const L = lang2(lang);
 	const [profile, setProfile] = useState<FarmerLocalProfile>(() =>
 		typeof localStorage !== 'undefined' ? loadFarmerProfile() : defaultFarmerProfile(),
 	);
