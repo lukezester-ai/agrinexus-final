@@ -99,6 +99,9 @@ export const STR_EN = {
 	personaAgronomist: 'Agronomy',
 	personaFinance: 'Finance',
 	assistantBack: 'Back to marketplace',
+	assistantCloseChat: 'Close',
+	assistantCollapseTools: 'Hide toolbar',
+	assistantExpandTools: 'Show toolbar',
 	assistantLegalFooter:
 		'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
 	chatThinking: 'Thinking…',
@@ -214,6 +217,19 @@ export const STR_EN = {
 	subsidyCalcDisclaimer:
 		'Illustrative only — rates depend on schemes, eligibility and campaign rules. Not legal or financial advice.',
 	subsidyCalcGoCalendar: 'Season calendar',
+	dfzRefPackTitle: 'DAFS reference PDFs (Bulgarian)',
+	dfzRefPackIntro:
+		'Bundled guides covering subsidy irregularities and deadlines, the Young Farmer handbook, and DAFS application forms. Bulgarian originals — verify deadlines each campaign on dfz.bg / ISUN.',
+	dfzRefIrregularitiesTitle: 'Direct payments — irregularities & timelines',
+	dfzRefIrregularitiesBody:
+		'Overview tied to campaigns (grounds for disallowance, common pitfalls and indicative deadlines). Use alongside notices published by DAFS for the active year.',
+	dfzRefYoungFarmerTitle: 'Young Farmer handbook',
+	dfzRefYoungFarmerBody:
+		'Practical guidance around eligibility and submitting aid aimed at young farmers — illustrative checklist versus agency manuals.',
+	dfzRefApplicationsTitle: 'DAFS declarations / applications (templates)',
+	dfzRefApplicationsBody:
+		'Pack with declaration/application wording farmers draft together with advisers — official filings remain via ISUN with qualified signature.',
+	dfzRefDownloadCta: 'Download PDF',
 	subsidyErrDecaresMin: 'Enter at least 0.5 decares.',
 	subsidyErrDecaresMax: 'Value too large for this simplified model.',
 	subsidyErrCows: 'Coupled dairy support usually needs at least 5 cows — adjust the number or leave 0.',
@@ -223,6 +239,8 @@ export const STR_EN = {
 		'Bulgaria-oriented guide — combine with local agronomy and official DAFS notices. DAFS milestone dates below are indicative.',
 	seasonCalendarPickCrop: 'Main crop',
 	seasonCalendarDfzTitle: 'DAFS — key campaign dates (indicative)',
+	seasonCalendarDfzPdfHint:
+		'For explanations on irregularities, indicative timelines and DAFS forms (Bulgarian PDFs), open the “DAFS reference PDFs” block on the subsidy calculator or Farmer Command Center.',
 	seasonCalendarGoSubsidy: 'Subsidy calculator',
 	seasonCalendarBgNote:
 		'Task bullets and DAFS descriptions below are in Bulgarian (source material for local growers).',

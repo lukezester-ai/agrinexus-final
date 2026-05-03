@@ -24,6 +24,7 @@ import {
 	buildStatementPdf,
 	downloadPdfBytes,
 } from '../lib/pdf/generate-documents';
+import { DfzOfficialPdfPack } from './DfzOfficialPdfPack';
 
 type Props = {
 	lang: UiLang;
@@ -106,8 +107,8 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 			style={{
 				marginTop: compact ? 12 : 0,
 				marginBottom: compact ? 20 : 0,
-				borderColor: 'rgba(93, 189, 154, 0.28)',
-				background: 'rgba(15, 23, 42, 0.55)',
+				borderColor: 'rgba(124, 205, 156, 0.28)',
+				background: 'rgba(16, 28, 20, 0.58)',
 			}}>
 			<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
 				<div>
@@ -227,6 +228,8 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 
 				{!compact && (
 					<>
+						<DfzOfficialPdfPack tr={tr} compact />
+
 						<section>
 							<h3
 								style={{

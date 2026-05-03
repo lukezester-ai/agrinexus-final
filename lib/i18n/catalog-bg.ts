@@ -101,6 +101,9 @@ export const STR_BG = {
 	personaAgronomist: 'Агроном',
 	personaFinance: 'Финансист',
 	assistantBack: 'Към Пазара',
+	assistantCloseChat: 'Затвори',
+	assistantCollapseTools: 'Скрий лентата',
+	assistantExpandTools: 'Покажи лентата',
 	assistantLegalFooter:
 		'AgriNexus не поема отговорност за действия въз основа на AI отговори. За реални сделки потърсете потвърждение от вашия екип.',
 	chatThinking: 'Мисля…',
@@ -216,6 +219,19 @@ export const STR_BG = {
 	subsidyCalcDisclaimer:
 		'Само за ориентация — ставките зависят от схеми, допустимост и кампания. Не е правен или финансов съвет.',
 	subsidyCalcGoCalendar: 'Сезонен календар',
+	dfzRefPackTitle: 'Справочни PDF към ДФЗ',
+	dfzRefPackIntro:
+		'Материали за директните плащания (нередности и срокове), наръчник за млад земеделски производител и сборник заявления/декларации към ДФЗ. Ориентир — потвърждавай всяка кампания в ИСУН и на dfz.bg.',
+	dfzRefIrregularitiesTitle: 'Субсидии — нередности и срокове',
+	dfzRefIrregularitiesBody:
+		'Обобщение по кампании: основания за отказ, типични нередности и ориентировъчни срокове; ползвай заедно с официалните указания за текущата година.',
+	dfzRefYoungFarmerTitle: 'Наръчник „Млад фермер“',
+	dfzRefYoungFarmerBody:
+		'Насоки за допустимост и практически стъпки при подготовка на документи за помощ за млад земеделски производител.',
+	dfzRefApplicationsTitle: 'Заявления и декларации към ДФЗ',
+	dfzRefApplicationsBody:
+		'Сборник с текстове за заявления и декларации — реалното подаване е през ИСУН с КЕП и по актуалните бланки.',
+	dfzRefDownloadCta: 'Изтегли PDF',
 	subsidyErrDecaresMin: 'Въведи поне 0.5 декара.',
 	subsidyErrDecaresMax: 'Стойността е твърде голяма за този опростен модел.',
 	subsidyErrCows:
@@ -226,6 +242,8 @@ export const STR_BG = {
 		'Ориентир за България — комбинирай с местен агроном и официални указания на ДФЗ. По-долу са типични срокове (ориентир).',
 	seasonCalendarPickCrop: 'Основна култура',
 	seasonCalendarDfzTitle: 'ДФЗ — ключови дати (ориентир кампания)',
+	seasonCalendarDfzPdfHint:
+		'Подробни описания на нередности, ориентировъчни срокове и образци към ДФЗ (PDF) са в блока „Справочни PDF към ДФЗ“ при калкулатора на субсидии или в командния център.',
 	seasonCalendarGoSubsidy: 'Калкулатор субсидии',
 	seasonCalendarBgNote: '',
 	seasonCropWheatBarley: 'Пшеница / ечемик (зърнени)',

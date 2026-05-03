@@ -4,7 +4,7 @@
 	"description": "Agricultural trade and farmer compliance tools",
 	"start_url": ".",
 	"display": "standalone",
-	"background_color": "#0b1221",
-	"theme_color": "#3f9178",
+	"background_color": "#101914",
+	"theme_color": "#5f8f72",
 	"lang": "bg"
 }

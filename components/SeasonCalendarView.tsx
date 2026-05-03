@@ -8,6 +8,16 @@ import {
 	SEASON_TASKS_BY_CROP,
 	type CropCalendarKey,
 } from '../lib/season-calendar-data';
+import { resolveSeasonVisual } from '../lib/season-calendar-visuals';
+import { SeasonMonthArtBanner } from './season-calendar-month-art';
+
+const CROP_EMOJI: Record<CropCalendarKey, string> = {
+	wheat_barley: '🌾',
+	sunflower: '🌻',
+	maize: '🌽',
+	vine: '🍇',
+	apple: '🍎',
+};
 
 function cropLabel(tr: AppStrings, key: CropCalendarKey): string {
 	switch (key) {
@@ -65,7 +75,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					marginBottom: 20,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<CalendarDays size={24} color="#5dbd9a" aria-hidden />
+					<CalendarDays size={24} color="#7ccd9c" aria-hidden />
 					{tr.seasonCalendarTitle}
 				</h2>
 				<button type="button" className="btn btn-outline" onClick={onOpenSubsidy}>
@@ -82,8 +92,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 						fontSize: '.85rem',
 						padding: '10px 12px',
 						borderRadius: 8,
-						background: 'rgba(93, 189, 154, 0.08)',
-						border: '1px solid rgba(93, 189, 154, 0.28)',
+						background: 'rgba(124, 205, 156, 0.08)',
+						border: '1px solid rgba(124, 205, 156, 0.28)',
 						marginBottom: 16,
 					}}>
 					{tr.seasonCalendarBgNote}
@@ -99,8 +109,11 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 						<button
 							key={k}
 							type="button"
-							className={crop === k ? 'btn btn-primary' : 'btn btn-outline'}
+							className={`season-cal-crop-btn ${crop === k ? 'btn btn-primary' : 'btn btn-outline'}`}
 							onClick={() => setCrop(k)}>
+							<span style={{ fontSize: '1.15rem', lineHeight: 1 }} aria-hidden>
+								{CROP_EMOJI[k]}
+							</span>
 							{cropLabel(tr, k)}
 						</button>
 					))}
@@ -111,8 +124,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				className="contact-panel"
 				style={{
 					marginBottom: 24,
-					borderColor: 'rgba(93, 189, 154, 0.28)',
-					background: 'rgba(15, 23, 42, 0.45)',
+					borderColor: 'rgba(124, 205, 156, 0.28)',
+					background: 'rgba(16, 31, 22, 0.52)',
 				}}>
 				<p style={{ margin: '0 0 10px', fontSize: '.75rem', fontWeight: 700, letterSpacing: '0.04em' }}>
 					{tr.seasonCalendarDfzTitle}
@@ -130,6 +143,10 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				</ul>
 			</div>
 
+			<p className="muted" style={{ marginTop: 0, marginBottom: 20, fontSize: '.84rem', lineHeight: 1.55 }}>
+				{tr.seasonCalendarDfzPdfHint}
+			</p>
+
 			<div
 				style={{
 					display: 'grid',
@@ -140,8 +157,10 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					const m = idx + 1;
 					const tasks = tasksByMonth[m];
 					if (!tasks?.length) return null;
+					const visual = resolveSeasonVisual(crop, m);
 					return (
-						<div key={m} className="contact-panel" style={{ margin: 0 }}>
+						<div key={m} className="contact-panel season-cal-month-card" style={{ margin: 0 }}>
+							<SeasonMonthArtBanner visual={visual} />
 							<h3
 								style={{
 									marginTop: 0,
@@ -161,6 +180,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 										justifyContent: 'center',
 										background: 'rgba(148, 163, 184, 0.15)',
 										fontSize: '.85rem',
+										fontWeight: 700,
 									}}>
 									{m}
 								</span>

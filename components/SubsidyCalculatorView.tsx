@@ -9,6 +9,7 @@ import {
 	type SubsidyCalculatorInput,
 	type SubsidyCalcErrorCode,
 } from '../lib/subsidy-calculator';
+import { DfzOfficialPdfPack } from './DfzOfficialPdfPack';
 
 const FOCUS_IDS: FarmProductionFocus[] = ['grain', 'mixed', 'horticulture', 'vine', 'livestock'];
 
@@ -108,7 +109,7 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 					marginBottom: 20,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<Calculator size={24} color="#5dbd9a" aria-hidden />
+					<Calculator size={24} color="#7ccd9c" aria-hidden />
 					{tr.subsidyCalcTitle}
 				</h2>
 				<button type="button" className="btn btn-outline" onClick={onOpenCalendar}>
@@ -135,8 +136,8 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 							padding: '12px 14px',
 							borderRadius: 8,
 							border: '1px solid var(--border, #334155)',
-							background: 'var(--panel, #0f172a)',
-							color: 'var(--text, #e2e8f0)',
+							background: 'var(--panel, #141f18)',
+							color: 'var(--text, #f4faf7)',
 							fontSize: '1.05rem',
 						}}
 					/>
@@ -179,8 +180,8 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 								padding: '12px 14px',
 								borderRadius: 8,
 								border: '1px solid var(--border, #334155)',
-								background: 'var(--panel, #0f172a)',
-								color: 'var(--text, #e2e8f0)',
+								background: 'var(--panel, #141f18)',
+								color: 'var(--text, #f4faf7)',
 							}}
 						/>
 					</div>
@@ -234,6 +235,8 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 					{tr.subsidyCalcDisclaimer}
 				</p>
 			</div>
+
+			<DfzOfficialPdfPack tr={tr} />
 		</section>
 	);
 }

@@ -26,8 +26,8 @@ class ErrorBoundary extends React.Component<
 					style={{
 						padding: 24,
 						fontFamily: 'system-ui, sans-serif',
-						color: '#e2e8f0',
-						background: '#0b1221',
+						color: '#e8f3eb',
+						background: '#101914',
 						minHeight: '100vh',
 						maxWidth: 640,
 					}}>
@@ -40,10 +40,10 @@ class ErrorBoundary extends React.Component<
 						style={{
 							whiteSpace: 'pre-wrap',
 							fontSize: 13,
-							background: '#0f172a',
+							background: '#141f18',
 							padding: 12,
 							borderRadius: 8,
-							border: '1px solid #334155',
+							border: '1px solid #3d5248',
 						}}>
 						{this.state.err.message}
 					</pre>

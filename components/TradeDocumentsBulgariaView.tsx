@@ -25,7 +25,7 @@ function SectionList({ sections, lang }: { sections: TradeDocSection[]; lang: Ui
 					key={sec.id}
 					className="contact-panel"
 					style={{
-						borderColor: 'rgba(93, 189, 154, 0.28)',
+						borderColor: 'rgba(124, 205, 156, 0.28)',
 						margin: 0,
 					}}>
 					<summary
@@ -72,7 +72,7 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					marginBottom: 16,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<FileText size={24} color="#5dbd9a" aria-hidden />
+					<FileText size={24} color="#7ccd9c" aria-hidden />
 					{tr.tradeDocsTitle}
 				</h2>
 			</div>
@@ -100,12 +100,12 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					<div
 						className="contact-panel"
 						style={{
-							borderColor: 'rgba(93, 189, 154, 0.38)',
-							background: 'rgba(93, 189, 154, 0.06)',
+							borderColor: 'rgba(124, 205, 156, 0.38)',
+							background: 'rgba(124, 205, 156, 0.06)',
 							margin: 0,
 						}}>
 						<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Download size={20} color="#5dbd9a" aria-hidden />
+							<Download size={20} color="#7ccd9c" aria-hidden />
 							{tr.tradeDocsExportHandbookTitle}
 						</h3>
 						<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.55, fontSize: '.9rem' }}>
@@ -128,7 +128,7 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 							margin: 0,
 						}}>
 						<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Download size={20} color="#38bdf8" aria-hidden />
+							<Download size={20} color="#6ebf9e" aria-hidden />
 							{tr.tradeDocsContractsLcTitle}
 						</h3>
 						<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.55, fontSize: '.9rem' }}>
@@ -155,8 +155,8 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					fontSize: '.85rem',
 					padding: '12px 14px',
 					borderRadius: 8,
-					background: 'rgba(93, 189, 154, 0.06)',
-					border: '1px solid rgba(93, 189, 154, 0.22)',
+					background: 'rgba(124, 205, 156, 0.06)',
+					border: '1px solid rgba(124, 205, 156, 0.22)',
 					lineHeight: 1.55,
 				}}>
 				{tr.tradeDocsDisclaimer}

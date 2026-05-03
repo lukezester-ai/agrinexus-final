@@ -52,6 +52,8 @@ const {
 	BarChart3,
 	Truck,
 	ChevronDown,
+	ChevronUp,
+	X,
 } = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
@@ -604,6 +606,15 @@ export default function App() {
 	}, [view]);
 
 	useEffect(() => {
+		if (view !== 'assistant') return;
+		const mq = window.matchMedia('(max-width: 768px)');
+		const sync = () => setAssistantToolbarCollapsed(mq.matches);
+		sync();
+		mq.addEventListener('change', sync);
+		return () => mq.removeEventListener('change', sync);
+	}, [view]);
+
+	useEffect(() => {
 		const onDoc = (e: MouseEvent) => {
 			const el = navFlyoutRef.current;
 			if (!el || !(e.target instanceof Node)) return;
@@ -666,6 +677,9 @@ export default function App() {
 	const [voiceListening, setVoiceListening] = useState(false);
 	const [docExplainLoading, setDocExplainLoading] = useState(false);
 	const [assistantNotice, setAssistantNotice] = useState<string | null>(null);
+	const [assistantToolbarCollapsed, setAssistantToolbarCollapsed] = useState(() =>
+		typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
+	);
 	const docImageInputRef = useRef<HTMLInputElement>(null);
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
 
@@ -1777,26 +1791,72 @@ export default function App() {
 		<div className="app">
 			<style>{`
         :root {
-          --bg: #0a0f18;
-          --panel: #121c2c;
-          --panel-2: #0d1422;
-          --border: #243044;
-          --text-muted: #8ea0b8;
-          --accent: #5dbd9a;
-          --accent-muted: rgba(93, 189, 154, 0.16);
-          --accent-border: rgba(93, 189, 154, 0.4);
-          --accent-text: #c5ebdc;
+          --bg: #0a110e;
+          --panel: #141f18;
+          --panel-2: #0e1712;
+          --border: #2e4338;
+          --text-muted: #9eb8aa;
+          --accent: #7ccd9c;
+          --accent-muted: rgba(124, 205, 156, 0.16);
+          --accent-border: rgba(124, 205, 156, 0.38);
+          --accent-text: #d7f4e4;
           --danger: #f87171;
-          --gold: #94a3b8;
+          --gold: #d4b876;
         }
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
-        .app { min-height: 100vh; background: var(--bg); color: #fff; display: flex; flex-direction: column; }
-        main#main-content { flex: 1; }
+        body {
+          margin: 0;
+          font-family: 'DM Sans', Inter, system-ui, Segoe UI, Arial, sans-serif;
+          background: var(--bg);
+          color: #f4faf7;
+        }
+        .app {
+          position: relative;
+          min-height: 100vh;
+          color: #f4faf7;
+          display: flex;
+          flex-direction: column;
+          background-color: var(--bg);
+          background-image:
+            linear-gradient(165deg, rgba(22, 48, 38, 0.9) 0%, rgba(12, 26, 20, 0.93) 42%, rgba(7, 14, 11, 0.95) 100%),
+            linear-gradient(180deg, rgba(72, 130, 110, 0.14) 0%, transparent 38%),
+            url('/season-cal/young_crop.jpg');
+          background-position: center, center, center;
+          background-size: auto, auto, cover;
+          background-repeat: no-repeat;
+          background-attachment: fixed;
+        }
+        /* Фин film-grain върху целия фон (SVG turbulence — без допълнителни HTTP заявки). */
+        .app::after {
+          content: '';
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 1;
+          opacity: 0.042;
+          mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+        @media (prefers-contrast: more) {
+          .app::after { opacity: 0; }
+        }
+        @media (max-width: 900px) {
+          .app { background-attachment: scroll; }
+        }
+        main#main-content {
+          flex: 1;
+          position: relative;
+          z-index: 2;
+        }
 
         .site-footer {
+          position: relative;
+          z-index: 2;
           border-top: 1px solid var(--border);
-          background: rgba(11, 18, 33, 0.92);
+          background: rgba(14, 22, 18, 0.94);
+          backdrop-filter: blur(10px);
           padding: 18px 16px 22px;
         }
         .site-footer-inner {
@@ -1822,8 +1882,8 @@ export default function App() {
           text-underline-offset: 3px;
           padding: 2px 0;
         }
-        .footer-link-btn:hover { color: #ccfbf1; }
-        .site-footer-sep { color: #64748b; user-select: none; font-size: .9rem; }
+        .footer-link-btn:hover { color: #e8fff4; }
+        .site-footer-sep { color: #7a9385; user-select: none; font-size: .9rem; }
         .legal-panel p { margin: 0 0 12px; }
         .legal-panel p:last-child { margin-bottom: 0; }
         .legal-section .btn { margin-top: 14px; }
@@ -1835,8 +1895,8 @@ export default function App() {
           z-index: 300;
           padding: 10px 14px;
           border-radius: 10px;
-          background: #134e4a;
-          color: #ccfbf1;
+          background: #1a4d38;
+          color: #e8fff4;
           font-weight: 700;
           font-size: .9rem;
           text-decoration: none;
@@ -1856,7 +1916,10 @@ export default function App() {
 
         .nav {
           display: flex; justify-content: space-between; align-items: center; gap: 12px;
-          padding: 14px 18px; background: var(--panel-2); border-bottom: 1px solid var(--border);
+          padding: 14px 18px;
+          background: rgba(14, 23, 18, 0.82);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--border);
           position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
         }
         .brand {
@@ -1870,7 +1933,7 @@ export default function App() {
           border-radius: 10px;
         }
         .brand-wordmark { letter-spacing: .01em; }
-        .brand-agri { color: #e2e8f0; }
+        .brand-agri { color: #eef7f0; }
         .brand-nexus { color: var(--accent); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -1917,7 +1980,7 @@ export default function App() {
           left: 0;
           min-width: 260px;
           z-index: 120;
-          background: rgba(12, 28, 24, 0.97);
+          background: rgba(16, 32, 24, 0.97);
           border: 1px solid var(--border);
           border-radius: 12px;
           padding: 8px;
@@ -1925,6 +1988,7 @@ export default function App() {
           flex-direction: column;
           gap: 2px;
           box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(12px);
         }
         .nav-dropdown-item {
           display: inline-flex;
@@ -1956,17 +2020,70 @@ export default function App() {
           font-family: inherit;
         }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-        .btn-primary { background: var(--accent); color: #0f241e; }
-        .btn-light { background: #f8fafc; color: #0f172a; }
+        .btn-primary { background: var(--accent); color: #0f1f17; }
+        .btn-light { background: #f4faf6; color: #141f18; }
         .btn-outline { background: transparent; color: var(--accent-text); border: 1px solid var(--accent-border); }
 
         .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
         .hero { text-align: center; padding-top: 42px; }
-        .hero h1 { font-size: clamp(2.1rem, 8vw, 4.6rem); margin: 0 0 12px; }
+        .hero h1 {
+          font-size: clamp(2.1rem, 8vw, 4.6rem);
+          margin: 0 0 12px;
+          letter-spacing: -0.02em;
+          text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Отделен широк банер с реална снимка само на началната страница (под заглавието). */
+        .landing-hero {
+          position: relative;
+          isolation: isolate;
+          padding-top: 36px;
+        }
+        .landing-hero::before {
+          content: '';
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          top: 0;
+          width: min(1180px, calc(100% + 48px));
+          height: clamp(260px, 44vw, 440px);
+          z-index: 0;
+          pointer-events: none;
+          border-radius: 0 0 22px 22px;
+          overflow: hidden;
+          background:
+            linear-gradient(185deg, rgba(12, 28, 20, 0.25) 0%, rgba(8, 16, 12, 0.82) 72%, rgba(10, 18, 14, 0.96) 100%),
+            url('/season-cal/combine_harvest.jpg') center 42% / cover no-repeat;
+          box-shadow:
+            inset 0 -40px 48px rgba(8, 14, 11, 0.65),
+            0 18px 40px rgba(0, 0, 0, 0.28);
+        }
+        .landing-hero > * {
+          position: relative;
+          z-index: 1;
+        }
+        .landing-hero .brand-wordmark {
+          text-shadow:
+            0 2px 4px rgba(0, 0, 0, 0.45),
+            0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        .landing-hero > p:first-of-type {
+          max-width: 640px;
+          margin-left: auto;
+          margin-right: auto;
+          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+        }
         .hero p { color: var(--text-muted); max-width: 860px; margin: 0 auto 20px; }
 
         .ai-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
-        .ai-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: left; }
+        .ai-card {
+          background: rgba(20, 31, 24, 0.78);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 14px;
+          text-align: left;
+          backdrop-filter: blur(8px);
+        }
         .ai-card h4 { margin: 10px 0 6px; }
         .ai-card p { margin: 0; color: var(--text-muted); font-size: .9rem; }
 
@@ -1980,23 +2097,47 @@ export default function App() {
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
         .deal-card {
-          background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
+          background: rgba(20, 31, 24, 0.82);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 14px;
+          position: relative;
+          backdrop-filter: blur(8px);
         }
         .deal-card.top { border: 2px solid var(--accent); }
         .demo-banner {
-          background: rgba(93, 189, 154, 0.06);
-          border: 1px solid rgba(93, 189, 154, 0.22);
+          background: rgba(124, 205, 156, 0.07);
+          border: 1px solid rgba(124, 205, 156, 0.22);
           border-radius: 12px;
           padding: 11px 14px;
           margin-bottom: 14px;
-          color: #ccfbf1;
+          color: var(--accent-text);
           font-size: .88rem;
           line-height: 1.5;
+        }
+        .section.assistant-route {
+          max-width: min(1400px, 96vw);
+          padding-left: max(12px, env(safe-area-inset-left, 0px));
+          padding-right: max(12px, env(safe-area-inset-right, 0px));
+        }
+        .assistant-route-actions {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+        .assistant-route-actions-group {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
         }
         .assistant-workbench {
           display: flex;
           flex-direction: column;
-          max-height: min(78vh, 760px);
+          max-height: min(88dvh, 960px);
           padding: 14px !important;
         }
         .assistant-panel-head {
@@ -2017,7 +2158,7 @@ export default function App() {
         }
         @media (max-width: 640px) {
           .assistant-quick-prompts-scroll {
-            max-height: min(42vh, 280px);
+            max-height: min(120px, 28vh);
           }
         }
         .assistant-prompts-scroll-hint {
@@ -2029,7 +2170,7 @@ export default function App() {
         }
         .assistant-msgs {
           flex: 1 1 auto;
-          min-height: 140px;
+          min-height: clamp(200px, 42vh, 520px);
           max-height: none;
           overflow-y: auto;
           display: flex;
@@ -2046,21 +2187,24 @@ export default function App() {
           background: var(--panel);
         }
         .assistant-bubble {
-          max-width: 100%;
-          padding: 10px 12px;
+          max-width: min(100%, 72rem);
+          padding: 12px 14px;
           border-radius: 12px;
-          font-size: .9rem;
-          line-height: 1.45;
+          font-size: .935rem;
+          line-height: 1.55;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          white-space: pre-wrap;
         }
         .assistant-bubble.user {
           align-self: flex-end;
-          background: rgba(93, 189, 154, 0.1);
+          background: rgba(124, 205, 156, 0.1);
           border: 1px solid var(--accent-border);
         }
         .assistant-bubble.assistant {
           align-self: flex-start;
-          background: #0f172a;
-          border: 1px solid #334155;
+          background: #141f18;
+          border: 1px solid #3d5248;
         }
         .assistant-doc-toolbar {
           display: flex;
@@ -2078,8 +2222,8 @@ export default function App() {
           min-height: 46px;
           padding: 10px;
           border-radius: 10px;
-          border: 1px solid #334155;
-          background: #0f172a;
+          border: 1px solid #3d5248;
+          background: #141f18;
           color: #e2e8f0;
           cursor: pointer;
         }
@@ -2113,30 +2257,30 @@ export default function App() {
           max-height: 160px;
           padding: 10px;
           border-radius: 10px;
-          border: 1px solid #334155;
-          background: #0b1221;
+          border: 1px solid #3d5248;
+          background: #101914;
           color: #fff;
           font-family: inherit;
         }
 
         .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
-        .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
+        .ticker-wrap { margin-bottom: 12px; border: 1px solid #2a3d34; border-radius: 10px; background: #101914; overflow: hidden; }
         .ticker-track { display: flex; gap: 20px; width: max-content; padding: 10px 0; animation: scrollDeals 35s linear infinite; }
         .ticker-track:hover { animation-play-state: paused; }
         .ticker-item { white-space: nowrap; font-size: .86rem; color: #cbd5e1; }
         .ticker-item strong { color: var(--accent-text); margin-left: 8px; }
         .market-flash-line {
           margin: 0; flex: 1; min-width: 180px;
-          background: rgba(93, 189, 154, 0.06); border: 1px solid rgba(93, 189, 154, 0.22); border-radius: 10px;
+          background: rgba(124, 205, 156, 0.06); border: 1px solid rgba(124, 205, 156, 0.22); border-radius: 10px;
           padding: 11px 13px; color: #ccfbf1; font-size: .9rem;
         }
         .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
-        .terminal-metric { background: #0b1221; border: 1px solid #1f2937; border-radius: 8px; padding: 8px 10px; }
+        .terminal-metric { background: #101914; border: 1px solid #2a3d34; border-radius: 8px; padding: 8px 10px; }
         .terminal-metric strong { color: var(--accent-text); display: block; font-size: 1.05rem; }
         .terminal-metric span { color: #94a3b8; font-size: .76rem; }
         .deal-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
         .deal-chip-btn {
-          border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
+          border: 1px solid #3d5248; background: #141f18; color: #cbd5e1; border-radius: 999px;
           padding: 5px 10px; font-size: .74rem; cursor: pointer;
         }
         .deal-chip-btn.active { border-color: var(--accent); color: var(--accent-text); background: var(--accent-muted); }
@@ -2145,8 +2289,8 @@ export default function App() {
           animation: pulseDot 1.6s infinite;
         }
         @keyframes pulseDot {
-          0% { box-shadow: 0 0 0 0 rgba(93, 189, 154, .45); }
-          100% { box-shadow: 0 0 0 10px rgba(93, 189, 154, 0); }
+          0% { box-shadow: 0 0 0 0 rgba(124, 205, 156, .45); }
+          100% { box-shadow: 0 0 0 10px rgba(124, 205, 156, 0); }
         }
         .pulse-toolbar {
           display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
@@ -2154,19 +2298,35 @@ export default function App() {
         .search-wrap { position: relative; width: min(100%, 480px); flex: 1; }
         .search-wrap input {
           width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; outline: none;
-          background: #1e293b; color: #fff; border: 1px solid #334155;
+          background: #1a2820; color: #fff; border: 1px solid #3d5248;
         }
         .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
 
         .muted { color: var(--text-muted); }
         .green-note { color: var(--accent-text); font-weight: 700; }
         .contact-panel {
-          background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 16px;
+          background: rgba(20, 31, 24, 0.82);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 14px;
+          margin-top: 16px;
+          backdrop-filter: blur(8px);
         }
+        .season-cal-month-card {
+          margin-top: 0;
+          overflow: hidden;
+          transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+        .season-cal-month-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38);
+          border-color: rgba(124, 205, 156, 0.42);
+        }
+        .season-cal-crop-btn { display: inline-flex; align-items: center; gap: 8px; }
 
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-grid input, .form-grid select, .form-grid textarea {
-          width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff;
+          width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #3d5248; background: #1a2820; color: #fff;
           font-family: inherit;
         }
         .search-wrap input:focus-visible,
@@ -2174,13 +2334,13 @@ export default function App() {
         .form-grid select:focus-visible,
         .form-grid textarea:focus-visible,
         .assistant-input-row textarea:focus-visible {
-          outline: 2px solid rgba(93, 189, 154, 0.65);
+          outline: 2px solid rgba(124, 205, 156, 0.65);
           outline-offset: 2px;
           border-color: var(--accent-border);
         }
 
         .btn-mini {
-          background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 8px;
+          background: transparent; color: #94a3b8; border: 1px solid #3d5248; border-radius: 8px;
           padding: 5px 9px; cursor: pointer; font-size: .76rem;
         }
         .chat-actions {
@@ -2192,15 +2352,27 @@ export default function App() {
         }
 
         .clients-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
-        .client-list { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
+        .client-list {
+          background: rgba(20, 31, 24, 0.82);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 10px;
+          backdrop-filter: blur(8px);
+        }
         .client-list-item {
-          width: 100%; text-align: left; border: 1px solid transparent; background: #0f172a; color: #fff;
+          width: 100%; text-align: left; border: 1px solid transparent; background: #141f18; color: #fff;
           padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
         }
         .client-list-item.active { border-color: var(--accent); background: var(--accent-muted); }
-        .client-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+        .client-card {
+          background: rgba(20, 31, 24, 0.82);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 16px;
+          backdrop-filter: blur(8px);
+        }
         .client-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-        .meta-kv { background: #0f172a; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; }
+        .meta-kv { background: #141f18; border: 1px solid #2a3d34; border-radius: 10px; padding: 10px; }
         .status-pill {
           display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
           background: var(--accent-muted); color: var(--accent-text);
@@ -2213,7 +2385,7 @@ export default function App() {
         .client-list-item:focus-visible,
         .mobile-nav-btn:focus-visible,
         .footer-link-btn:focus-visible {
-          outline: 2px solid rgba(93, 189, 154, 0.65);
+          outline: 2px solid rgba(124, 205, 156, 0.65);
           outline-offset: 2px;
         }
         .mobile-nav { display: none; }
@@ -2246,8 +2418,8 @@ export default function App() {
             right: 10px;
             bottom: 10px;
             z-index: 160;
-            background: rgba(15, 23, 42, 0.98);
-            border: 1px solid #334155;
+            background: rgba(14, 22, 18, 0.97);
+            border: 1px solid #3d5248;
             border-radius: 14px;
             padding: 8px;
             display: flex;
@@ -2275,7 +2447,7 @@ export default function App() {
           }
           .mobile-nav-btn {
             border: 1px solid transparent;
-            background: #0b1221;
+            background: #101914;
             color: #cbd5e1;
             border-radius: 10px;
             padding: 8px 4px;
@@ -2341,7 +2513,7 @@ export default function App() {
 			</a>
 			<nav className="nav" aria-label={tr.navPrimaryAria}>
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="#5dbd9a" size={24} aria-hidden />
+					<Leaf color="#7ccd9c" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2521,7 +2693,7 @@ export default function App() {
 
 			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
-				<section className="section hero">
+				<section className="section hero landing-hero">
 					<h1 className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2543,7 +2715,7 @@ export default function App() {
 							const Icon = f.icon;
 							return (
 								<div className="ai-card" key={f.title}>
-									<Icon color="#5dbd9a" size={20} />
+									<Icon color="#7ccd9c" size={20} />
 									<h4>{f.title}</h4>
 									<p>{f.text}</p>
 								</div>
@@ -2554,7 +2726,7 @@ export default function App() {
 					<div style={{ marginTop: 24 }}>
 						<p
 							style={{
-								color: '#5dbd9a',
+								color: '#7ccd9c',
 								letterSpacing: 2,
 								fontSize: '.75rem',
 								fontWeight: 700,
@@ -2593,19 +2765,19 @@ export default function App() {
 											}}>
 											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
 										</span>
-										<strong style={{ color: '#5dbd9a' }}>+{deal.profit}%</strong>
+										<strong style={{ color: '#7ccd9c' }}>+{deal.profit}%</strong>
 									</div>
 									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
 									<div
 										className="muted"
 										style={{
-											background: '#0b1221',
+											background: '#101914',
 											padding: 8,
 											borderRadius: 8,
 											fontSize: '.84rem',
 										}}>
 										<div>📦 {deal.packaging}</div>
-										<div style={{ color: '#5dbd9a', marginTop: 4 }}>
+										<div style={{ color: '#7ccd9c', marginTop: 4 }}>
 											📜 {deal.certification}
 										</div>
 									</div>
@@ -2812,7 +2984,7 @@ export default function App() {
 						</div>
 						<div
 							style={{
-								color: '#5dbd9a',
+								color: '#7ccd9c',
 								fontWeight: 700,
 								display: 'flex',
 								alignItems: 'center',
@@ -2960,8 +3132,8 @@ export default function App() {
 									width: 56,
 									padding: '4px 6px',
 									borderRadius: 8,
-									border: '1px solid #334155',
-									background: '#0f172a',
+									border: '1px solid #3d5248',
+									background: '#141f18',
 									color: '#fff',
 								}}
 							/>
@@ -2989,7 +3161,7 @@ export default function App() {
 												}}>
 												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 											</span>
-											<strong style={{ color: '#5dbd9a' }}>
+											<strong style={{ color: '#7ccd9c' }}>
 												+{deal.profit}%
 											</strong>
 										</div>
@@ -3000,14 +3172,14 @@ export default function App() {
 										<div
 											className="muted"
 											style={{
-												background: '#0b1221',
+												background: '#101914',
 												marginTop: 8,
 												borderRadius: 8,
 												padding: 8,
 												fontSize: '.84rem',
 											}}>
 											<div>📦 {deal.packaging}</div>
-											<div style={{ color: '#5dbd9a', marginTop: 3 }}>
+											<div style={{ color: '#7ccd9c', marginTop: 3 }}>
 												📜 {deal.certification}
 											</div>
 											<div style={{ marginTop: 3 }}>
@@ -3039,7 +3211,7 @@ export default function App() {
 												style={{
 													color:
 														deal.decision === 'BUY'
-															? '#5dbd9a'
+															? '#7ccd9c'
 															: deal.decision === 'HOLD'
 																? '#f59e0b'
 																: '#ef4444',
@@ -3090,16 +3262,38 @@ export default function App() {
 			)}
 
 			{view === 'assistant' && (
-				<section className="section">
-					<button
-						type="button"
-						className="btn btn-outline"
-						style={{ marginBottom: 14 }}
-						onClick={() => setView('market')}>
-						<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
-					</button>
+				<section className="section assistant-route">
+					<div className="assistant-route-actions">
+						<button
+							type="button"
+							className="btn btn-outline"
+							style={{ marginBottom: 0 }}
+							onClick={() => setView('market')}>
+							<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
+						</button>
+						<div className="assistant-route-actions-group">
+							<button
+								type="button"
+								className="btn-mini"
+								aria-expanded={!assistantToolbarCollapsed}
+								onClick={() => setAssistantToolbarCollapsed(v => !v)}>
+								{assistantToolbarCollapsed ? (
+									<>
+										<ChevronDown size={14} aria-hidden /> {tr.assistantExpandTools}
+									</>
+								) : (
+									<>
+										<ChevronUp size={14} aria-hidden /> {tr.assistantCollapseTools}
+									</>
+								)}
+							</button>
+							<button type="button" className="btn btn-outline" onClick={() => setView('landing')}>
+								<X size={16} aria-hidden /> {tr.assistantCloseChat}
+							</button>
+						</div>
+					</div>
 					<h2 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-						<MessageSquare color="#5dbd9a" size={26} aria-hidden />
+						<MessageSquare color="#7ccd9c" size={26} aria-hidden />
 						{tr.assistantTitle}
 					</h2>
 					<p className="muted" style={{ margin: '0 0 8px', maxWidth: 720 }}>
@@ -3143,89 +3337,103 @@ export default function App() {
 						</div>
 					)}
 					<div className="contact-panel assistant-workbench">
-						<div className="assistant-panel-head">
-							<div className="deal-actions assistant-persona-row" style={{ flexWrap: 'wrap' }}>
-								{(
-									[
-										['unified', tr.personaUnified],
-										['lawyer', tr.personaLawyer],
-										['agronomist', tr.personaAgronomist],
-										['finance', tr.personaFinance],
-									] as const
-								).map(([id, label]) => (
-									<button
-										key={id}
-										type="button"
-										className={`deal-chip-btn${chatPersona === id ? ' active' : ''}`}
-										onClick={() => setChatPersona(id)}>
-										{label}
-									</button>
-								))}
-							</div>
-							<div className="chat-actions" style={{ marginBottom: 8 }}>
-								<span className="muted" style={{ fontSize: '.8rem' }}>
-									{tr.chatPromptsLabel}
-								</span>
-								<button type="button" className="btn-mini" onClick={() => setChatMessages([])}>
-									{tr.chatClear}
-								</button>
-							</div>
-							<p className="assistant-prompts-scroll-hint">{tr.chatPromptsScrollHint}</p>
-							<div
-								className="deal-actions assistant-quick-prompts-scroll"
-								style={{ marginBottom: 10 }}
-								role="region"
-								aria-label={tr.chatPromptsLabel}>
-								{quickPrompts.map(prompt => (
-									<button
-										key={prompt}
-										type="button"
-										className="deal-chip-btn"
-										onClick={() => applyQuickPrompt(prompt)}>
-										{prompt}
-									</button>
-								))}
-							</div>
-							{assistantNotice && (
-								<p
-									className="muted"
-									style={{
-										margin: '0 0 10px',
-										fontSize: '.82rem',
-										color: '#99f6e4',
-										lineHeight: 1.45,
-									}}>
-									{assistantNotice}
-								</p>
-							)}
-							{demoSessionEmail && (
-								<div className="assistant-doc-toolbar">
-									<input
-										ref={docImageInputRef}
-										type="file"
-										hidden
-										accept="image/jpeg,image/png,image/webp,image/gif"
-										onChange={onDocImageChange}
-									/>
-									<button
-										type="button"
-										className="btn btn-outline"
-										style={{ fontSize: '.82rem', padding: '8px 12px' }}
-										disabled={docExplainLoading || chatLoading}
-										onClick={() => docImageInputRef.current?.click()}>
-										<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-										{docExplainLoading ? (
-											<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-												<Loader2 size={14} className="spin" aria-hidden />
-												…
-											</span>
-										) : (
-											tr.chatExplainDoc
-										)}
+						{!assistantToolbarCollapsed ? (
+							<div className="assistant-panel-head">
+								<div className="deal-actions assistant-persona-row" style={{ flexWrap: 'wrap' }}>
+									{(
+										[
+											['unified', tr.personaUnified],
+											['lawyer', tr.personaLawyer],
+											['agronomist', tr.personaAgronomist],
+											['finance', tr.personaFinance],
+										] as const
+									).map(([id, label]) => (
+										<button
+											key={id}
+											type="button"
+											className={`deal-chip-btn${chatPersona === id ? ' active' : ''}`}
+											onClick={() => setChatPersona(id)}>
+											{label}
+										</button>
+									))}
+								</div>
+								<div className="chat-actions" style={{ marginBottom: 8 }}>
+									<span className="muted" style={{ fontSize: '.8rem' }}>
+										{tr.chatPromptsLabel}
+									</span>
+									<button type="button" className="btn-mini" onClick={() => setChatMessages([])}>
+										{tr.chatClear}
 									</button>
 								</div>
-							)}
-						</div>
+								<p className="assistant-prompts-scroll-hint">{tr.chatPromptsScrollHint}</p>
+								<div
+									className="deal-actions assistant-quick-prompts-scroll"
+									style={{ marginBottom: 10 }}
+									role="region"
+									aria-label={tr.chatPromptsLabel}>
+									{quickPrompts.map(prompt => (
+										<button
+											key={prompt}
+											type="button"
+											className="deal-chip-btn"
+											onClick={() => applyQuickPrompt(prompt)}>
+											{prompt}
+										</button>
+									))}
+								</div>
+								{assistantNotice && (
+									<p
+										className="muted"
+										style={{
+											margin: '0 0 10px',
+											fontSize: '.82rem',
+											color: '#99f6e4',
+											lineHeight: 1.45,
+										}}>
+										{assistantNotice}
+									</p>
+								)}
+							</div>
+						) : null}
+						{demoSessionEmail && (
+							<div className="assistant-doc-toolbar">
+								<input
+									ref={docImageInputRef}
+									type="file"
+									hidden
+									accept="image/jpeg,image/png,image/webp,image/gif"
+									onChange={onDocImageChange}
+								/>
+								<button
+									type="button"
+									className="btn btn-outline"
+									style={{ fontSize: '.82rem', padding: '8px 12px' }}
+									disabled={docExplainLoading || chatLoading}
+									onClick={() => docImageInputRef.current?.click()}>
+									<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+									{docExplainLoading ? (
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+											<Loader2 size={14} className="spin" aria-hidden />
+											…
+										</span>
+									) : (
+										tr.chatExplainDoc
+									)}
+								</button>
+							</div>
+						)}
+						{assistantToolbarCollapsed && assistantNotice ? (
+							<p
+								className="muted"
+								style={{
+									margin: '0 0 10px',
+									fontSize: '.82rem',
+									color: '#99f6e4',
+									lineHeight: 1.45,
+								}}>
+								{assistantNotice}
+							</p>
+						) : null}
 						<div className="assistant-msgs" aria-live="polite">
 							{chatMessages.map((m, idx) => (
 								<div key={`${idx}-${m.role}`} className={`assistant-bubble ${m.role}`}>
@@ -3328,7 +3536,7 @@ export default function App() {
 													}}>
 													{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 												</span>
-												<strong style={{ color: '#5dbd9a' }}>
+												<strong style={{ color: '#7ccd9c' }}>
 													+{deal.profit}%
 												</strong>
 											</div>
@@ -3339,14 +3547,14 @@ export default function App() {
 											<div
 												className="muted"
 												style={{
-													background: '#0b1221',
+													background: '#101914',
 													marginTop: 8,
 													borderRadius: 8,
 													padding: 8,
 													fontSize: '.84rem',
 												}}>
 												<div>📦 {deal.packaging}</div>
-												<div style={{ color: '#5dbd9a', marginTop: 3 }}>
+												<div style={{ color: '#7ccd9c', marginTop: 3 }}>
 													📜 {deal.certification}
 												</div>
 												<div style={{ marginTop: 3 }}>
@@ -3713,12 +3921,12 @@ export default function App() {
 			{view === 'company' && (
 				<section className="section">
 					<h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<Building2 size={22} color="#5dbd9a" /> {tr.companyTitle}
+						<Building2 size={22} color="#7ccd9c" /> {tr.companyTitle}
 					</h2>
 					<p className="muted">{tr.companySubtitle}</p>
 					<div className="contact-panel">
 						<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Globe2 size={16} color="#5dbd9a" /> {tr.companyRegions}
+							<Globe2 size={16} color="#7ccd9c" /> {tr.companyRegions}
 						</p>
 						<p
 							style={{
@@ -3727,7 +3935,7 @@ export default function App() {
 								alignItems: 'center',
 								gap: 8,
 							}}>
-							<Mail size={16} color="#5dbd9a" /> info@agrinexus.eu
+							<Mail size={16} color="#7ccd9c" /> info@agrinexus.eu
 						</p>
 					</div>
 				</section>

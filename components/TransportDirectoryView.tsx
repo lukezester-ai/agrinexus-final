@@ -92,7 +92,7 @@ export function TransportDirectoryView({ tr }: Props) {
 	return (
 		<section className="section">
 			<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-				<Truck size={26} color="#5dbd9a" aria-hidden />
+				<Truck size={26} color="#7ccd9c" aria-hidden />
 				{tr.transportDirTitle}
 			</h2>
 			<p className="muted" style={{ marginTop: 10 }}>
@@ -117,7 +117,7 @@ export function TransportDirectoryView({ tr }: Props) {
 						href={EU_AGRI_OUTLOOK_URL}
 						target="_blank"
 						rel="noopener noreferrer"
-						style={{ color: '#38bdf8' }}>
+						style={{ color: '#6ebf9e' }}>
 						{tr.transportOutlookSourceLink}
 					</a>
 				</p>
@@ -128,11 +128,11 @@ export function TransportDirectoryView({ tr }: Props) {
 				style={{
 					marginTop: 20,
 					marginBottom: 24,
-					borderColor: 'rgba(93, 189, 154, 0.35)',
-					background: 'linear-gradient(165deg, rgba(45,212,191,0.08) 0%, rgba(15,23,42,0.35) 100%)',
+					borderColor: 'rgba(124, 205, 156, 0.35)',
+					background: 'linear-gradient(165deg, rgba(124,205,156,0.1) 0%, rgba(12,22,17,0.42) 100%)',
 				}}>
 				<h3 style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.05rem' }}>
-					<UserPlus size={18} color="#5dbd9a" aria-hidden />
+					<UserPlus size={18} color="#7ccd9c" aria-hidden />
 					{tr.transportDirRegisterTitle}
 				</h3>
 				<form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -248,8 +248,8 @@ export function TransportDirectoryView({ tr }: Props) {
 							minWidth: 0,
 							padding: '11px 12px',
 							borderRadius: 10,
-							border: '1px solid #334155',
-							background: '#1e293b',
+							border: '1px solid #3d5248',
+							background: '#1a2820',
 							color: '#fff',
 							fontFamily: 'inherit',
 						}}
@@ -273,7 +273,7 @@ export function TransportDirectoryView({ tr }: Props) {
 							className="contact-panel"
 							style={{
 								margin: 0,
-								borderColor: 'rgba(93, 189, 154, 0.22)',
+								borderColor: 'rgba(124, 205, 156, 0.22)',
 							}}>
 							<div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 }}>
 								<h4 style={{ margin: 0, fontSize: '1.05rem' }}>{c.companyName}</h4>
@@ -282,11 +282,11 @@ export function TransportDirectoryView({ tr }: Props) {
 								</span>
 							</div>
 							<p className="muted" style={{ margin: '8px 0 6px', fontSize: '.9rem' }}>
-								<MapPin size={14} style={{ verticalAlign: '-2px', marginInlineEnd: 6 }} color="#5dbd9a" />
+								<MapPin size={14} style={{ verticalAlign: '-2px', marginInlineEnd: 6 }} color="#7ccd9c" />
 								{c.coverage || '—'}
 							</p>
 							<p className="muted" style={{ margin: '0 0 6px', fontSize: '.9rem' }}>
-								<Package size={14} style={{ verticalAlign: '-2px', marginInlineEnd: 6 }} color="#5dbd9a" />
+								<Package size={14} style={{ verticalAlign: '-2px', marginInlineEnd: 6 }} color="#7ccd9c" />
 								{c.fleetHint || '—'}
 							</p>
 							{c.notes ? (
@@ -319,8 +319,8 @@ export function TransportDirectoryView({ tr }: Props) {
 					fontSize: '.85rem',
 					padding: '12px 14px',
 					borderRadius: 8,
-					background: 'rgba(93, 189, 154, 0.06)',
-					border: '1px solid rgba(93, 189, 154, 0.22)',
+					background: 'rgba(124, 205, 156, 0.06)',
+					border: '1px solid rgba(124, 205, 156, 0.22)',
 					lineHeight: 1.55,
 				}}>
 				{tr.transportDirDisclaimer}

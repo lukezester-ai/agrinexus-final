@@ -88,7 +88,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 					marginBottom: 16,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<BarChart3 size={26} color="#5dbd9a" aria-hidden />
+					<BarChart3 size={26} color="#7ccd9c" aria-hidden />
 					{tr.cropStatsTitle}
 				</h2>
 			</div>
@@ -121,10 +121,10 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 			<div
 				className="contact-panel"
 				style={{
-					borderColor: 'rgba(93, 189, 154, 0.35)',
+					borderColor: 'rgba(124, 205, 156, 0.35)',
 					padding: '16px 12px 8px',
 					marginBottom: 20,
-					background: 'linear-gradient(165deg, rgba(45,212,191,0.07) 0%, rgba(15,23,42,0.4) 100%)',
+					background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.48) 100%)',
 				}}>
 				<div style={{ width: '100%', height: 340 }}>
 					<ResponsiveContainer width="100%" height="100%">
@@ -157,7 +157,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 							/>
 							<Tooltip
 								contentStyle={{
-									background: 'rgba(15,23,42,0.92)',
+									background: 'rgba(14,24,18,0.92)',
 									border: '1px solid rgba(45,212,191,0.35)',
 									borderRadius: 8,
 								}}
@@ -188,9 +188,9 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 								type="monotone"
 								dataKey="fit"
 								name="fit"
-								stroke="#38bdf8"
+								stroke="#6ebf9e"
 								strokeWidth={2.5}
-								dot={{ r: 4, fill: '#38bdf8', strokeWidth: 0 }}
+								dot={{ r: 4, fill: '#6ebf9e', strokeWidth: 0 }}
 								activeDot={{ r: 6 }}
 							/>
 						</ComposedChart>
@@ -213,7 +213,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 						background: 'rgba(56, 189, 248, 0.06)',
 					}}>
 					<h3 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
-						<TrendingUp size={18} color="#38bdf8" aria-hidden />
+						<TrendingUp size={18} color="#6ebf9e" aria-hidden />
 						{tr.cropStatsForecastTitle}
 					</h3>
 					<p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
@@ -272,7 +272,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 								outlook.tone === 'headwind'
 									? '3px solid rgba(251, 146, 60, 0.85)'
 									: outlook.tone === 'tailwind'
-										? '3px solid rgba(93, 189, 154, 0.9)'
+										? '3px solid rgba(124, 205, 156, 0.9)'
 										: '3px solid rgba(148, 163, 184, 0.65)',
 						}}>
 						{outlookNarrative}
@@ -285,11 +285,11 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 					className="contact-panel"
 					style={{
 						margin: 0,
-						borderColor: dry ? 'rgba(251, 146, 60, 0.45)' : 'rgba(93, 189, 154, 0.28)',
-						background: dry ? 'rgba(251, 146, 60, 0.07)' : 'rgba(93, 189, 154, 0.05)',
+						borderColor: dry ? 'rgba(251, 146, 60, 0.45)' : 'rgba(124, 205, 156, 0.28)',
+						background: dry ? 'rgba(251, 146, 60, 0.07)' : 'rgba(124, 205, 156, 0.05)',
 					}}>
 					<h3 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
-						<Droplets size={18} color={dry ? '#fb923c' : '#5dbd9a'} aria-hidden />
+						<Droplets size={18} color={dry ? '#fb923c' : '#7ccd9c'} aria-hidden />
 						{tr.cropStatsIrrigationTitle}
 						{dry ? (
 							<span
@@ -325,8 +325,8 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 					fontSize: '.85rem',
 					padding: '12px 14px',
 					borderRadius: 8,
-					background: 'rgba(93, 189, 154, 0.06)',
-					border: '1px solid rgba(93, 189, 154, 0.22)',
+					background: 'rgba(124, 205, 156, 0.06)',
+					border: '1px solid rgba(124, 205, 156, 0.22)',
 					lineHeight: 1.55,
 					margin: 0,
 				}}>
