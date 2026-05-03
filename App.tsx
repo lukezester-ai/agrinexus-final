@@ -2915,9 +2915,9 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickThree(
 									lang,
-									'Локалният API не отговаря (/api/chat). В папката на проекта пуснете npm run dev — стартират и сайтът, и сървъра на порт 8788 (прокси през Vite). Отворете адреса, който показва терминалът (обикновено http://localhost:3000).',
-									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:3000).',
-									'واجهة API المحلية غير متاحة (/api/chat). من مجلد المشروع شغّل npm run dev — يبدأ الموقع والخادم على المنفذ 8788 (عبر وكيل Vite). افتح الرابط الذي يظهر في الطرفية (غالباً http://localhost:3000).'
+									'Локалният API не отговаря (/api/chat). В папката на проекта пуснете npm run dev — стартират и сайтът, и сървъра на порт 8788 (прокси през Vite). Отворете адреса от терминала (обикновено http://localhost:5173).',
+									'Local API is not reachable (/api/chat). Run npm run dev in the project folder (starts Vite + API on 8788). Open the URL printed in the terminal (usually http://localhost:5173).',
+									'واجهة API المحلية غير متاحة (/api/chat). من مجلد المشروع شغّل npm run dev — يبدأ الموقع والخادم على المنفذ 8788 (عبر وكيل Vite). افتح الرابط الذي يظهر في الطرفية (غالباً http://localhost:5173).'
 								)}
 							</p>
 						</div>
