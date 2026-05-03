@@ -8,6 +8,7 @@ export const STR_AR = {
 	navAssistant: 'مساعد الذكاء الاصطناعي',
 	navSubsidyCalculator: 'حاسبة الدعم',
 	navSeasonCalendar: 'التقويم الموسمي',
+	navTradeDocuments: 'مستندات التجارة (BG)',
 	navClients: 'العملاء',
 	navWatchlist: 'قائمة المراقبة',
 	navLogin: 'تسجيل الدخول',
@@ -262,4 +263,11 @@ export const STR_AR = {
 	commandSeverityHigh: 'عالٍ',
 	commandSeverityMed: 'متوسط',
 	commandNoMissingDocs: 'لا نواقص واضحة من هذه القائمة — راجع مع مستشار.',
+	tradeDocsTitle: 'مستندات الاستيراد/التصدير — بلغاريا',
+	tradeDocsSubtitle:
+		'نظرة عامة بصيغة قوائم للتجار نحو أو من بلغاريا (عضو في الاتحاد الأوروبي). تختلف المتطلبات حسب السلعة والمسار والنظام — يُنصح بمراجعة الجمارك والهيئة البلغارية للسلامة الغذائية والناقل.',
+	tradeDocsTabImport: 'الاستيراد إلى بلغاريا',
+	tradeDocsTabExport: 'التصدير من بلغاريا',
+	tradeDocsDisclaimer:
+		'إرشادات توضيحية فقط — وليست استشارة قانونية. تتغير الرموز والتراخيص والأنظمة؛ تحقق من كل شحنة مع مختصين وبوابات رسمية.',
 } satisfies AppStrings;

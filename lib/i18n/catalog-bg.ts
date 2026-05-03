@@ -8,6 +8,7 @@ export const STR_BG = {
 	navAssistant: 'AI помощник',
 	navSubsidyCalculator: 'Калкулатор субсидии',
 	navSeasonCalendar: 'Сезонен календар',
+	navTradeDocuments: 'Документи внос/износ (БГ)',
 	navClients: 'Клиенти',
 	navWatchlist: 'Списък',
 	navLogin: 'Вход',
@@ -263,4 +264,11 @@ export const STR_BG = {
 	commandSeverityHigh: 'Висок',
 	commandSeverityMed: 'Среден',
 	commandNoMissingDocs: 'От този кратък списък няма очевидни липси — пак провери с консултант.',
+	tradeDocsTitle: 'Документи за внос и износ — България',
+	tradeDocsSubtitle:
+		'Ориентировъчен преглед за търговци при внос в България или износ от България (членка на ЕС). Конкретните изисквания зависят от стоката, маршрута и режима — потвърждавай с Агенция „Митници“, БАБХ и превозвача.',
+	tradeDocsTabImport: 'Внос в България',
+	tradeDocsTabExport: 'Износ от България',
+	tradeDocsDisclaimer:
+		'Само ориентир — не е правен съвет. Кодове, лицензи и системи (ИС УНП / АИС / TRACES / CN) се променят; за всяка пратка потвърждавай с специалисти и официални източници.',
 } satisfies AppStrings;

@@ -6,6 +6,7 @@ export const STR_EN = {
 	navAssistant: 'AI assistant',
 	navSubsidyCalculator: 'Subsidy calculator',
 	navSeasonCalendar: 'Season calendar',
+	navTradeDocuments: 'Trade documents (BG)',
 	navClients: 'Clients',
 	navWatchlist: 'Watchlist',
 	navLogin: 'Sign In',
@@ -260,6 +261,13 @@ export const STR_EN = {
 	commandSeverityHigh: 'High',
 	commandSeverityMed: 'Medium',
 	commandNoMissingDocs: 'No obvious gaps from this short checklist — still verify with an adviser.',
+	tradeDocsTitle: 'Import / export paperwork — Bulgaria',
+	tradeDocsSubtitle:
+		'Checklist-style overview for traders operating from or into Bulgaria (EU member). Requirements vary by commodity, route and regime — confirm with customs (customs.bg), BFSA and your forwarder.',
+	tradeDocsTabImport: 'Import into Bulgaria',
+	tradeDocsTabExport: 'Export from Bulgaria',
+	tradeDocsDisclaimer:
+		'Illustrative guidance only — not legal advice. Codes, licences and systems (IS UNP / AIS / TRACES / CN) change; verify each shipment with qualified advisers and official portals.',
 } as const;
 
 /** Same keys as STR_EN; values are plain strings so BG/AR catalogs type-check. */

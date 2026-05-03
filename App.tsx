@@ -5,6 +5,7 @@ import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
+import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -48,6 +49,7 @@ const {
 	Calculator,
 	CalendarDays,
 	ClipboardList,
+	FileText,
 } = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
@@ -310,6 +312,7 @@ type View =
 	| 'terms'
 	| 'subsidy-calculator'
 	| 'season-calendar'
+	| 'trade-documents'
 	| 'command';
 
 type ClientProfile = {
@@ -2314,6 +2317,12 @@ export default function App() {
 						onClick={() => setView('season-calendar')}>
 						<CalendarDays size={14} aria-hidden /> {tr.navSeasonCalendar}
 					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'trade-documents' ? 'active' : ''}`}
+						onClick={() => setView('trade-documents')}>
+						<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
+					</button>
 					{!MVP_MODE && (
 						<>
 							<button
@@ -2476,6 +2485,12 @@ export default function App() {
 							className="btn btn-outline"
 							onClick={() => setView('season-calendar')}>
 							<CalendarDays size={16} aria-hidden /> {tr.navSeasonCalendar}
+						</button>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView('trade-documents')}>
+							<FileText size={16} aria-hidden /> {tr.navTradeDocuments}
 						</button>
 					</div>
 
@@ -3428,6 +3443,8 @@ export default function App() {
 				/>
 			)}
 
+			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
+
 			{view === 'privacy' && (
 				<section className="section legal-section">
 					<h2>{tr.privacyTitle}</h2>
@@ -3675,6 +3692,13 @@ export default function App() {
 							onClick={() => setView('season-calendar')}>
 							<CalendarDays size={16} aria-hidden />
 							{tr.navSeasonCalendar}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}
+							onClick={() => setView('trade-documents')}>
+							<FileText size={16} aria-hidden />
+							{tr.navTradeDocuments}
 						</button>
 					</div>
 				</div>
