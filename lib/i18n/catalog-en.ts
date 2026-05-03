@@ -19,7 +19,7 @@ export const STR_EN = {
 	brandHomeAria: 'AgriNexus — home',
 	langAria: 'Switch language',
 	heroSub:
-		'Domain-specific AI layer for agricultural trading in Europe and MENA — BUY/HOLD/AVOID and deal workflow in one place. The roadmap targets exchange feeds and consolidated corridor pricing; what you see today is an illustrative demo catalog, not live exchange quotes.',
+		'AgriNexus is a global agri-food workspace: trade orientation with BUY/HOLD/AVOID signals, market views, and modules for compliance deadlines, crop analytics, import/export paperwork, and freight partners—together with a domain-tuned AI assistant that blends legal, agronomic, and financial guidance for your context. Exchange-linked feeds and consolidated corridor pricing are on the roadmap; the catalog and figures you see today remain an illustrative demo, not live quotes.',
 	createAccount: 'Create your account',
 	livePreview: 'Market preview (demo)',
 	activeOpps: 'Active Trade Opportunities',
@@ -50,7 +50,7 @@ export const STR_EN = {
 	estMargin: 'Estimated margin',
 	coverageTitle: 'Coverage capacity',
 	coverageBody:
-		'Multi-country supply and demand across EU + MENA in the demo catalog. BUY/HOLD/AVOID follows your filters and the rows shown — when exchange feeds are connected, those estimates will reflect live data.',
+		'The demo catalog spans origins and destinations worldwide. BUY/HOLD/AVOID is an orientation from your filters and the rows shown — when real exchange or vendor feeds are connected, those estimates can switch to live-driven signals.',
 	watchlistTitle: 'Watchlist',
 	watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
 	watchlistStorageHint:
@@ -58,7 +58,8 @@ export const STR_EN = {
 	watchlistTabSaved: 'Saved deals',
 	watchlistTabCabinet: 'My cabinet',
 	cabinetTitle: 'Trading cabinet',
-	cabinetSubtitle: 'Quick access to core modules for clients and the marketplace.',
+	cabinetSubtitle:
+		'Quick access to core modules—clients, marketplace, AI assistant, farmer tools, logistics, and analytics.',
 	cabinetSavedCount: 'Saved deals',
 	cabinetAlertsCount: 'Active alerts',
 	cabinetLastSaved: 'Last saved deal',
@@ -77,7 +78,7 @@ export const STR_EN = {
 	marketPulse: 'Market pulse (demo)',
 	assistantTitle: 'AI assistant',
 	assistantSubtitle:
-		'Farmer OS mode: paperwork and DAFS/ISUN first, then legal risk, field practice, and money/market. Trade rows still apply to corridor questions.',
+		'Farmer OS mode for global agri-food work: paperwork and DAFS/ISUN first, then legal risk, field practice, and economics/markets. Marketplace rows still anchor trade and corridor questions.',
 	assistantTriadHint:
 		'Choose a focus — the model still cross-links roles. "Team" balances all three in one answer.',
 	personaUnified: 'Team',
@@ -146,8 +147,8 @@ export const STR_EN = {
 	loginSignOutCloud: 'Sign out (cloud)',
 	companyTitle: 'AgriNexus - Company Card',
 	companySubtitle:
-		'Domain-specific AI layer for agricultural trade optimization (Europe / MENA). Roadmap: exchange and vendor price feeds, buyer–seller matching, predictive pricing, and trade alerts.',
-	companyRegions: 'Regions: Europe / MENA',
+		'A domain-tuned AI layer for global agri-food trade. Roadmap: exchange and reference price feeds, buyer–seller matching, predictive pricing, and alerts—beyond today’s demonstration experience.',
+	companyRegions: 'Regions: worldwide corridors (Europe, MENA, Americas, Asia & beyond)',
 	clientsTitle: 'Client Portfolio',
 	clientsSubtitle:
 		'Professional profile page for each client with decision context, certifications and trading preferences.',
@@ -158,7 +159,7 @@ export const STR_EN = {
 	clientMonthlyVolume: 'Monthly volume',
 	clientInternalNotes: 'Internal notes',
 	clientCardLabel: 'Digital business card',
-	footerRightsTagline: 'Illustrative EU ↔ MENA agricultural trade workspace.',
+	footerRightsTagline: 'Illustrative global agri-food trade and farmer workspace.',
 	footerPrivacy: 'Privacy',
 	footerTerms: 'Terms',
 	privacyTitle: 'Privacy policy',
