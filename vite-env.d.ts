@@ -7,6 +7,8 @@ interface ImportMetaEnv {
 	readonly VITE_SUPABASE_URL?: string;
 	/** Supabase anon key (public) */
 	readonly VITE_SUPABASE_ANON_KEY?: string;
+	/** Canonical site URL for links/PDF (e.g. https://agrinexus.eu.com or http://localhost:5173) */
+	readonly VITE_SITE_URL?: string;
 }
 
 interface ImportMeta {
