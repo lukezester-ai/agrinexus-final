@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Download, FileText, Package, Ship } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import {
+	TRADE_AGENT_CONTRACT_PROFORMA_PDF,
 	TRADE_CONTRACTS_LC_ODBH_PDF,
 	TRADE_DOCS_EXPORT_BG,
 	TRADE_DOCS_IMPORT_BG,
 	TRADE_EXPORT_HANDBOOK_PDF,
+	TRADE_IMPORT_EXPORT_OVERVIEW_PDF,
 	pickLocalized,
 	type TradeDocSection,
 } from '../lib/trade-documents-data';
@@ -94,6 +96,57 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					<Package size={16} aria-hidden /> {tr.tradeDocsTabExport}
 				</button>
 			</div>
+
+			{tab === 'import' ? (
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
+					<div
+						className="contact-panel"
+						style={{
+							borderColor: 'rgba(124, 205, 156, 0.38)',
+							background: 'rgba(124, 205, 156, 0.06)',
+							margin: 0,
+						}}>
+						<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+							<Download size={20} color="#7ccd9c" aria-hidden />
+							{tr.tradeDocsImportOverviewTitle}
+						</h3>
+						<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.55, fontSize: '.9rem' }}>
+							{tr.tradeDocsImportOverviewBody}
+						</p>
+						<a
+							href={TRADE_IMPORT_EXPORT_OVERVIEW_PDF}
+							download
+							className="btn btn-primary"
+							style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+							<Download size={16} aria-hidden />
+							{tr.tradeDocsImportOverviewCta}
+						</a>
+					</div>
+					<div
+						className="contact-panel"
+						style={{
+							borderColor: 'rgba(212, 184, 118, 0.38)',
+							background: 'rgba(212, 184, 118, 0.06)',
+							margin: 0,
+						}}>
+						<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+							<Download size={20} color="#d4b876" aria-hidden />
+							{tr.tradeDocsAgentProformaTitle}
+						</h3>
+						<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.55, fontSize: '.9rem' }}>
+							{tr.tradeDocsAgentProformaBody}
+						</p>
+						<a
+							href={TRADE_AGENT_CONTRACT_PROFORMA_PDF}
+							download
+							className="btn btn-outline"
+							style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+							<Download size={16} aria-hidden />
+							{tr.tradeDocsAgentProformaCta}
+						</a>
+					</div>
+				</div>
+			) : null}
 
 			{tab === 'export' ? (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>

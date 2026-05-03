@@ -310,6 +310,15 @@ export const STR_EN = {
 	tradeDocsContractsLcBody:
 		'May 2026 practical sheet: structure of export sale contracts, bilingual clause examples (subject matter, quality, price/L/C, documents), Letter of Credit basics under UCP 600, document checklist and common discrepancies, plus regional Food Safety Directorate (ODBH under BFSA) contacts and border phytosanitary inspection points. Based on ICC Incoterms 2020 / GAFTA / FOSFA patterns — not legal advice; verify contacts on bfsa.egov.bg.',
 	tradeDocsContractsLcCta: 'Download PDF (BG)',
+	tradeDocsImportOverviewTitle: 'Import/export checklist overview (PDF)',
+	tradeDocsImportOverviewBody:
+		'Bulgarian practical overview covering registrations, VAT/EORI angles, customs declarations, phytosanitary/TRACES where relevant, and common documents — illustrative; confirm each lane with customs and BFSA.',
+	tradeDocsImportOverviewCta: 'Download PDF (BG)',
+	tradeDocsAgentProformaTitle: 'Agency contract — proforma notes (PDF)',
+	tradeDocsAgentProformaBody:
+		'Working notes and sample angles for commercial agency arrangements around agri-food trade — not a substitute for counsel; adapt clauses to your case and governing law.',
+	tradeDocsAgentProformaCta: 'Download PDF (BG)',
+	assistantPersonaPromptSuffix: 'Ask below or tap a quick prompt to send.',
 	cropStatsTitle: 'Bulgaria crop production — 5-year view & outlook',
 	cropStatsSubtitle:
 		'Pick a crop to see an illustrative five-year production chart (kt), a simple linear trend line, and a next-year numeric outlook. Drought emphasis uses a heuristic on the demo series — replace with NSI / Eurostat / API feeds for production use.',

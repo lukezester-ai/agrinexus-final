@@ -19,6 +19,12 @@ export const TRADE_EXPORT_HANDBOOK_PDF = '/docs/iznos-bg-es-turcia-egipet-2026-0
 /** Примерни договорни клаузи, L/C и контакти ОДБХ (BG PDF). */
 export const TRADE_CONTRACTS_LC_ODBH_PDF = '/docs/dogovori-lc-odbh-2026-05.pdf';
 
+/** Ориентировъчен преглед внос/износ България (BG PDF). */
+export const TRADE_IMPORT_EXPORT_OVERVIEW_PDF = '/docs/dokumenti-vnos-iznos-bg.pdf';
+
+/** Проформа / бележки по агентски договор (BG PDF). */
+export const TRADE_AGENT_CONTRACT_PROFORMA_PDF = '/docs/dogovor-agenti-proforma.pdf';
+
 /** Внос в България — ориентировъчен списък (не замества консултация с митник / БАБХ). */
 export const TRADE_DOCS_IMPORT_BG: TradeDocSection[] = [
 	{

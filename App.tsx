@@ -49,6 +49,11 @@ import {
 import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
 import { recordBrowserVisitOncePerSession } from './lib/track-browser-visit';
 import type { ChatPersona } from './lib/chat-persona';
+import {
+	ASSISTANT_QUICK_PROMPTS,
+	type AssistantQuickPromptItem,
+	quickPromptLabel,
+} from './lib/assistant-quick-actions';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
@@ -205,6 +210,8 @@ function safeSessionRemove(key: string): void {
 }
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
+
+type SendChatOpts = { text?: string; persona?: ChatPersona };
 
 /** Minimal typings — DOM lib does not always expose Web Speech API types. */
 type SpeechRecognitionResultEvt = {
@@ -370,26 +377,6 @@ const MARKET_FLASH_BG = [
 	'Илюстративно: коридор доматено пюре TR → KSA с по-тесни спредове в демо сценария.',
 	'Илюстративно: оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене (демо).',
 	'Илюстративно: премиум пшенични маршрути към EU — склонност към HOLD заради натиск върху превоза (демо).',
-];
-
-const QUICK_PROMPTS_BG = [
-	'Екип (трите заедно): по моя профил — какво да подам първо, какво липсва, какъв е рискът и струва ли си схемата?',
-	'Юрист: какво точно трябва и не трябва да правя до края на кампанията по единното заявление?',
-	'Агроном: пръскам с фунгицид — какво да впиша в дневника и къде се отразява в документацията за ДФЗ?',
-	'Финансист: при моите декари и фиксирани разходи — струва ли си конкретна схема спрямо очакваното плащане?',
-	'Дай BUY/HOLD/AVOID за домати България → UAE.',
-	'Кои сертификати са критични за export към KSA?',
-	'Бърз risk-check за EU → MENA маршрут.',
-];
-
-const QUICK_PROMPTS_EN = [
-	'All three together: from my profile — what to file first, what is missing, risks, and is the scheme worth it?',
-	'Lawyer focus: what must/must not I do before the single-application campaign deadline?',
-	'Agronomist focus: I spray fungicide — what to log and how it shows in DAFS paperwork?',
-	'Finance focus: given my hectares and fixed costs — is this scheme worth it vs expected payment?',
-	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
-	'Which certifications matter most for export to KSA?',
-	'Quick risk-check for EU → MENA route.',
 ];
 
 const CLIENT_PROFILES: ClientProfile[] = [
@@ -1283,8 +1270,9 @@ export default function App() {
 		setNextUpdate(30 * 60);
 	};
 
-	const sendChat = useCallback(async () => {
-		const trimmed = chatInput.trim();
+	const sendChat = useCallback(async (opts?: SendChatOpts) => {
+		const trimmed = (opts?.text ?? chatInput).trim();
+		const personaForRequest = opts?.persona ?? chatPersona;
 		if (!trimmed || chatLoading) return;
 		chatAbortRef.current?.abort();
 		const controller = new AbortController();
@@ -1306,7 +1294,7 @@ export default function App() {
 				dealContextForAI,
 				lang,
 				controller.signal,
-				chatPersona,
+				personaForRequest,
 				farmerSnap,
 			);
 			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
@@ -1340,6 +1328,16 @@ export default function App() {
 			setChatLoading(false);
 		}
 	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang, chatPersona]);
+
+	const runQuickPrompt = useCallback(
+		(item: AssistantQuickPromptItem) => {
+			if (chatLoading) return;
+			const text = quickPromptLabel(item, lang);
+			setChatPersona(item.persona);
+			void sendChat({ text, persona: item.persona });
+		},
+		[chatLoading, lang, sendChat],
+	);
 
 	const toggleVoiceInput = useCallback(() => {
 		if (!demoSessionEmail) {
@@ -1520,10 +1518,6 @@ export default function App() {
 	}, [chatMessages, chatLoading, view]);
 
 	useEffect(() => () => chatAbortRef.current?.abort(), []);
-
-	const applyQuickPrompt = (prompt: string) => {
-		setChatInput(prompt);
-	};
 
 	useEffect(() => {
 		const media = window.matchMedia('(max-width: 900px)');
@@ -1758,7 +1752,6 @@ export default function App() {
 	}, [lang]);
 
 	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
-	const quickPrompts = lang === 'bg' ? QUICK_PROMPTS_BG : QUICK_PROMPTS_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
 			all: allDeals.length,
@@ -3351,7 +3344,17 @@ export default function App() {
 											key={id}
 											type="button"
 											className={`deal-chip-btn${chatPersona === id ? ' active' : ''}`}
-											onClick={() => setChatPersona(id)}>
+											disabled={chatLoading}
+											onClick={() => {
+												setChatPersona(id);
+												setAssistantNotice(
+													uiPickTwo(
+														lang,
+														`Режим: ${label}. ${tr.assistantPersonaPromptSuffix}`,
+														`Active: ${label}. ${tr.assistantPersonaPromptSuffix}`,
+													),
+												);
+											}}>
 											{label}
 										</button>
 									))}
@@ -3370,13 +3373,14 @@ export default function App() {
 									style={{ marginBottom: 10 }}
 									role="region"
 									aria-label={tr.chatPromptsLabel}>
-									{quickPrompts.map(prompt => (
+									{ASSISTANT_QUICK_PROMPTS.map(item => (
 										<button
-											key={prompt}
+											key={item.id}
 											type="button"
 											className="deal-chip-btn"
-											onClick={() => applyQuickPrompt(prompt)}>
-											{prompt}
+											disabled={chatLoading}
+											onClick={() => runQuickPrompt(item)}>
+											{quickPromptLabel(item, lang)}
 										</button>
 									))}
 								</div>
