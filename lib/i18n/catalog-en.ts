@@ -7,6 +7,8 @@ export const STR_EN = {
 	navSubsidyCalculator: 'Subsidy calculator',
 	navSeasonCalendar: 'Season calendar',
 	navTradeDocuments: 'Trade documents (BG)',
+	navCropStatistics: 'Crop statistics',
+	navTransportDirectory: 'Transport partners',
 	navClients: 'Clients',
 	navWatchlist: 'Watchlist',
 	navLogin: 'Sign In',
@@ -268,6 +270,55 @@ export const STR_EN = {
 	tradeDocsTabExport: 'Export from Bulgaria',
 	tradeDocsDisclaimer:
 		'Illustrative guidance only — not legal advice. Codes, licences and systems (IS UNP / AIS / TRACES / CN) change; verify each shipment with qualified advisers and official portals.',
+	cropStatsTitle: 'Bulgaria crop production — 5-year view & outlook',
+	cropStatsSubtitle:
+		'Pick a crop to see an illustrative five-year production chart (kt), a simple linear trend line, and a next-year numeric outlook. Drought emphasis uses a heuristic on the demo series — replace with NSI / Eurostat / API feeds for production use.',
+	cropStatsPickCrop: 'Crop',
+	cropStatsYAxisKt: '1000 t',
+	cropStatsKtShort: 'kt',
+	cropStatsLegendHarvest: 'Harvest (demo)',
+	cropStatsLegendTrend: 'Linear trend',
+	cropStatsYearLabel: 'Year',
+	cropStatsForecastTitle: 'Next-year outlook (linear model)',
+	cropStatsForecastIntro:
+		'Illustrative forecast for {year}: about {kt} thousand tonnes, extrapolated from the five-year demo trend — not an official forecast.',
+	cropStatsIrrigationTitle: 'Water & irrigation hints',
+	cropStatsDryBadge: 'Dry risk',
+	cropStatsDryLead: 'Dry-pattern emphasis:',
+	cropStatsNormalLead: 'Typical season:',
+	cropStatsNormalIrrigationExtra:
+		'Irrigation is often supplemental; monitor sandy soils and valley frost pockets first when rainfall is near normal.',
+	cropStatsDisclaimer:
+		'All production figures and forecasts are synthetic demo data for UI testing. Do not use for trading or policy decisions — connect official statistics (e.g. NSI, Eurostat, DAFS) before relying on numbers.',
+	transportDirTitle: 'Freight & logistics partners',
+	transportDirSubtitle:
+		'Carriers and forwarders can register their details — producers and traders use the list to request quotes. Demo cards are always shown; with VITE_SUPABASE_* configured and the SQL migration applied, new listings sync to Supabase for everyone. Otherwise they stay in this browser (and under .local/ in local dev).',
+	transportDirRegisterTitle: 'Register your transport company',
+	transportDirCompanyName: 'Company name',
+	transportDirContactName: 'Contact person',
+	transportDirEmail: 'Business email',
+	transportDirPhone: 'Phone',
+	transportDirCoverage: 'Routes / regions covered',
+	transportDirCoveragePh: 'e.g. BG ↔ RO / Constanța; Danube corridor',
+	transportDirFleetHint: 'Fleet / equipment',
+	transportDirFleetPh: 'e.g. refrigerated, tautliner, bulk',
+	transportDirNotes: 'Notes for customers',
+	transportDirSubmit: 'Publish listing',
+	transportDirSubmitOk: 'Listing saved — it appears below on this device.',
+	transportDirErrCompany: 'Enter a valid company name (min. 2 characters).',
+	transportDirErrEmail: 'Enter a valid email address.',
+	transportDirSearchPh: 'Search routes, fleet or company…',
+	transportDirCatalogTitle: 'Available carriers (demo + registered)',
+	transportDirEmailShort: 'Email',
+	transportDirCallShort: 'Call',
+	transportDirDisclaimer:
+		'AgriNexus does not broker transport or verify licences — agreements are strictly between you and the carrier. Replace demo contacts with your verified partners when going live.',
+	transportDirEmpty: 'No entries match your search.',
+	transportDirLoading: 'Loading directory…',
+	transportOutlookTitle: 'Food demand & prices — EU outlook to 2035–2036',
+	transportOutlookBody:
+		'According to the European Commission EU Agricultural Outlook (baseline to 2035), demand for food and agri-food products is supported by changing diets—including higher fruit & vegetable intake and more plant proteins—and an upward trend in overall agricultural production value over the outlook period. EU protein consumption is projected to stay slightly above current levels; fresh fruit and vegetable consumption is expected to grow or remain stable. After a stabilisation phase, aggregate EU farm income is projected to rise by about 1.4% per year from 2028 onwards (nominal terms, baseline assumptions), while intermediate input costs (fertilisers, energy, feed) are expected to climb again above 2021 levels—so price and cost pressure keeps flowing into the sector through the mid-2030s. You can use 2036 as a planning year immediately after the official 2035 baseline horizon.',
+	transportOutlookSourceLink: 'EU Agricultural Outlook — DG AGRI (European Commission)',
 } as const;
 
 /** Same keys as STR_EN; values are plain strings so BG/AR catalogs type-check. */

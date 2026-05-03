@@ -23,7 +23,7 @@ function SectionList({ sections, lang }: { sections: TradeDocSection[]; lang: Ui
 					key={sec.id}
 					className="contact-panel"
 					style={{
-						borderColor: 'rgba(45, 212, 191, 0.28)',
+						borderColor: 'rgba(93, 189, 154, 0.28)',
 						margin: 0,
 					}}>
 					<summary
@@ -70,7 +70,7 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					marginBottom: 16,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<FileText size={24} color="#2dd4bf" aria-hidden />
+					<FileText size={24} color="#5dbd9a" aria-hidden />
 					{tr.tradeDocsTitle}
 				</h2>
 			</div>
@@ -102,8 +102,8 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					fontSize: '.85rem',
 					padding: '12px 14px',
 					borderRadius: 8,
-					background: 'rgba(45, 212, 191, 0.06)',
-					border: '1px solid rgba(45, 212, 191, 0.22)',
+					background: 'rgba(93, 189, 154, 0.06)',
+					border: '1px solid rgba(93, 189, 154, 0.22)',
 					lineHeight: 1.55,
 				}}>
 				{tr.tradeDocsDisclaimer}

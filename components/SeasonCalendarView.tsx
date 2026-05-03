@@ -65,7 +65,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					marginBottom: 20,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<CalendarDays size={24} color="#2dd4bf" aria-hidden />
+					<CalendarDays size={24} color="#5dbd9a" aria-hidden />
 					{tr.seasonCalendarTitle}
 				</h2>
 				<button type="button" className="btn btn-outline" onClick={onOpenSubsidy}>
@@ -82,8 +82,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 						fontSize: '.85rem',
 						padding: '10px 12px',
 						borderRadius: 8,
-						background: 'rgba(45, 212, 191, 0.08)',
-						border: '1px solid rgba(45, 212, 191, 0.28)',
+						background: 'rgba(93, 189, 154, 0.08)',
+						border: '1px solid rgba(93, 189, 154, 0.28)',
 						marginBottom: 16,
 					}}>
 					{tr.seasonCalendarBgNote}
@@ -111,7 +111,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				className="contact-panel"
 				style={{
 					marginBottom: 24,
-					borderColor: 'rgba(45, 212, 191, 0.28)',
+					borderColor: 'rgba(93, 189, 154, 0.28)',
 					background: 'rgba(15, 23, 42, 0.45)',
 				}}>
 				<p style={{ margin: '0 0 10px', fontSize: '.75rem', fontWeight: 700, letterSpacing: '0.04em' }}>

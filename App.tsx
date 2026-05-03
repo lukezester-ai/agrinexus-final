@@ -6,6 +6,8 @@ import { SeasonCalendarView } from './components/SeasonCalendarView';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
+import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
+import { TransportDirectoryView } from './components/TransportDirectoryView';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -50,6 +52,8 @@ const {
 	CalendarDays,
 	ClipboardList,
 	FileText,
+	BarChart3,
+	Truck,
 } = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
@@ -313,6 +317,8 @@ type View =
 	| 'subsidy-calculator'
 	| 'season-calendar'
 	| 'trade-documents'
+	| 'crop-statistics'
+	| 'transport-directory'
 	| 'command';
 
 type ClientProfile = {
@@ -1773,10 +1779,10 @@ export default function App() {
           --panel-2: #0d1422;
           --border: #243044;
           --text-muted: #8ea0b8;
-          --accent: #2dd4bf;
-          --accent-muted: rgba(45, 212, 191, 0.14);
-          --accent-border: rgba(45, 212, 191, 0.38);
-          --accent-text: #99f6e4;
+          --accent: #5dbd9a;
+          --accent-muted: rgba(93, 189, 154, 0.16);
+          --accent-border: rgba(93, 189, 154, 0.4);
+          --accent-text: #c5ebdc;
           --danger: #f87171;
           --gold: #94a3b8;
         }
@@ -1913,7 +1919,7 @@ export default function App() {
           font-family: inherit;
         }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-        .btn-primary { background: var(--accent); color: #042f2e; }
+        .btn-primary { background: var(--accent); color: #0f241e; }
         .btn-light { background: #f8fafc; color: #0f172a; }
         .btn-outline { background: transparent; color: var(--accent-text); border: 1px solid var(--accent-border); }
 
@@ -1941,8 +1947,8 @@ export default function App() {
         }
         .deal-card.top { border: 2px solid var(--accent); }
         .demo-banner {
-          background: rgba(45, 212, 191, 0.06);
-          border: 1px solid rgba(45, 212, 191, 0.22);
+          background: rgba(93, 189, 154, 0.06);
+          border: 1px solid rgba(93, 189, 154, 0.22);
           border-radius: 12px;
           padding: 11px 14px;
           margin-bottom: 14px;
@@ -2011,7 +2017,7 @@ export default function App() {
         }
         .assistant-bubble.user {
           align-self: flex-end;
-          background: rgba(45, 212, 191, 0.1);
+          background: rgba(93, 189, 154, 0.1);
           border: 1px solid var(--accent-border);
         }
         .assistant-bubble.assistant {
@@ -2084,7 +2090,7 @@ export default function App() {
         .ticker-item strong { color: var(--accent-text); margin-left: 8px; }
         .market-flash-line {
           margin: 0; flex: 1; min-width: 180px;
-          background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45, 212, 191, 0.22); border-radius: 10px;
+          background: rgba(93, 189, 154, 0.06); border: 1px solid rgba(93, 189, 154, 0.22); border-radius: 10px;
           padding: 11px 13px; color: #ccfbf1; font-size: .9rem;
         }
         .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
@@ -2102,8 +2108,8 @@ export default function App() {
           animation: pulseDot 1.6s infinite;
         }
         @keyframes pulseDot {
-          0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, .45); }
-          100% { box-shadow: 0 0 0 10px rgba(45, 212, 191, 0); }
+          0% { box-shadow: 0 0 0 0 rgba(93, 189, 154, .45); }
+          100% { box-shadow: 0 0 0 10px rgba(93, 189, 154, 0); }
         }
         .pulse-toolbar {
           display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
@@ -2131,7 +2137,7 @@ export default function App() {
         .form-grid select:focus-visible,
         .form-grid textarea:focus-visible,
         .assistant-input-row textarea:focus-visible {
-          outline: 2px solid rgba(45, 212, 191, 0.65);
+          outline: 2px solid rgba(93, 189, 154, 0.65);
           outline-offset: 2px;
           border-color: var(--accent-border);
         }
@@ -2170,7 +2176,7 @@ export default function App() {
         .client-list-item:focus-visible,
         .mobile-nav-btn:focus-visible,
         .footer-link-btn:focus-visible {
-          outline: 2px solid rgba(45, 212, 191, 0.65);
+          outline: 2px solid rgba(93, 189, 154, 0.65);
           outline-offset: 2px;
         }
         .mobile-nav { display: none; }
@@ -2274,7 +2280,7 @@ export default function App() {
 			</a>
 			<nav className="nav" aria-label={tr.navPrimaryAria}>
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="#2dd4bf" size={24} aria-hidden />
+					<Leaf color="#5dbd9a" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2322,6 +2328,18 @@ export default function App() {
 						className={`nav-link nav-link-mobile-hide ${view === 'trade-documents' ? 'active' : ''}`}
 						onClick={() => setView('trade-documents')}>
 						<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
+					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'crop-statistics' ? 'active' : ''}`}
+						onClick={() => setView('crop-statistics')}>
+						<BarChart3 size={14} aria-hidden /> {tr.navCropStatistics}
+					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'transport-directory' ? 'active' : ''}`}
+						onClick={() => setView('transport-directory')}>
+						<Truck size={14} aria-hidden /> {tr.navTransportDirectory}
 					</button>
 					{!MVP_MODE && (
 						<>
@@ -2382,7 +2400,7 @@ export default function App() {
 							const Icon = f.icon;
 							return (
 								<div className="ai-card" key={f.title}>
-									<Icon color="#2dd4bf" size={20} />
+									<Icon color="#5dbd9a" size={20} />
 									<h4>{f.title}</h4>
 									<p>{f.text}</p>
 								</div>
@@ -2393,7 +2411,7 @@ export default function App() {
 					<div style={{ marginTop: 24 }}>
 						<p
 							style={{
-								color: '#2dd4bf',
+								color: '#5dbd9a',
 								letterSpacing: 2,
 								fontSize: '.75rem',
 								fontWeight: 700,
@@ -2432,7 +2450,7 @@ export default function App() {
 											}}>
 											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
 										</span>
-										<strong style={{ color: '#2dd4bf' }}>+{deal.profit}%</strong>
+										<strong style={{ color: '#5dbd9a' }}>+{deal.profit}%</strong>
 									</div>
 									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
 									<div
@@ -2444,7 +2462,7 @@ export default function App() {
 											fontSize: '.84rem',
 										}}>
 										<div>📦 {deal.packaging}</div>
-										<div style={{ color: '#2dd4bf', marginTop: 4 }}>
+										<div style={{ color: '#5dbd9a', marginTop: 4 }}>
 											📜 {deal.certification}
 										</div>
 									</div>
@@ -2491,6 +2509,18 @@ export default function App() {
 							className="btn btn-outline"
 							onClick={() => setView('trade-documents')}>
 							<FileText size={16} aria-hidden /> {tr.navTradeDocuments}
+						</button>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView('crop-statistics')}>
+							<BarChart3 size={16} aria-hidden /> {tr.navCropStatistics}
+						</button>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView('transport-directory')}>
+							<Truck size={16} aria-hidden /> {tr.navTransportDirectory}
 						</button>
 					</div>
 
@@ -2578,7 +2608,7 @@ export default function App() {
 						</div>
 						<div
 							style={{
-								color: '#2dd4bf',
+								color: '#5dbd9a',
 								fontWeight: 700,
 								display: 'flex',
 								alignItems: 'center',
@@ -2755,7 +2785,7 @@ export default function App() {
 												}}>
 												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 											</span>
-											<strong style={{ color: '#2dd4bf' }}>
+											<strong style={{ color: '#5dbd9a' }}>
 												+{deal.profit}%
 											</strong>
 										</div>
@@ -2773,7 +2803,7 @@ export default function App() {
 												fontSize: '.84rem',
 											}}>
 											<div>📦 {deal.packaging}</div>
-											<div style={{ color: '#2dd4bf', marginTop: 3 }}>
+											<div style={{ color: '#5dbd9a', marginTop: 3 }}>
 												📜 {deal.certification}
 											</div>
 											<div style={{ marginTop: 3 }}>
@@ -2805,7 +2835,7 @@ export default function App() {
 												style={{
 													color:
 														deal.decision === 'BUY'
-															? '#2dd4bf'
+															? '#5dbd9a'
 															: deal.decision === 'HOLD'
 																? '#f59e0b'
 																: '#ef4444',
@@ -2865,7 +2895,7 @@ export default function App() {
 						<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
 					</button>
 					<h2 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-						<MessageSquare color="#2dd4bf" size={26} aria-hidden />
+						<MessageSquare color="#5dbd9a" size={26} aria-hidden />
 						{tr.assistantTitle}
 					</h2>
 					<p className="muted" style={{ margin: '0 0 8px', maxWidth: 720 }}>
@@ -3096,7 +3126,7 @@ export default function App() {
 													}}>
 													{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 												</span>
-												<strong style={{ color: '#2dd4bf' }}>
+												<strong style={{ color: '#5dbd9a' }}>
 													+{deal.profit}%
 												</strong>
 											</div>
@@ -3114,7 +3144,7 @@ export default function App() {
 													fontSize: '.84rem',
 												}}>
 												<div>📦 {deal.packaging}</div>
-												<div style={{ color: '#2dd4bf', marginTop: 3 }}>
+												<div style={{ color: '#5dbd9a', marginTop: 3 }}>
 													📜 {deal.certification}
 												</div>
 												<div style={{ marginTop: 3 }}>
@@ -3445,6 +3475,10 @@ export default function App() {
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
 
+			{view === 'crop-statistics' && <CropStatisticsBulgariaView lang={lang} tr={tr} />}
+
+			{view === 'transport-directory' && <TransportDirectoryView tr={tr} />}
+
 			{view === 'privacy' && (
 				<section className="section legal-section">
 					<h2>{tr.privacyTitle}</h2>
@@ -3477,12 +3511,12 @@ export default function App() {
 			{view === 'company' && (
 				<section className="section">
 					<h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<Building2 size={22} color="#2dd4bf" /> {tr.companyTitle}
+						<Building2 size={22} color="#5dbd9a" /> {tr.companyTitle}
 					</h2>
 					<p className="muted">{tr.companySubtitle}</p>
 					<div className="contact-panel">
 						<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Globe2 size={16} color="#2dd4bf" /> {tr.companyRegions}
+							<Globe2 size={16} color="#5dbd9a" /> {tr.companyRegions}
 						</p>
 						<p
 							style={{
@@ -3491,7 +3525,7 @@ export default function App() {
 								alignItems: 'center',
 								gap: 8,
 							}}>
-							<Mail size={16} color="#2dd4bf" /> info@agrinexus.eu
+							<Mail size={16} color="#5dbd9a" /> info@agrinexus.eu
 						</p>
 					</div>
 				</section>
@@ -3699,6 +3733,20 @@ export default function App() {
 							onClick={() => setView('trade-documents')}>
 							<FileText size={16} aria-hidden />
 							{tr.navTradeDocuments}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'crop-statistics' ? 'active' : ''}`}
+							onClick={() => setView('crop-statistics')}>
+							<BarChart3 size={16} aria-hidden />
+							{tr.navCropStatistics}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'transport-directory' ? 'active' : ''}`}
+							onClick={() => setView('transport-directory')}>
+							<Truck size={16} aria-hidden />
+							{tr.navTransportDirectory}
 						</button>
 					</div>
 				</div>

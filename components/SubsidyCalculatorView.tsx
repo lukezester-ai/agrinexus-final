@@ -108,7 +108,7 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 					marginBottom: 20,
 				}}>
 				<h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-					<Calculator size={24} color="#2dd4bf" aria-hidden />
+					<Calculator size={24} color="#5dbd9a" aria-hidden />
 					{tr.subsidyCalcTitle}
 				</h2>
 				<button type="button" className="btn btn-outline" onClick={onOpenCalendar}>

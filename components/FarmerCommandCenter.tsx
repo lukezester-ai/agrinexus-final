@@ -106,7 +106,7 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 			style={{
 				marginTop: compact ? 12 : 0,
 				marginBottom: compact ? 20 : 0,
-				borderColor: 'rgba(45, 212, 191, 0.28)',
+				borderColor: 'rgba(93, 189, 154, 0.28)',
 				background: 'rgba(15, 23, 42, 0.55)',
 			}}>
 			<div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
