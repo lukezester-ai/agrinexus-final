@@ -1,5 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import * as Lucide from 'lucide-react';
+import {
+	ArrowLeft,
+	BarChart3,
+	Bell,
+	Bookmark,
+	Brain,
+	Building2,
+	CalendarDays,
+	Calculator,
+	ChevronDown,
+	ChevronUp,
+	ClipboardList,
+	FileImage,
+	FileText,
+	Globe2,
+	Leaf,
+	LineChart,
+	Loader2,
+	LogIn,
+	Mail,
+	MessageSquare,
+	Mic,
+	RefreshCw,
+	Search,
+	Send,
+	Truck,
+	UserPlus,
+	Users,
+	X,
+} from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
@@ -25,36 +54,6 @@ import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
 }
-const {
-	Leaf,
-	Search,
-	Bookmark,
-	RefreshCw,
-	Bell,
-	Brain,
-	LineChart,
-	Mail,
-	UserPlus,
-	LogIn,
-	Building2,
-	Globe2,
-	Loader2,
-	MessageSquare,
-	Send,
-	ArrowLeft,
-	Mic,
-	FileImage,
-	Users,
-	Calculator,
-	CalendarDays,
-	ClipboardList,
-	FileText,
-	BarChart3,
-	Truck,
-	ChevronDown,
-	ChevronUp,
-	X,
-} = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
