@@ -1,5 +1,6 @@
 import type { ChatPersona } from './chat-persona';
 import { parseChatPersona } from './chat-persona';
+import { readOpenAiApiKey } from './openai-api-key';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type ChatLocale = 'bg' | 'en';
@@ -202,7 +203,7 @@ export async function handleChatPost(rawBody: unknown): Promise<
 async function handleChatPostInner(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? '';
+  const apiKey = readOpenAiApiKey();
   if (!apiKey) {
     return {
       ok: false,

@@ -2,6 +2,8 @@
  * Състояние на инфраструктурните слоеве (без секрети) — за /api/platform и мониторинг.
  */
 
+import { isOpenAiConfigured } from '../openai-api-key';
+
 export type AgriPlatformLayers = {
 	/** HTTP API (Vercel Functions / dev-server) */
 	liveApi: true;
@@ -29,7 +31,7 @@ export function readSupabaseServerConfigured(): boolean {
 export function getAgriPlatformLayers(): AgriPlatformLayers {
 	return {
 		liveApi: true,
-		openai: Boolean(process.env.OPENAI_API_KEY?.trim()),
+		openai: isOpenAiConfigured(),
 		emailRelay: Boolean(
 			process.env.RESEND_API_KEY?.trim() ||
 				process.env.SMTP_HOST?.trim() ||

@@ -1,5 +1,9 @@
 import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
+import dotenv from 'dotenv';
 import http from 'node:http';
+import { readOpenAiApiKey } from '../lib/openai-api-key';
 import { handleChatPost } from '../lib/chat-handler';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
@@ -13,6 +17,23 @@ import {
 } from '../lib/transport-directory-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
+
+/** Някои редактори записват `.env` с BOM — тогава първият ред не се разпознава като `OPENAI_API_KEY`. Препрочитаме файла. */
+function mergeDotEnvWithoutBom(): void {
+	const envPath = path.join(process.cwd(), '.env');
+	if (!fs.existsSync(envPath)) return;
+	try {
+		const text = fs.readFileSync(envPath, 'utf8').replace(/^\uFEFF/, '');
+		const parsed = dotenv.parse(text);
+		const raw = parsed.OPENAI_API_KEY;
+		if (typeof raw === 'string' && raw.trim()) {
+			process.env.OPENAI_API_KEY = raw.trim();
+		}
+	} catch {
+		/* ignore */
+	}
+}
+mergeDotEnvWithoutBom();
 
 async function readJson(req: http.IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
@@ -76,7 +97,7 @@ http
         send(res, 200, {
           ok: true,
           path: '/api/chat',
-          openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
+          openaiConfigured: readOpenAiApiKey().length > 0,
         });
         return;
       }

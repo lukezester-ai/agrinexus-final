@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleChatPost } from '../lib/chat-handler';
+import { isOpenAiConfigured } from '../lib/openai-api-key';
 import { vercelJsonBody } from '../lib/vercel-json-body';
 
 /** Limits: see root vercel.json (functions for api routes). */
@@ -24,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       sendJson(res, 200, {
         ok: true,
         path: '/api/chat',
-        openaiConfigured: Boolean(process.env.OPENAI_API_KEY?.trim()),
+        openaiConfigured: isOpenAiConfigured(),
       });
       return;
     }

@@ -1,3 +1,5 @@
+import { readOpenAiApiKey } from './openai-api-key';
+
 export type DocumentExplainLocale = 'bg' | 'en';
 
 /** ~5 MiB raw image after base64 decode — rough guard via character count */
@@ -51,7 +53,7 @@ Plain text only (no JSON).`;
 export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? '';
+  const apiKey = readOpenAiApiKey();
   if (!apiKey) {
     return {
       ok: false,
