@@ -513,8 +513,8 @@ async function apiChat(
 				if (looksLikeHtml || (!ct.includes('json') && !trimmed.startsWith('{'))) {
 					throw new Error(
 						locale === 'bg'
-							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ в браузър — очаква се „openaiConfigured“. Във Vercel: Settings → Environment Variables → OPENAI_API_KEY за Production, после Redeploy; вижте Logs → Functions при грешка.`
-							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat in the browser — you should see JSON with openaiConfigured. In Vercel set OPENAI_API_KEY for Production and Redeploy; check Functions logs.`
+							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ — очаква се JSON с „llmConfigured“. Във Vercel: OPENAI_API_KEY за Production (локален Ollama не се вижда от Vercel); Logs → Functions.`
+							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat — expect JSON with llmConfigured. On Vercel set OPENAI_API_KEY for Production (hosted servers cannot reach your PC's Ollama); check Functions logs.`
 					);
 				}
 				try {
@@ -1539,8 +1539,12 @@ export default function App() {
 				const raw = await res.text();
 				if (cancelled) return;
 				try {
-					const data = JSON.parse(raw) as { openaiConfigured?: boolean };
-					setChatHealth(data.openaiConfigured ? 'ready' : 'no_key');
+					const data = JSON.parse(raw) as {
+						llmConfigured?: boolean;
+						openaiConfigured?: boolean;
+					};
+					const llmReady = Boolean(data.llmConfigured ?? data.openaiConfigured);
+					setChatHealth(llmReady ? 'ready' : 'no_key');
 				} catch {
 					setChatHealth('offline');
 				}
@@ -3322,8 +3326,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									'Липсва OPENAI_API_KEY. Добавете го във файла .env в корена на проекта и рестартирайте npm run dev. За продукция/Vercel ключът се задава в Environment Variables.',
-									'OPENAI_API_KEY is missing. Add it to the project root .env file and restart npm run dev. On Vercel, set it under Environment Variables.'
+									'Няма конфигуриран LLM за чат: добавете OPENAI_API_KEY или локален Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 и OLLAMA_MODEL). Файл .env в корена на проекта; после рестарт на npm run dev. Ако ползвате само OpenAI — задавате ключа и във Vercel Environment Variables.',
+									'No LLM for chat: set OPENAI_API_KEY or local Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 and OLLAMA_MODEL) in project root .env, then restart npm run dev. OpenAI-only: also set the key in Vercel env.'
 								)}
 							</p>
 						</div>

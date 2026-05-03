@@ -1,4 +1,5 @@
 import { readOpenAiApiKey } from './openai-api-key';
+import { readOllamaBaseUrl } from './ollama-env';
 
 export type DocumentExplainLocale = 'bg' | 'en';
 
@@ -53,13 +54,14 @@ Plain text only (no JSON).`;
 export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
+  const ollamaBase = readOllamaBaseUrl();
   const apiKey = readOpenAiApiKey();
-  if (!apiKey) {
+  if (!ollamaBase && !apiKey) {
     return {
       ok: false,
       status: 503,
-      error: 'OpenAI is not configured',
-      hint: 'Set OPENAI_API_KEY for this deployment.',
+      error: 'LLM is not configured',
+      hint: 'Set OPENAI_API_KEY or local OLLAMA_BASE_URL and a vision model (OLLAMA_VISION_MODEL, e.g. llava).',
     };
   }
 
@@ -124,7 +126,12 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
         ? 'Обясни какво казва документът и какво е важно за търговец на агрокомодитети.'
         : 'Explain what the document says and what matters for an agri commodity trader.';
 
-  const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+  const useOllama = Boolean(ollamaBase);
+  const model = useOllama
+    ? process.env.OLLAMA_VISION_MODEL?.trim() ||
+      process.env.OLLAMA_MODEL?.trim() ||
+      'llava'
+    : process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
@@ -145,14 +152,19 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
     },
   ];
 
+  const completionUrl = useOllama
+    ? `${ollamaBase}/v1/chat/completions`
+    : 'https://api.openai.com/v1/chat/completions';
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (!useOllama) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
   let res: Response;
   try {
-    res = await fetch('https://api.openai.com/v1/chat/completions', {
+    res = await fetch(completionUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
         model,
         temperature: safeTemp,
@@ -161,7 +173,14 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
       }),
     });
   } catch {
-    return { ok: false, status: 502, error: 'Upstream OpenAI request failed' };
+    return {
+      ok: false,
+      status: 502,
+      error: useOllama ? 'Upstream Ollama request failed' : 'Upstream OpenAI request failed',
+      hint: useOllama
+        ? 'Pull a vision model: ollama pull llava (or set OLLAMA_VISION_MODEL). Is Ollama running?'
+        : undefined,
+    };
   }
 
   let data: {
@@ -179,7 +198,7 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   }
 
   if (!res.ok) {
-    const detail = data.error?.message || res.statusText || 'OpenAI error';
+    const detail = data.error?.message || res.statusText || (useOllama ? 'Ollama error' : 'OpenAI error');
     return {
       ok: false,
       status: res.status >= 400 && res.status < 600 ? res.status : 502,

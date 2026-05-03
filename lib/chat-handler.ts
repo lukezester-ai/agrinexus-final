@@ -1,6 +1,7 @@
 import type { ChatPersona } from './chat-persona';
 import { parseChatPersona } from './chat-persona';
 import { readOpenAiApiKey } from './openai-api-key';
+import { readOllamaBaseUrl } from './ollama-env';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type ChatLocale = 'bg' | 'en';
@@ -203,13 +204,14 @@ export async function handleChatPost(rawBody: unknown): Promise<
 async function handleChatPostInner(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
+  const ollamaBase = readOllamaBaseUrl();
   const apiKey = readOpenAiApiKey();
-  if (!apiKey) {
+  if (!ollamaBase && !apiKey) {
     return {
       ok: false,
       status: 503,
-      error: 'OpenAI is not configured',
-      hint: 'OpenAI is not configured. Set OPENAI_API_KEY for this deployment.',
+      error: 'LLM is not configured',
+      hint: 'Set OPENAI_API_KEY or local OLLAMA_BASE_URL (e.g. http://127.0.0.1:11434).',
     };
   }
 
@@ -242,34 +244,52 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     return { ok: false, status: 400, error: 'No valid messages' };
   }
 
-  const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+  const useOllama = Boolean(ollamaBase);
+  const model = useOllama
+    ? process.env.OLLAMA_MODEL?.trim() || 'llama3.2'
+    : process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
-  const openaiMessages = [
+  const chatMessages = [
     { role: 'system' as const, content: systemPrompt(locale, dealContext, farmerContext, persona) },
     ...cleaned.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
   ];
 
+  const completionUrl = useOllama
+    ? `${ollamaBase}/v1/chat/completions`
+    : 'https://api.openai.com/v1/chat/completions';
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (!useOllama) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
+  const requestBody: Record<string, unknown> = {
+    model,
+    temperature: safeTemp,
+    max_tokens: 1400,
+    messages: chatMessages,
+  };
+  if (!useOllama) {
+    requestBody.response_format = { type: 'json_object' };
+  }
+
   let res: Response;
   try {
-    res = await fetch('https://api.openai.com/v1/chat/completions', {
+    res = await fetch(completionUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: safeTemp,
-        max_tokens: 1400,
-        messages: openaiMessages,
-        // json_object is more widely supported than strict json_schema on all accounts/models.
-        response_format: { type: 'json_object' },
-      }),
+      headers,
+      body: JSON.stringify(requestBody),
     });
   } catch {
-    return { ok: false, status: 502, error: 'Upstream OpenAI request failed' };
+    return {
+      ok: false,
+      status: 502,
+      error: useOllama ? 'Upstream Ollama request failed' : 'Upstream OpenAI request failed',
+      hint: useOllama
+        ? 'Is Ollama running? Try: ollama serve ; pull model: ollama pull ' + model
+        : undefined,
+    };
   }
 
   let data: {
@@ -283,7 +303,9 @@ async function handleChatPostInner(rawBody: unknown): Promise<
         ok: false,
         status: 502,
         error: 'Empty upstream response body',
-        hint: 'OpenAI returned no body. Check API connectivity and routing.',
+        hint: useOllama
+          ? 'Ollama returned no body. Check OLLAMA_BASE_URL and that the model is pulled.'
+          : 'OpenAI returned no body. Check API connectivity and routing.',
       };
     }
     data = JSON.parse(raw) as typeof data;
@@ -292,12 +314,14 @@ async function handleChatPostInner(rawBody: unknown): Promise<
       ok: false,
       status: 502,
       error: 'Upstream returned invalid JSON',
-      hint: 'Could not parse OpenAI response. Check OPENAI_API_KEY and model availability.',
+      hint: useOllama
+        ? 'Could not parse Ollama response. Check model name (OLLAMA_MODEL) and Ollama logs.'
+        : 'Could not parse OpenAI response. Check OPENAI_API_KEY and model availability.',
     };
   }
 
   if (!res.ok) {
-    const detail = data.error?.message || res.statusText || 'OpenAI error';
+    const detail = data.error?.message || res.statusText || (useOllama ? 'Ollama error' : 'OpenAI error');
     return { ok: false, status: res.status >= 400 && res.status < 600 ? res.status : 502, error: detail };
   }
 

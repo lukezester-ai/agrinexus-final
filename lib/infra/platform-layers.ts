@@ -2,12 +2,12 @@
  * Състояние на инфраструктурните слоеве (без секрети) — за /api/platform и мониторинг.
  */
 
-import { isOpenAiConfigured } from '../openai-api-key';
+import { isChatLlmConfigured } from '../ollama-env';
 
 export type AgriPlatformLayers = {
 	/** HTTP API (Vercel Functions / dev-server) */
 	liveApi: true;
-	/** OpenAI — AI с контекст */
+	/** LLM за чат: OpenAI ключ и/или Ollama URL (true ако поне един е наличен) */
 	openai: boolean;
 	/** Resend или SMTP */
 	emailRelay: boolean;
@@ -31,7 +31,7 @@ export function readSupabaseServerConfigured(): boolean {
 export function getAgriPlatformLayers(): AgriPlatformLayers {
 	return {
 		liveApi: true,
-		openai: isOpenAiConfigured(),
+		openai: isChatLlmConfigured(),
 		emailRelay: Boolean(
 			process.env.RESEND_API_KEY?.trim() ||
 				process.env.SMTP_HOST?.trim() ||
@@ -57,7 +57,7 @@ export function getPlatformPayload(): {
 } {
 	const layers = getAgriPlatformLayers();
 	const hints: string[] = [];
-	if (!layers.openai) hints.push('Set OPENAI_API_KEY for AI chat.');
+	if (!layers.openai) hints.push('Set OPENAI_API_KEY or OLLAMA_BASE_URL (local Ollama) for AI chat.');
 	if (!layers.supabaseServer && !layers.supabaseClientEnv) {
 		hints.push('Add Supabase: VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (frontend); SUPABASE_URL + keys on server for API sync.');
 	}

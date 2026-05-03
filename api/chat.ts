@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleChatPost } from '../lib/chat-handler';
 import { isOpenAiConfigured } from '../lib/openai-api-key';
+import { isChatLlmConfigured, isOllamaConfigured } from '../lib/ollama-env';
 import { vercelJsonBody } from '../lib/vercel-json-body';
 
 /** Limits: see root vercel.json (functions for api routes). */
@@ -26,6 +27,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ok: true,
         path: '/api/chat',
         openaiConfigured: isOpenAiConfigured(),
+        ollamaConfigured: isOllamaConfigured(),
+        llmConfigured: isChatLlmConfigured(),
       });
       return;
     }

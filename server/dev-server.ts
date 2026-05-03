@@ -4,6 +4,7 @@ import path from 'node:path';
 import dotenv from 'dotenv';
 import http from 'node:http';
 import { readOpenAiApiKey } from '../lib/openai-api-key';
+import { isChatLlmConfigured, isOllamaConfigured } from '../lib/ollama-env';
 import { handleChatPost } from '../lib/chat-handler';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
@@ -25,10 +26,14 @@ function mergeDotEnvWithoutBom(): void {
 	try {
 		const text = fs.readFileSync(envPath, 'utf8').replace(/^\uFEFF/, '');
 		const parsed = dotenv.parse(text);
-		const raw = parsed.OPENAI_API_KEY;
-		if (typeof raw === 'string' && raw.trim()) {
-			process.env.OPENAI_API_KEY = raw.trim();
-		}
+		const apply = (key: string) => {
+			const v = parsed[key];
+			if (typeof v === 'string' && v.trim()) process.env[key] = v.trim();
+		};
+		apply('OPENAI_API_KEY');
+		apply('OLLAMA_BASE_URL');
+		apply('OLLAMA_MODEL');
+		apply('OLLAMA_VISION_MODEL');
 	} catch {
 		/* ignore */
 	}
@@ -98,6 +103,8 @@ http
           ok: true,
           path: '/api/chat',
           openaiConfigured: readOpenAiApiKey().length > 0,
+          ollamaConfigured: isOllamaConfigured(),
+          llmConfigured: isChatLlmConfigured(),
         });
         return;
       }
