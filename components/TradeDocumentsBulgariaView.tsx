@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FileText, Ship, Package } from 'lucide-react';
+import { Download, FileText, Package, Ship } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import {
 	TRADE_DOCS_EXPORT_BG,
 	TRADE_DOCS_IMPORT_BG,
+	TRADE_EXPORT_HANDBOOK_PDF,
 	pickLocalized,
 	type TradeDocSection,
 } from '../lib/trade-documents-data';
@@ -92,6 +93,32 @@ export function TradeDocumentsBulgariaView({ lang, tr }: Props) {
 					<Package size={16} aria-hidden /> {tr.tradeDocsTabExport}
 				</button>
 			</div>
+
+			{tab === 'export' ? (
+				<div
+					className="contact-panel"
+					style={{
+						borderColor: 'rgba(93, 189, 154, 0.38)',
+						background: 'rgba(93, 189, 154, 0.06)',
+						marginBottom: 20,
+					}}>
+					<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+						<Download size={20} color="#5dbd9a" aria-hidden />
+						{tr.tradeDocsExportHandbookTitle}
+					</h3>
+					<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.55, fontSize: '.9rem' }}>
+						{tr.tradeDocsExportHandbookBody}
+					</p>
+					<a
+						href={TRADE_EXPORT_HANDBOOK_PDF}
+						download
+						className="btn btn-primary"
+						style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+						<Download size={16} aria-hidden />
+						{tr.tradeDocsExportHandbookCta}
+					</a>
+				</div>
+			) : null}
 
 			<SectionList sections={sections} lang={lang} />
 

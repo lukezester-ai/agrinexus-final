@@ -284,6 +284,10 @@ export const STR_EN = {
 	tradeDocsTabExport: 'Export from Bulgaria',
 	tradeDocsDisclaimer:
 		'Illustrative guidance only — not legal advice. Codes, licences and systems (IS UNP / AIS / TRACES / CN) change; verify each shipment with qualified advisers and official portals.',
+	tradeDocsExportHandbookTitle: 'Detailed export handbook (PDF)',
+	tradeDocsExportHandbookBody:
+		'May 2026 reference: fruit & vegetables, cereals, oilseeds and processed goods from Bulgaria to the EU internal market, Turkey and Egypt — registrations (EORI, ODBZ, DAFS), customs export mode, plant passports, A.TR / agricultural regime, Egypt Decree 43/2016, commodity-specific notes and a pre-shipment checklist. Sourced from public guidance (BFSA, Customs, MAFF, Access2Markets, DAFS); not legally binding.',
+	tradeDocsExportHandbookCta: 'Download PDF (BG)',
 	cropStatsTitle: 'Bulgaria crop production — 5-year view & outlook',
 	cropStatsSubtitle:
 		'Pick a crop to see an illustrative five-year production chart (kt), a simple linear trend line, and a next-year numeric outlook. Drought emphasis uses a heuristic on the demo series — replace with NSI / Eurostat / API feeds for production use.',
