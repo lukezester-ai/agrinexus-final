@@ -373,33 +373,28 @@ export function SeasonMonthArtBanner({ visual }: { visual: SeasonVisual }) {
 	return (
 		<div
 			aria-hidden
+			className="season-cal-photo-banner"
 			style={{
 				position: 'relative',
-				borderRadius: 12,
+				borderRadius: 14,
 				overflow: 'hidden',
-				marginBottom: 12,
-				height: 96,
-				boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.1)',
-				background: '#141f18',
+				marginBottom: 14,
+				height: 132,
+				boxShadow:
+					'inset 0 0 0 1px rgba(124, 205, 156, 0.18), 0 12px 28px rgba(0, 0, 0, 0.28)',
+				background: '#0e1712',
 			}}>
 			{photoFailed ? (
 				<svg width="100%" height="100%" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" style={{ display: 'block' }}>
 					<ArtSwitch visual={visual} />
 				</svg>
 			) : (
-				<picture
-					style={{
-						position: 'absolute',
-						inset: 0,
-						display: 'block',
-						margin: 0,
-					}}>
-					<source srcSet={`/season-cal/${visual}.webp`} type="image/webp" />
+				<>
 					<img
 						src={`/season-cal/${visual}.jpg`}
 						alt=""
-						width={640}
-						height={360}
+						width={840}
+						height={472}
 						loading="lazy"
 						decoding="async"
 						onError={() => setPhotoFailed(true)}
@@ -407,10 +402,20 @@ export function SeasonMonthArtBanner({ visual }: { visual: SeasonVisual }) {
 							width: '100%',
 							height: '100%',
 							objectFit: 'cover',
+							objectPosition: 'center center',
 							display: 'block',
 						}}
 					/>
-				</picture>
+					<div
+						style={{
+							position: 'absolute',
+							inset: 0,
+							pointerEvents: 'none',
+							background:
+								'linear-gradient(180deg, rgba(10, 17, 14, 0.08) 0%, rgba(10, 17, 14, 0.02) 38%, rgba(10, 17, 14, 0.55) 100%)',
+							}}
+					/>
+				</>
 			)}
 		</div>
 	);

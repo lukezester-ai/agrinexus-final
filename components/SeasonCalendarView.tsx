@@ -150,8 +150,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 			<div
 				style={{
 					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-					gap: 14,
+					gridTemplateColumns: 'repeat(auto-fill, minmax(288px, 1fr))',
+					gap: 18,
 				}}>
 				{MONTH_NAMES_BG.map((_, idx) => {
 					const m = idx + 1;
@@ -159,7 +159,15 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					if (!tasks?.length) return null;
 					const visual = resolveSeasonVisual(crop, m);
 					return (
-						<div key={m} className="contact-panel season-cal-month-card" style={{ margin: 0 }}>
+						<div
+							key={m}
+							className="contact-panel season-cal-month-card"
+							style={{
+								margin: 0,
+								padding: 16,
+								borderColor: 'rgba(124, 205, 156, 0.22)',
+								background: 'rgba(14, 23, 18, 0.72)',
+							}}>
 							<SeasonMonthArtBanner visual={visual} />
 							<h3
 								style={{
