@@ -1,0 +1,10 @@
+{
+	"name": "AgriNexus",
+	"short_name": "AgriNexus",
+	"description": "Agricultural trade and farmer compliance tools",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#0b1221",
+	"theme_color": "#0d9488",
+	"lang": "bg"
+}

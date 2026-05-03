@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
+import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
+import { SeasonCalendarView } from './components/SeasonCalendarView';
+import { FarmerCommandCenter } from './components/FarmerCommandCenter';
+import { CloudAuthPanel } from './components/CloudAuthPanel';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -13,6 +17,8 @@ import {
 } from './lib/i18n';
 import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
 import { recordBrowserVisitOncePerSession } from './lib/track-browser-visit';
+import type { ChatPersona } from './lib/chat-persona';
+import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 
 function uiPickThree(lang: UiLang, bg: string, en: string, ar: string): string {
 	if (lang === 'bg') return bg;
@@ -39,6 +45,9 @@ const {
 	Mic,
 	FileImage,
 	Users,
+	Calculator,
+	CalendarDays,
+	ClipboardList,
 } = Lucide;
 
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
@@ -298,7 +307,10 @@ type View =
 	| 'clients'
 	| 'watchlist'
 	| 'privacy'
-	| 'terms';
+	| 'terms'
+	| 'subsidy-calculator'
+	| 'season-calendar'
+	| 'command';
 
 type ClientProfile = {
 	id: string;
@@ -349,12 +361,20 @@ const MARKET_FLASH_BG = [
 ];
 
 const QUICK_PROMPTS_BG = [
+	'Екип (трите заедно): по моя профил — какво да подам първо, какво липсва, какъв е рискът и струва ли си схемата?',
+	'Юрист: какво точно трябва и не трябва да правя до края на кампанията по единното заявление?',
+	'Агроном: пръскам с фунгицид — какво да впиша в дневника и къде се отразява в документацията за ДФЗ?',
+	'Финансист: при моите декари и фиксирани разходи — струва ли си конкретна схема спрямо очакваното плащане?',
 	'Дай BUY/HOLD/AVOID за домати България → UAE.',
 	'Кои сертификати са критични за export към KSA?',
 	'Бърз risk-check за EU → MENA маршрут.',
 ];
 
 const QUICK_PROMPTS_EN = [
+	'All three together: from my profile — what to file first, what is missing, risks, and is the scheme worth it?',
+	'Lawyer focus: what must/must not I do before the single-application campaign deadline?',
+	'Agronomist focus: I spray fungicide — what to log and how it shows in DAFS paperwork?',
+	'Finance focus: given my hectares and fixed costs — is this scheme worth it vs expected payment?',
 	'Give BUY/HOLD/AVOID for tomatoes Bulgaria → UAE.',
 	'Which certifications matter most for export to KSA?',
 	'Quick risk-check for EU → MENA route.',
@@ -367,6 +387,10 @@ const MARKET_FLASH_AR = [
 ];
 
 const QUICK_PROMPTS_AR = [
+	'الثلاثة معاً: من ملفي — ماذا أقدّم أولاً، الناقص، المخاطر، وهل المخطط يستحق؟',
+	'تركيز قانوني: ماذا يجب وما لا يجب قبل نهاية نافذة الطلب الموحّد؟',
+	'تركيز زراعي: أرشّ المبيد الفطري — ماذا أسجّل وكيف يظهر في أوراق الوكالة؟',
+	'تركيز مالي: مع هكتاراتي وتكاليفي — هل المخطط مجدٍ مقابل الدفع المتوقع؟',
 	'أعطِ BUY/HOLD/AVOID لطماطم بلغاريا → الإمارات.',
 	'ما أهم الشهادات لتصدير السعودية (KSA)؟',
 	'فحص مخاطر سريع لمسار الاتحاد الأوروبي → الشرق الأوسط وشمال أفريقيا.',
@@ -460,11 +484,19 @@ async function apiChat(
 	messages: ChatTurn[],
 	dealContext: string,
 	locale: Lang,
-	signal?: AbortSignal
+	signal: AbortSignal | undefined,
+	persona: ChatPersona,
+	farmerContext: string,
 ): Promise<string> {
 	const timeoutMs = 15000;
 	const maxAttempts = 2;
-	const requestBody = JSON.stringify({ messages, dealContext, locale });
+	const requestBody = JSON.stringify({
+		messages,
+		dealContext,
+		locale,
+		persona,
+		farmerContext,
+	});
 
 	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 		const timeoutController = new AbortController();
@@ -587,6 +619,7 @@ export default function App() {
 	);
 
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
+	const [chatPersona, setChatPersona] = useState<ChatPersona>('unified');
 	const [chatInput, setChatInput] = useState(
 		() => safeSessionGet('agrinexus-chat-draft') ?? ''
 	);
@@ -1221,7 +1254,15 @@ export default function App() {
 			const payload = history
 				.filter(m => m.role === 'user' || m.role === 'assistant')
 				.slice(-16);
-			const reply = await apiChat(payload, dealContextForAI, lang, controller.signal);
+			const farmerSnap = buildFarmerContextForAi(lang);
+			const reply = await apiChat(
+				payload,
+				dealContextForAI,
+				lang,
+				controller.signal,
+				chatPersona,
+				farmerSnap,
+			);
 			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
 		} catch (e) {
 			const name =
@@ -1252,7 +1293,7 @@ export default function App() {
 			if (chatAbortRef.current === controller) chatAbortRef.current = null;
 			setChatLoading(false);
 		}
-	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
+	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang, chatPersona]);
 
 	const toggleVoiceInput = useCallback(() => {
 		if (!demoSessionEmail) {
@@ -1724,13 +1765,17 @@ export default function App() {
 		<div className="app">
 			<style>{`
         :root {
-          --bg: #0b1221;
-          --panel: #161f32;
-          --panel-2: #0f172a;
-          --border: #1e293b;
-          --text-muted: #94a3b8;
-          --green: #22c55e;
-          --gold: #d6a23a;
+          --bg: #0a0f18;
+          --panel: #121c2c;
+          --panel-2: #0d1422;
+          --border: #243044;
+          --text-muted: #8ea0b8;
+          --accent: #2dd4bf;
+          --accent-muted: rgba(45, 212, 191, 0.14);
+          --accent-border: rgba(45, 212, 191, 0.38);
+          --accent-text: #99f6e4;
+          --danger: #f87171;
+          --gold: #94a3b8;
         }
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
@@ -1756,7 +1801,7 @@ export default function App() {
         .footer-link-btn {
           background: none;
           border: none;
-          color: #86efac;
+          color: var(--accent-text);
           cursor: pointer;
           font-family: inherit;
           font-size: .84rem;
@@ -1765,7 +1810,7 @@ export default function App() {
           text-underline-offset: 3px;
           padding: 2px 0;
         }
-        .footer-link-btn:hover { color: #bbf7d0; }
+        .footer-link-btn:hover { color: #ccfbf1; }
         .site-footer-sep { color: #64748b; user-select: none; font-size: .9rem; }
         .legal-panel p { margin: 0 0 12px; }
         .legal-panel p:last-child { margin-bottom: 0; }
@@ -1778,8 +1823,8 @@ export default function App() {
           z-index: 300;
           padding: 10px 14px;
           border-radius: 10px;
-          background: #14532d;
-          color: #ecfdf5;
+          background: #134e4a;
+          color: #ccfbf1;
           font-weight: 700;
           font-size: .9rem;
           text-decoration: none;
@@ -1814,7 +1859,7 @@ export default function App() {
         }
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #e2e8f0; }
-        .brand-nexus { color: var(--green); }
+        .brand-nexus { color: var(--accent); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
         html[dir="rtl"] body {
@@ -1852,12 +1897,12 @@ export default function App() {
           opacity: 1;
         }
         .nav-link.active {
-          color: var(--green);
+          color: var(--accent-text);
           opacity: 1;
-          background: rgba(34, 197, 94, 0.12);
-          border-color: rgba(34, 197, 94, 0.35);
+          background: var(--accent-muted);
+          border-color: var(--accent-border);
         }
-        .nav-link.active svg { color: var(--green); }
+        .nav-link.active svg { color: var(--accent); }
 
         .btn {
           border: none; border-radius: 12px; cursor: pointer; font-weight: 700;
@@ -1865,9 +1910,9 @@ export default function App() {
           font-family: inherit;
         }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-        .btn-primary { background: var(--green); color: white; }
-        .btn-light { background: white; color: #0f172a; }
-        .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); }
+        .btn-primary { background: var(--accent); color: #042f2e; }
+        .btn-light { background: #f8fafc; color: #0f172a; }
+        .btn-outline { background: transparent; color: var(--accent-text); border: 1px solid var(--accent-border); }
 
         .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
         .hero { text-align: center; padding-top: 42px; }
@@ -1891,25 +1936,68 @@ export default function App() {
         .deal-card {
           background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
         }
-        .deal-card.top { border: 2px solid var(--green); }
+        .deal-card.top { border: 2px solid var(--accent); }
         .demo-banner {
-          background: rgba(245, 158, 11, 0.07);
-          border: 1px solid rgba(245, 158, 11, 0.32);
+          background: rgba(45, 212, 191, 0.06);
+          border: 1px solid rgba(45, 212, 191, 0.22);
           border-radius: 12px;
           padding: 11px 14px;
           margin-bottom: 14px;
-          color: #fef3c7;
+          color: #ccfbf1;
           font-size: .88rem;
           line-height: 1.5;
         }
+        .assistant-workbench {
+          display: flex;
+          flex-direction: column;
+          max-height: min(78vh, 760px);
+          padding: 14px !important;
+        }
+        .assistant-panel-head {
+          flex-shrink: 0;
+          padding-bottom: 12px;
+          margin-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+          background: var(--panel);
+        }
+        .assistant-persona-row {
+          margin-bottom: 10px !important;
+        }
+        .assistant-quick-prompts-scroll {
+          max-height: 132px;
+          overflow-y: auto;
+          padding-right: 6px;
+          scrollbar-gutter: stable;
+        }
+        @media (max-width: 640px) {
+          .assistant-quick-prompts-scroll {
+            max-height: min(42vh, 280px);
+          }
+        }
+        .assistant-prompts-scroll-hint {
+          margin: 0 0 6px;
+          font-size: 0.72rem;
+          line-height: 1.35;
+          color: var(--text-muted);
+          opacity: 0.92;
+        }
         .assistant-msgs {
-          max-height: min(52vh, 480px);
+          flex: 1 1 auto;
+          min-height: 140px;
+          max-height: none;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
           gap: 10px;
-          margin: 12px 0;
-          padding-right: 4px;
+          margin: 0;
+          padding: 8px 4px 8px 0;
+        }
+        .assistant-panel-foot {
+          flex-shrink: 0;
+          padding-top: 12px;
+          margin-top: 8px;
+          border-top: 1px solid var(--border);
+          background: var(--panel);
         }
         .assistant-bubble {
           max-width: 100%;
@@ -1920,8 +2008,8 @@ export default function App() {
         }
         .assistant-bubble.user {
           align-self: flex-end;
-          background: rgba(34, 197, 94, 0.15);
-          border: 1px solid rgba(34, 197, 94, 0.35);
+          background: rgba(45, 212, 191, 0.1);
+          border: 1px solid var(--accent-border);
         }
         .assistant-bubble.assistant {
           align-self: flex-start;
@@ -1950,8 +2038,8 @@ export default function App() {
           cursor: pointer;
         }
         .assistant-icon-btn:hover:not(:disabled) {
-          border-color: rgba(134, 239, 172, 0.45);
-          color: #86efac;
+          border-color: var(--accent-border);
+          color: var(--accent-text);
         }
         .assistant-icon-btn:disabled {
           opacity: 0.45;
@@ -1989,30 +2077,30 @@ export default function App() {
         .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
         .ticker-track { display: flex; gap: 20px; width: max-content; padding: 10px 0; animation: scrollDeals 35s linear infinite; }
         .ticker-track:hover { animation-play-state: paused; }
-        .ticker-item { white-space: nowrap; font-size: .86rem; color: #d1fae5; }
-        .ticker-item strong { color: #22c55e; margin-left: 8px; }
+        .ticker-item { white-space: nowrap; font-size: .86rem; color: #cbd5e1; }
+        .ticker-item strong { color: var(--accent-text); margin-left: 8px; }
         .market-flash-line {
           margin: 0; flex: 1; min-width: 180px;
-          background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 10px;
-          padding: 11px 13px; color: #bbf7d0; font-size: .9rem;
+          background: rgba(45, 212, 191, 0.06); border: 1px solid rgba(45, 212, 191, 0.22); border-radius: 10px;
+          padding: 11px 13px; color: #ccfbf1; font-size: .9rem;
         }
         .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
         .terminal-metric { background: #0b1221; border: 1px solid #1f2937; border-radius: 8px; padding: 8px 10px; }
-        .terminal-metric strong { color: #86efac; display: block; font-size: 1.05rem; }
+        .terminal-metric strong { color: var(--accent-text); display: block; font-size: 1.05rem; }
         .terminal-metric span { color: #94a3b8; font-size: .76rem; }
         .deal-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
         .deal-chip-btn {
           border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
           padding: 5px 10px; font-size: .74rem; cursor: pointer;
         }
-        .deal-chip-btn.active { border-color: #22c55e; color: #86efac; }
+        .deal-chip-btn.active { border-color: var(--accent); color: var(--accent-text); background: var(--accent-muted); }
         .live-dot {
-          width: 8px; height: 8px; background: #22c55e; border-radius: 999px; display: inline-block; margin-right: 6px;
+          width: 8px; height: 8px; background: var(--accent); border-radius: 999px; display: inline-block; margin-right: 6px;
           animation: pulseDot 1.6s infinite;
         }
         @keyframes pulseDot {
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); }
-          100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+          0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, .45); }
+          100% { box-shadow: 0 0 0 10px rgba(45, 212, 191, 0); }
         }
         .pulse-toolbar {
           display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
@@ -2025,7 +2113,7 @@ export default function App() {
         .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
 
         .muted { color: var(--text-muted); }
-        .green-note { color: var(--green); font-weight: 700; }
+        .green-note { color: var(--accent-text); font-weight: 700; }
         .contact-panel {
           background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 16px;
         }
@@ -2040,9 +2128,9 @@ export default function App() {
         .form-grid select:focus-visible,
         .form-grid textarea:focus-visible,
         .assistant-input-row textarea:focus-visible {
-          outline: 2px solid rgba(134, 239, 172, 0.95);
+          outline: 2px solid rgba(45, 212, 191, 0.65);
           outline-offset: 2px;
-          border-color: rgba(134, 239, 172, 0.45);
+          border-color: var(--accent-border);
         }
 
         .btn-mini {
@@ -2063,13 +2151,13 @@ export default function App() {
           width: 100%; text-align: left; border: 1px solid transparent; background: #0f172a; color: #fff;
           padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
         }
-        .client-list-item.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.08); }
+        .client-list-item.active { border-color: var(--accent); background: var(--accent-muted); }
         .client-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
         .client-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
         .meta-kv { background: #0f172a; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; }
         .status-pill {
           display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
-          background: rgba(34, 197, 94, 0.13); color: #4ade80;
+          background: var(--accent-muted); color: var(--accent-text);
         }
         .btn:focus-visible,
         .btn-mini:focus-visible,
@@ -2079,7 +2167,7 @@ export default function App() {
         .client-list-item:focus-visible,
         .mobile-nav-btn:focus-visible,
         .footer-link-btn:focus-visible {
-          outline: 2px solid rgba(134, 239, 172, 0.95);
+          outline: 2px solid rgba(45, 212, 191, 0.65);
           outline-offset: 2px;
         }
         .mobile-nav { display: none; }
@@ -2104,7 +2192,7 @@ export default function App() {
           .deal-card h3 { font-size: 1rem; }
           .muted { font-size: .9rem; }
 
-          .site-footer { padding-bottom: 92px; }
+          .site-footer { padding-bottom: 148px; }
 
           .mobile-nav {
             position: fixed;
@@ -2116,10 +2204,18 @@ export default function App() {
             border: 1px solid #334155;
             border-radius: 14px;
             padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            backdrop-filter: blur(6px);
+          }
+          .mobile-nav-row {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 4px;
-            backdrop-filter: blur(6px);
+          }
+          .mobile-nav-row.tools {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
           }
           .mobile-nav-btn {
             border: 1px solid transparent;
@@ -2147,9 +2243,9 @@ export default function App() {
           height: 15px;
           }
           .mobile-nav-btn.active {
-            border-color: rgba(34, 197, 94, 0.45);
-            color: #86efac;
-            background: rgba(34, 197, 94, 0.08);
+            border-color: var(--accent-border);
+            color: var(--accent-text);
+            background: var(--accent-muted);
           }
         }
 
@@ -2175,7 +2271,7 @@ export default function App() {
 			</a>
 			<nav className="nav" aria-label={tr.navPrimaryAria}>
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="var(--green)" size={24} aria-hidden />
+					<Leaf color="#2dd4bf" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2190,6 +2286,12 @@ export default function App() {
 					</button>
 					<button
 						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'command' ? 'active' : ''}`}
+						onClick={() => setView('command')}>
+						<ClipboardList size={14} aria-hidden /> {tr.navCommand}
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
 						onClick={() => setView('market')}>
 						{tr.navMarket}
@@ -2199,6 +2301,18 @@ export default function App() {
 						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
 						onClick={() => setView('assistant')}>
 						<Brain size={14} aria-hidden /> {tr.navAssistant}
+					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'subsidy-calculator' ? 'active' : ''}`}
+						onClick={() => setView('subsidy-calculator')}>
+						<Calculator size={14} aria-hidden /> {tr.navSubsidyCalculator}
+					</button>
+					<button
+						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'season-calendar' ? 'active' : ''}`}
+						onClick={() => setView('season-calendar')}>
+						<CalendarDays size={14} aria-hidden /> {tr.navSeasonCalendar}
 					</button>
 					{!MVP_MODE && (
 						<>
@@ -2247,12 +2361,19 @@ export default function App() {
 						{tr.createAccount}
 					</button>
 
+					<FarmerCommandCenter
+						lang={lang}
+						tr={tr}
+						compact
+						onExpand={() => setView('command')}
+					/>
+
 					<div className="ai-grid">
 						{landingAiCards.map(f => {
 							const Icon = f.icon;
 							return (
 								<div className="ai-card" key={f.title}>
-									<Icon color="#22c55e" size={20} />
+									<Icon color="#2dd4bf" size={20} />
 									<h4>{f.title}</h4>
 									<p>{f.text}</p>
 								</div>
@@ -2263,7 +2384,7 @@ export default function App() {
 					<div style={{ marginTop: 24 }}>
 						<p
 							style={{
-								color: '#22c55e',
+								color: '#2dd4bf',
 								letterSpacing: 2,
 								fontSize: '.75rem',
 								fontWeight: 700,
@@ -2302,7 +2423,7 @@ export default function App() {
 											}}>
 											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
 										</span>
-										<strong style={{ color: '#22c55e' }}>+{deal.profit}%</strong>
+										<strong style={{ color: '#2dd4bf' }}>+{deal.profit}%</strong>
 									</div>
 									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
 									<div
@@ -2314,7 +2435,7 @@ export default function App() {
 											fontSize: '.84rem',
 										}}>
 										<div>📦 {deal.packaging}</div>
-										<div style={{ color: '#22c55e', marginTop: 4 }}>
+										<div style={{ color: '#2dd4bf', marginTop: 4 }}>
 											📜 {deal.certification}
 										</div>
 									</div>
@@ -2343,6 +2464,18 @@ export default function App() {
 							className="btn btn-outline"
 							onClick={() => setView(MVP_MODE ? 'register' : 'clients')}>
 							{MVP_MODE ? tr.createAccount : tr.clientDossiers}
+						</button>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView('subsidy-calculator')}>
+							<Calculator size={16} aria-hidden /> {tr.navSubsidyCalculator}
+						</button>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setView('season-calendar')}>
+							<CalendarDays size={16} aria-hidden /> {tr.navSeasonCalendar}
 						</button>
 					</div>
 
@@ -2430,7 +2563,7 @@ export default function App() {
 						</div>
 						<div
 							style={{
-								color: '#22c55e',
+								color: '#2dd4bf',
 								fontWeight: 700,
 								display: 'flex',
 								alignItems: 'center',
@@ -2607,7 +2740,7 @@ export default function App() {
 												}}>
 												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 											</span>
-											<strong style={{ color: '#22c55e' }}>
+											<strong style={{ color: '#2dd4bf' }}>
 												+{deal.profit}%
 											</strong>
 										</div>
@@ -2625,7 +2758,7 @@ export default function App() {
 												fontSize: '.84rem',
 											}}>
 											<div>📦 {deal.packaging}</div>
-											<div style={{ color: '#22c55e', marginTop: 3 }}>
+											<div style={{ color: '#2dd4bf', marginTop: 3 }}>
 												📜 {deal.certification}
 											</div>
 											<div style={{ marginTop: 3 }}>
@@ -2657,7 +2790,7 @@ export default function App() {
 												style={{
 													color:
 														deal.decision === 'BUY'
-															? '#22c55e'
+															? '#2dd4bf'
 															: deal.decision === 'HOLD'
 																? '#f59e0b'
 																: '#ef4444',
@@ -2717,11 +2850,14 @@ export default function App() {
 						<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
 					</button>
 					<h2 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 10 }}>
-						<MessageSquare color="#22c55e" size={26} aria-hidden />
+						<MessageSquare color="#2dd4bf" size={26} aria-hidden />
 						{tr.assistantTitle}
 					</h2>
-					<p className="muted" style={{ margin: '0 0 14px', maxWidth: 720 }}>
+					<p className="muted" style={{ margin: '0 0 8px', maxWidth: 720 }}>
 						{tr.assistantSubtitle}
+					</p>
+					<p className="muted" style={{ margin: '0 0 14px', maxWidth: 720, fontSize: '.88rem' }}>
+						{tr.assistantTriadHint}
 					</p>
 					{chatHealth === 'offline' && (
 						<div
@@ -2759,66 +2895,91 @@ export default function App() {
 							</p>
 						</div>
 					)}
-					<div className="contact-panel">
-						<div className="chat-actions" style={{ marginBottom: 8 }}>
-							<span className="muted" style={{ fontSize: '.8rem' }}>
-								{tr.chatPromptsLabel}
-							</span>
-							<button type="button" className="btn-mini" onClick={() => setChatMessages([])}>
-								{tr.chatClear}
-							</button>
-						</div>
-						<div className="deal-actions" style={{ marginBottom: 10 }}>
-							{quickPrompts.map(prompt => (
-								<button
-									key={prompt}
-									type="button"
-									className="deal-chip-btn"
-									onClick={() => applyQuickPrompt(prompt)}>
-									{prompt}
-								</button>
-							))}
-						</div>
-						{assistantNotice && (
-							<p
-								className="muted"
-								style={{
-									margin: '0 0 10px',
-									fontSize: '.82rem',
-									color: '#fbbf24',
-									lineHeight: 1.45,
-								}}>
-								{assistantNotice}
-							</p>
-						)}
-						{demoSessionEmail && (
-							<div className="assistant-doc-toolbar">
-								<input
-									ref={docImageInputRef}
-									type="file"
-									hidden
-									accept="image/jpeg,image/png,image/webp,image/gif"
-									onChange={onDocImageChange}
-								/>
-								<button
-									type="button"
-									className="btn btn-outline"
-									style={{ fontSize: '.82rem', padding: '8px 12px' }}
-									disabled={docExplainLoading || chatLoading}
-									onClick={() => docImageInputRef.current?.click()}>
-									<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-									{docExplainLoading ? (
-										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-											<Loader2 size={14} className="spin" aria-hidden />
-											…
-										</span>
-									) : (
-										tr.chatExplainDoc
-									)}
+					<div className="contact-panel assistant-workbench">
+						<div className="assistant-panel-head">
+							<div className="deal-actions assistant-persona-row" style={{ flexWrap: 'wrap' }}>
+								{(
+									[
+										['unified', tr.personaUnified],
+										['lawyer', tr.personaLawyer],
+										['agronomist', tr.personaAgronomist],
+										['finance', tr.personaFinance],
+									] as const
+								).map(([id, label]) => (
+									<button
+										key={id}
+										type="button"
+										className={`deal-chip-btn${chatPersona === id ? ' active' : ''}`}
+										onClick={() => setChatPersona(id)}>
+										{label}
+									</button>
+								))}
+							</div>
+							<div className="chat-actions" style={{ marginBottom: 8 }}>
+								<span className="muted" style={{ fontSize: '.8rem' }}>
+									{tr.chatPromptsLabel}
+								</span>
+								<button type="button" className="btn-mini" onClick={() => setChatMessages([])}>
+									{tr.chatClear}
 								</button>
 							</div>
-						)}
-						<div className="assistant-msgs">
+							<p className="assistant-prompts-scroll-hint">{tr.chatPromptsScrollHint}</p>
+							<div
+								className="deal-actions assistant-quick-prompts-scroll"
+								style={{ marginBottom: 10 }}
+								role="region"
+								aria-label={tr.chatPromptsLabel}>
+								{quickPrompts.map(prompt => (
+									<button
+										key={prompt}
+										type="button"
+										className="deal-chip-btn"
+										onClick={() => applyQuickPrompt(prompt)}>
+										{prompt}
+									</button>
+								))}
+							</div>
+							{assistantNotice && (
+								<p
+									className="muted"
+									style={{
+										margin: '0 0 10px',
+										fontSize: '.82rem',
+										color: '#99f6e4',
+										lineHeight: 1.45,
+									}}>
+									{assistantNotice}
+								</p>
+							)}
+							{demoSessionEmail && (
+								<div className="assistant-doc-toolbar">
+									<input
+										ref={docImageInputRef}
+										type="file"
+										hidden
+										accept="image/jpeg,image/png,image/webp,image/gif"
+										onChange={onDocImageChange}
+									/>
+									<button
+										type="button"
+										className="btn btn-outline"
+										style={{ fontSize: '.82rem', padding: '8px 12px' }}
+										disabled={docExplainLoading || chatLoading}
+										onClick={() => docImageInputRef.current?.click()}>
+										<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+										{docExplainLoading ? (
+											<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+												<Loader2 size={14} className="spin" aria-hidden />
+												…
+											</span>
+										) : (
+											tr.chatExplainDoc
+										)}
+									</button>
+								</div>
+							)}
+						</div>
+						<div className="assistant-msgs" aria-live="polite">
 							{chatMessages.map((m, idx) => (
 								<div key={`${idx}-${m.role}`} className={`assistant-bubble ${m.role}`}>
 									{m.content}
@@ -2833,41 +2994,43 @@ export default function App() {
 							)}
 							<div ref={chatEndRef} />
 						</div>
-						<div className="assistant-input-row">
-							<textarea
-								placeholder={tr.chatPlaceholder}
-								value={chatInput}
-								onChange={e => setChatInput(e.target.value)}
-								onKeyDown={e => {
-									if (e.key === 'Enter' && !e.shiftKey) {
-										e.preventDefault();
-										void sendChat();
-									}
-								}}
-							/>
-							{demoSessionEmail && (
+						<div className="assistant-panel-foot">
+							<div className="assistant-input-row">
+								<textarea
+									placeholder={tr.chatPlaceholder}
+									value={chatInput}
+									onChange={e => setChatInput(e.target.value)}
+									onKeyDown={e => {
+										if (e.key === 'Enter' && !e.shiftKey) {
+											e.preventDefault();
+											void sendChat();
+										}
+									}}
+								/>
+								{demoSessionEmail && (
+									<button
+										type="button"
+										className={`assistant-icon-btn${voiceListening ? ' listening' : ''}`}
+										disabled={chatLoading || docExplainLoading}
+										onClick={() => toggleVoiceInput()}
+										aria-pressed={voiceListening}
+										title={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}
+										aria-label={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}>
+										<Mic size={20} aria-hidden />
+									</button>
+								)}
 								<button
 									type="button"
-									className={`assistant-icon-btn${voiceListening ? ' listening' : ''}`}
-									disabled={chatLoading || docExplainLoading}
-									onClick={() => toggleVoiceInput()}
-									aria-pressed={voiceListening}
-									title={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}
-									aria-label={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}>
-									<Mic size={20} aria-hidden />
+									className="btn btn-primary"
+									disabled={chatLoading}
+									onClick={() => void sendChat()}>
+									<Send size={18} aria-hidden />
 								</button>
-							)}
-							<button
-								type="button"
-								className="btn btn-primary"
-								disabled={chatLoading}
-								onClick={() => void sendChat()}>
-								<Send size={18} aria-hidden />
-							</button>
+							</div>
+							<p className="muted" style={{ margin: '12px 0 0', fontSize: '.78rem', lineHeight: 1.45 }}>
+								{tr.assistantLegalFooter}
+							</p>
 						</div>
-						<p className="muted" style={{ margin: '14px 0 0', fontSize: '.78rem', lineHeight: 1.45 }}>
-							{tr.assistantLegalFooter}
-						</p>
 					</div>
 				</section>
 			)}
@@ -2918,7 +3081,7 @@ export default function App() {
 													}}>
 													{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
 												</span>
-												<strong style={{ color: '#22c55e' }}>
+												<strong style={{ color: '#2dd4bf' }}>
 													+{deal.profit}%
 												</strong>
 											</div>
@@ -2936,7 +3099,7 @@ export default function App() {
 													fontSize: '.84rem',
 												}}>
 												<div>📦 {deal.packaging}</div>
-												<div style={{ color: '#22c55e', marginTop: 3 }}>
+												<div style={{ color: '#2dd4bf', marginTop: 3 }}>
 													📜 {deal.certification}
 												</div>
 												<div style={{ marginTop: 3 }}>
@@ -3243,7 +3406,26 @@ export default function App() {
 							</span>
 						) : null}
 					</div>
+					<CloudAuthPanel tr={tr} />
 				</section>
+			)}
+
+			{view === 'command' && <FarmerCommandCenter lang={lang} tr={tr} />}
+
+			{view === 'subsidy-calculator' && (
+				<SubsidyCalculatorView
+					lang={lang}
+					tr={tr}
+					onOpenCalendar={() => setView('season-calendar')}
+				/>
+			)}
+
+			{view === 'season-calendar' && (
+				<SeasonCalendarView
+					lang={lang}
+					tr={tr}
+					onOpenSubsidy={() => setView('subsidy-calculator')}
+				/>
 			)}
 
 			{view === 'privacy' && (
@@ -3278,12 +3460,12 @@ export default function App() {
 			{view === 'company' && (
 				<section className="section">
 					<h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<Building2 size={22} color="#22c55e" /> {tr.companyTitle}
+						<Building2 size={22} color="#2dd4bf" /> {tr.companyTitle}
 					</h2>
 					<p className="muted">{tr.companySubtitle}</p>
 					<div className="contact-panel">
 						<p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-							<Globe2 size={16} color="#22c55e" /> {tr.companyRegions}
+							<Globe2 size={16} color="#2dd4bf" /> {tr.companyRegions}
 						</p>
 						<p
 							style={{
@@ -3292,7 +3474,7 @@ export default function App() {
 								alignItems: 'center',
 								gap: 8,
 							}}>
-							<Mail size={16} color="#22c55e" /> info@agrinexus.eu
+							<Mail size={16} color="#2dd4bf" /> info@agrinexus.eu
 						</p>
 					</div>
 				</section>
@@ -3413,63 +3595,88 @@ export default function App() {
 
 			{isMobileViewport && (
 				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
-						onClick={() => setView('landing')}>
-						<Leaf size={16} />
-						{tr.navHome}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
-						onClick={() => setView('market')}>
-						<Search size={16} />
-						{tr.navMarket}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'assistant' ? 'active' : ''}`}
-						onClick={() => setView('assistant')}
-						aria-label={tr.navAssistant}>
-						<Brain size={16} aria-hidden />
-						{tr.mobileAssistantTab}
-					</button>
-					{MVP_MODE ? (
-						<>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'register' ? 'active' : ''}`}
-								onClick={() => setView('register')}>
-								<UserPlus size={16} aria-hidden />
-								{tr.navGetStarted}
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'login' ? 'active' : ''}`}
-								onClick={() => setView('login')}>
-								<LogIn size={16} aria-hidden />
-								{tr.navLogin}
-							</button>
-						</>
-					) : (
-						<>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'clients' ? 'active' : ''}`}
-								onClick={() => setView('clients')}>
-								<Users size={16} aria-hidden />
-								{tr.navClients}
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
-								onClick={() => setView('watchlist')}>
-								<Bookmark size={16} aria-hidden />
-								{tr.navWatchlist}
-							</button>
-						</>
-					)}
+					<div className="mobile-nav-row">
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
+							onClick={() => setView('landing')}>
+							<Leaf size={16} />
+							{tr.navHome}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
+							onClick={() => setView('market')}>
+							<Search size={16} />
+							{tr.navMarket}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'assistant' ? 'active' : ''}`}
+							onClick={() => setView('assistant')}
+							aria-label={tr.navAssistant}>
+							<Brain size={16} aria-hidden />
+							{tr.mobileAssistantTab}
+						</button>
+						{MVP_MODE ? (
+							<>
+								<button
+									type="button"
+									className={`mobile-nav-btn ${view === 'register' ? 'active' : ''}`}
+									onClick={() => setView('register')}>
+									<UserPlus size={16} aria-hidden />
+									{tr.navGetStarted}
+								</button>
+								<button
+									type="button"
+									className={`mobile-nav-btn ${view === 'login' ? 'active' : ''}`}
+									onClick={() => setView('login')}>
+									<LogIn size={16} aria-hidden />
+									{tr.navLogin}
+								</button>
+							</>
+						) : (
+							<>
+								<button
+									type="button"
+									className={`mobile-nav-btn ${view === 'clients' ? 'active' : ''}`}
+									onClick={() => setView('clients')}>
+									<Users size={16} aria-hidden />
+									{tr.navClients}
+								</button>
+								<button
+									type="button"
+									className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
+									onClick={() => setView('watchlist')}>
+									<Bookmark size={16} aria-hidden />
+									{tr.navWatchlist}
+								</button>
+							</>
+						)}
+					</div>
+					<div className="mobile-nav-row tools">
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'command' ? 'active' : ''}`}
+							onClick={() => setView('command')}>
+							<ClipboardList size={16} aria-hidden />
+							{tr.navCommand}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'subsidy-calculator' ? 'active' : ''}`}
+							onClick={() => setView('subsidy-calculator')}>
+							<Calculator size={16} aria-hidden />
+							{tr.navSubsidyCalculator}
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${view === 'season-calendar' ? 'active' : ''}`}
+							onClick={() => setView('season-calendar')}>
+							<CalendarDays size={16} aria-hidden />
+							{tr.navSeasonCalendar}
+						</button>
+					</div>
 				</div>
 			)}
 		</div>

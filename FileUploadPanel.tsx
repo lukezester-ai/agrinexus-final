@@ -204,7 +204,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
       style={{
         marginTop: 16,
         padding: 14,
-        border: `1px solid ${drag ? '#22c55e' : '#1e293b'}`,
+        border: `1px solid ${drag ? '#2dd4bf' : '#1e293b'}`,
         borderRadius: 12,
         background: drag ? 'rgba(34,197,94,0.06)' : '#0f172a',
         transition: 'border-color 0.15s ease, background 0.15s ease',
@@ -218,7 +218,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
       onDrop={onDrop}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-        <FileUp size={20} color="#22c55e" />
+        <FileUp size={20} color="#2dd4bf" />
         <strong style={{ fontSize: '1rem' }}>{copy.title}</strong>
       </div>
       <p style={{ margin: '0 0 10px', color: '#94a3b8', fontSize: 13, lineHeight: 1.45 }}>{copy.hint}</p>
