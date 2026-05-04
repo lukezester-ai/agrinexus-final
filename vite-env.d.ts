@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+	/** Локален API порт от DEV_API_PORT (inject от vite.config; подразбиране 8788) */
+	readonly VITE_DEV_API_PORT?: string;
 	readonly VITE_MVP_MODE?: string;
 	readonly VITE_SKIP_MARKET_QUOTES?: string;
 	/** Supabase project URL (public) */

@@ -39,6 +39,17 @@ function mergeDotEnvWithoutBom(): void {
 		apply('OLLAMA_BASE_URL');
 		apply('OLLAMA_MODEL');
 		apply('OLLAMA_VISION_MODEL');
+		apply('RESEND_API_KEY');
+		apply('MAIL_FROM');
+		apply('MAIL_TO');
+		apply('CONTACT_TO_EMAIL');
+		apply('AGRI_INBOX_EMAIL');
+		apply('RESEND_FROM');
+		apply('SMTP_FROM');
+		apply('SMTP_HOST');
+		apply('SMTP_PORT');
+		apply('SMTP_USER');
+		apply('SMTP_PASS');
 	} catch {
 		/* ignore */
 	}

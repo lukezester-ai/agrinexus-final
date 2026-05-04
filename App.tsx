@@ -64,6 +64,9 @@ function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 /** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 
+/** За подсказка при офлайн `/api/chat` — същият порт като `DEV_API_PORT` в `.env` (vite proxy). */
+const DEV_API_PORT_HINT = import.meta.env.VITE_DEV_API_PORT ?? '8788';
+
 const PREVIEW_DEALS = [
 	{
 		id: 'p1',
@@ -3315,8 +3318,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									'Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — стартират Vite на :5173 и API на :8788. Отворете http://localhost:5173. Ако порт 8788 е зает, спрете другата програма или сменете DEV_API_PORT в .env.',
-									'Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the API on :8788. Open http://localhost:5173. If port 8788 is busy, free it or set DEV_API_PORT in .env.'
+									`Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — Vite на :5173 проксира /api към локалния API на :${DEV_API_PORT_HINT}. Отворете http://localhost:5173. Ако порт ${DEV_API_PORT_HINT} е зает, спрете другата програма или сменете DEV_API_PORT в .env и рестартирайте npm run dev.`,
+									`Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the local API on :${DEV_API_PORT_HINT}. Open http://localhost:5173. If port ${DEV_API_PORT_HINT} is busy, stop the other process or change DEV_API_PORT in .env and restart npm run dev.`
 								)}
 							</p>
 						</div>

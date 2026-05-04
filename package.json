@@ -10,7 +10,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:mistral": "tsx scripts/smoke-mistral.ts"
+    "test:mistral": "tsx scripts/smoke-mistral.ts",
+    "test:mistral:vision": "tsx scripts/smoke-mistral-vision.ts",
+    "test:mail": "tsx scripts/smoke-mail.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",

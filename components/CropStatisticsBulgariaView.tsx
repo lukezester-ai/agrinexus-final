@@ -2,20 +2,26 @@ import { useMemo, useState } from 'react';
 import {
 	Bar,
 	CartesianGrid,
+	Cell,
 	ComposedChart,
 	Legend,
 	Line,
+	Pie,
+	PieChart,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
-import { BarChart3, Droplets, TrendingUp } from 'lucide-react';
+import { BarChart3, Droplets, PieChart as PieChartIconLucide, TrendingUp } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import {
+	adjustPriceByProductionOutlook,
 	analyzeCropOutlook,
+	averagePriceEurPerT,
 	CROP_PROFILES,
 	type CropKey,
+	forecastPriceEurPerT,
 	forecastProductionKt,
 	isDryStressLikely,
 	OUTLOOK_FACTOR_LABELS,
@@ -57,6 +63,27 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 	const outlook = useMemo(
 		() => analyzeCropOutlook(profile.series, slopeKtPerYear, forecastKt, dry),
 		[profile.series, slopeKtPerYear, forecastKt, dry],
+	);
+
+	const nationalPieData = useMemo(
+		() =>
+			CROP_PROFILES.map(c => {
+				const avg = averagePriceEurPerT(c.priceSeries);
+				return {
+					key: c.key,
+					name: pickL(c.label, lang),
+					value: avg,
+					avgRounded: Math.round(avg),
+					fill: c.chartColor,
+				};
+			}),
+		[lang],
+	);
+
+	const priceTrend = useMemo(() => forecastPriceEurPerT(profile.priceSeries), [profile.priceSeries]);
+	const priceAdjusted = useMemo(
+		() => adjustPriceByProductionOutlook(priceTrend.forecastEurPerT, forecastKt, outlook.avgKt),
+		[priceTrend.forecastEurPerT, forecastKt, outlook.avgKt],
 	);
 
 	const fmtPctSigned = (p: number) => {
@@ -199,6 +226,69 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 			</div>
 
 			<div
+				className="contact-panel"
+				style={{
+					borderColor: 'rgba(168, 85, 247, 0.35)',
+					padding: '16px 12px 8px',
+					marginBottom: 20,
+					background: 'linear-gradient(165deg, rgba(168,85,247,0.08) 0%, rgba(12,22,17,0.48) 100%)',
+				}}>
+				<h3
+					style={{
+						margin: '0 0 6px',
+						display: 'flex',
+						alignItems: 'center',
+						gap: 10,
+						fontSize: '1rem',
+					}}>
+					<PieChartIconLucide size={20} color="#c4b5fd" aria-hidden />
+					{tr.cropStatsPieTitle}
+				</h3>
+				<p className="muted" style={{ margin: '0 0 12px', fontSize: '.9rem', lineHeight: 1.55 }}>
+					{tr.cropStatsPieSubtitle}
+				</p>
+				<div style={{ width: '100%', height: 300 }}>
+					<ResponsiveContainer width="100%" height="100%">
+						<PieChart>
+							<Pie
+								data={nationalPieData}
+								dataKey="value"
+								nameKey="name"
+								cx="50%"
+								cy="50%"
+								innerRadius={56}
+								outerRadius={102}
+								paddingAngle={2}>
+								{nationalPieData.map(entry => (
+									<Cell
+										key={entry.key}
+										fill={entry.fill}
+										stroke={
+											cropKey === entry.key ? 'rgba(255,255,255,0.95)' : 'rgba(15,23,42,0.4)'
+										}
+										strokeWidth={cropKey === entry.key ? 3 : 1}
+									/>
+								))}
+							</Pie>
+							<Tooltip
+								contentStyle={{
+									background: 'rgba(14,24,18,0.92)',
+									border: '1px solid rgba(167,139,250,0.4)',
+									borderRadius: 8,
+								}}
+								labelStyle={{ color: '#e2e8f0' }}
+								formatter={(value: number, _name, item) => {
+									const row = item?.payload as { avgRounded?: number };
+									const show = row?.avgRounded ?? Math.round(Number(value));
+									return [`${show} EUR/t`, tr.cropStatsPieTooltipAvg];
+								}}
+							/>
+						</PieChart>
+					</ResponsiveContainer>
+				</div>
+			</div>
+
+			<div
 				style={{
 					display: 'grid',
 					gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -220,6 +310,25 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 						{tr.cropStatsForecastIntro
 							.replace(/\{year\}/g, String(nextYear))
 							.replace(/\{kt\}/g, String(Math.round(forecastKt)))}
+					</p>
+					<h4
+						style={{
+							margin: '16px 0 8px',
+							fontSize: '.95rem',
+							fontWeight: 700,
+							color: '#bae6fd',
+							letterSpacing: '0.02em',
+						}}>
+						{tr.cropStatsPriceForecastHeading}
+					</h4>
+					<p className="muted" style={{ margin: '0 0 10px', lineHeight: 1.55, fontSize: '.93rem' }}>
+						{tr.cropStatsPriceForecastBody
+							.replace(/\{year\}/g, String(priceTrend.nextYear))
+							.replace(/\{baseEur\}/g, String(Math.round(priceTrend.forecastEurPerT)))
+							.replace(/\{adjEur\}/g, String(priceAdjusted))}
+					</p>
+					<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.5, fontSize: '.86rem' }}>
+						{tr.cropStatsPriceForecastHint}
 					</p>
 					<p
 						className="muted"

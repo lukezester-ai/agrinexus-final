@@ -5,6 +5,9 @@
 import { config } from 'dotenv';
 import { readMistralApiKey, readMistralModel } from '../lib/mistral-env';
 
+// Не ползвай стара MISTRAL_API_KEY от терминала/OS — само от .env в корена на проекта.
+delete process.env.MISTRAL_API_KEY;
+delete process.env.MISTRAL_MODEL;
 config();
 
 const key = readMistralApiKey();

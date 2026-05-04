@@ -323,7 +323,7 @@ export const STR_EN = {
 	assistantPersonaPromptSuffix: 'Ask below or tap a quick prompt to send.',
 	cropStatsTitle: 'Bulgaria crop production — 5-year view & outlook',
 	cropStatsSubtitle:
-		'Pick a crop to see an illustrative five-year production chart (kt), a simple linear trend line, and a next-year numeric outlook. Drought emphasis uses a heuristic on the demo series — replace with NSI / Eurostat / API feeds for production use.',
+		'Pick a crop for demo volumes (kt), a colourful pie of national-average EUR/t across crops (synthetic), harvest trend plus an illustrative next-year EUR/t adjusted lightly vs your yield outlook. Drought flag uses a heuristic — plug NSI / Eurostat / APIs for real use.',
 	cropStatsPickCrop: 'Crop',
 	cropStatsYAxisKt: '1000 t',
 	cropStatsKtShort: 'kt',
@@ -353,7 +353,16 @@ export const STR_EN = {
 	cropStatsNormalIrrigationExtra:
 		'Irrigation is often supplemental; monitor sandy soils and valley frost pockets first when rainfall is near normal.',
 	cropStatsDisclaimer:
-		'All production figures and forecasts are synthetic demo data for UI testing. Do not use for trading or policy decisions — connect official statistics (e.g. NSI, Eurostat, DAFS) before relying on numbers.',
+		'Harvest volumes and forecasts are synthetic. EUR/t partly mirrors SAP purchases (MA operative bulletins) and DKSBТ annual wholesale averages / CBOT charts from the commission’s annual bulletin for 2025 (Sofia, Jan 2026), but the linear forecast stays an in-app model — not trading advice; operative data are not official statistics; verify with NSI or primaries.',
+	cropStatsPieTitle: 'National demo prices — mix across crops',
+	cropStatsPieSubtitle:
+		'Slice angles reflect relative average producer EUR/t over the five demo years (not official gross production value). Select a crop above — its slice is outlined.',
+	cropStatsPieTooltipAvg: '5-year avg EUR/t (demo)',
+	cropStatsPriceForecastHeading: 'Illustrative price outlook (EUR/t)',
+	cropStatsPriceForecastBody:
+		'Linear trend on demo EUR/t points toward ~{baseEur} EUR/t for {year}. After a simple volume linkage versus the five-year average harvest in this chart, the model hints ~{adjEur} EUR/t — not a quote.',
+	cropStatsPriceForecastHint:
+		'Volume heuristic: a lower next-year harvest vs the demo average nudges the illustrative price up (and vice versa), capped for stability.',
 	transportDirTitle: 'Freight & logistics partners',
 	transportDirSubtitle:
 		'Carriers and forwarders can register their details — producers and traders use the list to request quotes. Demo cards are always shown; with VITE_SUPABASE_* configured and the SQL migration applied, new listings sync to Supabase for everyone. Otherwise they stay in this browser (and under .local/ in local dev).',

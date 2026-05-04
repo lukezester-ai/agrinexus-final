@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
   const apiPort = Number.isFinite(n) && n > 0 ? n : 8788;
 
   return {
+    define: {
+      /** За UI подсказки при офлайн API — синхрон с proxy към dev-server */
+      'import.meta.env.VITE_DEV_API_PORT': JSON.stringify(String(apiPort)),
+    },
     plugins: [react()],
     build: {
       rollupOptions: {
