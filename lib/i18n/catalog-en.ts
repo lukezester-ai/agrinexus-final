@@ -21,7 +21,7 @@ export const STR_EN = {
 	navSubsidyCalculatorShort: 'Subsidy',
 	navSeasonCalendarShort: 'Season',
 	navClients: 'Clients',
-	navWatchlist: 'Watchlist',
+	navWatchlist: 'Operations',
 	navLogin: 'Sign In',
 	navGetStarted: 'Get Started',
 	navGroupMarkets: 'Markets & trade',
@@ -66,23 +66,11 @@ export const STR_EN = {
 	coverageTitle: 'Coverage capacity',
 	coverageBody:
 		'The demo catalog spans origins and destinations worldwide. BUY/HOLD/AVOID is an orientation from your filters and the rows shown — when real exchange or vendor feeds are connected, those estimates can switch to live-driven signals.',
-	watchlistTitle: 'Watchlist',
-	watchlistEmpty: 'No saved deals yet. Open Marketplace and tap Watch.',
-	watchlistStorageHint:
-		'No sign-in needed for this screen — saves stay in this browser until cleared.',
-	watchlistTabSaved: 'Saved deals',
-	watchlistTabCabinet: 'My cabinet',
-	cabinetTitle: 'Trading cabinet',
-	cabinetSubtitle:
-		'Quick access to core modules—clients, marketplace, AI assistant, farmer tools, logistics, and analytics.',
-	cabinetSavedCount: 'Saved deals',
-	cabinetAlertsCount: 'Active alerts',
-	cabinetLastSaved: 'Last saved deal',
-	cabinetLastAlert: 'Last enabled alert',
-	cabinetNoActivity: 'No activity yet',
-	cabinetGoMarket: 'Go to Marketplace',
-	cabinetGoClients: 'Go to Clients',
-	cabinetGoCompany: 'Go to Company profile',
+	opsHubPageTitle: 'Operations hub',
+	opsPinsStorageHint:
+		'No sign-in needed — marketplace pins stay in this browser until you clear site data.',
+	opsPinsGoMarket: 'Go to Marketplace',
+	opsStatNoActivity: 'No activity yet',
 	watchSaved: '★ Saved',
 	watchSave: 'Watch',
 	alertOn: 'Alerts on',
@@ -187,7 +175,7 @@ export const STR_EN = {
 	privacyP1:
 		'This site processes information you voluntarily submit via the contact form, interest registration, or direct team inquiries. We use it to respond and, where you opt in, for market alerts.',
 	privacyP2:
-		'Some features rely on browser-local storage (language, chat draft, watchlist). That data is not sent to AgriNexus until you submit a form.',
+		'Some features rely on browser-local storage (language, chat draft, operations hub tasks and notes, optional marketplace pins). That data is not sent to AgriNexus until you submit a form.',
 	privacyP3:
 		'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
 	privacyP4: 'Questions about data: info@agrinexus.eu',
@@ -406,6 +394,51 @@ export const STR_EN = {
 	equipmentRentalDisclaimer:
 		'Demo catalog for orientation. Verify legal status, operator certification, insurance, and machine condition before signing rental contracts.',
 	equipmentRentalEmpty: 'No rental companies match your search.',
+	opsHubIntro:
+		'Plan operational work without centring on trade: a compact task board, your notes, and shortcuts to subsidies, logistics, field analytics and paperwork.',
+	opsHubTabWorkspace: 'Workspace',
+	opsHubTabMarketPins: 'Market pins',
+	opsKanbanTitle: 'Task board',
+	opsColTodo: 'Backlog',
+	opsColDoing: 'In progress',
+	opsColDone: 'Done',
+	opsAddTaskPlaceholder: 'Add a task (e.g. soil samples, diesel quote…)',
+	opsAddTaskBtn: 'Add to backlog',
+	opsNotesTitle: 'Notes',
+	opsNotesHint:
+		'Every edit is persisted automatically in this browser and reconciled with the dev API snapshot when it responds.',
+	opsNotesPlaceholder: 'Lot numbers, contractor phones, plot reminders…',
+	opsQuickLinksTitle: 'Shortcuts',
+	opsQuickLinksHint: 'Open subsidies, planning, logistics and crop modules.',
+	opsLinkSubsidy: 'Subsidy calculator',
+	opsLinkTransport: 'Freight partners',
+	opsLinkRental: 'Equipment rental',
+	opsLinkCropStats: 'Crop statistics',
+	opsLinkSeason: 'Season calendar',
+	opsLinkPlan: 'Your plan',
+	opsLinkDocs: 'Trade documents (BG)',
+	opsLinkAssistant: 'AI assistant',
+	opsLinkMarket: 'Marketplace (demo)',
+	opsLinkClients: 'Clients',
+	opsLinkCompany: 'Company profile',
+	opsHubStorageHint:
+		'Workspace tasks and notes persist in this browser and merge with the shared `/api/operations-hub` snapshot when that endpoint is available (e.g. local dev server). When you sign in with Supabase, the same payload syncs to your `operations_hub_workspace` row (after running the SQL script). Clearing site data removes the local copy.',
+	opsHubCloudSyncActive:
+		'Signed in — tasks and notes merge with Supabase (`operations_hub_workspace`) using timestamps; conflicts resolve automatically.',
+	opsPinsEmpty: 'No marketplace pins yet — optional saves from the demo marketplace.',
+	opsStatTasks: 'Tasks',
+	opsStatPins: 'Market pins',
+	opsStatAlerts: 'Pin alerts',
+	opsStatLastPin: 'Last pin',
+	opsStatLastAlert: 'Last alert row',
+	opsStatTodoShort: 'backlog',
+	opsStatDoingShort: 'doing',
+	opsStatDoneShort: 'done',
+	opsEmptyColumn: 'Empty — add a task or move one here.',
+	opsDeleteTask: 'Remove',
+	opsColumnSelectAria: 'Column for this task',
+	opsAutoPersistHint:
+		'Saves run in the background after each change; opening this page pulls the newest snapshot by timestamp and resolves conflicts server-side.',
 } as const;
 
 /** Same keys as STR_EN; values are plain strings so BG/AR catalogs type-check. */

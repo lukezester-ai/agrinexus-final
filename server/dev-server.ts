@@ -22,6 +22,10 @@ import {
 	handleEquipmentRentalGet,
 	handleEquipmentRentalPost,
 } from '../lib/equipment-rental-handler';
+import {
+	handleOperationsHubGet,
+	handleOperationsHubPost,
+} from '../lib/operations-hub-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
 
@@ -136,6 +140,31 @@ http
           return;
         }
         send(res, result.status, { ok: false, error: result.error });
+        return;
+      }
+
+      if (path === '/api/operations-hub' && req.method === 'GET') {
+        const r = await handleOperationsHubGet();
+        send(res, 200, r);
+        return;
+      }
+
+      if (path === '/api/operations-hub' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleOperationsHubPost(body);
+        if (result.ok === false) {
+          send(res, result.status, { ok: false, error: result.error });
+          return;
+        }
+        if ('conflict' in result && result.conflict === true) {
+          send(res, 200, { ok: true, conflict: true, state: result.state });
+          return;
+        }
+        send(res, 200, { ok: true, state: result.state });
         return;
       }
 

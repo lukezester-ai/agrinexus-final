@@ -40,6 +40,7 @@ import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaV
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
 import { TransportDirectoryView } from './components/TransportDirectoryView';
 import { EquipmentRentalDirectoryView } from './components/EquipmentRentalDirectoryView';
+import { OperationsHubView } from './components/OperationsHubView';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -272,8 +273,6 @@ type DealRow = {
 };
 type DealCategoryFilter = 'all' | DealRow['category'];
 type SearchableDeal = DealRow & { searchText: string };
-type WatchlistPanel = 'saved' | 'cabinet';
-
 type Lang = UiLang;
 
 function mergeLiveIntoDeals(
@@ -647,7 +646,6 @@ export default function App() {
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
-	const [watchlistPanel, setWatchlistPanel] = useState<WatchlistPanel>('saved');
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
 	const [marketQuotes, setMarketQuotes] = useState<MarketQuotesApi | null>(null);
@@ -3529,194 +3527,18 @@ export default function App() {
 			)}
 
 			{view === 'watchlist' && (
-				<section className="section">
-					<h2 style={{ marginTop: 0 }}>{tr.watchlistTitle}</h2>
-					<div className="deal-actions" style={{ margin: '4px 0 14px' }}>
-						<button
-							type="button"
-							className={`deal-chip-btn ${watchlistPanel === 'saved' ? 'active' : ''}`}
-							onClick={() => setWatchlistPanel('saved')}>
-							{tr.watchlistTabSaved}
-						</button>
-						<button
-							type="button"
-							className={`deal-chip-btn ${watchlistPanel === 'cabinet' ? 'active' : ''}`}
-							onClick={() => setWatchlistPanel('cabinet')}>
-							{tr.watchlistTabCabinet}
-						</button>
-					</div>
-					{watchlistPanel === 'saved' ? (
-						watchedDeals.length === 0 ? (
-							<div>
-								<p className="muted">{tr.watchlistEmpty}</p>
-								<p className="muted" style={{ marginTop: 10, fontSize: '.86rem' }}>
-									{tr.watchlistStorageHint}
-								</p>
-							</div>
-						) : (
-							<div className="grid">
-								{watchedDeals.map(deal => {
-									const delta = deal.profit - deal.prevProfit;
-									return (
-										<div className="deal-card top" key={`w-${deal.id}`}>
-											<div
-												style={{
-													display: 'flex',
-													justifyContent: 'space-between',
-													marginBottom: 8,
-												}}>
-												<span
-													style={{
-														fontSize: '.75rem',
-														background: deal.isMENA ? '#f59e0b' : '#3b82f6',
-														borderRadius: 6,
-														padding: '3px 9px',
-													}}>
-													{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
-												</span>
-												<strong style={{ color: '#7ccd9c' }}>
-													+{deal.profit}%
-												</strong>
-											</div>
-											<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
-											<div className="muted" style={{ fontSize: '.84rem' }}>
-												{deal.from} → {deal.to}
-											</div>
-											<div
-												className="muted"
-												style={{
-													background: '#101914',
-													marginTop: 8,
-													borderRadius: 8,
-													padding: 8,
-													fontSize: '.84rem',
-												}}>
-												<div>📦 {deal.packaging}</div>
-												<div style={{ color: '#7ccd9c', marginTop: 3 }}>
-													📜 {deal.certification}
-												</div>
-												<div style={{ marginTop: 3 }}>
-													🏷️ {tr.dealCategory}: {deal.category}
-												</div>
-												<div style={{ marginTop: 3 }}>
-													🧪 {tr.dealQuality}: {deal.qualitySpec}
-												</div>
-												<div style={{ marginTop: 3 }}>
-													📦 {tr.dealVolume}: {deal.availableVolume}
-												</div>
-												<div style={{ marginTop: 3 }}>
-													🚢 {tr.dealIncoterm}: {deal.incoterm}
-												</div>
-												<div style={{ marginTop: 3 }}>
-													📅 {tr.dealDelivery}: {deal.deliveryWindow}
-												</div>
-											</div>
-											<div
-												className="muted"
-												style={{ fontSize: '.8rem', marginTop: 6 }}>
-												{tr.terminalVol}: {deal.volatility} · Δ{' '}
-												{delta >= 0 ? '+' : ''}
-												{delta}%
-											</div>
-											<div style={{ marginTop: 8, fontWeight: 900 }}>
-												{deal.price}
-											</div>
-											<div className="deal-actions">
-												<button
-													type="button"
-													className="deal-chip-btn active"
-													onClick={() => toggleWatchlist(deal.id)}>
-													{tr.watchSaved}
-												</button>
-												<button
-													type="button"
-													className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
-													onClick={() => toggleAlert(deal.id)}>
-													{alertsEnabledIds.includes(deal.id)
-														? tr.alertOn
-														: tr.alertOff}
-												</button>
-											</div>
-										</div>
-									);
-								})}
-							</div>
-						)
-					) : (
-						<div className="contact-panel">
-							<h3 style={{ margin: '0 0 8px' }}>{tr.cabinetTitle}</h3>
-							<p className="muted" style={{ marginTop: 0 }}>
-								{tr.cabinetSubtitle}
-							</p>
-							<div
-								style={{
-									display: 'grid',
-									gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-									gap: 8,
-									marginBottom: 12,
-								}}>
-								<div className="meta-kv">
-									<strong>{tr.cabinetSavedCount}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{watchedDeals.length}
-									</p>
-								</div>
-								<div className="meta-kv">
-									<strong>{tr.cabinetAlertsCount}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{alertsEnabledIds.length}
-									</p>
-								</div>
-								<div className="meta-kv">
-									<strong>{tr.cabinetLastSaved}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{lastSavedDeal
-											? `#${lastSavedDeal.id} ${lastSavedDeal.product}`
-											: tr.cabinetNoActivity}
-									</p>
-								</div>
-								<div className="meta-kv">
-									<strong>{tr.cabinetLastAlert}</strong>
-									<p className="muted" style={{ margin: '6px 0 0' }}>
-										{lastAlertDeal
-											? `#${lastAlertDeal.id} ${lastAlertDeal.product}`
-											: tr.cabinetNoActivity}
-									</p>
-								</div>
-							</div>
-							<div className="deal-actions">
-								<button type="button" className="deal-chip-btn" onClick={() => setView('market')}>
-									{tr.cabinetGoMarket}
-								</button>
-								{MVP_MODE ? (
-									<>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('register')}>
-											{tr.createAccount}
-										</button>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('assistant')}>
-											{tr.navAssistant}
-										</button>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
-											{tr.cabinetGoCompany}
-										</button>
-									</>
-								) : (
-									<>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('clients')}>
-											{tr.cabinetGoClients}
-										</button>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('company')}>
-											{tr.cabinetGoCompany}
-										</button>
-										<button type="button" className="deal-chip-btn" onClick={() => setView('assistant')}>
-											{tr.navAssistant}
-										</button>
-									</>
-								)}
-							</div>
-						</div>
-					)}
-				</section>
+				<OperationsHubView
+					tr={tr}
+					lang={lang}
+					watchedDeals={watchedDeals}
+					alertsEnabledIds={alertsEnabledIds}
+					toggleWatchlist={toggleWatchlist}
+					toggleAlert={toggleAlert}
+					onNavigate={v => setView(v as View)}
+					MVP_MODE={MVP_MODE}
+					lastSavedDeal={lastSavedDeal}
+					lastAlertDeal={lastAlertDeal}
+				/>
 			)}
 
 			{view === 'register' && (
