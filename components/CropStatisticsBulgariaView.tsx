@@ -8,6 +8,7 @@ import {
 	Line,
 	Pie,
 	PieChart,
+	ReferenceArea,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -85,6 +86,25 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 		() => adjustPriceByProductionOutlook(priceTrend.forecastEurPerT, forecastKt, outlook.avgKt),
 		[priceTrend.forecastEurPerT, forecastKt, outlook.avgKt],
 	);
+	const droughtRows = useMemo(() => {
+		const avg = outlook.avgKt > 0 ? outlook.avgKt : 1;
+		const toRisk = (kt: number, bonus = 0) => {
+			const relativeDrop = (avg - kt) / avg;
+			const risk = 55 + relativeDrop * 120 + bonus;
+			return Math.max(20, Math.min(95, Math.round(risk)));
+		};
+		const rows = profile.series.map(p => ({
+			yearLabel: String(p.year),
+			risk: toRisk(p.kt, dry ? 4 : 0),
+		}));
+		rows.push({
+			yearLabel: String(nextYear),
+			risk: toRisk(forecastKt, dry ? 6 : 0),
+		});
+		return rows;
+	}, [profile.series, outlook.avgKt, dry, nextYear, forecastKt]);
+	const irrigationChartTitle =
+		lang === 'bg' ? 'Индекс риск от суша (демо)' : 'Drought risk index (demo)';
 
 	const fmtPctSigned = (p: number) => {
 		const sign = p > 0 ? '+' : '';
@@ -283,6 +303,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 										borderRadius: 8,
 									}}
 									labelStyle={{ color: '#e2e8f0' }}
+									itemStyle={{ color: '#e2e8f0' }}
 									formatter={(value: number, _name, item) => {
 										const row = item?.payload as { avgRounded?: number };
 										const show = row?.avgRounded ?? Math.round(Number(value));
@@ -426,6 +447,50 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 							</span>
 						) : null}
 					</h3>
+					<div style={{ width: '100%', height: 170, marginBottom: 10 }}>
+						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.82rem' }}>
+							{irrigationChartTitle}
+						</p>
+						<ResponsiveContainer width="100%" height="100%">
+							<ComposedChart data={droughtRows} margin={{ top: 6, right: 8, left: 0, bottom: 2 }}>
+								<ReferenceArea y1={20} y2={45} fill="rgba(34,197,94,0.14)" />
+								<ReferenceArea y1={45} y2={70} fill="rgba(234,179,8,0.12)" />
+								<ReferenceArea y1={70} y2={100} fill="rgba(239,68,68,0.12)" />
+								<CartesianGrid stroke="rgba(148,163,184,0.14)" vertical={false} />
+								<XAxis
+									dataKey="yearLabel"
+									tick={{ fill: '#94a3b8', fontSize: 11 }}
+									tickLine={false}
+									axisLine={{ stroke: 'rgba(148,163,184,0.24)' }}
+								/>
+								<YAxis
+									domain={[20, 100]}
+									tick={{ fill: '#94a3b8', fontSize: 10 }}
+									tickLine={false}
+									axisLine={{ stroke: 'rgba(148,163,184,0.24)' }}
+									width={34}
+								/>
+								<Tooltip
+									contentStyle={{
+										background: 'rgba(14,24,18,0.92)',
+										border: '1px solid rgba(251,146,60,0.35)',
+										borderRadius: 8,
+									}}
+									labelStyle={{ color: '#e2e8f0' }}
+									itemStyle={{ color: '#e2e8f0' }}
+									formatter={(value: unknown) => [`${Number(value)} / 100`, irrigationChartTitle]}
+								/>
+								<Line
+									type="monotone"
+									dataKey="risk"
+									stroke={dry ? '#fb923c' : '#7ccd9c'}
+									strokeWidth={2.4}
+									dot={{ r: 3.5, fill: dry ? '#fb923c' : '#7ccd9c', strokeWidth: 0 }}
+									activeDot={{ r: 5 }}
+								/>
+							</ComposedChart>
+						</ResponsiveContainer>
+					</div>
 					<p className="muted" style={{ margin: '0 0 10px', lineHeight: 1.55 }}>
 						{pickL(profile.irrigationGeneral, lang)}
 					</p>

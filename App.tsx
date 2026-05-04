@@ -21,11 +21,9 @@ import {
 	Mail,
 	MessageSquare,
 	Mic,
-	Moon,
 	RefreshCw,
 	Search,
 	Send,
-	Sun,
 	Truck,
 	UserPlus,
 	Users,
@@ -220,16 +218,6 @@ function safeSessionRemove(key: string): void {
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 
 type SendChatOpts = { text?: string; persona?: ChatPersona };
-type UiTheme = 'dark' | 'light';
-
-function getInitialTheme(): UiTheme {
-	const stored = safeLocalGet('agrinexus-theme');
-	if (stored === 'dark' || stored === 'light') return stored;
-	if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
-		return 'light';
-	}
-	return 'dark';
-}
 
 /** Minimal typings — DOM lib does not always expose Web Speech API types. */
 type SpeechRecognitionResultEvt = {
@@ -647,17 +635,11 @@ export default function App() {
 		}
 	}, [view]);
 	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
-	const [theme, setTheme] = useState<UiTheme>(() => getInitialTheme());
 
 	useEffect(() => {
 		document.documentElement.lang = lang === 'bg' ? 'bg' : 'en';
 		document.documentElement.dir = 'ltr';
 	}, [lang]);
-
-	useEffect(() => {
-		document.documentElement.dataset.theme = theme;
-		safeLocalSet('agrinexus-theme', theme);
-	}, [theme]);
 
 	useEffect(() => {
 		recordBrowserVisitOncePerSession();
@@ -1830,20 +1812,6 @@ export default function App() {
           --danger: #f87171;
           --gold: #d4b876;
         }
-        :root[data-theme='light'] {
-          --bg: #f3f7f4;
-          --panel: #ffffff;
-          --panel-2: #eef3ef;
-          --border: #cbd5cf;
-          --text-main: #0f172a;
-          --text-muted: #475569;
-          --accent: #2f8f66;
-          --accent-muted: rgba(47, 143, 102, 0.12);
-          --accent-border: rgba(47, 143, 102, 0.35);
-          --accent-text: #1f5f45;
-          --danger: #dc2626;
-          --gold: #a16207;
-        }
         * { box-sizing: border-box; }
         body {
           margin: 0;
@@ -1899,29 +1867,6 @@ export default function App() {
           background: rgba(14, 22, 18, 0.94);
           backdrop-filter: blur(10px);
           padding: 18px 16px 22px;
-        }
-        :root[data-theme='light'] .app {
-          background-image:
-            linear-gradient(165deg, rgba(239, 246, 241, 0.98) 0%, rgba(244, 248, 245, 0.96) 52%, rgba(233, 240, 235, 0.98) 100%),
-            linear-gradient(180deg, rgba(47, 143, 102, 0.07) 0%, transparent 38%),
-            url('/season-cal/young_crop.jpg');
-        }
-        :root[data-theme='light'] .app::after {
-          opacity: 0.02;
-          mix-blend-mode: multiply;
-        }
-        :root[data-theme='light'] .site-footer {
-          background: rgba(248, 251, 249, 0.96);
-          border-top-color: var(--border);
-        }
-        :root[data-theme='light'] .site-footer-sep {
-          color: #64748b;
-        }
-        :root[data-theme='light'] .footer-link-btn {
-          color: #1f5f45;
-        }
-        :root[data-theme='light'] .footer-link-btn:hover {
-          color: #15543d;
         }
         .site-footer-inner {
           max-width: 1100px;
@@ -2087,31 +2032,6 @@ export default function App() {
         .btn-primary { background: var(--accent); color: #0f1f17; }
         .btn-light { background: #f4faf6; color: #141f18; }
         .btn-outline { background: transparent; color: var(--accent-text); border: 1px solid var(--accent-border); }
-        :root[data-theme='light'] .nav {
-          background: rgba(255, 255, 255, 0.9);
-        }
-        :root[data-theme='light'] .brand-agri {
-          color: #0f172a;
-        }
-        :root[data-theme='light'] .nav-link {
-          color: #0f172a;
-        }
-        :root[data-theme='light'] .nav-link:hover:not(.active) {
-          background: rgba(15, 23, 42, 0.06);
-        }
-        :root[data-theme='light'] .nav-dropdown-panel {
-          background: rgba(255, 255, 255, 0.98);
-          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
-        }
-        :root[data-theme='light'] .nav-dropdown-item:hover {
-          background: rgba(15, 23, 42, 0.06);
-        }
-        :root[data-theme='light'] .btn-primary {
-          color: #ffffff;
-        }
-        :root[data-theme='light'] .btn-outline {
-          color: #1f5f45;
-        }
 
         .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
         .hero { text-align: center; padding-top: 42px; }
@@ -2401,12 +2321,6 @@ export default function App() {
           margin-top: 16px;
           backdrop-filter: blur(8px);
         }
-        :root[data-theme='light'] .contact-panel,
-        :root[data-theme='light'] .client-list,
-        :root[data-theme='light'] .client-card {
-          background: rgba(255, 255, 255, 0.92);
-          border-color: var(--border);
-        }
         .season-cal-month-card {
           margin-top: 0;
           overflow: hidden;
@@ -2437,11 +2351,6 @@ export default function App() {
         .btn-mini {
           background: transparent; color: #94a3b8; border: 1px solid #3d5248; border-radius: 8px;
           padding: 5px 9px; cursor: pointer; font-size: .76rem;
-        }
-        :root[data-theme='light'] .btn-mini {
-          color: #334155;
-          border-color: #cbd5e1;
-          background: rgba(255, 255, 255, 0.75);
         }
         .chat-actions {
           display: flex;
@@ -2794,17 +2703,6 @@ export default function App() {
 						aria-label={tr.langAria}
 						onClick={() => setLang(x => cycleUiLang(x))}>
 						<Globe2 size={14} aria-hidden /> {uiLangShortLabel(lang)}
-					</button>
-					<button
-						type="button"
-						className="btn-mini"
-						aria-label={uiPickTwo(lang, 'Превключи тема', 'Toggle theme')}
-						title={uiPickTwo(lang, 'Превключи тема', 'Toggle theme')}
-						onClick={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))}>
-						{theme === 'dark' ? <Sun size={14} aria-hidden /> : <Moon size={14} aria-hidden />}{' '}
-						{theme === 'dark'
-							? uiPickTwo(lang, 'Светла', 'Light')
-							: uiPickTwo(lang, 'Тъмна', 'Dark')}
 					</button>
 					<button type="button" className="btn btn-primary" onClick={() => setView('register')}>
 						<UserPlus size={14} aria-hidden /> {tr.navGetStarted}
