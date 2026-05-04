@@ -53,6 +53,8 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 	const [organicEco, setOrganicEco] = useState(false);
 	const [youngFarmer, setYoungFarmer] = useState(false);
 	const [dairyCows, setDairyCows] = useState('');
+	const [candidateAge, setCandidateAge] = useState('28');
+	const [currentSpo, setCurrentSpo] = useState('5200');
 	const [copied, setCopied] = useState(false);
 
 	const input = useMemo((): SubsidyCalculatorInput => {
@@ -96,6 +98,46 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 			window.prompt('Copy:', text);
 		}
 	};
+
+	const t2 = (bg: string, en: string) => (lang === 'bg' ? bg : en);
+	const preAge = Number(String(candidateAge).replace(',', '.'));
+	const preSpo = Number(String(currentSpo).replace(',', '.'));
+	const ageValid = Number.isFinite(preAge) && preAge >= 18 && preAge <= 90;
+	const spoValid = Number.isFinite(preSpo) && preSpo >= 0;
+	const fitYoung = ageValid && preSpo >= 8000 && preSpo <= 20000 && preAge <= 40;
+	const fitSmall = ageValid && preSpo >= 2000 && preSpo < 8000;
+	const prescreenRecommendation = !ageValid || !spoValid
+		? t2(
+				'Въведи валидни възраст и СПО за препоръка.',
+				'Enter valid age and SO values for recommendation.'
+			)
+		: fitYoung
+			? t2(
+					'По въведените данни си по-близо до II.Д.1 „Млад фермер“ (ориентир).',
+					'Based on your inputs, you are closer to II.D.1 Young Farmer (indicative).'
+				)
+			: fitSmall
+				? t2(
+						'По въведените данни си по-близо до II.Д.2 „Малки стопанства“ (ориентир).',
+						'Based on your inputs, you are closer to II.D.2 Small Farms (indicative).'
+					)
+				: t2(
+						'Въведеното СПО е извън типичните диапазони II.Д.1/II.Д.2 — провери инвестиционни интервенции.',
+						'Your SO is outside the typical II.D.1/II.D.2 ranges — check investment interventions.'
+					);
+
+	const docChecklist = [
+		t2('Регистрация като ЗП и актуални данни в регистъра', 'Registered farmer status and current registry data'),
+		t2('Правно основание за земя/обекти за целия период', 'Legal tenure for land/assets covering the period'),
+		t2('Актуално СПО изчисление по таблица МЗХ', 'Current SO calculation using MA tables'),
+		t2('Оферти/инвестиционен план с реални пазарни цени', 'Quotes/investment plan with realistic market prices'),
+	];
+	const commonErrors = [
+		t2('СПО е сметнато със стари ставки', 'SO calculated with outdated coefficients'),
+		t2('Договорите за земя изтичат преди срока на плана', 'Land contracts expire before plan horizon'),
+		t2('Нереалистични приходи без пазарно обосноваване', 'Unrealistic revenues without market grounding'),
+		t2('Липсва ясно как ще се постигне ръстът на СПО', 'No clear path on how SO growth is achieved'),
+	];
 
 	return (
 		<section className="section">
@@ -234,6 +276,141 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 				<p className="muted" style={{ marginTop: 16, fontSize: '.82rem', marginBottom: 0 }}>
 					{tr.subsidyCalcDisclaimer}
 				</p>
+			</div>
+
+			<div
+				className="contact-panel"
+				style={{
+					marginTop: 16,
+					marginBottom: 18,
+					borderColor: 'rgba(124,205,156,0.35)',
+					background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.42) 100%)',
+				}}>
+				<h3 style={{ margin: '0 0 10px', fontSize: '1rem' }}>
+					{t2('Коя мярка е за мен: II.Д.1 vs II.Д.2', 'Which measure fits me: II.D.1 vs II.D.2')}
+				</h3>
+				<p className="muted" style={{ margin: '0 0 10px', fontSize: '.9rem' }}>
+					{t2(
+						'Бърз pre-screen по възраст и СПО (ориентир, не официално становище).',
+						'Quick pre-screen by age and SO (indicative, not an official ruling).'
+					)}
+				</p>
+				<div
+					className="form-grid"
+					style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', marginBottom: 10 }}>
+					<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+						<span className="muted" style={{ fontSize: '.85rem' }}>
+							{t2('Възраст', 'Age')}
+						</span>
+						<input
+							type="number"
+							min={18}
+							max={90}
+							value={candidateAge}
+							onChange={e => setCandidateAge(e.target.value)}
+						/>
+					</label>
+					<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+						<span className="muted" style={{ fontSize: '.85rem' }}>
+							{t2('Текущ СПО (€)', 'Current SO (€)')}
+						</span>
+						<input
+							type="number"
+							min={0}
+							step={100}
+							value={currentSpo}
+							onChange={e => setCurrentSpo(e.target.value)}
+						/>
+					</label>
+				</div>
+				<p style={{ margin: '0 0 10px', fontWeight: 700, color: '#cbd5e1' }}>{prescreenRecommendation}</p>
+				<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+					<div>
+						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+							{t2('Чеклист документи', 'Document checklist')}
+						</p>
+						<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
+							{docChecklist.map(item => (
+								<li key={item}>{item}</li>
+							))}
+						</ul>
+					</div>
+					<div>
+						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+							{t2('Чести грешки', 'Common mistakes')}
+						</p>
+						<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
+							{commonErrors.map(item => (
+								<li key={item}>{item}</li>
+							))}
+						</ul>
+					</div>
+				</div>
+				<div style={{ marginTop: 12, overflowX: 'auto' }}>
+					<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+						{t2('Сравнение II.Д.1 vs II.Д.2', 'II.D.1 vs II.D.2 comparison')}
+					</p>
+					<table
+						style={{
+							width: '100%',
+							borderCollapse: 'collapse',
+							fontSize: '.86rem',
+							minWidth: 520,
+							background: 'rgba(15,23,42,0.14)',
+							border: '1px solid rgba(148,163,184,0.25)',
+							borderRadius: 8,
+							overflow: 'hidden',
+						}}>
+						<thead>
+							<tr>
+								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									{t2('Параметър', 'Parameter')}
+								</th>
+								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									II.Д.1
+								</th>
+								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									II.Д.2
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{[
+								[
+									t2('СПО диапазон', 'SO range'),
+									t2('8 000–20 000 €', '8,000–20,000 EUR'),
+									t2('2 000–7 999 €', '2,000–7,999 EUR'),
+								],
+								[
+									t2('Размер помощ', 'Grant size'),
+									t2('до 40 000 €', 'up to 40,000 EUR'),
+									t2('до 15 000 €', 'up to 15,000 EUR'),
+								],
+								[
+									t2('Срок изпълнение', 'Implementation term'),
+									t2('до 4 г.', 'up to 4 years'),
+									t2('до 3 г.', 'up to 3 years'),
+								],
+								[
+									t2('Изискване ръст СПО', 'SO growth requirement'),
+									t2('планов ръст (по бизнес план)', 'planned growth (per business plan)'),
+									t2('мин. +2 000 €', 'min. +2,000 EUR'),
+								],
+								[
+									t2('Възраст', 'Age'),
+									t2('до 40 г.', 'up to 40 years'),
+									t2('18+ (без горна граница)', '18+ (no upper limit)'),
+								],
+							].map((row, idx) => (
+								<tr key={row[0]} style={{ background: idx % 2 ? 'rgba(15,23,42,0.08)' : 'transparent' }}>
+									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[0]}</td>
+									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[1]}</td>
+									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[2]}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			<DfzOfficialPdfPack tr={tr} />

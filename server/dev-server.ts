@@ -18,6 +18,10 @@ import {
 	handleTransportDirectoryGet,
 	handleTransportDirectoryPost,
 } from '../lib/transport-directory-handler';
+import {
+	handleEquipmentRentalGet,
+	handleEquipmentRentalPost,
+} from '../lib/equipment-rental-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
 
@@ -106,6 +110,27 @@ http
           return;
         }
         const result = await handleTransportDirectoryPost(body);
+        if (result.ok) {
+          send(res, 200, { ok: true, company: result.company });
+          return;
+        }
+        send(res, result.status, { ok: false, error: result.error });
+        return;
+      }
+
+      if (path === '/api/equipment-rental' && req.method === 'GET') {
+        const r = await handleEquipmentRentalGet();
+        send(res, 200, r);
+        return;
+      }
+
+      if (path === '/api/equipment-rental' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleEquipmentRentalPost(body);
         if (result.ok) {
           send(res, 200, { ok: true, company: result.company });
           return;
