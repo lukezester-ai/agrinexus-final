@@ -68,7 +68,8 @@ function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 
 /** За подсказка при офлайн `/api/chat` — същият порт като `DEV_API_PORT` в `.env` (vite proxy). */
-const DEV_API_PORT_HINT = import.meta.env.VITE_DEV_API_PORT ?? '8788';
+const DEV_API_PORT_HINT =
+	String(import.meta.env.VITE_DEV_API_PORT ?? '').trim() || '8788';
 
 const PREVIEW_DEALS = [
 	{
@@ -477,7 +478,8 @@ async function apiChat(
 	persona: ChatPersona,
 	farmerContext: string,
 ): Promise<string> {
-	const timeoutMs = 15000;
+	/** Mistral + дълъг system prompt + JSON mode често >15s; Vercel api/chat max 60s. */
+	const timeoutMs = 60000;
 	const maxAttempts = 2;
 	const requestBody = JSON.stringify({
 		messages,
@@ -1552,8 +1554,17 @@ export default function App() {
 					const data = JSON.parse(raw) as {
 						llmConfigured?: boolean;
 						openaiConfigured?: boolean;
+						mistralConfigured?: boolean;
+						ollamaConfigured?: boolean;
 					};
-					const llmReady = Boolean(data.llmConfigured ?? data.openaiConfigured);
+					const llmReady =
+						typeof data.llmConfigured === 'boolean'
+							? data.llmConfigured
+							: Boolean(
+									data.mistralConfigured ||
+										data.ollamaConfigured ||
+										data.openaiConfigured
+								);
 					setChatHealth(llmReady ? 'ready' : 'no_key');
 				} catch {
 					setChatHealth('offline');
@@ -3337,8 +3348,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									`Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — Vite на :5173 проксира /api към локалния API на :${DEV_API_PORT_HINT}. Отворете http://localhost:5173. Ако порт ${DEV_API_PORT_HINT} е зает, спрете другата програма или сменете DEV_API_PORT в .env и рестартирайте npm run dev.`,
-									`Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the local API on :${DEV_API_PORT_HINT}. Open http://localhost:5173. If port ${DEV_API_PORT_HINT} is busy, stop the other process or change DEV_API_PORT in .env and restart npm run dev.`
+									`Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — Vite на :5173 проксира /api към локалния API на :${DEV_API_PORT_HINT}. В терминала редът „dev API listening“ трябва да е на същия порт като DEV_API_PORT в .env. Отворете http://localhost:5173. Ако портът е зает, спрете другата програма или сменете DEV_API_PORT и рестартирайте npm run dev.`,
+									`Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the local API on :${DEV_API_PORT_HINT}. In the terminal, the line “dev API listening” must use the same port as DEV_API_PORT in .env. Open http://localhost:5173. If the port is busy, stop the other process or change DEV_API_PORT and restart npm run dev.`
 								)}
 							</p>
 						</div>

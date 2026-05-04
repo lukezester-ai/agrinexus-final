@@ -1,10 +1,20 @@
+import path from 'node:path';
+import dotenv from 'dotenv';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const cwd = process.cwd();
+// Синхрон с dev-server: да има DEV_API_PORT преди proxy/define (loadEnv понякога не хваща .env навреме на Windows).
+dotenv.config({ path: path.resolve(cwd, '.env') });
+dotenv.config({ path: path.resolve(cwd, '.env.local'), override: true });
+
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const raw = env.DEV_API_PORT ?? process.env.DEV_API_PORT;
-  const n = raw !== undefined && String(raw).trim() !== '' ? Number(raw) : NaN;
+  const loaded = loadEnv(mode, cwd, '');
+  const raw =
+    (loaded.DEV_API_PORT && String(loaded.DEV_API_PORT).trim()) ||
+    (process.env.DEV_API_PORT && String(process.env.DEV_API_PORT).trim()) ||
+    '';
+  const n = raw !== '' ? Number(raw) : NaN;
   const apiPort = Number.isFinite(n) && n > 0 ? n : 8788;
 
   return {
@@ -32,6 +42,8 @@ export default defineConfig(({ mode }) => {
       // Отделен порт от Next.js `agrinexus-mvp` (обикновено :3002). Без strictPort=false Vite прескача на :3002 и показва „грешния“ проект.
       port: 5173,
       strictPort: true,
+      /** Стартиране с `npm run dev` отваря браузър на :5173 (ръчно: http://localhost:5173/). */
+      open: true,
       // Същият порт като server/dev-server.ts (DEV_API_PORT в .env).
       proxy: {
         '/api': {
