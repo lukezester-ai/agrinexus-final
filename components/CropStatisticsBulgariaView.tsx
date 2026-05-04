@@ -146,16 +146,23 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 			</div>
 
 			<div
-				className="contact-panel"
 				style={{
-					borderColor: 'rgba(124, 205, 156, 0.35)',
-					padding: '16px 12px 8px',
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+					gap: 22,
 					marginBottom: 20,
-					background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.48) 100%)',
 				}}>
-				<div style={{ width: '100%', height: 340 }}>
-					<ResponsiveContainer width="100%" height="100%">
-						<ComposedChart data={rows} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+				<div
+					className="contact-panel"
+					style={{
+						borderColor: 'rgba(124, 205, 156, 0.35)',
+						padding: '16px 12px 8px',
+						marginBottom: 0,
+						background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.48) 100%)',
+					}}>
+					<div style={{ width: '100%', height: 340 }}>
+						<ResponsiveContainer width="100%" height="100%">
+							<ComposedChart data={rows} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
 							<defs>
 								<linearGradient id={`barGrad-${profile.key}`} x1="0" y1="0" x2="0" y2="1">
 									<stop offset="0%" stopColor={profile.chartColor} stopOpacity={0.95} />
@@ -220,71 +227,71 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 								dot={{ r: 4, fill: '#6ebf9e', strokeWidth: 0 }}
 								activeDot={{ r: 6 }}
 							/>
-						</ComposedChart>
-					</ResponsiveContainer>
+							</ComposedChart>
+						</ResponsiveContainer>
+					</div>
 				</div>
-			</div>
-
-			<div
-				className="contact-panel"
-				style={{
-					borderColor: 'rgba(168, 85, 247, 0.35)',
-					padding: '16px 12px 8px',
-					marginBottom: 20,
-					background: 'linear-gradient(165deg, rgba(168,85,247,0.08) 0%, rgba(12,22,17,0.48) 100%)',
-				}}>
-				<h3
+				<div
+					className="contact-panel"
 					style={{
-						margin: '0 0 6px',
-						display: 'flex',
-						alignItems: 'center',
-						gap: 10,
-						fontSize: '1rem',
+						borderColor: 'rgba(168, 85, 247, 0.35)',
+						padding: '16px 12px 8px',
+						marginBottom: 0,
+						background: 'linear-gradient(165deg, rgba(168,85,247,0.08) 0%, rgba(12,22,17,0.48) 100%)',
 					}}>
-					<PieChartIconLucide size={20} color="#c4b5fd" aria-hidden />
-					{tr.cropStatsPieTitle}
-				</h3>
-				<p className="muted" style={{ margin: '0 0 12px', fontSize: '.9rem', lineHeight: 1.55 }}>
-					{tr.cropStatsPieSubtitle}
-				</p>
-				<div style={{ width: '100%', height: 300 }}>
-					<ResponsiveContainer width="100%" height="100%">
-						<PieChart>
-							<Pie
-								data={nationalPieData}
-								dataKey="value"
-								nameKey="name"
-								cx="50%"
-								cy="50%"
-								innerRadius={56}
-								outerRadius={102}
-								paddingAngle={2}>
-								{nationalPieData.map(entry => (
-									<Cell
-										key={entry.key}
-										fill={entry.fill}
-										stroke={
-											cropKey === entry.key ? 'rgba(255,255,255,0.95)' : 'rgba(15,23,42,0.4)'
-										}
-										strokeWidth={cropKey === entry.key ? 3 : 1}
-									/>
-								))}
-							</Pie>
-							<Tooltip
-								contentStyle={{
-									background: 'rgba(14,24,18,0.92)',
-									border: '1px solid rgba(167,139,250,0.4)',
-									borderRadius: 8,
-								}}
-								labelStyle={{ color: '#e2e8f0' }}
-								formatter={(value: number, _name, item) => {
-									const row = item?.payload as { avgRounded?: number };
-									const show = row?.avgRounded ?? Math.round(Number(value));
-									return [`${show} EUR/t`, tr.cropStatsPieTooltipAvg];
-								}}
-							/>
-						</PieChart>
-					</ResponsiveContainer>
+					<h3
+						style={{
+							margin: '0 0 6px',
+							display: 'flex',
+							alignItems: 'center',
+							gap: 10,
+							fontSize: '1rem',
+						}}>
+						<PieChartIconLucide size={20} color="#c4b5fd" aria-hidden />
+						{tr.cropStatsPieTitle}
+					</h3>
+					<p className="muted" style={{ margin: '0 0 12px', fontSize: '.9rem', lineHeight: 1.55 }}>
+						{tr.cropStatsPieSubtitle}
+					</p>
+					<div style={{ width: '100%', height: 300 }}>
+						<ResponsiveContainer width="100%" height="100%">
+							<PieChart>
+								<Pie
+									data={nationalPieData}
+									dataKey="value"
+									nameKey="name"
+									cx="50%"
+									cy="50%"
+									innerRadius={56}
+									outerRadius={102}
+									paddingAngle={2}>
+									{nationalPieData.map(entry => (
+										<Cell
+											key={entry.key}
+											fill={entry.fill}
+											stroke={
+												cropKey === entry.key ? 'rgba(255,255,255,0.95)' : 'rgba(15,23,42,0.4)'
+											}
+											strokeWidth={cropKey === entry.key ? 3 : 1}
+										/>
+									))}
+								</Pie>
+								<Tooltip
+									contentStyle={{
+										background: 'rgba(14,24,18,0.92)',
+										border: '1px solid rgba(167,139,250,0.4)',
+										borderRadius: 8,
+									}}
+									labelStyle={{ color: '#e2e8f0' }}
+									formatter={(value: number, _name, item) => {
+										const row = item?.payload as { avgRounded?: number };
+										const show = row?.avgRounded ?? Math.round(Number(value));
+										return [`${show} EUR/t`, tr.cropStatsPieTooltipAvg];
+									}}
+								/>
+							</PieChart>
+						</ResponsiveContainer>
+					</div>
 				</div>
 			</div>
 
@@ -301,12 +308,13 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 						margin: 0,
 						borderColor: 'rgba(56, 189, 248, 0.35)',
 						background: 'rgba(56, 189, 248, 0.06)',
+						color: '#e2e8f0',
 					}}>
 					<h3 style={{ margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem' }}>
 						<TrendingUp size={18} color="#6ebf9e" aria-hidden />
 						{tr.cropStatsForecastTitle}
 					</h3>
-					<p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
+					<p className="muted" style={{ margin: 0, lineHeight: 1.55, color: '#cbd5e1' }}>
 						{tr.cropStatsForecastIntro
 							.replace(/\{year\}/g, String(nextYear))
 							.replace(/\{kt\}/g, String(Math.round(forecastKt)))}
@@ -321,13 +329,13 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 						}}>
 						{tr.cropStatsPriceForecastHeading}
 					</h4>
-					<p className="muted" style={{ margin: '0 0 10px', lineHeight: 1.55, fontSize: '.93rem' }}>
+					<p className="muted" style={{ margin: '0 0 10px', lineHeight: 1.55, fontSize: '.93rem', color: '#cbd5e1' }}>
 						{tr.cropStatsPriceForecastBody
 							.replace(/\{year\}/g, String(priceTrend.nextYear))
 							.replace(/\{baseEur\}/g, String(Math.round(priceTrend.forecastEurPerT)))
 							.replace(/\{adjEur\}/g, String(priceAdjusted))}
 					</p>
-					<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.5, fontSize: '.86rem' }}>
+					<p className="muted" style={{ margin: '0 0 14px', lineHeight: 1.5, fontSize: '.86rem', color: '#94a3b8' }}>
 						{tr.cropStatsPriceForecastHint}
 					</p>
 					<p
@@ -349,6 +357,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 							paddingLeft: '1.15rem',
 							lineHeight: 1.55,
 							fontSize: '.92rem',
+							color: '#cbd5e1',
 						}}>
 						<li style={{ marginBottom: 6 }}>
 							{tr.cropStatsVsLastDetail
@@ -377,6 +386,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 							lineHeight: 1.58,
 							fontSize: '.93rem',
 							paddingLeft: 12,
+							color: '#cbd5e1',
 							borderLeft:
 								outlook.tone === 'headwind'
 									? '3px solid rgba(251, 146, 60, 0.85)'
@@ -386,7 +396,7 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 						}}>
 						{outlookNarrative}
 					</p>
-					<p className="muted" style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
+					<p className="muted" style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5, color: '#cbd5e1' }}>
 						{pickL(profile.genNotes, lang)}
 					</p>
 				</div>
