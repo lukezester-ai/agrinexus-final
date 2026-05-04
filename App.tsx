@@ -13,6 +13,7 @@ import {
 	ClipboardList,
 	FileImage,
 	FileText,
+	FileUp,
 	Globe2,
 	Leaf,
 	LineChart,
@@ -332,11 +333,17 @@ type View =
 	| 'crop-statistics'
 	| 'transport-directory'
 	| 'equipment-rental'
-	| 'command';
+	| 'command'
+	| 'file-upload';
 
 const TRADING_VIEWS = new Set<View>(['market', 'crop-statistics']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar']);
-const LOGISTICS_VIEWS = new Set<View>(['trade-documents', 'transport-directory', 'equipment-rental']);
+const LOGISTICS_VIEWS = new Set<View>([
+	'trade-documents',
+	'transport-directory',
+	'equipment-rental',
+	'file-upload',
+]);
 
 type ClientProfile = {
 	id: string;
@@ -576,6 +583,42 @@ async function apiChat(
 	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
 }
 
+/**
+ * Map `visualViewport` to CSS vars for the software keyboard (Chrome Android, iPhone Safari, etc.).
+ */
+function syncVisualViewportInsets(): void {
+	const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+	if (!vv) return;
+	const cover = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+	document.documentElement.style.setProperty('--keyboard-cover', `${cover}px`);
+	document.documentElement.style.setProperty('--vv-height', `${vv.height}px`);
+	document.body.toggleAttribute('data-vk-open', cover > 56);
+}
+
+function isIosTouchDevice(): boolean {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent;
+	const ipadOs13Plus =
+		navigator.platform === 'MacIntel' && typeof navigator.maxTouchPoints === 'number'
+			? navigator.maxTouchPoints > 1
+			: false;
+	return /iPad|iPhone|iPod/.test(ua) || ipadOs13Plus;
+}
+
+/** More passes on iOS Safari — keyboard animation finishes later than on Chrome Android. */
+function scheduleViewportResyncForKeyboard(): void {
+	const ios =
+		typeof document !== 'undefined' && document.documentElement.classList.contains('ios');
+	const delays = ios ? ([0, 120, 320, 600, 950] as const) : ([0, 90, 220, 480] as const);
+	for (const ms of delays) {
+		window.setTimeout(() => syncVisualViewportInsets(), ms);
+	}
+}
+
+if (typeof document !== 'undefined' && isIosTouchDevice()) {
+	document.documentElement.classList.add('ios');
+}
+
 /** Compact mobile nav caption; `hint` becomes tooltip + clearer aria when provided. */
 function MobileNavLabel({ text, hint }: { text: string; hint?: string }) {
 	const title = hint ?? text;
@@ -629,6 +672,25 @@ export default function App() {
 		return () => document.removeEventListener('keydown', onKey);
 	}, []);
 
+	/** Mobile browsers: track visual viewport so chat bar & bottom nav stay above the software keyboard. */
+	useEffect(() => {
+		const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+		if (!vv) return;
+
+		vv.addEventListener('resize', syncVisualViewportInsets);
+		vv.addEventListener('scroll', syncVisualViewportInsets);
+		window.addEventListener('resize', syncVisualViewportInsets);
+		syncVisualViewportInsets();
+		return () => {
+			vv.removeEventListener('resize', syncVisualViewportInsets);
+			vv.removeEventListener('scroll', syncVisualViewportInsets);
+			window.removeEventListener('resize', syncVisualViewportInsets);
+			document.documentElement.style.removeProperty('--keyboard-cover');
+			document.documentElement.style.removeProperty('--vv-height');
+			document.body.removeAttribute('data-vk-open');
+		};
+	}, []);
+
 	useEffect(() => {
 		if (!MVP_MODE) return;
 		if (view === 'clients' || view === 'watchlist') {
@@ -641,6 +703,15 @@ export default function App() {
 		document.documentElement.lang = lang === 'bg' ? 'bg' : 'en';
 		document.documentElement.dir = 'ltr';
 	}, [lang]);
+
+	useEffect(() => {
+		if (view === 'assistant') {
+			document.body.setAttribute('data-assistant-route', '');
+		} else {
+			document.body.removeAttribute('data-assistant-route');
+		}
+		return () => document.body.removeAttribute('data-assistant-route');
+	}, [view]);
 
 	useEffect(() => {
 		recordBrowserVisitOncePerSession();
@@ -666,6 +737,7 @@ export default function App() {
 	const [chatLoading, setChatLoading] = useState(false);
 	const chatAbortRef = useRef<AbortController | null>(null);
 	const chatEndRef = useRef<HTMLDivElement | null>(null);
+	const chatTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const [sessionTick, setSessionTick] = useState(0);
 	const [voiceListening, setVoiceListening] = useState(false);
 	const [docExplainLoading, setDocExplainLoading] = useState(false);
@@ -2085,11 +2157,108 @@ export default function App() {
             0 2px 4px rgba(0, 0, 0, 0.45),
             0 12px 40px rgba(0, 0, 0, 0.5);
         }
-        .landing-hero > p:first-of-type {
-          max-width: 640px;
-          margin-left: auto;
-          margin-right: auto;
-          text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+        .landing-kicker {
+          font-size: 0.68rem;
+          font-weight: 800;
+          letter-spacing: 0.34em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.88);
+          margin: 0 0 12px;
+        }
+        .landing-tagline {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          font-size: 0.76rem;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.72);
+          margin: 12px auto 28px;
+          max-width: 560px;
+        }
+        .landing-tagline::before,
+        .landing-tagline::after {
+          content: '';
+          height: 1px;
+          flex: 1 1 28px;
+          min-width: 28px;
+          max-width: 100px;
+          background: linear-gradient(90deg, transparent, rgba(212, 168, 83, 0.5), transparent);
+        }
+        .landing-inquiry-strip {
+          margin-top: 32px;
+          margin-left: -14px;
+          margin-right: -14px;
+          margin-bottom: 0;
+          padding: 18px 14px 22px;
+          background: rgba(8, 14, 11, 0.92);
+          border-top: 1px solid rgba(212, 168, 83, 0.22);
+          backdrop-filter: blur(14px);
+          box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+        }
+        .landing-inquiry-inner {
+          display: flex;
+          align-items: stretch;
+          gap: 0;
+          max-width: 720px;
+          margin: 0 auto;
+          border-radius: 14px;
+          border: 1px solid rgba(212, 168, 83, 0.28);
+          background: rgba(14, 22, 18, 0.98);
+          overflow: hidden;
+        }
+        .landing-inquiry-ai-mark {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 14px;
+          background: rgba(212, 168, 83, 0.12);
+          border-right: 1px solid rgba(212, 168, 83, 0.22);
+          color: #d4a853;
+          flex-shrink: 0;
+        }
+        .landing-inquiry-bar {
+          flex: 1;
+          min-width: 0;
+          text-align: left;
+          border: none;
+          border-radius: 0;
+          background: transparent;
+          color: #a8bfb4;
+          font: inherit;
+          font-size: 0.92rem;
+          padding: 14px 16px;
+          cursor: pointer;
+        }
+        .landing-inquiry-bar:hover {
+          background: rgba(255, 255, 255, 0.04);
+          color: #e8fff4;
+        }
+        .landing-inquiry-hint {
+          margin: 10px 0 0;
+          text-align: center;
+          font-size: 0.68rem;
+          letter-spacing: 0.14em;
+          color: #6b8579;
+          text-transform: uppercase;
+        }
+        @media (max-width: 900px) {
+          .landing-inquiry-strip {
+            margin-left: -10px;
+            margin-right: -10px;
+            padding-left: 12px;
+            padding-right: 12px;
+            padding-bottom: max(18px, env(safe-area-inset-bottom, 0px));
+          }
+          .landing-inquiry-ai-mark {
+            padding: 0 11px;
+          }
+          .landing-inquiry-bar {
+            min-height: 48px;
+          }
         }
         .hero p { color: var(--text-muted); max-width: 860px; margin: 0 auto 20px; }
 
@@ -2157,6 +2326,12 @@ export default function App() {
           flex-direction: column;
           max-height: min(88dvh, 960px);
           padding: 14px !important;
+          overscroll-behavior-y: contain;
+        }
+        @media (max-width: 900px) {
+          .assistant-workbench {
+            max-height: min(calc(var(--vv-height, 100dvh) - 28px), 960px);
+          }
         }
         .assistant-panel-head {
           flex-shrink: 0;
@@ -2197,12 +2372,20 @@ export default function App() {
           margin: 0;
           padding: 8px 4px 8px 0;
         }
+        html.ios .assistant-msgs {
+          -webkit-overflow-scrolling: touch;
+        }
         .assistant-panel-foot {
           flex-shrink: 0;
           padding-top: 12px;
           margin-top: 8px;
           border-top: 1px solid var(--border);
           background: var(--panel);
+        }
+        @media (max-width: 900px) {
+          .assistant-panel-foot {
+            scroll-margin-bottom: max(24px, env(safe-area-inset-bottom, 0px), var(--keyboard-cover, 0px));
+          }
         }
         .assistant-bubble {
           max-width: min(100%, 72rem);
@@ -2279,6 +2462,13 @@ export default function App() {
           background: #101914;
           color: #fff;
           font-family: inherit;
+        }
+        @media (max-width: 900px) {
+          .assistant-input-row textarea {
+            font-size: 16px;
+            line-height: 1.35;
+            touch-action: manipulation;
+          }
         }
 
         .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
@@ -2434,7 +2624,7 @@ export default function App() {
             position: fixed;
             left: 10px;
             right: 10px;
-            bottom: 10px;
+            bottom: calc(10px + env(safe-area-inset-bottom, 0px) + var(--keyboard-cover, 0px));
             z-index: 160;
             background: rgba(14, 22, 18, 0.97);
             border: 1px solid #3d5248;
@@ -2444,6 +2634,9 @@ export default function App() {
             flex-direction: column;
             gap: 4px;
             backdrop-filter: blur(6px);
+          }
+          html.ios .mobile-nav {
+            transform: translateZ(0);
           }
           .mobile-nav-row {
             display: grid;
@@ -2506,6 +2699,15 @@ export default function App() {
             border-color: var(--accent-border);
             color: var(--accent-text);
             background: var(--accent-muted);
+          }
+          body[data-assistant-route][data-vk-open] .mobile-nav {
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+          }
+          body[data-assistant-route][data-vk-open] .section.assistant-route {
+            padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
           }
         }
 
@@ -2630,12 +2832,6 @@ export default function App() {
 							</div>
 						)}
 					</div>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
-						onClick={() => setView('assistant')}>
-						<Brain size={14} aria-hidden /> {tr.navAssistant}
-					</button>
 					<div className="nav-dropdown nav-link-mobile-hide">
 						<button
 							type="button"
@@ -2651,6 +2847,16 @@ export default function App() {
 						</button>
 						{navMenuOpen === 'logistics' && (
 							<div className="nav-dropdown-panel" role="menu">
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'file-upload' ? 'active' : ''}`}
+									onClick={() => {
+										setView('file-upload');
+										setNavMenuOpen(null);
+									}}>
+									<FileUp size={14} aria-hidden /> {tr.portalLogisticsSubFileUpload}
+								</button>
 								<button
 									type="button"
 									role="menuitem"
@@ -2722,21 +2928,12 @@ export default function App() {
 			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
 				<section className="section hero landing-hero">
+					<p className="landing-kicker">{tr.landingKicker}</p>
 					<h1 className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
 					</h1>
-					<p>{tr.heroSub}</p>
-					<button className="btn btn-primary" onClick={() => setView('register')}>
-						{tr.createAccount}
-					</button>
-
-					<FarmerCommandCenter
-						lang={lang}
-						tr={tr}
-						compact
-						onExpand={() => setView('command')}
-					/>
+					<p className="landing-tagline">{tr.landingTagline}</p>
 
 					<div className="ai-grid">
 						{landingAiCards.map(f => {
@@ -2822,119 +3019,6 @@ export default function App() {
 						</div>
 					</div>
 
-					<div
-						style={{
-							marginTop: 16,
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							gap: 18,
-							maxWidth: 720,
-							marginLeft: 'auto',
-							marginRight: 'auto',
-						}}>
-						<div style={{ width: '100%', textAlign: 'left' }}>
-							<p
-								className="muted"
-								style={{
-									margin: '0 0 8px',
-									fontSize: '.72rem',
-									fontWeight: 800,
-									letterSpacing: '0.07em',
-									textTransform: 'uppercase',
-								}}>
-								{tr.navGroupMarkets}
-							</p>
-							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-								<button type="button" className="btn btn-outline" onClick={() => setView('market')}>
-									<Search size={16} aria-hidden /> {tr.openMarketplace}
-								</button>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('crop-statistics')}>
-									<BarChart3 size={16} aria-hidden /> {tr.navCropStatistics}
-								</button>
-							</div>
-						</div>
-						<div style={{ width: '100%', textAlign: 'left' }}>
-							<p
-								className="muted"
-								style={{
-									margin: '0 0 8px',
-									fontSize: '.72rem',
-									fontWeight: 800,
-									letterSpacing: '0.07em',
-									textTransform: 'uppercase',
-								}}>
-								{tr.navGroupFarm}
-							</p>
-							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-								<button type="button" className="btn btn-outline" onClick={() => setView('command')}>
-									<ClipboardList size={16} aria-hidden /> {tr.navCommand}
-								</button>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('subsidy-calculator')}>
-									<Calculator size={16} aria-hidden /> {tr.navSubsidyCalculator}
-								</button>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('season-calendar')}>
-									<CalendarDays size={16} aria-hidden /> {tr.navSeasonCalendar}
-								</button>
-							</div>
-						</div>
-						<div style={{ width: '100%', textAlign: 'left' }}>
-							<p
-								className="muted"
-								style={{
-									margin: '0 0 8px',
-									fontSize: '.72rem',
-									fontWeight: 800,
-									letterSpacing: '0.07em',
-									textTransform: 'uppercase',
-								}}>
-								{tr.navLogistics}
-							</p>
-							<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('trade-documents')}>
-									<FileText size={16} aria-hidden /> {tr.navTradeDocuments}
-								</button>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('transport-directory')}
-									aria-label={tr.transportDirTitle}>
-									<Truck size={16} aria-hidden /> {tr.navTransportDirectory}
-								</button>
-								<button
-									type="button"
-									className="btn btn-outline"
-									onClick={() => setView('equipment-rental')}
-									aria-label={tr.equipmentRentalTitle}>
-									<Wrench size={16} aria-hidden /> {tr.navEquipmentRental}
-								</button>
-							</div>
-						</div>
-						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-							<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
-								<Brain size={16} aria-hidden /> {tr.navAssistant}
-							</button>
-							<button
-								type="button"
-								className="btn btn-outline"
-								onClick={() => setView(MVP_MODE ? 'register' : 'clients')}>
-								{MVP_MODE ? tr.createAccount : tr.clientDossiers}
-							</button>
-						</div>
-					</div>
-
 					<div className="contact-panel" style={{ marginTop: 28, textAlign: 'left' }}>
 						<h3 style={{ marginTop: 0 }}>{tr.contactSales}</h3>
 						<p className="muted" style={{ marginTop: 6 }}>
@@ -3001,7 +3085,21 @@ export default function App() {
 						</div>
 					</div>
 
-					<FileUploadPanel senderEmail={contactEmail} lang={lang} />
+					<div className="landing-inquiry-strip">
+						<div className="landing-inquiry-inner">
+							<span className="landing-inquiry-ai-mark" aria-hidden="true">
+								<Brain size={22} strokeWidth={1.75} />
+							</span>
+							<button
+								type="button"
+								className="landing-inquiry-bar"
+								onClick={() => setView('assistant')}
+								aria-label={`${tr.navAssistant}: ${tr.landingInquiryPlaceholder}`}>
+								{tr.landingInquiryPlaceholder}
+							</button>
+						</div>
+						<p className="landing-inquiry-hint">• {tr.landingInquiryHint}</p>
+					</div>
 				</section>
 			)}
 
@@ -3499,9 +3597,31 @@ export default function App() {
 						<div className="assistant-panel-foot">
 							<div className="assistant-input-row">
 								<textarea
+									ref={chatTextareaRef}
 									placeholder={tr.chatPlaceholder}
 									value={chatInput}
+									enterKeyHint="send"
+									inputMode="text"
 									onChange={e => setChatInput(e.target.value)}
+									onFocus={() => {
+										scheduleViewportResyncForKeyboard();
+										const scrollDelay =
+											typeof document !== 'undefined' &&
+											document.documentElement.classList.contains('ios')
+												? 450
+												: 280;
+										window.requestAnimationFrame(() => {
+											setTimeout(() => {
+												chatTextareaRef.current?.scrollIntoView({
+													block: 'nearest',
+													behavior: document.documentElement.classList.contains('ios')
+														? 'auto'
+														: 'smooth',
+												});
+												scheduleViewportResyncForKeyboard();
+											}, scrollDelay);
+										});
+									}}
 									onKeyDown={e => {
 										if (e.key === 'Enter' && !e.shiftKey) {
 											e.preventDefault();
@@ -3760,6 +3880,30 @@ export default function App() {
 
 			{view === 'transport-directory' && <TransportDirectoryView tr={tr} />}
 			{view === 'equipment-rental' && <EquipmentRentalDirectoryView tr={tr} />}
+
+			{view === 'file-upload' && (
+				<section className="section">
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 12,
+							flexWrap: 'wrap',
+							marginBottom: 16,
+						}}>
+						<button type="button" className="btn btn-outline" onClick={() => setView('landing')}>
+							<ArrowLeft size={16} aria-hidden /> {tr.fileUploadPageBack}
+						</button>
+					</div>
+					<h2 style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+						<FileUp size={26} color="#7ccd9c" aria-hidden /> {tr.fileUploadPageTitle}
+					</h2>
+					<p className="muted" style={{ marginTop: 10, maxWidth: 640, lineHeight: 1.5 }}>
+						{tr.fileUploadPageHint}
+					</p>
+					<FileUploadPanel senderEmail={contactEmail} lang={lang} />
+				</section>
+			)}
 
 			{view === 'privacy' && (
 				<section className="section legal-section">
@@ -4084,7 +4228,21 @@ export default function App() {
 						</div>
 					)}
 					{mobileNavExpand === 'logistics' && (
-						<div className="mobile-nav-subrow">
+						<div className="mobile-nav-subrow cols-2">
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'file-upload' ? 'active' : ''}`}
+								aria-label={tr.portalLogisticsSubFileUpload}
+								onClick={() => {
+									setView('file-upload');
+									setMobileNavExpand(null);
+								}}>
+								<FileUp size={16} aria-hidden />
+								<MobileNavLabel
+									text={tr.navFileUploadShort}
+									hint={tr.portalLogisticsSubFileUpload}
+								/>
+							</button>
 							<button
 								type="button"
 								className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}

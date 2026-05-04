@@ -39,6 +39,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      /** Позволява отваряне от телефон в същата Wi‑Fi мрежа (http://<PC-IP>:5173/). */
+      host: true,
       // Отделен порт от Next.js `agrinexus-mvp` (обикновено :3002). Без strictPort=false Vite прескача на :3002 и показва „грешния“ проект.
       port: 5173,
       strictPort: true,
