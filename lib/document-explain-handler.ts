@@ -111,20 +111,21 @@ export async function handleDocumentExplainPost(rawBody: unknown): Promise<
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
+  /** Mistral: `image_url` е низ (URL или data:...). OpenAI/Ollama: обект с `url` (+ optional detail). */
+  const dataUrl = `data:${mimeNormalized};base64,${imageBase64}`;
+  const imageContentPart =
+    visionProvider === 'mistral'
+      ? ({ type: 'image_url' as const, image_url: dataUrl })
+      : ({
+          type: 'image_url' as const,
+          image_url: { url: dataUrl, detail: 'high' as const },
+        });
+
   const messages = [
     { role: 'system' as const, content: systemPrompt(locale) },
     {
       role: 'user' as const,
-      content: [
-        { type: 'text' as const, text: question },
-        {
-          type: 'image_url' as const,
-          image_url: {
-            url: `data:${mimeNormalized};base64,${imageBase64}`,
-            detail: 'high' as const,
-          },
-        },
-      ],
+      content: [{ type: 'text' as const, text: question }, imageContentPart],
     },
   ];
 
