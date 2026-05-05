@@ -2004,7 +2004,12 @@ export default function App() {
         }
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #eef7f0; }
-        .brand-nexus { color: var(--accent); }
+        .brand-nexus { color: #6b8e23; }
+        .brand-wordmark {
+          text-shadow:
+            0 1px 1px rgba(0, 0, 0, 0.38),
+            0 3px 10px rgba(0, 0, 0, 0.2);
+        }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
         .nav-link {
@@ -2713,7 +2718,7 @@ export default function App() {
 			</a>
 			<nav className="nav" aria-label={tr.navPrimaryAria}>
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="#7ccd9c" size={24} aria-hidden />
+					<Leaf color="#6b8e23" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
@@ -2914,25 +2919,10 @@ export default function App() {
 			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
 				<section className="section hero landing-hero">
-					<p className="landing-kicker">{tr.landingKicker}</p>
 					<h1 className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
 					</h1>
-					<p className="landing-tagline">{tr.landingTagline}</p>
-
-					<div
-						className="ticker-wrap"
-						style={{ marginTop: 18, paddingTop: 8, paddingBottom: 8, minHeight: 'auto' }}>
-						<div className="ticker-track" style={{ animationDuration: '26s' }}>
-							{[...PREVIEW_DEALS, ...PREVIEW_DEALS].map((deal, idx) => (
-								<span key={`${deal.id}-landing-tk-${idx}`} className="ticker-item">
-									{deal.flag} {deal.product}
-									<strong>+{deal.profit}%</strong> · {deal.from} → {deal.to} · {deal.price}
-								</span>
-							))}
-						</div>
-					</div>
 				</section>
 			)}
 
