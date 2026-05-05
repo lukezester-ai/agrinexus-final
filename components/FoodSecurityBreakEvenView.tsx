@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Shield } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 
@@ -7,51 +7,213 @@ type Props = {
 	tr: AppStrings;
 };
 
-export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
-	const [population, setPopulation] = useState(250_000);
-	const [kgPerCapitaYear, setKgPerCapitaYear] = useState(180);
-	const [manualSupplyTonnes, setManualSupplyTonnes] = useState(45_000);
-	const [yieldTPerHa, setYieldTPerHa] = useState(4);
-	const [variableCostEurPerHa, setVariableCostEurPerHa] = useState(520);
-	const [fixedProgrammeEur, setFixedProgrammeEur] = useState(2_500_000);
-	const [referencePriceEurPerT, setReferencePriceEurPerT] = useState(230);
+type FoodSecPreset = 'custom' | 'urbanStaple' | 'exportCorridor' | 'bufferReserve';
 
-	const derived = useMemo(() => {
-		const usePop = population > 0;
-		const supplyTonnes = usePop ? (population * kgPerCapitaYear) / 1000 : Math.max(0, manualSupplyTonnes);
-		const ha = yieldTPerHa > 0 ? supplyTonnes / yieldTPerHa : 0;
-		const totalCost = Math.max(0, fixedProgrammeEur) + ha * Math.max(0, variableCostEurPerHa);
-		const breakEvenPrice = supplyTonnes > 0 ? totalCost / supplyTonnes : 0;
-		const revenue = supplyTonnes * Math.max(0, referencePriceEurPerT);
-		const marginTotal = revenue - totalCost;
-		const marginPerT = supplyTonnes > 0 ? marginTotal / supplyTonnes : 0;
-		const breakEvenYieldAtRef =
-			ha > 0 && referencePriceEurPerT > 0 ? totalCost / (ha * referencePriceEurPerT) : 0;
-		return {
-			usePop,
-			supplyTonnes,
-			ha,
-			totalCost,
-			breakEvenPrice,
-			revenue,
-			marginTotal,
-			marginPerT,
-			breakEvenYieldAtRef,
-		};
-	}, [
-		population,
-		kgPerCapitaYear,
-		manualSupplyTonnes,
-		yieldTPerHa,
-		variableCostEurPerHa,
-		fixedProgrammeEur,
-		referencePriceEurPerT,
-	]);
+type FoodSecInputs = {
+	population: number;
+	kgPerCapitaYear: number;
+	manualSupplyTonnes: number;
+	yieldTPerHa: number;
+	variableCostEurPerHa: number;
+	fixedProgrammeEur: number;
+	referencePriceEurPerT: number;
+};
+
+type FoodSecDerived = {
+	usePop: boolean;
+	supplyTonnes: number;
+	ha: number;
+	totalCost: number;
+	breakEvenPrice: number;
+	revenue: number;
+	marginTotal: number;
+	marginPerT: number;
+	breakEvenYieldAtRef: number;
+};
+
+const HYPOTHESIS_STORAGE_KEY = 'agrinexus-foodsec-hypothesis';
+
+function deriveFoodSec(i: FoodSecInputs): FoodSecDerived {
+	const usePop = i.population > 0;
+	const supplyTonnes = usePop
+		? (i.population * i.kgPerCapitaYear) / 1000
+		: Math.max(0, i.manualSupplyTonnes);
+	const ha = i.yieldTPerHa > 0 ? supplyTonnes / i.yieldTPerHa : 0;
+	const totalCost = Math.max(0, i.fixedProgrammeEur) + ha * Math.max(0, i.variableCostEurPerHa);
+	const breakEvenPrice = supplyTonnes > 0 ? totalCost / supplyTonnes : 0;
+	const revenue = supplyTonnes * Math.max(0, i.referencePriceEurPerT);
+	const marginTotal = revenue - totalCost;
+	const marginPerT = supplyTonnes > 0 ? marginTotal / supplyTonnes : 0;
+	const breakEvenYieldAtRef =
+		ha > 0 && i.referencePriceEurPerT > 0 ? totalCost / (ha * i.referencePriceEurPerT) : 0;
+	return {
+		usePop,
+		supplyTonnes,
+		ha,
+		totalCost,
+		breakEvenPrice,
+		revenue,
+		marginTotal,
+		marginPerT,
+		breakEvenYieldAtRef,
+	};
+}
+
+const PRESETS: Record<Exclude<FoodSecPreset, 'custom'>, FoodSecInputs> = {
+	urbanStaple: {
+		population: 320_000,
+		kgPerCapitaYear: 155,
+		manualSupplyTonnes: 45_000,
+		yieldTPerHa: 4.3,
+		variableCostEurPerHa: 535,
+		fixedProgrammeEur: 18_500_000,
+		referencePriceEurPerT: 228,
+	},
+	exportCorridor: {
+		population: 0,
+		kgPerCapitaYear: 180,
+		manualSupplyTonnes: 95_000,
+		yieldTPerHa: 5.6,
+		variableCostEurPerHa: 590,
+		fixedProgrammeEur: 7_200_000,
+		referencePriceEurPerT: 252,
+	},
+	bufferReserve: {
+		population: 0,
+		kgPerCapitaYear: 180,
+		manualSupplyTonnes: 42_000,
+		yieldTPerHa: 3.9,
+		variableCostEurPerHa: 780,
+		fixedProgrammeEur: 22_000_000,
+		referencePriceEurPerT: 236,
+	},
+};
+
+export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
+	const locale = lang === 'bg' ? 'bg-BG' : 'en-GB';
+	const [preset, setPreset] = useState<FoodSecPreset>('urbanStaple');
+
+	const [population, setPopulation] = useState(PRESETS.urbanStaple.population);
+	const [kgPerCapitaYear, setKgPerCapitaYear] = useState(PRESETS.urbanStaple.kgPerCapitaYear);
+	const [manualSupplyTonnes, setManualSupplyTonnes] = useState(PRESETS.urbanStaple.manualSupplyTonnes);
+	const [yieldTPerHa, setYieldTPerHa] = useState(PRESETS.urbanStaple.yieldTPerHa);
+	const [variableCostEurPerHa, setVariableCostEurPerHa] = useState(PRESETS.urbanStaple.variableCostEurPerHa);
+	const [fixedProgrammeEur, setFixedProgrammeEur] = useState(PRESETS.urbanStaple.fixedProgrammeEur);
+	const [referencePriceEurPerT, setReferencePriceEurPerT] = useState(PRESETS.urbanStaple.referencePriceEurPerT);
+
+	const [hypothesis, setHypothesis] = useState('');
+
+	useEffect(() => {
+		try {
+			const saved = localStorage.getItem(HYPOTHESIS_STORAGE_KEY);
+			if (saved) setHypothesis(saved);
+		} catch {
+			/* ignore */
+		}
+	}, []);
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(HYPOTHESIS_STORAGE_KEY, hypothesis);
+		} catch {
+			/* ignore */
+		}
+	}, [hypothesis]);
+
+	const markCustom = () => setPreset('custom');
+
+	const applyPreset = (p: Exclude<FoodSecPreset, 'custom'>) => {
+		const s = PRESETS[p];
+		setPreset(p);
+		setPopulation(s.population);
+		setKgPerCapitaYear(s.kgPerCapitaYear);
+		setManualSupplyTonnes(s.manualSupplyTonnes);
+		setYieldTPerHa(s.yieldTPerHa);
+		setVariableCostEurPerHa(s.variableCostEurPerHa);
+		setFixedProgrammeEur(s.fixedProgrammeEur);
+		setReferencePriceEurPerT(s.referencePriceEurPerT);
+	};
+
+	const baseInputs: FoodSecInputs = useMemo(
+		() => ({
+			population,
+			kgPerCapitaYear,
+			manualSupplyTonnes,
+			yieldTPerHa,
+			variableCostEurPerHa,
+			fixedProgrammeEur,
+			referencePriceEurPerT,
+		}),
+		[
+			population,
+			kgPerCapitaYear,
+			manualSupplyTonnes,
+			yieldTPerHa,
+			variableCostEurPerHa,
+			fixedProgrammeEur,
+			referencePriceEurPerT,
+		],
+	);
+
+	const derived = useMemo(() => deriveFoodSec(baseInputs), [baseInputs]);
+
+	const sensitivityRows = useMemo(() => {
+		const rows: { label: string; inputs: FoodSecInputs }[] = [
+			{ label: tr.foodSecSensRowBase, inputs: baseInputs },
+			{
+				label: tr.foodSecSensRowPriceDown,
+				inputs: { ...baseInputs, referencePriceEurPerT: baseInputs.referencePriceEurPerT * 0.85 },
+			},
+			{
+				label: tr.foodSecSensRowPriceUp,
+				inputs: { ...baseInputs, referencePriceEurPerT: baseInputs.referencePriceEurPerT * 1.1 },
+			},
+			{
+				label: tr.foodSecSensRowYieldDown,
+				inputs: { ...baseInputs, yieldTPerHa: baseInputs.yieldTPerHa * 0.85 },
+			},
+		];
+		return rows.map(r => ({ label: r.label, d: deriveFoodSec(r.inputs) }));
+	}, [baseInputs, tr]);
+
+	const angleBullets = useMemo(() => {
+		const out: string[] = [];
+		const { totalCost, breakEvenPrice, marginTotal, ha, supplyTonnes } = derived;
+		const ref = Math.max(0, referencePriceEurPerT);
+		const gapPct =
+			ref > 0 && supplyTonnes > 0 ? ((ref - breakEvenPrice) / ref) * 100 : 0;
+		const fixedShare = totalCost > 0 ? fixedProgrammeEur / totalCost : 0;
+
+		if (supplyTonnes <= 0 || yieldTPerHa <= 0) return out;
+
+		if (marginTotal >= 0 && gapPct >= 6) {
+			out.push(tr.foodSecAnglePositiveSpread.replace('{pct}', gapPct.toFixed(1)));
+		}
+		if (marginTotal < 0 || breakEvenPrice > ref * 1.02) {
+			out.push(tr.foodSecAngleNegativeSpread);
+		}
+		if (fixedShare >= 0.34) {
+			out.push(tr.foodSecAngleFixedHeavy.replace('{pct}', Math.round(fixedShare * 100).toString()));
+		}
+		if (ha >= 22_000) {
+			out.push(tr.foodSecAngleLandHeavy.replace('{ha}', Math.round(ha).toLocaleString(locale)));
+		}
+		if (marginTotal >= 0 && gapPct >= 0 && gapPct < 6) {
+			out.push(tr.foodSecAngleThinBuffer);
+		}
+		return out;
+	}, [derived, fixedProgrammeEur, referencePriceEurPerT, tr, locale]);
 
 	const marginPositive = derived.marginTotal >= 0;
 	const statusLine = marginPositive
 		? tr.foodSecMarginTotalProfit.replace('{eur}', String(Math.round(derived.marginTotal)))
 		: tr.foodSecMarginTotalLoss.replace('{eur}', String(Math.round(Math.abs(derived.marginTotal))));
+
+	const presetButtons: { id: Exclude<FoodSecPreset, 'custom'>; label: string }[] = [
+		{ id: 'urbanStaple', label: tr.foodSecPresetUrbanStaple },
+		{ id: 'exportCorridor', label: tr.foodSecPresetExportCorridor },
+		{ id: 'bufferReserve', label: tr.foodSecPresetBufferReserve },
+	];
 
 	return (
 		<section className="section">
@@ -63,10 +225,35 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 				{tr.foodSecSubtitle}
 			</p>
 
+			<div style={{ marginTop: 16, marginBottom: 14 }}>
+				<span className="muted" style={{ display: 'block', marginBottom: 8, fontSize: '.9rem' }}>
+					{tr.foodSecPresetsTitle}
+				</span>
+				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+					{presetButtons.map(b => (
+						<button
+							key={b.id}
+							type="button"
+							className={preset === b.id ? 'btn btn-primary' : 'btn btn-outline'}
+							onClick={() => applyPreset(b.id)}>
+							{b.label}
+						</button>
+					))}
+				</div>
+				{preset === 'custom' ? (
+					<p className="muted" style={{ margin: '8px 0 0', fontSize: '.82rem' }}>
+						{tr.foodSecPresetCustomActive}
+					</p>
+				) : null}
+				<p className="muted" style={{ margin: '8px 0 0', fontSize: '.82rem', lineHeight: 1.5 }}>
+					{tr.foodSecPresetHint}
+				</p>
+			</div>
+
 			<div
 				className="contact-panel"
 				style={{
-					marginTop: 18,
+					marginTop: 4,
 					borderColor: 'rgba(124, 205, 156, 0.35)',
 					background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.48) 100%)',
 				}}>
@@ -87,9 +274,11 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							type="number"
 							min={0}
 							step={1000}
-							value={population || ''}
-							onChange={e => setPopulation(Math.max(0, Number(e.target.value) || 0))}
-							placeholder="0"
+							value={population}
+							onChange={e => {
+								markCustom();
+								setPopulation(Math.max(0, Number(e.target.value) || 0));
+							}}
 						/>
 					</label>
 					<label className="muted" style={{ display: 'grid', gap: 6, fontSize: '.86rem' }}>
@@ -99,7 +288,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={10}
 							value={kgPerCapitaYear}
-							onChange={e => setKgPerCapitaYear(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setKgPerCapitaYear(Math.max(0, Number(e.target.value) || 0));
+							}}
 							disabled={population <= 0}
 							style={population <= 0 ? { opacity: 0.55 } : undefined}
 						/>
@@ -111,7 +303,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={500}
 							value={manualSupplyTonnes}
-							onChange={e => setManualSupplyTonnes(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setManualSupplyTonnes(Math.max(0, Number(e.target.value) || 0));
+							}}
 							disabled={population > 0}
 							style={population > 0 ? { opacity: 0.55 } : undefined}
 						/>
@@ -123,7 +318,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={0.1}
 							value={yieldTPerHa}
-							onChange={e => setYieldTPerHa(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setYieldTPerHa(Math.max(0, Number(e.target.value) || 0));
+							}}
 						/>
 					</label>
 					<label className="muted" style={{ display: 'grid', gap: 6, fontSize: '.86rem' }}>
@@ -133,7 +331,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={10}
 							value={variableCostEurPerHa}
-							onChange={e => setVariableCostEurPerHa(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setVariableCostEurPerHa(Math.max(0, Number(e.target.value) || 0));
+							}}
 						/>
 					</label>
 					<label className="muted" style={{ display: 'grid', gap: 6, fontSize: '.86rem' }}>
@@ -143,7 +344,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={10000}
 							value={fixedProgrammeEur}
-							onChange={e => setFixedProgrammeEur(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setFixedProgrammeEur(Math.max(0, Number(e.target.value) || 0));
+							}}
 						/>
 					</label>
 					<label className="muted" style={{ display: 'grid', gap: 6, fontSize: '.86rem' }}>
@@ -153,7 +357,10 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							min={0}
 							step={1}
 							value={referencePriceEurPerT}
-							onChange={e => setReferencePriceEurPerT(Math.max(0, Number(e.target.value) || 0))}
+							onChange={e => {
+								markCustom();
+								setReferencePriceEurPerT(Math.max(0, Number(e.target.value) || 0));
+							}}
 						/>
 					</label>
 				</div>
@@ -170,7 +377,7 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 					}}>
 					<p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>
 						<strong>{tr.foodSecSupplyTonnes}</strong>{' '}
-						{`${derived.supplyTonnes.toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-GB', { maximumFractionDigits: 0 })} t`}
+						{`${derived.supplyTonnes.toLocaleString(locale, { maximumFractionDigits: 0 })} t`}
 						{derived.usePop ? ` (${tr.foodSecFromPopulation})` : ` (${tr.foodSecManualMode})`}
 					</p>
 					<p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>
@@ -178,7 +385,7 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 					</p>
 					<p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>
 						<strong>{tr.foodSecTotalCost}</strong>{' '}
-						{`${Math.round(derived.totalCost).toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-GB')} EUR`}
+						{`${Math.round(derived.totalCost).toLocaleString(locale)} EUR`}
 					</p>
 					<p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>
 						<strong>{tr.foodSecBreakEvenPrice}</strong> {`${derived.breakEvenPrice.toFixed(1)} EUR/t`}
@@ -202,6 +409,109 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 						color: marginPositive ? '#86efac' : '#fdba74',
 					}}>
 					{statusLine}
+				</p>
+			</div>
+
+			<div
+				className="contact-panel"
+				style={{
+					marginTop: 18,
+					borderColor: 'rgba(168, 85, 247, 0.28)',
+					background: 'linear-gradient(165deg, rgba(168,85,247,0.07) 0%, rgba(12,22,17,0.42) 100%)',
+				}}>
+				<h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>{tr.foodSecSensitivityTitle}</h3>
+				<p className="muted" style={{ margin: '0 0 12px', fontSize: '.86rem', lineHeight: 1.55 }}>
+					{tr.foodSecSensitivityHint}
+				</p>
+				<div style={{ overflowX: 'auto' }}>
+					<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.88rem' }}>
+						<thead>
+							<tr style={{ color: '#94a3b8', textAlign: 'left' }}>
+								<th style={{ padding: '8px 10px 8px 0', fontWeight: 600 }}>{tr.foodSecSensitivityColCase}</th>
+								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColMarginTotal}</th>
+								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColMarginPerT}</th>
+								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColLandHa}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{sensitivityRows.map(row => (
+								<tr key={row.label} style={{ borderTop: '1px solid rgba(148,163,184,0.18)' }}>
+									<td style={{ padding: '10px 10px 10px 0', color: '#e2e8f0' }}>{row.label}</td>
+									<td
+										style={{
+											padding: '10px',
+											color: row.d.marginTotal >= 0 ? '#86efac' : '#fdba74',
+											fontWeight: 600,
+										}}>
+										{`${Math.round(row.d.marginTotal).toLocaleString(locale)} EUR`}
+									</td>
+									<td style={{ padding: '10px', color: '#cbd5e1' }}>
+										{`${row.d.marginPerT.toFixed(1)} EUR/t`}
+									</td>
+									<td style={{ padding: '10px', color: '#cbd5e1' }}>{`${row.d.ha.toFixed(1)} ha`}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div
+				className="contact-panel"
+				style={{
+					marginTop: 18,
+					borderColor: 'rgba(56, 189, 248, 0.3)',
+					background: 'rgba(56, 189, 248, 0.06)',
+				}}>
+				<h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>{tr.foodSecAnglesTitle}</h3>
+				<p className="muted" style={{ margin: '0 0 12px', fontSize: '.86rem', lineHeight: 1.55 }}>
+					{tr.foodSecAnglesHint}
+				</p>
+				{angleBullets.length === 0 ? (
+					<p className="muted" style={{ margin: 0, fontSize: '.88rem' }}>{tr.foodSecAnglesEmpty}</p>
+				) : (
+					<ul className="muted" style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.58, fontSize: '.9rem' }}>
+						{angleBullets.map((line, idx) => (
+							<li key={idx} style={{ marginBottom: 8 }}>
+								{line}
+							</li>
+						))}
+					</ul>
+				)}
+			</div>
+
+			<div
+				className="contact-panel"
+				style={{
+					marginTop: 18,
+					borderColor: 'rgba(124, 205, 156, 0.28)',
+					background: 'rgba(124, 205, 156, 0.05)',
+				}}>
+				<h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>{tr.foodSecHypothesisTitle}</h3>
+				<p className="muted" style={{ margin: '0 0 10px', fontSize: '.84rem', lineHeight: 1.55 }}>
+					{tr.foodSecHypothesisHint}
+				</p>
+				<textarea
+					className="muted"
+					value={hypothesis}
+					onChange={e => setHypothesis(e.target.value)}
+					placeholder={tr.foodSecHypothesisPlaceholder}
+					rows={5}
+					style={{
+						width: '100%',
+						boxSizing: 'border-box',
+						padding: 12,
+						borderRadius: 8,
+						border: '1px solid rgba(148,163,184,0.25)',
+						background: 'rgba(15,23,42,0.35)',
+						color: '#e2e8f0',
+						fontSize: '.9rem',
+						lineHeight: 1.5,
+						resize: 'vertical',
+					}}
+				/>
+				<p className="muted" style={{ margin: '10px 0 0', fontSize: '.78rem' }}>
+					{tr.foodSecHypothesisFooter}
 				</p>
 			</div>
 

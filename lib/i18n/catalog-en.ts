@@ -388,7 +388,45 @@ export const STR_EN = {
 		'Volume heuristic: a lower next-year harvest vs the demo average nudges the illustrative price up (and vice versa), capped for stability.',
 	foodSecTitle: 'Food security — programme break-even',
 	foodSecSubtitle:
-		'Plan domestic supply or reserve envelopes in tonnes per year: derive implied land from yield, stack programme fixed costs plus field variable costs, then read off minimum EUR/t and sensitivity versus a reference price.',
+		'Turn staple-tonne programmes into investor-visible narratives: start from presets (different commercial angles), stress-test price and yield shocks, scan heuristic „business angles“, and capture hypotheses — AgriNexus stays the showcase layer.',
+	foodSecPresetsTitle: 'Starter scenarios (business angles)',
+	foodSecPresetUrbanStaple: 'Domestic staple basket',
+	foodSecPresetExportCorridor: 'Export surplus corridor',
+	foodSecPresetBufferReserve: 'Reserve / stocking envelope',
+	foodSecPresetHint:
+		'Presets load illustrative bundles — replace every figure with audited budgets before pitching.',
+	foodSecPresetCustomActive: 'Custom numbers — tuned manually.',
+	foodSecSensitivityTitle: 'Stress checks vs baseline reference price',
+	foodSecSensitivityHint:
+		'Same nominal demand target; rows isolate revenue shocks or weaker yields (more hectares required).',
+	foodSecSensRowBase: 'Baseline',
+	foodSecSensRowPriceDown: 'Reference price −15%',
+	foodSecSensRowPriceUp: 'Reference price +10%',
+	foodSecSensRowYieldDown: 'Yield −15%',
+	foodSecSensitivityColCase: 'Scenario',
+	foodSecSensitivityColMarginTotal: 'Total margin',
+	foodSecSensitivityColMarginPerT: 'EUR/t margin',
+	foodSecSensitivityColLandHa: 'Land implied',
+	foodSecAnglesTitle: 'Discovery prompts for investor conversations',
+	foodSecAnglesHint:
+		'Rule-based cues — not recommendations. Use them to spot follow-on diligence topics.',
+	foodSecAnglesEmpty: 'Adjust yields, volumes or reference prices to surface prompts.',
+	foodSecAnglePositiveSpread:
+		'Headroom: reference sits ~{pct}% above break-even — tighten logistics/offtake proof points.',
+	foodSecAngleNegativeSpread:
+		'Pressure: economics likely need stronger pricing, co-financing, contracting structure or lower capex.',
+	foodSecAngleFixedHeavy:
+		'Fixed envelope ≈ {pct}% of programme cost — explore phased rollout, PPP envelopes or shared infrastructure.',
+	foodSecAngleLandHeavy:
+		'Large cultivation footprint (~{ha} ha implied) — emphasise partnerships, contractor clusters or machinery leasing.',
+	foodSecAngleThinBuffer:
+		'Thin cushion versus volatility — pair with hedging language or contingent sourcing lanes.',
+	foodSecHypothesisTitle: 'Hypothesis log',
+	foodSecHypothesisHint:
+		'Capture counterpart role, corridor, appetite for tenor — saves locally in this browser for iterative discovery.',
+	foodSecHypothesisPlaceholder:
+		'e.g. „Regional aggregator wants 5-year tolling + indexed corridor premium…“',
+	foodSecHypothesisFooter: 'Stored only on this device (localStorage).',
 	foodSecInputsTitle: 'Scenario inputs',
 	foodSecInputsHint:
 		'Fixed costs are programme-wide (coordination, reserves readiness, shared logistics envelopes). Variable costs apply per cultivated hectare.',
