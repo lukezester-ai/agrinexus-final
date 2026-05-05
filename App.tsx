@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
 	ArrowLeft,
 	BarChart3,
-	Bell,
 	Bookmark,
-	Brain,
 	Building2,
 	CalendarDays,
 	Calculator,
@@ -16,7 +14,6 @@ import {
 	FileUp,
 	Globe2,
 	Leaf,
-	LineChart,
 	Loader2,
 	LogIn,
 	Mail,
@@ -34,7 +31,6 @@ import {
 import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
-import { AssistantPersonaCertPdfs } from './components/AssistantPersonaCertPdfs';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
@@ -120,24 +116,6 @@ const PREVIEW_DEALS = [
 		profit: 21,
 		price: '2.10 SAR',
 		isMENA: true,
-	},
-];
-
-const AI_FEATURES = [
-	{
-		icon: Brain,
-		title: 'BUY / HOLD / AVOID',
-		text: 'AI trade logic ranks deals from your filters and illustrative scenarios — ready to plug in exchange feeds when connected.',
-	},
-	{
-		icon: LineChart,
-		title: 'Predictive Pricing',
-		text: 'Forecasts future pricing and expected margin before deal execution.',
-	},
-	{
-		icon: Bell,
-		title: 'Smart Alerts',
-		text: 'Email and Telegram-ready notifications for high-margin opportunities.',
 	},
 ];
 
@@ -1850,25 +1828,6 @@ export default function App() {
 		return `${tr.liveMarketErrorBanner}${marketQuotes.error ? ` (${marketQuotes.error})` : ''}`;
 	}, [quotesLoading, marketQuotes, tr, lang]);
 
-	const landingAiCards = useMemo(() => {
-		const bgCopy = [
-			{
-				title: 'КУПИ / ЗАДРЪЖ / ИЗБЕГНИ',
-				text: 'AI логика подрежда сделки според филтрите и демо сценариите — готова за реални котировки и борсови потоци, когато са свързани.',
-			},
-			{
-				title: 'Прогнозни цени',
-				text: 'Оценка на бъдеща цена и марж преди затваряне на сделка.',
-			},
-			{
-				title: 'Умни известия',
-				text: 'Известия по имейл или Telegram при висок марж.',
-			},
-		];
-		const texts = lang === 'bg' ? bgCopy : AI_FEATURES.map(f => ({ title: f.title, text: f.text }));
-		return AI_FEATURES.map((f, i) => ({ ...f, ...texts[i] }));
-	}, [lang]);
-
 	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
 	const categoryCounts = useMemo(() => {
 		const counts: Record<DealCategoryFilter, number> = {
@@ -2929,6 +2888,12 @@ export default function App() {
 					)}
 					<button
 						type="button"
+						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
+						onClick={() => setView('assistant')}>
+						<MessageSquare size={14} aria-hidden /> {tr.navAssistant}
+					</button>
+					<button
+						type="button"
 						className={`nav-link nav-link-mobile-hide ${view === 'login' ? 'active' : ''}`}
 						onClick={() => setView('login')}>
 						<LogIn size={14} aria-hidden /> {tr.navLogin}
@@ -2956,170 +2921,17 @@ export default function App() {
 					</h1>
 					<p className="landing-tagline">{tr.landingTagline}</p>
 
-					<div className="ai-grid">
-						{landingAiCards.map(f => {
-							const Icon = f.icon;
-							return (
-								<div className="ai-card" key={f.title}>
-									<Icon color="#7ccd9c" size={20} />
-									<h4>{f.title}</h4>
-									<p>{f.text}</p>
-								</div>
-							);
-						})}
-					</div>
-
-					<div style={{ marginTop: 24 }}>
-						<p
-							style={{
-								color: '#7ccd9c',
-								letterSpacing: 2,
-								fontSize: '.75rem',
-								fontWeight: 700,
-								textTransform: 'uppercase',
-								marginBottom: 6,
-							}}>
-							{tr.livePreview}
-						</p>
-						<h2 style={{ margin: '6px 0' }}>{tr.activeOpps}</h2>
-						<p className="muted" style={{ marginTop: 0 }}>
-							{tr.liveDealsHint}
-						</p>
-					</div>
-
-					<div className="preview-mask">
-						<div className="deals-track">
+					<div
+						className="ticker-wrap"
+						style={{ marginTop: 18, paddingTop: 8, paddingBottom: 8, minHeight: 'auto' }}>
+						<div className="ticker-track" style={{ animationDuration: '26s' }}>
 							{[...PREVIEW_DEALS, ...PREVIEW_DEALS].map((deal, idx) => (
-								<div
-									key={`${deal.id}-${idx}`}
-									className="deal-card"
-									style={{ width: 260, flexShrink: 0 }}>
-									<div
-										style={{
-											display: 'flex',
-											justifyContent: 'space-between',
-											alignItems: 'center',
-											gap: 8,
-											marginBottom: 8,
-										}}>
-										<span
-											style={{
-												fontSize: '.74rem',
-												background: deal.isMENA ? '#b45309' : '#1d4ed8',
-												borderRadius: 8,
-												padding: '4px 8px',
-											}}>
-											{deal.flag} {deal.isMENA ? tr.menaBadge : tr.euBadge}
-										</span>
-										<strong style={{ color: '#7ccd9c' }}>+{deal.profit}%</strong>
-									</div>
-									<h3 style={{ margin: '0 0 8px' }}>{deal.product}</h3>
-									<div
-										className="muted"
-										style={{
-											background: '#101914',
-											padding: 8,
-											borderRadius: 8,
-											fontSize: '.84rem',
-										}}>
-										<div>📦 {deal.packaging}</div>
-										<div style={{ color: '#7ccd9c', marginTop: 4 }}>
-											📜 {deal.certification}
-										</div>
-									</div>
-									<div
-										className="muted"
-										style={{ marginTop: 8, fontSize: '.84rem' }}>
-										{deal.from} → {deal.to}
-									</div>
-									<div style={{ marginTop: 8, fontWeight: 900 }}>
-										{deal.price}
-									</div>
-								</div>
+								<span key={`${deal.id}-landing-tk-${idx}`} className="ticker-item">
+									{deal.flag} {deal.product}
+									<strong>+{deal.profit}%</strong> · {deal.from} → {deal.to} · {deal.price}
+								</span>
 							))}
 						</div>
-					</div>
-
-					<div className="contact-panel" style={{ marginTop: 28, textAlign: 'left' }}>
-						<h3 style={{ marginTop: 0 }}>{tr.contactSales}</h3>
-						<p className="muted" style={{ marginTop: 6 }}>
-							{tr.contactHelp}
-						</p>
-						<div className="form-grid" style={{ marginTop: 12 }}>
-							<input
-								placeholder={tr.phName}
-								value={contactName}
-								onChange={e => setContactName(e.target.value)}
-							/>
-							<input
-								placeholder={tr.phEmail}
-								value={contactEmail}
-								onChange={e => setContactEmail(e.target.value)}
-							/>
-							{showContactEmailError && (
-								<p
-									style={{
-										gridColumn: '1 / -1',
-										margin: '-6px 0 0',
-										color: '#f87171',
-										fontSize: '.84rem',
-									}}>
-									{invalidEmailText}
-								</p>
-							)}
-							<input
-								placeholder={tr.phCompany}
-								value={contactCompany}
-								onChange={e => setContactCompany(e.target.value)}
-							/>
-							<textarea
-								placeholder={tr.phMessage}
-								rows={3}
-								value={contactBody}
-								onChange={e => setContactBody(e.target.value)}
-								style={{ gridColumn: '1 / -1' }}
-							/>
-						</div>
-						<div style={{ marginTop: 10 }}>
-							<button
-								className="btn btn-primary"
-								disabled={
-									contactStatus === 'loading' ||
-									!contactEmail.trim() ||
-									!contactBody.trim()
-								}
-								onClick={() => void submitContact()}>
-								{contactStatus === 'loading' ? (
-									<Loader2 className="spin" size={18} />
-								) : (
-									<Mail size={18} />
-								)}{' '}
-								{tr.send}
-							</button>
-							{contactFeedback && (
-								<p
-									className={contactStatus === 'ok' ? 'green-note' : 'muted'}
-									style={{ marginTop: 10 }}>
-									{contactFeedback}
-								</p>
-							)}
-						</div>
-					</div>
-
-					<div className="landing-inquiry-strip">
-						<div className="landing-inquiry-inner">
-							<span className="landing-inquiry-ai-mark" aria-hidden="true">
-								<Brain size={22} strokeWidth={1.75} />
-							</span>
-							<button
-								type="button"
-								className="landing-inquiry-bar"
-								onClick={() => setView('assistant')}
-								aria-label={`${tr.navAssistant}: ${tr.landingInquiryPlaceholder}`}>
-								{tr.landingInquiryPlaceholder}
-							</button>
-						</div>
-						<p className="landing-inquiry-hint">• {tr.landingInquiryHint}</p>
 					</div>
 				</section>
 			)}
@@ -3453,9 +3265,6 @@ export default function App() {
 					<p className="muted" style={{ margin: '0 0 8px', maxWidth: 720 }}>
 						{tr.assistantSubtitle}
 					</p>
-					<p className="muted" style={{ margin: '0 0 14px', maxWidth: 720, fontSize: '.88rem' }}>
-						{tr.assistantTriadHint}
-					</p>
 					{chatHealth === 'offline' && (
 						<div
 							className="contact-panel"
@@ -3493,35 +3302,6 @@ export default function App() {
 					<div className="contact-panel assistant-workbench">
 						{!assistantToolbarCollapsed ? (
 							<div className="assistant-panel-head">
-								<div className="deal-actions assistant-persona-row" style={{ flexWrap: 'wrap' }}>
-									{(
-										[
-											['unified', tr.personaUnified],
-											['lawyer', tr.personaLawyer],
-											['agronomist', tr.personaAgronomist],
-											['finance', tr.personaFinance],
-										] as const
-									).map(([id, label]) => (
-										<button
-											key={id}
-											type="button"
-											className={`deal-chip-btn${chatPersona === id ? ' active' : ''}`}
-											disabled={chatLoading}
-											onClick={() => {
-												setChatPersona(id);
-												setAssistantNotice(
-													uiPickTwo(
-														lang,
-														`Режим: ${label}. ${tr.assistantPersonaPromptSuffix}`,
-														`Active: ${label}. ${tr.assistantPersonaPromptSuffix}`,
-													),
-												);
-											}}>
-											{label}
-										</button>
-									))}
-								</div>
-								<AssistantPersonaCertPdfs persona={chatPersona} lang={lang} tr={tr} />
 								<div className="chat-actions" style={{ marginBottom: 8 }}>
 									<span className="muted" style={{ fontSize: '.8rem' }}>
 										{tr.chatPromptsLabel}
@@ -4118,7 +3898,7 @@ export default function App() {
 							className={`mobile-nav-btn ${view === 'assistant' ? 'active' : ''}`}
 							onClick={() => setView('assistant')}
 							aria-label={tr.navAssistant}>
-							<Brain size={16} aria-hidden />
+							<MessageSquare size={16} aria-hidden />
 							<MobileNavLabel text={tr.mobileAssistantTab} hint={tr.navAssistant} />
 						</button>
 						{MVP_MODE ? (
