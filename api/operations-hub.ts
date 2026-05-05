@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
 	handleOperationsHubGet,
 	handleOperationsHubPost,
-} from '../lib/operations-hub-handler';
+} from '../lib/operations-hub-handler.js';
 
 function sendJson(res: VercelResponse, status: number, payload: unknown) {
 	res.status(status);

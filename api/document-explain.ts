@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleDocumentExplainPost } from '../lib/document-explain-handler';
-import { vercelJsonBody } from '../lib/vercel-json-body';
+import { handleDocumentExplainPost } from '../lib/document-explain-handler.js';
+import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
 export const config = {
   maxDuration: 60,

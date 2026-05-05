@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleEquipmentRentalGet } from '../lib/equipment-rental-handler';
+import { handleEquipmentRentalGet } from '../lib/equipment-rental-handler.js';
 
 function sendJson(res: VercelResponse, status: number, payload: unknown) {
 	res.status(status);

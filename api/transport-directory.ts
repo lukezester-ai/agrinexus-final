@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleTransportDirectoryGet } from '../lib/transport-directory-handler';
+import { handleTransportDirectoryGet } from '../lib/transport-directory-handler.js';
 
 function sendJson(res: VercelResponse, status: number, payload: unknown) {
 	res.status(status);

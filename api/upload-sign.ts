@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleUploadSignPost } from '../lib/upload-sign';
-import { vercelJsonBody } from '../lib/vercel-json-body';
+import { handleUploadSignPost } from '../lib/upload-sign.js';
+import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');

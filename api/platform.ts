@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getPlatformPayload } from '../lib/infra/platform-layers';
+import { getPlatformPayload } from '../lib/infra/platform-layers.js';
 
 function sendJson(res: VercelResponse, status: number, payload: unknown) {
 	res.status(status);
