@@ -2605,6 +2605,12 @@ export default function App() {
           background: #1a2820; color: #fff; border: 1px solid #3d5248;
         }
         .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
+        .search-help-note {
+          margin: 8px 2px 0;
+          color: #9eb8aa;
+          font-size: .78rem;
+          line-height: 1.4;
+        }
 
         .muted { color: var(--text-muted); }
         .green-note { color: var(--accent-text); font-weight: 700; }
@@ -3058,10 +3064,16 @@ export default function App() {
 							<Search className="search-icon" size={18} />
 							<input
 								type="text"
+								aria-label={lang === 'bg' ? 'Търсене в оферти' : 'Search in deals'}
 								placeholder={tr.searchPh}
 								value={searchQuery}
 								onChange={e => setSearchQuery(e.target.value)}
 							/>
+							<p className="search-help-note">
+								{lang === 'bg'
+									? 'Това поле е търсачка за оферти. За въпроси използвайте AI Chat.'
+									: 'This field filters deals. For questions, use AI Chat.'}
+							</p>
 						</div>
 						<div
 							style={{
@@ -3072,6 +3084,20 @@ export default function App() {
 								gap: 12,
 								flexWrap: 'wrap',
 							}}>
+							<button
+								type="button"
+								className="btn-mini"
+								onClick={() => {
+									if (searchQuery.trim()) {
+										const seed = lang === 'bg'
+											? `Искам анализ за: ${searchQuery.trim()}`
+											: `I need analysis for: ${searchQuery.trim()}`;
+										setChatInput(prev => (prev.trim() ? prev : seed));
+									}
+									setView('assistant');
+								}}>
+								<MessageSquare size={16} /> {lang === 'bg' ? 'AI Chat' : 'AI Chat'}
+							</button>
 							<button
 								type="button"
 								className="btn-mini"
