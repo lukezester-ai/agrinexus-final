@@ -3467,8 +3467,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									`Локалният API не отговаря (/api/chat). В корена на проекта задължително npm run dev (не само dev:vite) — Vite на :5173 проксира /api към локалния API на :${DEV_API_PORT_HINT}. В терминала редът „dev API listening“ трябва да е на същия порт като DEV_API_PORT в .env. Отворете http://localhost:5173. Ако портът е зает, спрете другата програма или сменете DEV_API_PORT и рестартирайте npm run dev.`,
-									`Local API is not reachable (/api/chat). From the project root run npm run dev (not dev:vite alone) — Vite on :5173 proxies /api to the local API on :${DEV_API_PORT_HINT}. In the terminal, the line “dev API listening” must use the same port as DEV_API_PORT in .env. Open http://localhost:5173. If the port is busy, stop the other process or change DEV_API_PORT and restart npm run dev.`
+									`Временен проблем при /api/chat (локално). Провери в нов таб http://localhost:5173/api/chat — ако върне JSON с "ok": true, API е наред и е нужно само Ctrl+F5. Ако не върне, стартирай npm run dev (не само dev:vite). Очакван локален API порт: :${DEV_API_PORT_HINT} (според DEV_API_PORT).`,
+									`Temporary local issue calling /api/chat. Check http://localhost:5173/api/chat in a new tab — if it returns JSON with "ok": true, the API is healthy and you only need Ctrl+F5. If it does not, run npm run dev (not dev:vite alone). Expected local API port: :${DEV_API_PORT_HINT} (from DEV_API_PORT).`
 								)}
 							</p>
 						</div>
