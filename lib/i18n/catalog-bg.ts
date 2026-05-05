@@ -145,11 +145,18 @@ export const STR_BG = {
 	grainInsightTopProduct: 'Топ продукт',
 	registerTitle: 'Създай акаунт',
 	registerSubtitle:
-		'Регистрацията изпраща детайли към info@agrinexus.eu и потвърждение към вашия имейл (при SMTP).',
+		'Регистрацията записва данните за AgriNexus (имейл към info@agrinexus.eu при конфигурирана поща) и създава облачен вход при активен Supabase.',
 	fullNamePh: 'Име и фамилия',
 	companyNamePh: 'Име на компания',
 	businessEmailPh: 'Служебен имейл',
 	passwordPh: 'Парола',
+	registerPasswordCloudHint:
+		'Минимум 6 знака — за облачен акаунт (Supabase). Задължително при активен облачен вход.',
+	registerPasswordTooShort: 'За облачна регистрация са нужни поне 6 знака.',
+	registerCloudSignupCheckEmail:
+		'Облачен акаунт е създаден — потвърди през имейла от Supabase, после влез по-долу с имейл и парола.',
+	registerCloudSignupOkSession: 'Облачен акаунт е създаден — влязъл си.',
+	registerCloudSignupFailedLeadSaved: 'Заявката е записана, но облачната регистрация не успя:',
 	marketFocusPh: 'Пазарен фокус',
 	marketEurope: 'Европа',
 	marketMena: 'MENA',
@@ -167,7 +174,11 @@ export const STR_BG = {
 	loginContinueDemo: 'Продължи към демо',
 	loginNoAccount: 'Нямате акаунт? Регистрация',
 	loginCloudTitle: 'Облачен акаунт (Supabase)',
-	loginCloudSub: 'Вход с магически линк — същата инфраструктура като облачната база и бъдеща синхронизация.',
+	loginCloudSub:
+		'Имейл + парола (от регистрацията) или магически линк — същата инфраструктура като облачната база и синхронизация.',
+	loginCloudSignInPassword: 'Вход с парола',
+	loginCloudPasswordHint: 'Паролата от регистрацията (мин. 6 знака).',
+	loginCloudPasswordWrong: 'Невалиден имейл или парола.',
 	loginCloudDisabled:
 		'Облачният вход е изключен. Добави VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в .env, после рестарт на dev или redeploy.',
 	loginCloudLoading: 'Проверка на облачна сесия…',

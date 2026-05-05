@@ -9,6 +9,7 @@ type Props = { tr: AppStrings };
 export function CloudAuthPanel({ tr }: Props) {
 	const { user, loading, signOut, clientConfigured } = useSupabaseSession();
 	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [msg, setMsg] = useState<string | null>(null);
 
@@ -66,6 +67,17 @@ export function CloudAuthPanel({ tr }: Props) {
 		else setMsg(tr.loginMagicSent);
 	};
 
+	const signInWithPassword = async () => {
+		const e = email.trim();
+		if (!e || password.length < 6) return;
+		setBusy(true);
+		setMsg(null);
+		const { error } = await client.auth.signInWithPassword({ email: e, password });
+		setBusy(false);
+		if (error) setMsg(tr.loginCloudPasswordWrong);
+		else setMsg(null);
+	};
+
 	return (
 		<div className="contact-panel" style={{ marginTop: 16 }}>
 			<h3 style={{ marginTop: 0, fontSize: '1rem' }}>{tr.loginCloudTitle}</h3>
@@ -83,10 +95,32 @@ export function CloudAuthPanel({ tr }: Props) {
 						if (msg) setMsg(null);
 					}}
 				/>
+				<input
+					type="password"
+					autoComplete="current-password"
+					placeholder={tr.loginPasswordPh}
+					value={password}
+					onChange={e => {
+						setPassword(e.target.value);
+						if (msg) setMsg(null);
+					}}
+				/>
+				<p
+					className="muted"
+					style={{ gridColumn: '1 / -1', margin: '-6px 0 0', fontSize: '.82rem' }}>
+					{tr.loginCloudPasswordHint}
+				</p>
 			</div>
 			<div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-				<button type="button" className="btn btn-primary" disabled={busy || !email.trim()} onClick={() => void sendLink()}>
+				<button
+					type="button"
+					className="btn btn-primary"
+					disabled={busy || !email.trim() || password.length < 6}
+					onClick={() => void signInWithPassword()}>
 					{busy ? <Loader2 size={16} className="spin" aria-hidden /> : null}
+					{tr.loginCloudSignInPassword}
+				</button>
+				<button type="button" className="btn btn-outline" disabled={busy || !email.trim()} onClick={() => void sendLink()}>
 					{tr.loginMagicLink}
 				</button>
 			</div>

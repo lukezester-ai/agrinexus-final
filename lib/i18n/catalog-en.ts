@@ -143,11 +143,18 @@ export const STR_EN = {
 	grainInsightTopProduct: 'Top product',
 	registerTitle: 'Create Account',
 	registerSubtitle:
-		'Registration sends details to info@agrinexus.eu and a confirmation to your email (when SMTP is enabled).',
+		'Registration saves your details for AgriNexus (email to info@agrinexus.eu when mail is configured) and creates a cloud login when Supabase is enabled.',
 	fullNamePh: 'Full Name',
 	companyNamePh: 'Company Name',
 	businessEmailPh: 'Business Email',
 	passwordPh: 'Password',
+	registerPasswordCloudHint:
+		'At least 6 characters — secures your cloud account (Supabase). Required when cloud auth is enabled.',
+	registerPasswordTooShort: 'Cloud signup requires at least 6 characters.',
+	registerCloudSignupCheckEmail:
+		'Cloud account created — confirm via the email from Supabase, then sign in below with email and password.',
+	registerCloudSignupOkSession: 'Cloud account created — you are signed in.',
+	registerCloudSignupFailedLeadSaved: 'Request saved, but cloud signup failed:',
 	marketFocusPh: 'Market Focus',
 	marketEurope: 'Europe',
 	marketMena: 'MENA',
@@ -165,7 +172,11 @@ export const STR_EN = {
 	loginContinueDemo: 'Continue to demo',
 	loginNoAccount: 'No account? Register',
 	loginCloudTitle: 'Cloud account (Supabase)',
-	loginCloudSub: 'Magic-link login — same stack as cloud DB, RLS, and future sync.',
+	loginCloudSub:
+		'Email + password (from registration) or magic link — same stack as cloud DB, RLS, and future sync.',
+	loginCloudSignInPassword: 'Sign in with password',
+	loginCloudPasswordHint: 'Use the password you chose at registration (min. 6 characters).',
+	loginCloudPasswordWrong: 'Invalid email or password.',
 	loginCloudDisabled:
 		'Cloud auth is off. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env, then restart dev / redeploy.',
 	loginCloudLoading: 'Checking cloud session…',

@@ -880,13 +880,18 @@ export default function App() {
 		if (!normalized) return true;
 		return /^\+[1-9]\d{7,14}$/.test(normalized);
 	};
+	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
+	const regPasswordOkForCloud = regPassword.length >= 6;
 	const canSubmitRegister =
 		regFullName.trim().length > 1 &&
 		regCompany.trim().length > 1 &&
 		isValidEmail(regEmail) &&
 		isValidPhoneInput(regPhone) &&
-		regMarket.trim().length > 1;
+		regMarket.trim().length > 1 &&
+		(!supabaseRegisterEnabled || regPasswordOkForCloud);
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
+	const showRegisterPasswordError =
+		supabaseRegisterEnabled && regPassword.length > 0 && !regPasswordOkForCloud;
 	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
 	const showRegisterPhoneError = regPhone.trim().length > 0 && !isValidPhoneInput(regPhone);
 	const invalidEmailText =
@@ -1806,20 +1811,26 @@ export default function App() {
 			let cloudAuthMsg: string | null = null;
 			if (supabaseClient) {
 				const redirect = `${window.location.origin}${window.location.pathname}`;
-				const { error } = await supabaseClient.auth.signInWithOtp({
+				const { data: signUpData, error } = await supabaseClient.auth.signUp({
 					email: regEmail.trim(),
-					options: { emailRedirectTo: redirect },
+					password: regPassword,
+					options: {
+						emailRedirectTo: redirect,
+						data: {
+							full_name: regFullName.trim(),
+							company_name: regCompany.trim(),
+							market_focus: regMarket.trim(),
+							...(formatPhoneInput(regPhone) ? { phone: formatPhoneInput(regPhone) } : {}),
+						},
+					},
 				});
 				if (error) {
 					cloudAuthMsg =
-						lang === 'bg'
-							? `Профилът е регистриран, но cloud входът не беше стартиран: ${error.message}`
-							: `Registration saved, but cloud sign-in was not started: ${error.message}`;
+						`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
+				} else if (signUpData.session) {
+					cloudAuthMsg = tr.registerCloudSignupOkSession;
 				} else {
-					cloudAuthMsg =
-						lang === 'bg'
-							? 'Изпратихме magic link за вход на посочения имейл.'
-							: 'A cloud magic sign-in link was sent to your email.';
+					cloudAuthMsg = tr.registerCloudSignupCheckEmail;
 				}
 			}
 			if (data.mailDelivery === 'skipped') {
@@ -3800,6 +3811,7 @@ export default function App() {
 						<input
 							placeholder={tr.passwordPh}
 							type="password"
+							autoComplete="new-password"
 							value={regPassword}
 							onChange={e => setRegPassword(e.target.value)}
 						/>
@@ -3811,6 +3823,28 @@ export default function App() {
 							<option value="MENA">{tr.marketMena}</option>
 							<option value="Both">{tr.marketBoth}</option>
 						</select>
+						{supabaseRegisterEnabled ? (
+							<p
+								className="muted"
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									fontSize: '.82rem',
+								}}>
+								{tr.registerPasswordCloudHint}
+							</p>
+						) : null}
+						{showRegisterPasswordError ? (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{tr.registerPasswordTooShort}
+							</p>
+						) : null}
 						<input
 							placeholder={tr.phonePh}
 							value={regPhone}
