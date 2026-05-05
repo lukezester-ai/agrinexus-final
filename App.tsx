@@ -1924,7 +1924,9 @@ export default function App() {
           --bg: #0a110e;
           --panel: #141f18;
           --panel-2: #0e1712;
+          --panel-elevated: rgba(18, 29, 22, 0.9);
           --border: #2e4338;
+          --border-soft: rgba(190, 231, 207, 0.12);
           --text-main: #f4faf7;
           --text-muted: #9eb8aa;
           --accent: #7ccd9c;
@@ -2155,7 +2157,32 @@ export default function App() {
         .btn-light { background: #f4faf6; color: #141f18; }
         .btn-outline { background: transparent; color: var(--accent-text); border: 1px solid var(--accent-border); }
 
-        .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
+        .section {
+          max-width: 1220px;
+          margin: 0 auto;
+          padding: 24px 14px 36px;
+          position: relative;
+        }
+        main#main-content .section:not(.landing-hero) {
+          margin-top: 12px;
+          border-radius: 20px;
+          border: 1px solid var(--border-soft);
+          background:
+            linear-gradient(170deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 28%, rgba(0, 0, 0, 0.06) 100%),
+            rgba(12, 20, 15, 0.52);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.04),
+            0 18px 40px rgba(0, 0, 0, 0.28);
+          backdrop-filter: blur(5px);
+        }
+        .section h2 {
+          margin: 0 0 16px;
+          letter-spacing: -0.01em;
+          font-size: clamp(1.32rem, 2.2vw, 1.78rem);
+        }
+        .section h3 {
+          letter-spacing: -0.01em;
+        }
         .hero { text-align: center; padding-top: 42px; }
         .hero h1 {
           font-size: clamp(2.1rem, 8vw, 4.6rem);
@@ -2346,12 +2373,19 @@ export default function App() {
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
         .deal-card {
-          background: rgba(20, 31, 24, 0.82);
-          border: 1px solid var(--border);
-          border-radius: 16px;
+          background: linear-gradient(180deg, rgba(23, 36, 28, 0.94) 0%, rgba(17, 27, 21, 0.9) 100%);
+          border: 1px solid rgba(168, 217, 138, 0.14);
+          border-radius: 18px;
           padding: 14px;
           position: relative;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+          transition: transform .2s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .deal-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+          border-color: rgba(168, 217, 138, 0.26);
         }
         .deal-card.top { border: 2px solid var(--accent); }
         .demo-banner {
@@ -2575,12 +2609,15 @@ export default function App() {
         .muted { color: var(--text-muted); }
         .green-note { color: var(--accent-text); font-weight: 700; }
         .contact-panel {
-          background: rgba(20, 31, 24, 0.82);
-          border: 1px solid var(--border);
-          border-radius: 14px;
-          padding: 14px;
+          background: linear-gradient(180deg, rgba(22, 34, 27, 0.92) 0%, rgba(17, 27, 21, 0.9) 100%);
+          border: 1px solid rgba(168, 217, 138, 0.14);
+          border-radius: 16px;
+          padding: 16px;
           margin-top: 16px;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.035),
+            0 14px 30px rgba(0, 0, 0, 0.24);
         }
         .season-cal-month-card {
           margin-top: 0;
@@ -2623,11 +2660,12 @@ export default function App() {
 
         .clients-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
         .client-list {
-          background: rgba(20, 31, 24, 0.82);
-          border: 1px solid var(--border);
-          border-radius: 14px;
+          background: linear-gradient(180deg, rgba(22, 34, 27, 0.92) 0%, rgba(16, 26, 20, 0.9) 100%);
+          border: 1px solid rgba(168, 217, 138, 0.14);
+          border-radius: 16px;
           padding: 10px;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 12px 26px rgba(0, 0, 0, 0.2);
         }
         .client-list-item {
           width: 100%; text-align: left; border: 1px solid transparent; background: #141f18; color: #fff;
@@ -2635,14 +2673,20 @@ export default function App() {
         }
         .client-list-item.active { border-color: var(--accent); background: var(--accent-muted); }
         .client-card {
-          background: rgba(20, 31, 24, 0.82);
-          border: 1px solid var(--border);
-          border-radius: 14px;
+          background: linear-gradient(180deg, rgba(22, 34, 27, 0.92) 0%, rgba(16, 26, 20, 0.9) 100%);
+          border: 1px solid rgba(168, 217, 138, 0.14);
+          border-radius: 16px;
           padding: 16px;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
         }
         .client-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-        .meta-kv { background: #141f18; border: 1px solid #2a3d34; border-radius: 10px; padding: 10px; }
+        .meta-kv {
+          background: rgba(15, 24, 19, 0.86);
+          border: 1px solid rgba(168, 217, 138, 0.12);
+          border-radius: 12px;
+          padding: 10px;
+        }
         .status-pill {
           display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
           background: var(--accent-muted); color: var(--accent-text);
@@ -2671,6 +2715,10 @@ export default function App() {
 
         @media (max-width: 900px) {
           .section { padding: 16px 10px 110px; }
+          main#main-content .section:not(.landing-hero) {
+            border-radius: 14px;
+            margin-top: 8px;
+          }
           .nav { padding: 10px 12px; }
           .nav-actions { gap: 6px; }
           .nav-link { padding: 7px 8px; font-size: .86rem; }
