@@ -464,11 +464,60 @@ async function apiChat(
 	farmerContext: string,
 ): Promise<string> {
 	const normalizeAssistantReply = (raw: string): string => {
-		const t = raw.trim();
-		if (!t.startsWith('{')) return raw;
+		const stripFallbackMeta = (text: string): string => {
+			return text
+				.replace(/\n+\s*Ниво на увереност:[\s\S]*$/i, '')
+				.replace(/\n+\s*Confidence:\s*LOW[\s\S]*$/i, '')
+				.trim();
+		};
+
+		const tryParseJsonPrefix = (text: string): Record<string, unknown> | null => {
+			const start = text.indexOf('{');
+			if (start < 0) return null;
+			let depth = 0;
+			let inString = false;
+			let escaped = false;
+			for (let i = start; i < text.length; i += 1) {
+				const ch = text[i];
+				if (inString) {
+					if (escaped) {
+						escaped = false;
+						continue;
+					}
+					if (ch === '\\') {
+						escaped = true;
+						continue;
+					}
+					if (ch === '"') inString = false;
+					continue;
+				}
+				if (ch === '"') {
+					inString = true;
+					continue;
+				}
+				if (ch === '{') depth += 1;
+				if (ch === '}') {
+					depth -= 1;
+					if (depth === 0) {
+						const candidate = text.slice(start, i + 1);
+						try {
+							const parsed = JSON.parse(candidate) as Record<string, unknown>;
+							return parsed && typeof parsed === 'object' ? parsed : null;
+						} catch {
+							return null;
+						}
+					}
+				}
+			}
+			return null;
+		};
+
+		const cleanedRaw = stripFallbackMeta(raw);
+		const t = cleanedRaw.trim();
+		if (!t.startsWith('{')) return cleanedRaw;
 		try {
-			const parsed = JSON.parse(t) as Record<string, unknown>;
-			if (!parsed || typeof parsed !== 'object' || !('answer' in parsed)) return raw;
+			const parsed = (JSON.parse(t) as Record<string, unknown>) ?? tryParseJsonPrefix(t);
+			if (!parsed || typeof parsed !== 'object' || !('answer' in parsed)) return cleanedRaw;
 			const answer = (parsed as { answer?: unknown }).answer;
 			if (typeof answer === 'string' && answer.trim()) return answer.trim();
 			if (answer && typeof answer === 'object' && !Array.isArray(answer)) {
@@ -478,9 +527,21 @@ async function apiChat(
 				}
 				if (parts.length > 0) return parts.join('\n\n');
 			}
-			return raw;
+			return cleanedRaw;
 		} catch {
-			return raw;
+			const parsed = tryParseJsonPrefix(t);
+			if (parsed && 'answer' in parsed) {
+				const answer = (parsed as { answer?: unknown }).answer;
+				if (typeof answer === 'string' && answer.trim()) return answer.trim();
+				if (answer && typeof answer === 'object' && !Array.isArray(answer)) {
+					const parts: string[] = [];
+					for (const [k, v] of Object.entries(answer as Record<string, unknown>)) {
+						if (typeof v === 'string' && v.trim()) parts.push(`${k}\n${v.trim()}`);
+					}
+					if (parts.length > 0) return parts.join('\n\n');
+				}
+			}
+			return cleanedRaw;
 		}
 	};
 
@@ -3282,8 +3343,8 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									`Временен проблем при /api/chat (локално). Провери в нов таб http://localhost:5173/api/chat — ако върне JSON с "ok": true, API е наред и е нужно само Ctrl+F5. Ако не върне, стартирай npm run dev (не само dev:vite). Очакван локален API порт: :${DEV_API_PORT_HINT} (според DEV_API_PORT).`,
-									`Temporary local issue calling /api/chat. Check http://localhost:5173/api/chat in a new tab — if it returns JSON with "ok": true, the API is healthy and you only need Ctrl+F5. If it does not, run npm run dev (not dev:vite alone). Expected local API port: :${DEV_API_PORT_HINT} (from DEV_API_PORT).`
+									`Временен проблем при /api/chat (локално). Провери в нов таб http://localhost:5173/api/chat — ако върне JSON с "ok": true, API е наред и е нужно само Ctrl+F5. Ако не върне, стартирай npm run dev (не само dev:vite).`,
+									`Temporary local issue calling /api/chat. Check http://localhost:5173/api/chat in a new tab — if it returns JSON with "ok": true, the API is healthy and you only need Ctrl+F5. If it does not, run npm run dev (not dev:vite alone).`
 								)}
 							</p>
 						</div>
