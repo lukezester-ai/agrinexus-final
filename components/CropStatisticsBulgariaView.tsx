@@ -33,6 +33,7 @@ import {
 type Props = {
 	lang: UiLang;
 	tr: AppStrings;
+	onOpenFoodSecurity?: () => void;
 };
 
 function buildChartRows(profile: (typeof CROP_PROFILES)[number]) {
@@ -51,7 +52,7 @@ function buildChartRows(profile: (typeof CROP_PROFILES)[number]) {
 	return { rows, nextYear, forecastKt, slopeKtPerYear, dry: isDryStressLikely(series, slopeKtPerYear) };
 }
 
-export function CropStatisticsBulgariaView({ lang, tr }: Props) {
+export function CropStatisticsBulgariaView({ lang, tr, onOpenFoodSecurity }: Props) {
 	const [cropKey, setCropKey] = useState<CropKey>('tomatoes');
 	const profile = useMemo(
 		() => CROP_PROFILES.find(c => c.key === cropKey) ?? CROP_PROFILES[0],
@@ -502,6 +503,28 @@ export function CropStatisticsBulgariaView({ lang, tr }: Props) {
 					</p>
 				</div>
 			</div>
+
+			{onOpenFoodSecurity ? (
+				<div
+					className="contact-panel"
+					style={{
+						margin: '0 0 18px',
+						borderColor: 'rgba(45, 212, 191, 0.28)',
+						background: 'rgba(45, 212, 191, 0.05)',
+						display: 'flex',
+						flexWrap: 'wrap',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						gap: 12,
+					}}>
+					<p className="muted" style={{ margin: 0, maxWidth: 520, lineHeight: 1.55, fontSize: '.92rem' }}>
+						{tr.foodSecCropStatsBridge}
+					</p>
+					<button type="button" className="btn btn-outline" onClick={onOpenFoodSecurity}>
+						{tr.foodSecCtaFromCropStats}
+					</button>
+				</div>
+			) : null}
 
 			<p
 				className="muted"

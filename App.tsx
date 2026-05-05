@@ -22,6 +22,7 @@ import {
 	RefreshCw,
 	Search,
 	Send,
+	Shield,
 	Truck,
 	UserPlus,
 	Users,
@@ -35,6 +36,7 @@ import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
+import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
 import { TransportDirectoryView } from './components/TransportDirectoryView';
 import { EquipmentRentalDirectoryView } from './components/EquipmentRentalDirectoryView';
 import { OperationsHubView } from './components/OperationsHubView';
@@ -313,6 +315,7 @@ type View =
 	| 'crop-statistics'
 	| 'transport-directory'
 	| 'equipment-rental'
+	| 'food-security'
 	| 'command'
 	| 'file-upload';
 
@@ -322,6 +325,7 @@ const LOGISTICS_VIEWS = new Set<View>([
 	'trade-documents',
 	'transport-directory',
 	'equipment-rental',
+	'food-security',
 	'file-upload',
 ]);
 
@@ -3083,6 +3087,16 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
+									className={`nav-dropdown-item ${view === 'food-security' ? 'active' : ''}`}
+									onClick={() => {
+										setView('food-security');
+										setNavMenuOpen(null);
+									}}>
+									<Shield size={14} aria-hidden /> {tr.navFoodSecurity}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
 									className={`nav-dropdown-item ${view === 'equipment-rental' ? 'active' : ''}`}
 									onClick={() => {
 										setView('equipment-rental');
@@ -4011,7 +4025,14 @@ export default function App() {
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
 
-			{view === 'crop-statistics' && <CropStatisticsBulgariaView lang={lang} tr={tr} />}
+			{view === 'crop-statistics' && (
+				<CropStatisticsBulgariaView
+					lang={lang}
+					tr={tr}
+					onOpenFoodSecurity={() => setView('food-security')}
+				/>
+			)}
+			{view === 'food-security' && <FoodSecurityBreakEvenView lang={lang} tr={tr} />}
 
 			{view === 'transport-directory' && <TransportDirectoryView tr={tr} />}
 			{view === 'equipment-rental' && <EquipmentRentalDirectoryView tr={tr} />}
@@ -4408,6 +4429,17 @@ export default function App() {
 								}}>
 								<Truck size={16} aria-hidden />
 								<MobileNavLabel text={tr.navTransportShort} hint={tr.navTransportDirectory} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'food-security' ? 'active' : ''}`}
+								aria-label={tr.navFoodSecurity}
+								onClick={() => {
+									setView('food-security');
+									setMobileNavExpand(null);
+								}}>
+								<Shield size={16} aria-hidden />
+								<MobileNavLabel text={tr.navFoodSecurityShort} hint={tr.navFoodSecurity} />
 							</button>
 							<button
 								type="button"

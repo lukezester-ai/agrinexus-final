@@ -11,6 +11,8 @@ export const STR_EN = {
 	navCropStatistics: 'Crop statistics',
 	navTransportDirectory: 'Freight partners',
 	navEquipmentRental: 'Equipment rental',
+	navFoodSecurity: 'Food security (break-even)',
+	navFoodSecurityShort: 'Food sec.',
 	navLogistics: 'Logistics',
 	navLogisticsShort: 'Log.',
 	navTradeDocumentsShort: 'Customs (BG)',
@@ -384,6 +386,38 @@ export const STR_EN = {
 		'Linear trend on demo EUR/t points toward ~{baseEur} EUR/t for {year}. After a simple volume linkage versus the five-year average harvest in this chart, the model hints ~{adjEur} EUR/t — not a quote.',
 	cropStatsPriceForecastHint:
 		'Volume heuristic: a lower next-year harvest vs the demo average nudges the illustrative price up (and vice versa), capped for stability.',
+	foodSecTitle: 'Food security — programme break-even',
+	foodSecSubtitle:
+		'Plan domestic supply or reserve envelopes in tonnes per year: derive implied land from yield, stack programme fixed costs plus field variable costs, then read off minimum EUR/t and sensitivity versus a reference price.',
+	foodSecInputsTitle: 'Scenario inputs',
+	foodSecInputsHint:
+		'Fixed costs are programme-wide (coordination, reserves readiness, shared logistics envelopes). Variable costs apply per cultivated hectare.',
+	foodSecPopulation: 'Population covered (0 = use manual tonnes)',
+	foodSecPopulationHint:
+		'When population > 0, annual supply = population × kg/year per person; manual tonnes are ignored.',
+	foodSecKgPerCapita: 'Staple basket per person (kg/year)',
+	foodSecManualTonnes: 'Annual supply target (t/year)',
+	foodSecYield: 'Average programme yield (t/ha)',
+	foodSecVarCostHa: 'Variable field costs (EUR/ha)',
+	foodSecFixedProgramme: 'Fixed programme costs (EUR/year)',
+	foodSecReferencePrice: 'Reference market price (EUR/t)',
+	foodSecResultsTitle: 'Break-even read-out',
+	foodSecSupplyTonnes: 'Annual supply:',
+	foodSecFromPopulation: 'from population rule',
+	foodSecManualMode: 'manual volume',
+	foodSecLandHa: 'Land implied:',
+	foodSecTotalCost: 'Total programme cost:',
+	foodSecBreakEvenPrice: 'Break-even price:',
+	foodSecBreakEvenYield: 'Break-even yield at reference price:',
+	foodSecMarginPerT: 'Margin vs reference:',
+	foodSecAtReferencePrice: 'at reference price',
+	foodSecMarginTotalProfit: 'Total margin vs reference price is positive: +{eur} EUR.',
+	foodSecMarginTotalLoss: 'Total margin vs reference price is negative: -{eur} EUR.',
+	foodSecDisclaimer:
+		'Illustrative scenario builder only — not policy advice. Replace defaults with audited budgets, verified yields and national staple baskets before decisions.',
+	foodSecCropStatsBridge:
+		'Need programme-scale economics instead of per-hectare charts? Use the food-security break-even planner for population-driven tonne targets.',
+	foodSecCtaFromCropStats: 'Open food security break-even',
 	transportDirTitle: 'Freight & logistics partners',
 	transportDirSubtitle:
 		'Carriers and forwarders can register their details — producers and traders use the list to request quotes. Demo cards are always shown; with VITE_SUPABASE_* configured and the SQL migration applied, new listings sync to Supabase for everyone. Otherwise they stay in this browser (and under .local/ in local dev).',

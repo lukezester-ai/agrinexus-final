@@ -13,6 +13,8 @@ export const STR_BG = {
 	navCropStatistics: 'Статистика култури',
 	navTransportDirectory: 'Транспорт партньори',
 	navEquipmentRental: 'Техника под наем',
+	navFoodSecurity: 'Хранителна сигурност (break-even)',
+	navFoodSecurityShort: 'Сигурност',
 	navLogistics: 'Логистика',
 	navLogisticsShort: 'Лог.',
 	navTradeDocumentsShort: 'Митница БГ',
@@ -386,6 +388,38 @@ export const STR_BG = {
 		'Линейна тенденция върху примерни EUR/t предполага около {baseEur} EUR/t за {year}. След опростена връзка с прогнозния добив спрямо средното за серията моделът дава ориентир ~{adjEur} EUR/t — не е котировка или договор.',
 	cropStatsPriceForecastHint:
 		'Евристика по обем: по-нисък прогнозен добив спрямо средното леко повишава индикативната цена (и обратно), с ограничение за стабилност.',
+	foodSecTitle: 'Хранителна сигурност — break-even на програма',
+	foodSecSubtitle:
+		'Оценка за годишен обем (тонове): от население или ръчен вход → нужни хектари по среден добив → общи разходи (фиксирани за програмата + променливи на хектар) → минимална EUR/t и чувствителност спрямо референтна цена.',
+	foodSecInputsTitle: 'Входни данни',
+	foodSecInputsHint:
+		'Фиксираните разходи са за цялата програма (координация, готовност за резерви, общи логистични разходи). Променливите са за всеки обработван хектар.',
+	foodSecPopulation: 'Население (0 = ползвай ръчни тонове)',
+	foodSecPopulationHint:
+		'При население > 0 годишният обем = население × kg/год на човек; ръчните тонове се игнорират.',
+	foodSecKgPerCapita: 'Кошница на човек (kg/год)',
+	foodSecManualTonnes: 'Целеви годишен обем (t/год)',
+	foodSecYield: 'Среден добив на програмата (t/ha)',
+	foodSecVarCostHa: 'Променливи полски разходи (EUR/ha)',
+	foodSecFixedProgramme: 'Фиксирани разходи на програмата (EUR/год)',
+	foodSecReferencePrice: 'Референтна пазарна цена (EUR/t)',
+	foodSecResultsTitle: 'Резултат (break-even)',
+	foodSecSupplyTonnes: 'Годишен обем:',
+	foodSecFromPopulation: 'от правило население × kg',
+	foodSecManualMode: 'ръчен обем',
+	foodSecLandHa: 'Нужни хектари:',
+	foodSecTotalCost: 'Общ разход на програмата:',
+	foodSecBreakEvenPrice: 'Прагова цена:',
+	foodSecBreakEvenYield: 'Прагов добив при референтна цена:',
+	foodSecMarginPerT: 'Марж спрямо референция:',
+	foodSecAtReferencePrice: 'при референтна цена',
+	foodSecMarginTotalProfit: 'Общ марж спрямо референтната цена е положителен: +{eur} EUR.',
+	foodSecMarginTotalLoss: 'Общ марж спрямо референтната цена е отрицателен: -{eur} EUR.',
+	foodSecDisclaimer:
+		'Само илюстративен сценарий — не е политически или инвестиционен съвет. Замени числата с одитирани бюджети, верифицирани добиви и национални кошници преди решения.',
+	foodSecCropStatsBridge:
+		'Искаш икономика на програма (тонове/население), а не само графики на хектар? Отвори break-even за хранителна сигурност.',
+	foodSecCtaFromCropStats: 'Към break-even за хранителна сигурност',
 	transportDirTitle: 'Транспорт и логистика — партньори',
 	transportDirSubtitle:
 		'Транспортни фирми могат да се регистрират с контакт и коридори; производители и търговци ползват списъка за оферти. Демо карти са винаги видими; при зададени VITE_SUPABASE_* и изпълнен SQL скрипт новите обяви се записват в Supabase и се виждат от всички. Иначе остават в браузъра (и в .local/ при локален dev).',
