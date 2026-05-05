@@ -2003,13 +2003,8 @@ export default function App() {
           border-radius: 10px;
         }
         .brand-wordmark { letter-spacing: .01em; }
-        .brand-agri { color: #eef7f0; }
-        .brand-nexus { color: #6b8e23; }
-        .brand-wordmark {
-          text-shadow:
-            0 1px 1px rgba(0, 0, 0, 0.38),
-            0 3px 10px rgba(0, 0, 0, 0.2);
-        }
+        .brand-agri { color: #ffffff; }
+        .brand-nexus { color: var(--accent); }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
         .nav-link {
@@ -2105,14 +2100,18 @@ export default function App() {
           font-size: clamp(2.1rem, 8vw, 4.6rem);
           margin: 0 0 12px;
           letter-spacing: -0.02em;
-          text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
+          text-shadow: none;
         }
 
         /* Отделен широк банер с реална снимка само на началната страница (под заглавието). */
         .landing-hero {
           position: relative;
           isolation: isolate;
-          padding-top: 36px;
+          min-height: clamp(260px, 44vw, 440px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding-top: 0;
         }
         .landing-hero::before {
           content: '';
@@ -2127,8 +2126,8 @@ export default function App() {
           border-radius: 0 0 22px 22px;
           overflow: hidden;
           background:
-            linear-gradient(185deg, rgba(12, 28, 20, 0.25) 0%, rgba(8, 16, 12, 0.82) 72%, rgba(10, 18, 14, 0.96) 100%),
-            url('/season-cal/combine_harvest.jpg') center 42% / cover no-repeat;
+            linear-gradient(185deg, rgba(20, 40, 30, 0.14) 0%, rgba(14, 26, 20, 0.58) 72%, rgba(10, 18, 14, 0.78) 100%),
+            url('/season-cal/young_crop.jpg') center 46% / cover no-repeat;
           box-shadow:
             inset 0 -40px 48px rgba(8, 14, 11, 0.65),
             0 18px 40px rgba(0, 0, 0, 0.28);
@@ -2137,11 +2136,7 @@ export default function App() {
           position: relative;
           z-index: 1;
         }
-        .landing-hero .brand-wordmark {
-          text-shadow:
-            0 2px 4px rgba(0, 0, 0, 0.45),
-            0 12px 40px rgba(0, 0, 0, 0.5);
-        }
+        .landing-hero .brand-wordmark { text-shadow: none; }
         .landing-kicker {
           font-size: 0.68rem;
           font-weight: 800;
