@@ -4034,7 +4034,9 @@ export default function App() {
 			)}
 			{view === 'food-security' && <FoodSecurityBreakEvenView lang={lang} tr={tr} />}
 
-			{view === 'transport-directory' && <TransportDirectoryView tr={tr} />}
+			{view === 'transport-directory' && (
+				<TransportDirectoryView tr={tr} onOpenFoodSecurity={() => setView('food-security')} />
+			)}
 			{view === 'equipment-rental' && <EquipmentRentalDirectoryView tr={tr} />}
 
 			{view === 'file-upload' && (
@@ -4459,3 +4461,4 @@ export default function App() {
 		</div>
 	);
 }
+

@@ -12,9 +12,10 @@ const EU_AGRI_OUTLOOK_URL =
 
 type Props = {
 	tr: AppStrings;
+	onOpenFoodSecurity?: () => void;
 };
 
-export function TransportDirectoryView({ tr }: Props) {
+export function TransportDirectoryView({ tr, onOpenFoodSecurity }: Props) {
 	const [list, setList] = useState<TransportCompany[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState('');
@@ -121,6 +122,13 @@ export function TransportDirectoryView({ tr }: Props) {
 						{tr.transportOutlookSourceLink}
 					</a>
 				</p>
+				{onOpenFoodSecurity ? (
+					<div style={{ marginTop: 12 }}>
+						<button type="button" className="btn btn-outline" onClick={onOpenFoodSecurity}>
+							{tr.transportOutlookOpenFoodSec}
+						</button>
+					</div>
+				) : null}
 			</div>
 
 			<div

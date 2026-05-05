@@ -447,6 +447,7 @@ export const STR_EN = {
 	transportOutlookBody:
 		'According to the European Commission EU Agricultural Outlook (baseline to 2035), demand for food and agri-food products is supported by changing diets—including higher fruit & vegetable intake and more plant proteins—and an upward trend in overall agricultural production value over the outlook period. EU protein consumption is projected to stay slightly above current levels; fresh fruit and vegetable consumption is expected to grow or remain stable. After a stabilisation phase, aggregate EU farm income is projected to rise by about 1.4% per year from 2028 onwards (nominal terms, baseline assumptions), while intermediate input costs (fertilisers, energy, feed) are expected to climb again above 2021 levels—so price and cost pressure keeps flowing into the sector through the mid-2030s. You can use 2036 as a planning year immediately after the official 2035 baseline horizon.',
 	transportOutlookSourceLink: 'EU Agricultural Outlook — DG AGRI (European Commission)',
+	transportOutlookOpenFoodSec: 'Open food security break-even',
 	equipmentRentalTitle: 'Agri equipment rental directory',
 	equipmentRentalSubtitle:
 		'Sample listings of companies renting machinery for field operations. Use this as a starting point to request offers for combines, tractors, tillage and spraying equipment.',
@@ -508,3 +509,4 @@ export const STR_EN = {
 
 /** Same keys as STR_EN; values are plain strings so BG/AR catalogs type-check. */
 export type AppStrings = { [K in keyof typeof STR_EN]: string };
+
