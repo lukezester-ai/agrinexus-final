@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
-import { vercelJsonBody } from '../lib/vercel-json-body';
+import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler.js';
+import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
 function sendJson(res: VercelResponse, status: number, payload: Record<string, unknown>) {
 	res.status(status);

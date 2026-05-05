@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleChatPost } from '../lib/chat-handler';
-import { isOpenAiConfigured } from '../lib/openai-api-key';
-import { isMistralConfigured } from '../lib/mistral-env';
-import { isOllamaConfigured } from '../lib/ollama-env';
-import { vercelJsonBody } from '../lib/vercel-json-body';
+import { handleChatPost } from '../lib/chat-handler.js';
+import { isOpenAiConfigured } from '../lib/openai-api-key.js';
+import { isMistralConfigured } from '../lib/mistral-env.js';
+import { isOllamaConfigured } from '../lib/ollama-env.js';
+import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
 /** Limits: see root vercel.json (functions for api routes). */
 export const config = {
