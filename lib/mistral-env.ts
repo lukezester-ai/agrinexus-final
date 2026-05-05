@@ -1,3 +1,6 @@
+/** OpenAI-съвместим endpoint за текст и vision (един URL при Mistral). */
+export const MISTRAL_CHAT_COMPLETIONS_URL = 'https://api.mistral.ai/v1/chat/completions';
+
 /** Ключ от https://console.mistral.ai — облачен EU доставчик, OpenAI-съвместим чат API. */
 export function readMistralApiKey(): string {
 	let k = process.env.MISTRAL_API_KEY ?? '';

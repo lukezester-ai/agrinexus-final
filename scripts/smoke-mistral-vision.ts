@@ -3,7 +3,11 @@
  * npm run test:mistral:vision
  */
 import { config } from 'dotenv';
-import { readMistralApiKey, readMistralVisionModel } from '../lib/mistral-env';
+import {
+	MISTRAL_CHAT_COMPLETIONS_URL,
+	readMistralApiKey,
+	readMistralVisionModel,
+} from '../lib/mistral-env';
 
 delete process.env.MISTRAL_API_KEY;
 delete process.env.MISTRAL_MODEL;
@@ -22,7 +26,7 @@ const pngBase64 =
 	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 const dataUrl = `data:image/png;base64,${pngBase64}`;
 
-const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+const res = await fetch(MISTRAL_CHAT_COMPLETIONS_URL, {
 	method: 'POST',
 	headers: {
 		'Content-Type': 'application/json',

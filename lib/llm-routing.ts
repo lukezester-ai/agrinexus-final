@@ -2,7 +2,12 @@
  * Единна логика за избор на LLM доставчик (Mistral → Ollama → OpenAI).
  * Ползва се от чат и от vision (обяснение на документ), за да няма разминаване.
  */
-import { readMistralApiKey, readMistralModel, readMistralVisionModel } from './mistral-env';
+import {
+	MISTRAL_CHAT_COMPLETIONS_URL,
+	readMistralApiKey,
+	readMistralModel,
+	readMistralVisionModel,
+} from './mistral-env';
 import { readOpenAiApiKey } from './openai-api-key';
 import { readOllamaBaseUrl } from './ollama-env';
 
@@ -29,7 +34,7 @@ export function resolveTextChatUpstream(): TextChatUpstream | null {
 	if (mistralKey) {
 		return {
 			provider: 'mistral',
-			completionUrl: 'https://api.mistral.ai/v1/chat/completions',
+			completionUrl: MISTRAL_CHAT_COMPLETIONS_URL,
 			bearer: mistralKey,
 			model: readMistralModel(),
 			useJsonObjectFormat: true,
@@ -71,7 +76,7 @@ export function resolveVisionUpstream(): VisionUpstream | null {
 	if (mistralKey) {
 		return {
 			provider: 'mistral',
-			completionUrl: 'https://api.mistral.ai/v1/chat/completions',
+			completionUrl: MISTRAL_CHAT_COMPLETIONS_URL,
 			bearer: mistralKey,
 			model: readMistralVisionModel(),
 		};

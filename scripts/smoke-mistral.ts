@@ -3,7 +3,7 @@
  * Изпълни: npx tsx scripts/smoke-mistral.ts
  */
 import { config } from 'dotenv';
-import { readMistralApiKey, readMistralModel } from '../lib/mistral-env';
+import { MISTRAL_CHAT_COMPLETIONS_URL, readMistralApiKey, readMistralModel } from '../lib/mistral-env';
 
 // Не ползвай стара MISTRAL_API_KEY от терминала/OS — само от .env в корена на проекта.
 delete process.env.MISTRAL_API_KEY;
@@ -17,7 +17,7 @@ if (!key) {
 }
 
 const model = readMistralModel();
-const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+const res = await fetch(MISTRAL_CHAT_COMPLETIONS_URL, {
 	method: 'POST',
 	headers: {
 		'Content-Type': 'application/json',

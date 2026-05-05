@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { handleChatPost } from '../lib/chat-handler';
 import { isOpenAiConfigured } from '../lib/openai-api-key';
-import { isChatLlmConfigured } from '../lib/llm-env';
 import { isMistralConfigured } from '../lib/mistral-env';
 import { isOllamaConfigured } from '../lib/ollama-env';
 import { vercelJsonBody } from '../lib/vercel-json-body';
@@ -11,16 +10,24 @@ export const config = {
   maxDuration: 60,
 };
 
-function sendJson(res: VercelResponse, status: number, payload: Record<string, unknown>) {
-  res.status(status);
+/** Нативен Node отговор — без `res.status()` / `res.json()` (понякога липсват при invocation → двойна грешка и FUNCTION_INVOCATION_FAILED). */
+function sendJson(res: VercelResponse, code: number, payload: Record<string, unknown>): void {
+  const body = JSON.stringify(payload);
+  res.statusCode = code;
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.end(JSON.stringify(payload));
+  res.end(body);
+}
+
+/** Същото като `isAnyLlmConfigured` без да се импортира `llm-routing` при GET (по-малък cold bundle). */
+function llmConfiguredSnapshot(): boolean {
+  return isMistralConfigured() || isOllamaConfigured() || isOpenAiConfigured();
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'OPTIONS') {
-      res.status(204).end();
+      res.statusCode = 204;
+      res.end();
       return;
     }
 
@@ -31,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         openaiConfigured: isOpenAiConfigured(),
         mistralConfigured: isMistralConfigured(),
         ollamaConfigured: isOllamaConfigured(),
-        llmConfigured: isChatLlmConfigured(),
+        llmConfigured: llmConfiguredSnapshot(),
       });
       return;
     }
@@ -60,10 +67,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (e) {
     console.error('[api/chat]', e);
     const msg = e instanceof Error ? e.message : 'Unexpected server error';
-    sendJson(res, 500, {
-      error: msg,
-      hint:
-        'If this persists: Vercel → Logs → api/chat; confirm MISTRAL_API_KEY or OPENAI_API_KEY for Production and Redeploy.',
-    });
+    try {
+      sendJson(res, 500, {
+        error: msg,
+        hint:
+          'If this persists: Vercel → Logs → api/chat; confirm MISTRAL_API_KEY or OPENAI_API_KEY for Production and Redeploy.',
+      });
+    } catch (sendErr) {
+      console.error('[api/chat] sendJson in catch failed', sendErr);
+      try {
+        res.statusCode = 500;
+        res.end('Internal Server Error');
+      } catch {
+        /* ignore */
+      }
+    }
   }
 }

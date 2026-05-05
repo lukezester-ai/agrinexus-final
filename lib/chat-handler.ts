@@ -106,38 +106,97 @@ type ChatModelEnvelope = {
   in_scope: boolean;
 };
 
-function parseModelEnvelope(raw: string): ChatModelEnvelope | null {
-  try {
-    const direct = JSON.parse(raw) as ChatModelEnvelope;
-    if (
-      typeof direct?.answer === 'string' &&
-      (direct?.confidence === 'low' || direct?.confidence === 'medium' || direct?.confidence === 'high') &&
-      typeof direct?.source === 'string' &&
-      typeof direct?.in_scope === 'boolean'
-    ) {
-      return direct;
-    }
-  } catch {
-    // Continue with loose extraction.
-  }
+function stripMarkdownJsonFence(raw: string): string {
+  const t = raw.trim();
+  const open = t.indexOf('```');
+  if (open === -1) return t;
+  const afterOpen = t.slice(open + 3);
+  const newline = afterOpen.indexOf('\n');
+  const bodyStart = newline === -1 ? 0 : newline + 1;
+  const closeRel = afterOpen.lastIndexOf('```');
+  if (closeRel <= 0 || closeRel <= bodyStart) return t;
+  return afterOpen.slice(bodyStart, closeRel).trim();
+}
 
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start === -1 || end === -1 || end <= start) return null;
+function tryParseJsonLoose(text: string): unknown | null {
   try {
-    const sliced = JSON.parse(raw.slice(start, end + 1)) as ChatModelEnvelope;
-    if (
-      typeof sliced?.answer === 'string' &&
-      (sliced?.confidence === 'low' || sliced?.confidence === 'medium' || sliced?.confidence === 'high') &&
-      typeof sliced?.source === 'string' &&
-      typeof sliced?.in_scope === 'boolean'
-    ) {
-      return sliced;
-    }
+    return JSON.parse(text) as unknown;
   } catch {
     return null;
   }
+}
+
+/** Декодира двойно кодиран JSON низ (рядко при някои API). */
+function unwrapNestedJsonString(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const s = value.trim();
+  if (!(s.startsWith('{') && s.endsWith('}'))) return value;
+  return tryParseJsonLoose(s) ?? value;
+}
+
+function coerceConfidence(v: unknown): 'low' | 'medium' | 'high' | null {
+  if (typeof v !== 'string') return null;
+  const c = v.trim().toLowerCase();
+  if (c === 'low' || c === 'medium' || c === 'high') return c;
   return null;
+}
+
+function coerceInScope(v: unknown): boolean | null {
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  if (typeof v !== 'string') return null;
+  const s = v.trim().toLowerCase();
+  if (s === 'true' || s === 'yes' || s === '1') return true;
+  if (s === 'false' || s === 'no' || s === '0') return false;
+  return null;
+}
+
+function coerceChatEnvelope(parsed: unknown): ChatModelEnvelope | null {
+  const root = unwrapNestedJsonString(parsed);
+  if (!root || typeof root !== 'object') return null;
+  const o = root as Record<string, unknown>;
+
+  const answer = o.answer;
+  if (typeof answer !== 'string' || !answer.trim()) return null;
+
+  const confidence = coerceConfidence(o.confidence);
+  if (!confidence) return null;
+
+  const source = o.source;
+  if (typeof source !== 'string') return null;
+
+  const in_scope = coerceInScope(o.in_scope);
+  if (in_scope === null) return null;
+
+  return {
+    answer: answer.trim(),
+    confidence,
+    source: source.trim(),
+    in_scope,
+  };
+}
+
+function parseModelEnvelope(raw: string): ChatModelEnvelope | null {
+  const pre =
+    stripMarkdownJsonFence(raw).trim() ||
+    raw.trim();
+
+  let parsed: unknown | null = tryParseJsonLoose(pre);
+  if (typeof parsed === 'string') {
+    parsed = tryParseJsonLoose(parsed.trim()) ?? parsed;
+  }
+  const fromDirect = coerceChatEnvelope(parsed);
+  if (fromDirect) return fromDirect;
+
+  const start = pre.indexOf('{');
+  const end = pre.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+  const sliced = tryParseJsonLoose(pre.slice(start, end + 1));
+  let inner = sliced;
+  if (typeof inner === 'string') {
+    inner = tryParseJsonLoose(inner.trim()) ?? inner;
+  }
+  return coerceChatEnvelope(inner);
 }
 
 function hasSensitiveDataLeak(text: string): boolean {

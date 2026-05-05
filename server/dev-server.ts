@@ -96,6 +96,38 @@ http
     }
 
     try {
+      /** Коренът на dev API не е SPA — без това браузърът показва само {"error":"Not found"}. */
+      if (path === '/' && req.method === 'GET') {
+        send(res, 200, {
+          ok: true,
+          service: 'agrinexus-dev-api',
+          hint: 'Use paths under /api/… Open the app at http://localhost:5173 (Vite proxies /api here).',
+          discover: 'GET /api',
+        });
+        return;
+      }
+
+      if (path === '/api' && req.method === 'GET') {
+        send(res, 200, {
+          ok: true,
+          routes: [
+            { path: '/api/platform', methods: ['GET'] },
+            { path: '/api/chat', methods: ['GET', 'POST'] },
+            { path: '/api/market-quotes', methods: ['GET'] },
+            { path: '/api/document-explain', methods: ['POST'] },
+            { path: '/api/contact', methods: ['POST'] },
+            { path: '/api/register-interest', methods: ['POST'] },
+            { path: '/api/upload-sign', methods: ['POST'] },
+            { path: '/api/file-meta', methods: ['POST'] },
+            { path: '/api/visit', methods: ['GET', 'POST'] },
+            { path: '/api/transport-directory', methods: ['GET', 'POST'] },
+            { path: '/api/equipment-rental', methods: ['GET', 'POST'] },
+            { path: '/api/operations-hub', methods: ['GET', 'POST'] },
+          ],
+        });
+        return;
+      }
+
       if (path === '/api/platform' && req.method === 'GET') {
         send(res, 200, getPlatformPayload());
         return;
@@ -321,7 +353,13 @@ http
         return;
       }
 
-      send(res, 404, { error: 'Not found' });
+      send(res, 404, {
+        error: 'Not found',
+        path,
+        method: req.method || 'GET',
+        hint:
+          'Expected a registered /api/… route and HTTP method. Open http://localhost:5173 for the UI (not this port alone). Try GET /api for a route list.',
+      });
     } catch (e) {
       console.error('[dev-api]', e);
       send(res, 500, { error: 'Internal server error' });
