@@ -2004,7 +2004,7 @@ export default function App() {
         }
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #ffffff; }
-        .brand-nexus { color: var(--accent); }
+        .brand-nexus { color: #a8d98a; }
         .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
         .nav-link {
@@ -2136,7 +2136,28 @@ export default function App() {
           position: relative;
           z-index: 1;
         }
-        .landing-hero .brand-wordmark { text-shadow: none; }
+        .landing-hero .brand-wordmark {
+          text-shadow: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.04em;
+          padding: 0;
+          border: none;
+          background: transparent;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          box-shadow: none;
+        }
+        .landing-hero .brand-wordmark .brand-agri,
+        .landing-hero .brand-wordmark .brand-nexus {
+          opacity: 1;
+          color: inherit;
+          background: none;
+          -webkit-text-fill-color: currentColor;
+        }
+        .landing-hero .brand-wordmark .brand-agri { color: #ffffff; }
+        .landing-hero .brand-wordmark .brand-nexus { color: #a8d98a; }
         .landing-kicker {
           font-size: 0.68rem;
           font-weight: 800;
@@ -2713,7 +2734,7 @@ export default function App() {
 			</a>
 			<nav className="nav" aria-label={tr.navPrimaryAria}>
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="#6b8e23" size={24} aria-hidden />
+					<Leaf color="#a8d98a" size={24} aria-hidden />
 					<span className="brand-wordmark">
 						<span className="brand-agri">Agri</span>
 						<span className="brand-nexus">Nexus</span>
