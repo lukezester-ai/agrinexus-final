@@ -199,8 +199,15 @@ export function SubsidyCalculatorView({
 				{tr.subsidyCalcSubtitle}
 			</p>
 
-			<div className="contact-panel" style={{ maxWidth: 520 }}>
-				<div style={{ marginBottom: 16 }}>
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+					gap: 14,
+					alignItems: 'start',
+				}}>
+				<div className="contact-panel" style={{ marginTop: 0 }}>
+					<div style={{ marginBottom: 16 }}>
 					<label className="muted" style={{ display: 'block', marginBottom: 6, fontSize: '.9rem' }}>
 						{tr.subsidyCalcDecares}
 					</label>
@@ -225,7 +232,7 @@ export function SubsidyCalculatorView({
 					</span>
 				</div>
 
-				<div style={{ marginBottom: 16 }}>
+					<div style={{ marginBottom: 16 }}>
 					<span className="muted" style={{ display: 'block', marginBottom: 8, fontSize: '.9rem' }}>
 						{tr.subsidyCalcFocus}
 					</span>
@@ -243,8 +250,8 @@ export function SubsidyCalculatorView({
 					</div>
 				</div>
 
-				{focus === 'livestock' && (
-					<div style={{ marginBottom: 16 }}>
+					{focus === 'livestock' && (
+						<div style={{ marginBottom: 16 }}>
 						<label className="muted" style={{ display: 'block', marginBottom: 6, fontSize: '.9rem' }}>
 							{tr.subsidyCalcDairyCows}
 						</label>
@@ -263,156 +270,156 @@ export function SubsidyCalculatorView({
 								color: 'var(--text, #f4faf7)',
 							}}
 						/>
-					</div>
-				)}
+						</div>
+					)}
 
-				<label style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, cursor: 'pointer' }}>
+					<label style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, cursor: 'pointer' }}>
 					<input
 						type="checkbox"
 						checked={youngFarmer}
 						onChange={e => setYoungFarmer(e.target.checked)}
 					/>
 					<span style={{ fontSize: '.9rem' }}>{tr.subsidyCalcYoungFarmer}</span>
-				</label>
-				<label style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, cursor: 'pointer' }}>
+					</label>
+					<label style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, cursor: 'pointer' }}>
 					<input
 						type="checkbox"
 						checked={organicEco}
 						onChange={e => setOrganicEco(e.target.checked)}
 					/>
 					<span style={{ fontSize: '.9rem' }}>{tr.subsidyCalcOrganic}</span>
-				</label>
+					</label>
 
-				{validationCode ? (
-					<p style={{ color: '#f87171', margin: '8px 0 0', fontSize: '.9rem' }}>
-						{errText(tr, validationCode)}
-					</p>
-				) : result ? (
-					<div style={{ marginTop: 8 }}>
-						<p style={{ margin: '0 0 8px', fontWeight: 600 }}>
-							{tr.subsidyCalcTotalRange}: {result.totalLowBgn.toLocaleString(localeForLang(lang))}–
-							{result.totalHighBgn.toLocaleString(localeForLang(lang))} {tr.subsidyCalcPerYear}
+					{validationCode ? (
+						<p style={{ color: '#f87171', margin: '8px 0 0', fontSize: '.9rem' }}>
+							{errText(tr, validationCode)}
 						</p>
-						<ul style={{ margin: '0 0 12px', paddingLeft: 18, fontSize: '.88rem' }} className="muted">
-							{result.lines.map((line, i) => (
-								<li key={i} style={{ marginBottom: 4 }}>
-									{line.label}
-									{line.lowBgn > 0 || line.highBgn > 0
-										? ` — ${line.lowBgn.toLocaleString(localeForLang(lang))}–${line.highBgn.toLocaleString(localeForLang(lang))}`
-										: ''}
-								</li>
-							))}
-						</ul>
-						<button type="button" className="btn btn-outline" onClick={onShare}>
-							{copied ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
-							{copied ? tr.subsidyCalcCopied : tr.subsidyCalcCopy}
-						</button>
-					</div>
-				) : null}
+					) : result ? (
+						<div style={{ marginTop: 8 }}>
+							<p style={{ margin: '0 0 8px', fontWeight: 600 }}>
+								{tr.subsidyCalcTotalRange}: {result.totalLowBgn.toLocaleString(localeForLang(lang))}–
+								{result.totalHighBgn.toLocaleString(localeForLang(lang))} {tr.subsidyCalcPerYear}
+							</p>
+							<ul style={{ margin: '0 0 12px', paddingLeft: 18, fontSize: '.88rem' }} className="muted">
+								{result.lines.map((line, i) => (
+									<li key={i} style={{ marginBottom: 4 }}>
+										{line.label}
+										{line.lowBgn > 0 || line.highBgn > 0
+											? ` — ${line.lowBgn.toLocaleString(localeForLang(lang))}–${line.highBgn.toLocaleString(localeForLang(lang))}`
+											: ''}
+									</li>
+								))}
+							</ul>
+							<button type="button" className="btn btn-outline" onClick={onShare}>
+								{copied ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
+								{copied ? tr.subsidyCalcCopied : tr.subsidyCalcCopy}
+							</button>
+						</div>
+					) : null}
 
-				<p className="muted" style={{ marginTop: 16, fontSize: '.82rem', marginBottom: 0 }}>
-					{tr.subsidyCalcDisclaimer}
-				</p>
-			</div>
+					<p className="muted" style={{ marginTop: 16, fontSize: '.82rem', marginBottom: 0 }}>
+						{tr.subsidyCalcDisclaimer}
+					</p>
+				</div>
 
-			<div
-				className="contact-panel"
-				style={{
-					marginTop: 16,
-					marginBottom: 18,
-					borderColor: 'rgba(124,205,156,0.35)',
-					background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.42) 100%)',
-				}}>
-				<h3 style={{ margin: '0 0 10px', fontSize: '1rem' }}>
-					{t2('Коя мярка е за мен: II.Д.1 vs II.Д.2', 'Which measure fits me: II.D.1 vs II.D.2')}
-				</h3>
-				<p className="muted" style={{ margin: '0 0 10px', fontSize: '.9rem' }}>
-					{t2(
-						'Бърз pre-screen по възраст и СПО (ориентир, не официално становище).',
-						'Quick pre-screen by age and SO (indicative, not an official ruling).'
-					)}
-				</p>
 				<div
-					className="form-grid"
-					style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', marginBottom: 10 }}>
-					<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-						<span className="muted" style={{ fontSize: '.85rem' }}>
-							{t2('Възраст', 'Age')}
-						</span>
-						<input
-							type="number"
-							min={18}
-							max={90}
-							value={candidateAge}
-							onChange={e => setCandidateAge(e.target.value)}
-						/>
-					</label>
-					<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-						<span className="muted" style={{ fontSize: '.85rem' }}>
-							{t2('Текущ СПО (€)', 'Current SO (€)')}
-						</span>
-						<input
-							type="number"
-							min={0}
-							step={100}
-							value={currentSpo}
-							onChange={e => setCurrentSpo(e.target.value)}
-						/>
-					</label>
-				</div>
-				<p style={{ margin: '0 0 10px', fontWeight: 700, color: '#cbd5e1' }}>{prescreenRecommendation}</p>
-				<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-					<div>
-						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
-							{t2('Чеклист документи', 'Document checklist')}
-						</p>
-						<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
-							{docChecklist.map(item => (
-								<li key={item}>{item}</li>
-							))}
-						</ul>
-					</div>
-					<div>
-						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
-							{t2('Чести грешки', 'Common mistakes')}
-						</p>
-						<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
-							{commonErrors.map(item => (
-								<li key={item}>{item}</li>
-							))}
-						</ul>
-					</div>
-				</div>
-				<div style={{ marginTop: 12, overflowX: 'auto' }}>
-					<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
-						{t2('Сравнение II.Д.1 vs II.Д.2', 'II.D.1 vs II.D.2 comparison')}
+					className="contact-panel"
+					style={{
+						marginTop: 0,
+						marginBottom: 18,
+						borderColor: 'rgba(124,205,156,0.35)',
+						background: 'linear-gradient(165deg, rgba(124,205,156,0.09) 0%, rgba(12,22,17,0.42) 100%)',
+					}}>
+					<h3 style={{ margin: '0 0 10px', fontSize: '1rem' }}>
+						{t2('Коя мярка е за мен: II.Д.1 vs II.Д.2', 'Which measure fits me: II.D.1 vs II.D.2')}
+					</h3>
+					<p className="muted" style={{ margin: '0 0 10px', fontSize: '.9rem' }}>
+						{t2(
+							'Бърз pre-screen по възраст и СПО (ориентир, не официално становище).',
+							'Quick pre-screen by age and SO (indicative, not an official ruling).'
+						)}
 					</p>
-					<table
-						style={{
-							width: '100%',
-							borderCollapse: 'collapse',
-							fontSize: '.86rem',
-							minWidth: 520,
-							background: 'rgba(15,23,42,0.14)',
-							border: '1px solid rgba(148,163,184,0.25)',
-							borderRadius: 8,
-							overflow: 'hidden',
-						}}>
-						<thead>
-							<tr>
-								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
-									{t2('Параметър', 'Parameter')}
-								</th>
-								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
-									II.Д.1
-								</th>
-								<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
-									II.Д.2
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{[
+					<div
+						className="form-grid"
+						style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', marginBottom: 10 }}>
+						<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+							<span className="muted" style={{ fontSize: '.85rem' }}>
+								{t2('Възраст', 'Age')}
+							</span>
+							<input
+								type="number"
+								min={18}
+								max={90}
+								value={candidateAge}
+								onChange={e => setCandidateAge(e.target.value)}
+							/>
+						</label>
+						<label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+							<span className="muted" style={{ fontSize: '.85rem' }}>
+								{t2('Текущ СПО (€)', 'Current SO (€)')}
+							</span>
+							<input
+								type="number"
+								min={0}
+								step={100}
+								value={currentSpo}
+								onChange={e => setCurrentSpo(e.target.value)}
+							/>
+						</label>
+					</div>
+					<p style={{ margin: '0 0 10px', fontWeight: 700, color: '#cbd5e1' }}>{prescreenRecommendation}</p>
+					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+						<div>
+							<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+								{t2('Чеклист документи', 'Document checklist')}
+							</p>
+							<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
+								{docChecklist.map(item => (
+									<li key={item}>{item}</li>
+								))}
+							</ul>
+						</div>
+						<div>
+							<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+								{t2('Чести грешки', 'Common mistakes')}
+							</p>
+							<ul className="muted" style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '.88rem' }}>
+								{commonErrors.map(item => (
+									<li key={item}>{item}</li>
+								))}
+							</ul>
+						</div>
+					</div>
+					<div style={{ marginTop: 12, overflowX: 'auto' }}>
+						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
+							{t2('Сравнение II.Д.1 vs II.Д.2', 'II.D.1 vs II.D.2 comparison')}
+						</p>
+						<table
+							style={{
+								width: '100%',
+								borderCollapse: 'collapse',
+								fontSize: '.86rem',
+								minWidth: 520,
+								background: 'rgba(15,23,42,0.14)',
+								border: '1px solid rgba(148,163,184,0.25)',
+								borderRadius: 8,
+								overflow: 'hidden',
+							}}>
+							<thead>
+								<tr>
+									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+										{t2('Параметър', 'Parameter')}
+									</th>
+									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+										II.Д.1
+									</th>
+									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+										II.Д.2
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{[
 								[
 									t2('СПО диапазон', 'SO range'),
 									t2('8 000–20 000 €', '8,000–20,000 EUR'),
@@ -438,15 +445,16 @@ export function SubsidyCalculatorView({
 									t2('до 40 г.', 'up to 40 years'),
 									t2('18+ (без горна граница)', '18+ (no upper limit)'),
 								],
-							].map((row, idx) => (
-								<tr key={row[0]} style={{ background: idx % 2 ? 'rgba(15,23,42,0.08)' : 'transparent' }}>
-									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[0]}</td>
-									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[1]}</td>
-									<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[2]}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+								].map((row, idx) => (
+									<tr key={row[0]} style={{ background: idx % 2 ? 'rgba(15,23,42,0.08)' : 'transparent' }}>
+										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[0]}</td>
+										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[1]}</td>
+										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[2]}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 

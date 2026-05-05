@@ -780,6 +780,8 @@ export default function App() {
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
+	const [searchPanelOpen, setSearchPanelOpen] = useState(false);
+	const [highlightedDealId, setHighlightedDealId] = useState<number | null>(null);
 	const [subsidyPrefillFocus, setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
 	const [subsidyPrefillQuery, setSubsidyPrefillQuery] = useState('');
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
@@ -1224,6 +1226,12 @@ export default function App() {
 		const matchesQuery = q === '' || d.searchText.includes(q);
 		return matchesCategory && matchesQuery;
 	});
+
+	useEffect(() => {
+		const hasQuery = searchQuery.trim().length > 0;
+		setSearchPanelOpen(hasQuery);
+		if (!hasQuery) setHighlightedDealId(null);
+	}, [searchQuery]);
 
 	const inferSubsidyFocusFromMarket = useCallback(
 		(category: DealCategoryFilter, query: string): FarmProductionFocus => {
@@ -2417,6 +2425,10 @@ export default function App() {
           box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
           border-color: rgba(168, 217, 138, 0.26);
         }
+        .deal-card.search-hit {
+          border-color: rgba(124, 205, 156, 0.72);
+          box-shadow: 0 0 0 2px rgba(124, 205, 156, 0.22), 0 18px 34px rgba(0, 0, 0, 0.28);
+        }
         .deal-card.top { border: 2px solid var(--accent); }
         .demo-banner {
           background: rgba(124, 205, 156, 0.07);
@@ -3167,6 +3179,62 @@ export default function App() {
 							</span>
 						</div>
 					</div>
+					{searchQuery.trim() ? (
+						<div className="contact-panel" style={{ marginTop: 0, marginBottom: 12, padding: 12 }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									gap: 10,
+									flexWrap: 'wrap',
+								}}>
+								<strong style={{ fontSize: '.9rem' }}>
+									{lang === 'bg'
+										? `Намерени оферти: ${filteredDeals.length}`
+										: `Found offers: ${filteredDeals.length}`}
+								</strong>
+								<button
+									type="button"
+									className="btn-mini"
+									onClick={() => setSearchPanelOpen(v => !v)}>
+									{searchPanelOpen
+										? lang === 'bg'
+											? 'Скрий резултатите'
+											: 'Hide results'
+										: lang === 'bg'
+											? 'Покажи резултатите'
+											: 'Show results'}
+								</button>
+							</div>
+							{searchPanelOpen ? (
+								filteredDeals.length > 0 ? (
+									<div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+										{filteredDeals.slice(0, 6).map((deal) => (
+											<button
+												key={`result-${deal.id}`}
+												type="button"
+												className="btn-mini"
+												style={{ textAlign: 'left', justifyContent: 'flex-start' }}
+												onClick={() => {
+													setHighlightedDealId(deal.id);
+													const el = document.getElementById(`deal-card-${deal.id}`);
+													if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+												}}>
+												#{deal.id} {deal.product} · {deal.from} → {deal.to}
+											</button>
+										))}
+									</div>
+								) : (
+									<p className="muted" style={{ margin: '10px 0 0', fontSize: '.85rem' }}>
+										{lang === 'bg'
+											? 'Няма съвпадения за тази фраза.'
+											: 'No matches for this query.'}
+									</p>
+								)
+							) : null}
+						</div>
+					) : null}
 					<div className="demo-banner" role="note">
 						{quotesLoading && marketQuotes === null ? (
 							<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -3308,7 +3376,10 @@ export default function App() {
 						{filteredDeals.map((deal, i) => {
 							const delta = deal.profit - deal.prevProfit;
 							return (
-								<div className={`deal-card ${i < 8 ? 'top' : ''}`} key={deal.id}>
+								<div
+									id={`deal-card-${deal.id}`}
+									className={`deal-card ${i < 8 ? 'top' : ''} ${highlightedDealId === deal.id ? 'search-hit' : ''}`}
+									key={deal.id}>
 									<div>
 										<div
 											style={{
