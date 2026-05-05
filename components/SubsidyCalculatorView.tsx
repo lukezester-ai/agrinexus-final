@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calculator, Check, Copy } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import {
@@ -45,9 +45,19 @@ type Props = {
 	lang: UiLang;
 	tr: AppStrings;
 	onOpenCalendar: () => void;
+	initialFocus?: FarmProductionFocus | null;
+	initialMarketQuery?: string;
+	onOpenMarketWithQuery?: (query: string) => void;
 };
 
-export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
+export function SubsidyCalculatorView({
+	lang,
+	tr,
+	onOpenCalendar,
+	initialFocus,
+	initialMarketQuery,
+	onOpenMarketWithQuery,
+}: Props) {
 	const [decares, setDecares] = useState('50');
 	const [focus, setFocus] = useState<FarmProductionFocus>('grain');
 	const [organicEco, setOrganicEco] = useState(false);
@@ -56,6 +66,10 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 	const [candidateAge, setCandidateAge] = useState('28');
 	const [currentSpo, setCurrentSpo] = useState('5200');
 	const [copied, setCopied] = useState(false);
+
+	useEffect(() => {
+		if (initialFocus) setFocus(initialFocus);
+	}, [initialFocus]);
 
 	const input = useMemo((): SubsidyCalculatorInput => {
 		const d = Number(String(decares).replace(',', '.'));
@@ -138,6 +152,21 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 		t2('Нереалистични приходи без пазарно обосноваване', 'Unrealistic revenues without market grounding'),
 		t2('Липсва ясно как ще се постигне ръстът на СПО', 'No clear path on how SO growth is achieved'),
 	];
+	const marketQueryForFocus = useMemo(() => {
+		if (initialMarketQuery?.trim()) return initialMarketQuery.trim();
+		switch (focus) {
+			case 'grain':
+				return lang === 'bg' ? 'пшеница' : 'wheat';
+			case 'horticulture':
+				return lang === 'bg' ? 'зеленчуци' : 'vegetables';
+			case 'vine':
+				return lang === 'bg' ? 'грозде' : 'grape';
+			case 'livestock':
+				return lang === 'bg' ? 'животновъдство' : 'livestock';
+			default:
+				return lang === 'bg' ? 'земеделие' : 'agri';
+		}
+	}, [focus, initialMarketQuery, lang]);
 
 	return (
 		<section className="section">
@@ -157,6 +186,14 @@ export function SubsidyCalculatorView({ lang, tr, onOpenCalendar }: Props) {
 				<button type="button" className="btn btn-outline" onClick={onOpenCalendar}>
 					{tr.subsidyCalcGoCalendar}
 				</button>
+				{onOpenMarketWithQuery ? (
+					<button
+						type="button"
+						className="btn btn-outline"
+						onClick={() => onOpenMarketWithQuery(marketQueryForFocus)}>
+						{lang === 'bg' ? 'Покажи оферти в Пазар' : 'Show offers in Market'}
+					</button>
+				) : null}
 			</div>
 			<p className="muted" style={{ marginTop: 0 }}>
 				{tr.subsidyCalcSubtitle}

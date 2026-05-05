@@ -60,8 +60,17 @@ type Props = {
 
 export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 	const [crop, setCrop] = useState<CropCalendarKey>('wheat_barley');
+	const currentYear = new Date().getFullYear();
+	const currentMonth = new Date().getMonth() + 1;
+	const [selectedYear, setSelectedYear] = useState(currentYear);
+	const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 	const tasksByMonth = useMemo(() => SEASON_TASKS_BY_CROP[crop], [crop]);
 	const showBgNote = lang !== 'bg' && tr.seasonCalendarBgNote.length > 0;
+	const dateInputValue = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+	const yearOptions = useMemo(
+		() => Array.from({ length: 7 }, (_, i) => currentYear - 2 + i),
+		[currentYear]
+	);
 
 	return (
 		<section className="section">
@@ -123,6 +132,65 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 			<div
 				className="contact-panel"
 				style={{
+					marginBottom: 18,
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+					gap: 10,
+					alignItems: 'end',
+				}}>
+				<label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+					<span className="muted" style={{ fontSize: '.82rem' }}>
+						{lang === 'bg' ? 'Година' : 'Year'}
+					</span>
+					<select
+						value={selectedYear}
+						onChange={e => setSelectedYear(Number(e.target.value))}
+						style={{
+							padding: '10px 12px',
+							borderRadius: 10,
+							border: '1px solid #3d5248',
+							background: '#101914',
+							color: '#fff',
+							fontFamily: 'inherit',
+						}}>
+						{yearOptions.map((y) => (
+							<option key={y} value={y}>
+								{y}
+							</option>
+						))}
+					</select>
+				</label>
+
+				<label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+					<span className="muted" style={{ fontSize: '.82rem' }}>
+						{lang === 'bg' ? 'Дата' : 'Date'}
+					</span>
+					<input
+						type="date"
+						value={dateInputValue}
+						onChange={e => {
+							const v = e.target.value;
+							if (!v) return;
+							const [y, m] = v.split('-').map(Number);
+							if (!Number.isFinite(y) || !Number.isFinite(m)) return;
+							setSelectedYear(y);
+							setSelectedMonth(m);
+						}}
+						style={{
+							padding: '10px 12px',
+							borderRadius: 10,
+							border: '1px solid #3d5248',
+							background: '#101914',
+							color: '#fff',
+							fontFamily: 'inherit',
+						}}
+					/>
+				</label>
+			</div>
+
+			<div
+				className="contact-panel"
+				style={{
 					marginBottom: 24,
 					borderColor: 'rgba(124, 205, 156, 0.28)',
 					background: 'rgba(16, 31, 22, 0.52)',
@@ -134,7 +202,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					{DFZ_FIXED_DEADLINES.map((d, i) => (
 						<li key={i} style={{ marginBottom: 6 }}>
 							<strong>
-								{d.day} {MONTH_NAMES_BG[d.month - 1]}
+								{d.day} {MONTH_NAMES_BG[d.month - 1]} {selectedYear}
 							</strong>
 							{' — '}
 							{d.title}
@@ -158,6 +226,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					const tasks = tasksByMonth[m];
 					if (!tasks?.length) return null;
 					const visual = resolveSeasonVisual(crop, m);
+					const isSelectedMonth = m === selectedMonth;
 					return (
 						<div
 							key={`${crop}-${m}`}
@@ -165,8 +234,12 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 							style={{
 								margin: 0,
 								padding: 16,
-								borderColor: 'rgba(124, 205, 156, 0.22)',
-								background: 'rgba(14, 23, 18, 0.72)',
+								borderColor: isSelectedMonth
+									? 'rgba(124, 205, 156, 0.7)'
+									: 'rgba(124, 205, 156, 0.22)',
+								background: isSelectedMonth
+									? 'linear-gradient(180deg, rgba(22, 45, 32, 0.88) 0%, rgba(14, 23, 18, 0.78) 100%)'
+									: 'rgba(14, 23, 18, 0.72)',
 							}}>
 							<SeasonMonthArtBanner visual={visual} />
 							<h3
@@ -192,7 +265,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 									}}>
 									{m}
 								</span>
-								{monthLabel(tr, idx)}
+								{monthLabel(tr, idx)} {selectedYear}
 							</h3>
 							<ul style={{ margin: 0, paddingLeft: 18, fontSize: '.85rem' }} className="muted">
 								{tasks.map((t, i) => (

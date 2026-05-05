@@ -56,6 +56,7 @@ import {
 	quickPromptLabel,
 } from './lib/assistant-quick-actions';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
+import type { FarmProductionFocus } from './lib/subsidy-calculator';
 
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
@@ -779,6 +780,8 @@ export default function App() {
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
+	const [subsidyPrefillFocus, setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
+	const [subsidyPrefillQuery, setSubsidyPrefillQuery] = useState('');
 	const [nextUpdate, setNextUpdate] = useState(30 * 60);
 	const [refreshTick, setRefreshTick] = useState(0);
 	const [marketQuotes, setMarketQuotes] = useState<MarketQuotesApi | null>(null);
@@ -1221,6 +1224,33 @@ export default function App() {
 		const matchesQuery = q === '' || d.searchText.includes(q);
 		return matchesCategory && matchesQuery;
 	});
+
+	const inferSubsidyFocusFromMarket = useCallback(
+		(category: DealCategoryFilter, query: string): FarmProductionFocus => {
+			const q = query.toLowerCase();
+			if (q.includes('vine') || q.includes('grape') || q.includes('лозе') || q.includes('грозд')) {
+				return 'vine';
+			}
+			if (
+				q.includes('vegetable') ||
+				q.includes('fruit') ||
+				q.includes('hort') ||
+				q.includes('домати') ||
+				q.includes('tomato') ||
+				q.includes('плод') ||
+				q.includes('зеленчук')
+			) {
+				return 'horticulture';
+			}
+			if (q.includes('cow') || q.includes('cattle') || q.includes('livestock') || q.includes('живот')) {
+				return 'livestock';
+			}
+			if (category === 'Grains') return 'grain';
+			if (category === 'Oilseeds' || category === 'Pulses') return 'mixed';
+			return 'mixed';
+		},
+		[]
+	);
 
 	const grainUniverse = useMemo(
 		() => allDeals.filter(deal => deal.category === 'Grains'),
@@ -2599,7 +2629,17 @@ export default function App() {
         .pulse-toolbar {
           display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
         }
-        .search-wrap { position: relative; width: min(100%, 480px); flex: 1; }
+        .search-wrap { position: relative; width: min(100%, 560px); flex: 1; }
+        .search-inline {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .search-input-shell {
+          position: relative;
+          flex: 1;
+          min-width: 0;
+        }
         .search-wrap input {
           width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; outline: none;
           background: #1a2820; color: #fff; border: 1px solid #3d5248;
@@ -3061,14 +3101,24 @@ export default function App() {
 				<section className="section">
 					<div className="market-head">
 						<div className="search-wrap">
-							<Search className="search-icon" size={18} />
-							<input
-								type="text"
-								aria-label={lang === 'bg' ? 'Търсене в оферти' : 'Search in deals'}
-								placeholder={tr.searchPh}
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-							/>
+							<div className="search-inline">
+								<div className="search-input-shell">
+									<Search className="search-icon" size={18} />
+									<input
+										type="text"
+										aria-label={lang === 'bg' ? 'Търсене в оферти' : 'Search in deals'}
+										placeholder={tr.searchPh}
+										value={searchQuery}
+										onChange={e => setSearchQuery(e.target.value)}
+									/>
+								</div>
+								<button
+									type="button"
+									className="btn-mini"
+									onClick={() => setSearchQuery(q => q.trim())}>
+									{lang === 'bg' ? 'Търси' : 'Search'}
+								</button>
+							</div>
 							<p className="search-help-note">
 								{lang === 'bg'
 									? 'Това поле е търсачка за оферти. За въпроси използвайте AI Chat.'
@@ -3077,11 +3127,9 @@ export default function App() {
 						</div>
 						<div
 							style={{
-								color: '#7ccd9c',
-								fontWeight: 700,
 								display: 'flex',
 								alignItems: 'center',
-								gap: 12,
+								gap: 10,
 								flexWrap: 'wrap',
 							}}>
 							<button
@@ -3101,12 +3149,21 @@ export default function App() {
 							<button
 								type="button"
 								className="btn-mini"
-								onClick={() => forceRefreshDeals()}>
-								<RefreshCw size={16} />
+								onClick={() => {
+									const q = searchQuery.trim();
+									setSubsidyPrefillQuery(q);
+									setSubsidyPrefillFocus(
+										inferSubsidyFocusFromMarket(selectedCategory, q)
+									);
+									setView('subsidy-calculator');
+								}}>
+								<Calculator size={16} /> {lang === 'bg' ? 'Към субсидии' : 'To Subsidies'}
 							</button>
-							<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-								<RefreshCw size={16} />
-								{tr.aiUpdateIn} {formatTime}
+							<span
+								className="muted"
+								style={{ fontSize: '.78rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+								<span className="live-dot" style={{ marginRight: 0 }} />
+								{lang === 'bg' ? 'Авто-обновяване' : 'Auto refresh'}
 							</span>
 						</div>
 					</div>
@@ -3805,6 +3862,13 @@ export default function App() {
 					lang={lang}
 					tr={tr}
 					onOpenCalendar={() => setView('season-calendar')}
+					initialFocus={subsidyPrefillFocus}
+					initialMarketQuery={subsidyPrefillQuery}
+					onOpenMarketWithQuery={(query) => {
+						setSearchQuery(query);
+						setSelectedCategory('all');
+						setView('market');
+					}}
 				/>
 			)}
 
