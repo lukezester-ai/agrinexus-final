@@ -57,6 +57,7 @@ import {
 } from './lib/assistant-quick-actions';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 import type { FarmProductionFocus } from './lib/subsidy-calculator';
+import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
 
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
@@ -1801,6 +1802,26 @@ export default function App() {
 				return;
 			}
 			setRegStatus('ok');
+			const supabaseClient = getSupabaseBrowserClient();
+			let cloudAuthMsg: string | null = null;
+			if (supabaseClient) {
+				const redirect = `${window.location.origin}${window.location.pathname}`;
+				const { error } = await supabaseClient.auth.signInWithOtp({
+					email: regEmail.trim(),
+					options: { emailRedirectTo: redirect },
+				});
+				if (error) {
+					cloudAuthMsg =
+						lang === 'bg'
+							? `Профилът е регистриран, но cloud входът не беше стартиран: ${error.message}`
+							: `Registration saved, but cloud sign-in was not started: ${error.message}`;
+				} else {
+					cloudAuthMsg =
+						lang === 'bg'
+							? 'Изпратихме magic link за вход на посочения имейл.'
+							: 'A cloud magic sign-in link was sent to your email.';
+				}
+			}
 			if (data.mailDelivery === 'skipped') {
 				setRegMsg(
 					lang === 'bg'
@@ -1813,6 +1834,9 @@ export default function App() {
 						? 'Изпратено до info@agrinexus.eu — очаквайте потвърждение на имейла ви.'
 						: 'Sent to info@agrinexus.eu — please expect a confirmation by email.'
 				);
+			}
+			if (cloudAuthMsg) {
+				setRegMsg((prev) => (prev ? `${prev}\n${cloudAuthMsg}` : cloudAuthMsg));
 			}
 			setRegPassword('');
 		} catch {
