@@ -199,6 +199,41 @@ function parseModelEnvelope(raw: string): ChatModelEnvelope | null {
   return coerceChatEnvelope(inner);
 }
 
+function stringifyStructuredAnswer(value: unknown): string {
+  if (typeof value === 'string') return value.trim();
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+  const o = value as Record<string, unknown>;
+  const lines: string[] = [];
+  for (const [k, v] of Object.entries(o)) {
+    if (typeof v === 'string' && v.trim()) {
+      lines.push(`${k}: ${v.trim()}`);
+      continue;
+    }
+    if (Array.isArray(v)) {
+      const items = v
+        .map((x) => (typeof x === 'string' ? x.trim() : ''))
+        .filter(Boolean);
+      if (items.length > 0) {
+        lines.push(`${k}: ${items.join('; ')}`);
+      }
+    }
+  }
+  return lines.join('\n\n').trim();
+}
+
+function extractFallbackAnswer(rawReply: string): string {
+  const pre = stripMarkdownJsonFence(rawReply).trim();
+  const parsed = tryParseJsonLoose(pre);
+  if (parsed && typeof parsed === 'object') {
+    const o = parsed as Record<string, unknown>;
+    if ('answer' in o) {
+      const normalized = stringifyStructuredAnswer(o.answer);
+      if (normalized) return normalized;
+    }
+  }
+  return pre || rawReply.trim();
+}
+
 function hasSensitiveDataLeak(text: string): boolean {
   const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
   const keyPattern =
@@ -410,6 +445,16 @@ async function handleChatPostInner(rawBody: unknown): Promise<
 
   const envelope = parseModelEnvelope(rawReply);
   if (!envelope) {
+    const fallbackAnswer = extractFallbackAnswer(rawReply);
+    if (fallbackAnswer && !hasSensitiveDataLeak(fallbackAnswer)) {
+      return {
+        ok: true,
+        reply:
+          locale === 'bg'
+            ? `${truncate(fallbackAnswer, MAX_REPLY_CHARS)}\n\nНиво на увереност: LOW\nИзточник: Моделен fallback (невалиден JSON формат)`
+            : `${truncate(fallbackAnswer, MAX_REPLY_CHARS)}\n\nConfidence: LOW\nSource: Model fallback (invalid JSON envelope)`,
+      };
+    }
     return {
       ok: true,
       reply:
