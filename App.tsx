@@ -2323,78 +2323,6 @@ export default function App() {
         }
         .landing-hero .brand-wordmark .brand-agri { color: #ffffff; }
         .landing-hero .brand-wordmark .brand-nexus { color: #a8d98a; }
-        .landing-kicker {
-          font-size: 0.68rem;
-          font-weight: 800;
-          letter-spacing: 0.34em;
-          text-transform: uppercase;
-          color: rgba(255, 255, 255, 0.88);
-          margin: 0 0 12px;
-        }
-        .landing-tagline {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          font-size: 0.76rem;
-          font-weight: 700;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: rgba(255, 255, 255, 0.72);
-          margin: 12px auto 28px;
-          max-width: 560px;
-        }
-        .landing-tagline::before,
-        .landing-tagline::after {
-          content: '';
-          height: 1px;
-          flex: 1 1 28px;
-          min-width: 28px;
-          max-width: 100px;
-          background: linear-gradient(90deg, transparent, rgba(212, 168, 83, 0.5), transparent);
-        }
-        .landing-hero-inner {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          width: 100%;
-          padding: 28px 14px 10px;
-        }
-        .landing-vision-section { margin-top: 10px; }
-        .landing-vision-article {
-          max-width: 46rem;
-          margin: 0 auto;
-          text-align: left;
-        }
-        .landing-vision-article h2 {
-          margin-top: 0;
-          font-size: clamp(1.28rem, 2.8vw, 1.68rem);
-          line-height: 1.22;
-          letter-spacing: -0.02em;
-        }
-        .landing-vision-article p {
-          margin: 0 0 1em;
-          line-height: 1.62;
-          color: var(--text-muted);
-          font-size: 0.96rem;
-        }
-        .landing-vision-closing {
-          margin-top: 1.35em !important;
-          font-weight: 600;
-          font-size: 1.02rem !important;
-          color: var(--accent-text) !important;
-        }
-        .landing-vision-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 1.5rem;
-          padding-top: 1.1rem;
-          border-top: 1px solid var(--border-soft);
-        }
         .landing-inquiry-strip {
           margin-top: 32px;
           margin-left: -14px;
@@ -3191,42 +3119,12 @@ export default function App() {
 
 			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
-				<>
-					<section className="section hero landing-hero">
-						<div className="landing-hero-inner">
-							<h1 className="brand-wordmark">
-								<span className="brand-agri">Agri</span>
-								<span className="brand-nexus">Nexus</span>
-							</h1>
-							<p className="landing-kicker">{tr.landingKicker}</p>
-							<p className="landing-tagline">{tr.landingTagline}</p>
-						</div>
-					</section>
-					<section
-						className="section landing-vision-section"
-						aria-labelledby="landing-vision-heading">
-						<article className="landing-vision-article">
-							<h2 id="landing-vision-heading">{tr.landingVisionTitle}</h2>
-							<p>{tr.landingVisionP1}</p>
-							<p>{tr.landingVisionP2}</p>
-							<p>{tr.landingVisionP3}</p>
-							<p>{tr.landingVisionP4}</p>
-							<p>{tr.landingVisionP5}</p>
-							<p className="landing-vision-closing">{tr.landingVisionClosing}</p>
-							<div className="landing-vision-actions">
-								<button type="button" className="btn btn-primary" onClick={() => setView('market')}>
-									{tr.openMarketplace}
-								</button>
-								<button type="button" className="btn btn-outline" onClick={() => setView('assistant')}>
-									{tr.navAssistant}
-								</button>
-								<button type="button" className="btn btn-outline" onClick={() => setView('food-security')}>
-									{tr.navFoodSecurity}
-								</button>
-							</div>
-						</article>
-					</section>
-				</>
+				<section className="section hero landing-hero">
+					<h1 className="brand-wordmark">
+						<span className="brand-agri">Agri</span>
+						<span className="brand-nexus">Nexus</span>
+					</h1>
+				</section>
 			)}
 
 			{view === 'market' && (

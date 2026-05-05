@@ -37,20 +37,6 @@ export const STR_EN = {
 	langAria: 'Switch language',
 	heroSub:
 		'AgriNexus is a global agri-food workspace: trade orientation with BUY/HOLD/AVOID signals, market views, and modules for compliance deadlines, crop analytics, import/export paperwork, and freight partners—together with a domain-tuned AI assistant that blends legal, agronomic, and financial guidance for your context. Exchange-linked feeds and consolidated corridor pricing are on the roadmap; the catalog and figures you see today remain an illustrative demo, not live quotes.',
-	landingKicker: 'AI-POWERED ADVISORY',
-	landingTagline: 'EU ↔ MENA · TRADE INTELLIGENCE',
-	landingVisionTitle: 'The future of farming is written today — with artificial intelligence',
-	landingVisionP1:
-		'Agriculture is going through its greatest transformation since the industrial revolution. Artificial intelligence gives farmers fresh momentum and turns a traditionally conservative sector into one of the decade’s most attractive investment niches.',
-	landingVisionP2:
-		'A new era for farmers, new opportunities for investors. Sensors, drones, satellite data and algorithms let every field and every animal be monitored and managed in real time. Farmers gain higher yields and lower costs. Investors gain transparency, predictability and measurability — rarely offered by this sector before.',
-	landingVisionP3:
-		'Attractive, recognisable, accessible. Agri investing no longer requires being on the ground for years to build trust. Digital platforms present each farm as a transparent business with clear KPIs, and investors track production from anywhere — as easily as checking an equity portfolio.',
-	landingVisionP4:
-		'Capital deployed today will shape who feeds the world tomorrow. A growing population, climate pressure and food security have turned AI-driven farming from an option into an inevitability. Those who invest now in precision agriculture and intelligent farms are not just financing projects — they are buying a stake in the future of food and planetary resilience.',
-	landingVisionP5:
-		'We are not offering land and harvest alone. We are offering a technological leap in one of humanity’s oldest sectors — a partnership where capital meets innovation.',
-	landingVisionClosing: 'The future of farming is written today. Will you be among those writing it?',
 	portalMenaTitle: 'HALAL & compliance',
 	portalMenaSub: 'Export to UAE / KSA',
 	portalMarginTitle: 'Margin analysis',
