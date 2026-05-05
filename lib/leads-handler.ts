@@ -4,7 +4,7 @@ import {
   buildContactEmailHtml,
   buildRegisterEmailHtml,
   sendInboundNotification,
-} from './email';
+} from './email.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+[1-9]\d{7,14}$/;
