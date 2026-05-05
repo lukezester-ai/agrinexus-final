@@ -485,6 +485,27 @@ async function apiChat(
 	persona: ChatPersona,
 	farmerContext: string,
 ): Promise<string> {
+	const normalizeAssistantReply = (raw: string): string => {
+		const t = raw.trim();
+		if (!t.startsWith('{')) return raw;
+		try {
+			const parsed = JSON.parse(t) as Record<string, unknown>;
+			if (!parsed || typeof parsed !== 'object' || !('answer' in parsed)) return raw;
+			const answer = (parsed as { answer?: unknown }).answer;
+			if (typeof answer === 'string' && answer.trim()) return answer.trim();
+			if (answer && typeof answer === 'object' && !Array.isArray(answer)) {
+				const parts: string[] = [];
+				for (const [k, v] of Object.entries(answer as Record<string, unknown>)) {
+					if (typeof v === 'string' && v.trim()) parts.push(`${k}\n${v.trim()}`);
+				}
+				if (parts.length > 0) return parts.join('\n\n');
+			}
+			return raw;
+		} catch {
+			return raw;
+		}
+	};
+
 	/** Mistral + дълъг system prompt + JSON mode често >15s; Vercel api/chat max 60s. */
 	const timeoutMs = 60000;
 	const maxAttempts = 2;
@@ -552,7 +573,7 @@ async function apiChat(
 			if (!data.reply) {
 				throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
 			}
-			return data.reply;
+			return normalizeAssistantReply(data.reply);
 		} catch (err) {
 			if (signal?.aborted) {
 				const abortError = new Error('Chat request aborted');

@@ -221,6 +221,16 @@ function stringifyStructuredAnswer(value: unknown): string {
   return lines.join('\n\n').trim();
 }
 
+function normalizeAnswerText(answer: string): string {
+  const trimmed = answer.trim();
+  const parsed = tryParseJsonLoose(stripMarkdownJsonFence(trimmed));
+  if (parsed && typeof parsed === 'object') {
+    const normalized = stringifyStructuredAnswer(parsed);
+    if (normalized) return normalized;
+  }
+  return trimmed;
+}
+
 function extractFallbackAnswer(rawReply: string): string {
   const pre = stripMarkdownJsonFence(rawReply).trim();
   const parsed = tryParseJsonLoose(pre);
@@ -243,7 +253,7 @@ function hasSensitiveDataLeak(text: string): boolean {
 }
 
 function formatReply(locale: ChatLocale, envelope: ChatModelEnvelope): string {
-  const safeAnswer = truncate(envelope.answer.trim(), MAX_REPLY_CHARS);
+  const safeAnswer = truncate(normalizeAnswerText(envelope.answer), MAX_REPLY_CHARS);
   const safeSource = truncate(envelope.source.trim(), 220);
   if (locale === 'bg') {
     return `${safeAnswer}\n\nНиво на увереност: ${envelope.confidence.toUpperCase()}\nИзточник: ${
