@@ -3843,6 +3843,12 @@ export default function App() {
 						© {new Date().getFullYear()} AgriNexus — {tr.footerRightsTagline}
 					</p>
 					<div className="site-footer-links">
+						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
+							info@agrinexus.eu
+						</a>
+						<span className="site-footer-sep" aria-hidden>
+							·
+						</span>
 						<button type="button" className="footer-link-btn" onClick={() => setView('privacy')}>
 							{tr.footerPrivacy}
 						</button>
@@ -3862,7 +3868,10 @@ export default function App() {
 						<button
 							type="button"
 							className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
-							onClick={() => setView('landing')}
+							onClick={() => {
+								setView('landing');
+								setMobileNavExpand(null);
+							}}
 							aria-label={tr.navHome}>
 							<Leaf size={16} />
 							<MobileNavLabel text={tr.navHome} />
