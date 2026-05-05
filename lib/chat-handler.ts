@@ -1,6 +1,6 @@
 import type { ChatPersona } from './chat-persona';
-import { parseChatPersona } from './chat-persona';
-import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing';
+import { parseChatPersona } from './chat-persona.js';
+import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing.js';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
 export type ChatLocale = 'bg' | 'en';

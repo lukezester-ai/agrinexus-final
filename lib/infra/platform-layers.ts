@@ -2,7 +2,7 @@
  * Състояние на инфраструктурните слоеве (без секрети) — за /api/platform и мониторинг.
  */
 
-import { isChatLlmConfigured } from '../llm-env';
+import { isChatLlmConfigured } from '../llm-env.js';
 
 export type AgriPlatformLayers = {
 	/** HTTP API (Vercel Functions / dev-server) */

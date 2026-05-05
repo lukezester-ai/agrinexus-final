@@ -1,4 +1,4 @@
-import { openAIMessageContentToString, resolveVisionUpstream } from './llm-routing';
+import { openAIMessageContentToString, resolveVisionUpstream } from './llm-routing.js';
 
 export type DocumentExplainLocale = 'bg' | 'en';
 

@@ -7,9 +7,9 @@ import {
 	readMistralApiKey,
 	readMistralModel,
 	readMistralVisionModel,
-} from './mistral-env';
-import { readOpenAiApiKey } from './openai-api-key';
-import { readOllamaBaseUrl } from './ollama-env';
+} from './mistral-env.js';
+import { readOpenAiApiKey } from './openai-api-key.js';
+import { readOllamaBaseUrl } from './ollama-env.js';
 
 export type LlmBackendId = 'mistral' | 'ollama' | 'openai';
 
