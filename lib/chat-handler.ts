@@ -231,6 +231,14 @@ function normalizeAnswerText(answer: string): string {
   return trimmed;
 }
 
+function extractJsonishSection(raw: string, key: string): string {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`"${escapedKey}"\\s*:\\s*"([\\s\\S]*?)(?=",\\s*"[А-ЯA-Za-z_ ]+"\\s*:|"}\\s*}$)`);
+  const match = raw.match(pattern);
+  if (!match?.[1]) return '';
+  return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
+}
+
 function extractFallbackAnswer(rawReply: string): string {
   const pre = stripMarkdownJsonFence(rawReply).trim();
   const parsed = tryParseJsonLoose(pre);
@@ -241,6 +249,21 @@ function extractFallbackAnswer(rawReply: string): string {
       if (normalized) return normalized;
     }
   }
+
+  // Salvage common model output: `{"answer": {"Документация":"...", ...}}` even when truncated.
+  if (pre.startsWith('{') && pre.includes('"answer"')) {
+    const parts: string[] = [];
+    const docs = extractJsonishSection(pre, 'Документация');
+    const legal = extractJsonishSection(pre, 'Юрист');
+    const agr = extractJsonishSection(pre, 'Агроном');
+    const fin = extractJsonishSection(pre, 'Финанси');
+    if (docs) parts.push(`Документация\n${docs}`);
+    if (legal) parts.push(`Юрист\n${legal}`);
+    if (agr) parts.push(`Агроном\n${agr}`);
+    if (fin) parts.push(`Финанси\n${fin}`);
+    if (parts.length > 0) return parts.join('\n\n');
+  }
+
   return pre || rawReply.trim();
 }
 
