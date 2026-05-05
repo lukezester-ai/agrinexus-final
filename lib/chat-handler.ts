@@ -455,14 +455,15 @@ async function handleChatPostInner(rawBody: unknown): Promise<
 
   const envelope = parseModelEnvelope(rawReply);
   if (!envelope) {
-    const fallbackAnswer = extractFallbackAnswer(rawReply);
+    const fallbackAnswer = normalizeAnswerText(extractFallbackAnswer(rawReply));
     if (fallbackAnswer && !hasSensitiveDataLeak(fallbackAnswer)) {
+      const conciseFallback = truncate(fallbackAnswer, Math.min(MAX_REPLY_CHARS, 900));
       return {
         ok: true,
         reply:
           locale === 'bg'
-            ? `${truncate(fallbackAnswer, MAX_REPLY_CHARS)}\n\nНиво на увереност: LOW\nИзточник: Моделен fallback (невалиден JSON формат)`
-            : `${truncate(fallbackAnswer, MAX_REPLY_CHARS)}\n\nConfidence: LOW\nSource: Model fallback (invalid JSON envelope)`,
+            ? `${conciseFallback}\n\nЗабележка: Отговорът е автоматично форматиран. Потвърдете ключови изисквания в официален източник преди действие.`
+            : `${conciseFallback}\n\nNote: This answer was auto-formatted. Confirm critical requirements in official sources before acting.`,
       };
     }
     return {
