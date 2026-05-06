@@ -28,6 +28,47 @@ export type SourceHealthEntry = {
 	cooldownUntilISO?: string;
 };
 
+/** Допълнителни начални страници, предложени от LLM или записани автоматично */
+export type StoredDynamicSource = {
+	id: string;
+	labelBg: string;
+	indexUrl: string;
+	/** Насока към теми (не задължително филтър в обхода) */
+	suggestedTopics?: string[];
+	addedAt: string;
+	provenance?: 'llm';
+};
+
+/** Натрупана статистика от нощните обходи */
+export type DiscoveryStatisticsV1 = {
+	version: 1;
+	runCount: number;
+	cumulativeDiscoveries: number;
+	recentRuns: Array<{
+		at: string;
+		discovered: number;
+		byTopic: Record<string, number>;
+		bySource: Record<string, number>;
+		sourcesAttempted: number;
+		sourcesSkippedCooldown: number;
+		fetchFailures: number;
+	}>;
+	topicTotals: Record<string, { discoveries: number; runsWithHits: number }>;
+	sourceTotals: Record<
+		string,
+		{ discoveries: number; attempts: number; failures: number; cooldownSkips: number }
+	>;
+};
+
+/** Кратък текстов извод + предположения от LLM върху статистиката */
+export type DiscoveryInsightsV1 = {
+	at: string;
+	summaryBg: string;
+	predictionsBg: string;
+	model?: string;
+	error?: string;
+};
+
 export type StoredDiscoveryStateV1 = {
 	version: 1;
 	/** Научени допълнителни ключови думи по тема (от заглавия на файлове) */
@@ -50,6 +91,12 @@ export type StoredDiscoveryStateV1 = {
 	};
 	/** Кратка история на последните пускания */
 	runLog: Array<{ at: string; discovered: number; topicsTouched: string[] }>;
+	/** LLM/системни допълнения към статичните seed източници */
+	dynamicSources?: StoredDynamicSource[];
+	/** Агрегирани метрики за трендове и последващ анализ */
+	discoveryStatistics?: DiscoveryStatisticsV1;
+	/** Последен текстов извод за оператори (BG) */
+	discoveryInsights?: DiscoveryInsightsV1;
 };
 
 export type DocDiscoveryJobResult = {
@@ -89,4 +136,17 @@ export type DocDiscoveryJobResult = {
 		model?: string;
 		error?: string;
 	};
+	/** Нови начални източници от LLM */
+	llmSources?: {
+		enabled: boolean;
+		attempted: boolean;
+		added: number;
+		totalDynamic: number;
+		model?: string;
+		error?: string;
+	};
+	/** Обобщена статистика след този run */
+	discoveryStatistics?: DiscoveryStatisticsV1;
+	/** Изводи от LLM върху статистиката */
+	discoveryInsights?: DiscoveryInsightsV1;
 };

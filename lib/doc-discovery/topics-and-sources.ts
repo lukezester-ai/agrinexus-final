@@ -1,4 +1,26 @@
-import type { DiscoverySource, DiscoveryTopic } from './types.js';
+import { normalizeDiscoverySeedUrl } from './discovery-url-guard.js';
+import type { DiscoverySource, DiscoveryTopic, StoredDynamicSource } from './types.js';
+
+/** Слива статичните seed страници с запазени динамични (LLM/архив), без дублирани URL. */
+export function mergeDiscoverySources(
+	staticSources: DiscoverySource[],
+	dynamic: StoredDynamicSource[] | undefined,
+): DiscoverySource[] {
+	const seen = new Set<string>();
+	const out: DiscoverySource[] = [];
+	for (const s of staticSources) {
+		const n = normalizeDiscoverySeedUrl(s.indexUrl);
+		if (n) seen.add(n);
+		out.push(s);
+	}
+	for (const d of dynamic ?? []) {
+		const n = normalizeDiscoverySeedUrl(d.indexUrl);
+		if (!n || seen.has(n)) continue;
+		seen.add(n);
+		out.push({ id: d.id, labelBg: d.labelBg, indexUrl: n });
+	}
+	return out;
+}
 
 /** Теми по агро нормативка / търговия — разширяват се автоматично след всеки успешен обход */
 export const DISCOVERY_TOPICS: DiscoveryTopic[] = [

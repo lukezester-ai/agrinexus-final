@@ -1,4 +1,4 @@
-import { DISCOVERY_SOURCES, DISCOVERY_TOPICS } from './topics-and-sources.js';
+import { DISCOVERY_SOURCES, DISCOVERY_TOPICS, mergeDiscoverySources } from './topics-and-sources.js';
 
 import {
 
@@ -54,7 +54,10 @@ import { defaultDiscoveryState, loadDiscoveryState, saveDiscoveryState } from '.
 
 import type { DiscoveredDocLink, DocDiscoveryJobResult } from './types.js';
 import { indexDiscoveriesForMl } from './ml-index.js';
+import { appendDiscoveryRunStatistics } from './discovery-statistics.js';
 import { augmentLearnedKeywordsWithLlm } from './llm-learn.js';
+import { generateDiscoveryInsightsWithLlm } from './llm-stats-insights.js';
+import { mergeAndCapDynamicSources, proposeDiscoverySourcesWithLlm } from './llm-propose-sources.js';
 import { isAnyLlmConfigured } from '../llm-routing.js';
 
 
@@ -159,7 +162,31 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	const discovered: DiscoveredDocLink[] = [];
 
-	const sourceIds = DISCOVERY_SOURCES.map(s => s.id);
+	const mergedSourcesList = mergeDiscoverySources(DISCOVERY_SOURCES, baseState.dynamicSources);
+
+	const sourceIds = mergedSourcesList.map(s => s.id);
+
+	const statsAttemptSources = new Set<string>();
+
+	const statsFetchFailSources = new Set<string>();
+
+	const statsCooldownSkipSources = new Set<string>();
+
+	let nextInsights = baseState.discoveryInsights;
+
+	let finalDynamicSources = [...(baseState.dynamicSources ?? [])];
+
+	let llmSourcesResult: DocDiscoveryJobResult['llmSources'] = {
+
+		enabled: process.env.DOC_DISCOVERY_LLM_SOURCES === '1',
+
+		attempted: false,
+
+		added: 0,
+
+		totalDynamic: finalDynamicSources.length,
+
+	};
 
 	let nextHealth = normalizeSourceHealth(baseState.sourceHealth, sourceIds);
 
@@ -183,7 +210,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 
 
-	const sortedSources = [...DISCOVERY_SOURCES].sort(
+	const sortedSources = [...mergedSourcesList].sort(
 
 		(a, b) => (baseState.sourcePriority[b.id] ?? 1) - (baseState.sourcePriority[a.id] ?? 1),
 
@@ -201,6 +228,8 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 			sourcesSkippedCooldown += 1;
 
+			statsCooldownSkipSources.add(src.id);
+
 			sourceRunNotes[src.id] =
 
 				h.cooldownUntilISO !== undefined
@@ -217,9 +246,13 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 		sourcesFetchAttempted += 1;
 
+		statsAttemptSources.add(src.id);
+
 		const html = await fetchHtmlPage(src.indexUrl, fetchTimeoutMs);
 
 		if (!html) {
+
+			statsFetchFailSources.add(src.id);
 
 			const r = afterFetchFailure(h, failStreakThreshold, failCooldownHours, nowMs);
 
@@ -404,6 +437,98 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 	}
 
 
+
+	const discoveryStatistics = appendDiscoveryRunStatistics(baseState.discoveryStatistics, {
+
+		at: runAt,
+
+		discovered,
+
+		sourcesAttempted: sourcesFetchAttempted,
+
+		sourcesSkippedCooldown,
+
+		attemptSources: statsAttemptSources,
+
+		fetchFailSources: statsFetchFailSources,
+
+		cooldownSkipSources: statsCooldownSkipSources,
+
+	});
+
+	const insightsEnabled = process.env.DOC_DISCOVERY_LLM_STATS_INSIGHTS === '1';
+
+	if (insightsEnabled && isAnyLlmConfigured()) {
+
+		const ins = await generateDiscoveryInsightsWithLlm({
+
+			statistics: discoveryStatistics,
+
+			topics: DISCOVERY_TOPICS,
+
+			discoveredSample: discovered,
+
+			runAtISO: runAt,
+
+		});
+
+		if (ins.summaryBg || ins.predictionsBg) {
+
+			nextInsights = {
+
+				at: runAt,
+
+				summaryBg: ins.summaryBg,
+
+				predictionsBg: ins.predictionsBg,
+
+				model: ins.model,
+
+				...(ins.error ? { error: ins.error } : {}),
+
+			};
+
+		}
+
+	}
+
+	if (llmSourcesResult.enabled && isAnyLlmConfigured()) {
+
+		llmSourcesResult.attempted = true;
+
+		const maxDynamic = parsePositiveInt(process.env.DOC_DISCOVERY_MAX_DYNAMIC_SOURCES, 28);
+
+		const maxPerRun = parsePositiveInt(process.env.DOC_DISCOVERY_LLM_MAX_SOURCES_PER_RUN, 5);
+
+		const pr = await proposeDiscoverySourcesWithLlm({
+
+			topics: DISCOVERY_TOPICS,
+
+			existingStaticUrls: DISCOVERY_SOURCES.map(s => s.indexUrl),
+
+			existingDynamic: finalDynamicSources,
+
+			discovered,
+
+			statistics: discoveryStatistics,
+
+			maxNewThisRun: maxPerRun,
+
+			runAtISO: runAt,
+
+		});
+
+		llmSourcesResult.model = pr.model;
+
+		if (pr.error) llmSourcesResult.error = pr.error;
+
+		finalDynamicSources = mergeAndCapDynamicSources(finalDynamicSources, pr.added, maxDynamic);
+
+		llmSourcesResult.added = pr.addedCount;
+
+		llmSourcesResult.totalDynamic = finalDynamicSources.length;
+
+	}
 
 	let mergedExtraKeywords = learnKeywordsFromDiscoveries(
 
@@ -593,6 +718,12 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 		],
 
+		dynamicSources: finalDynamicSources,
+
+		discoveryStatistics,
+
+		...(nextInsights ? { discoveryInsights: nextInsights } : {}),
+
 	};
 
 
@@ -651,7 +782,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 		scheduleNote: cronScheduleNoteBg(),
 
-		sourcesScanned: DISCOVERY_SOURCES.length,
+		sourcesScanned: mergedSourcesList.length,
 
 		discovered,
 
@@ -662,6 +793,12 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 		selfLearnedKeywords: mergedExtraKeywords,
 
 		llmLearn,
+
+		llmSources: llmSourcesResult,
+
+		discoveryStatistics,
+
+		discoveryInsights: nextInsights,
 
 		sourcesFetchAttempted,
 
