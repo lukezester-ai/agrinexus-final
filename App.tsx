@@ -2376,15 +2376,11 @@ export default function App() {
           gap: 14px;
         }
         .landing-glass-card {
-          background: rgba(12, 22, 17, 0.36);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.13);
+          background: rgba(14, 24, 19, 0.94);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 18px;
           padding: 18px 20px 20px;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.06),
-            0 14px 44px rgba(0, 0, 0, 0.34);
+          box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
           text-align: left;
         }
         .landing-glass-card h2 {
@@ -2440,22 +2436,14 @@ export default function App() {
             grid-template-columns: 1fr;
           }
         }
-        @media (prefers-reduced-motion: reduce) {
-          .landing-glass-card {
-            backdrop-filter: blur(9px);
-            -webkit-backdrop-filter: blur(9px);
-          }
-        }
-
         .landing-inquiry-strip {
           margin-top: 32px;
           margin-left: -14px;
           margin-right: -14px;
           margin-bottom: 0;
           padding: 18px 14px 22px;
-          background: rgba(8, 14, 11, 0.92);
+          background: rgba(8, 14, 11, 0.96);
           border-top: 1px solid rgba(212, 168, 83, 0.22);
-          backdrop-filter: blur(14px);
           box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
         }
         .landing-inquiry-inner {

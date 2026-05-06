@@ -1,5 +1,6 @@
 import { type DragEvent, useCallback, useRef, useState } from 'react';
 import { FileUp, Loader2 } from 'lucide-react';
+import { useSupabaseSession } from './hooks/use-supabase-session';
 
 type Lang = 'bg' | 'en';
 
@@ -9,6 +10,7 @@ type FileUploadPanelProps = {
 };
 
 export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelProps) {
+  const { session } = useSupabaseSession();
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -29,6 +31,8 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
           okMeta: 'Метаданните са записани (облакът не е конфигуриран или качването не се ползва).',
           err: 'Грешка при заявка към API.',
           errSign: 'Неуспешно подписване за качване.',
+          errAuth:
+            'За качване в облака влез в профила (Sign in). В продукция анонимни качвания са изключени.',
           errPut: 'Качването към хранилището не успя (провери CORS на bucket за origin на приложението).',
           corsHint:
             'За R2/S3 задай CORS правило за PUT от твоя localhost / домейн. Виж README в Cloudflare R2 → Settings → CORS.',
@@ -45,6 +49,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
           okMeta: 'Metadata logged (storage not configured or upload skipped).',
           err: 'API request failed.',
           errSign: 'Could not get upload signature.',
+          errAuth: 'Sign in to upload to cloud storage. Anonymous uploads are disabled in production.',
           errPut: 'PUT to storage failed (check bucket CORS for your app origin).',
           corsHint:
             'Configure R2/S3 CORS to allow PUT from your localhost / production origin (see Cloudflare R2 → CORS).',
@@ -78,10 +83,15 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
     let useObjectStorage = false;
     const uploads: { key: string; name: string; size: number; publicUrl?: string }[] = [];
 
+    const uploadHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (session?.access_token) {
+      uploadHeaders.Authorization = `Bearer ${session.access_token}`;
+    }
+
     try {
     const signFirst = await fetch('/api/upload-sign', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: uploadHeaders,
       body: JSON.stringify({
         filename: pendingFiles[0].name,
         contentType: pendingFiles[0].type || 'application/octet-stream',
@@ -122,7 +132,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
         const file = pendingFiles[i];
         const signRes = await fetch('/api/upload-sign', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: uploadHeaders,
           body: JSON.stringify({
             filename: file.name,
             contentType: file.type || 'application/octet-stream',
@@ -137,7 +147,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
         };
         if (!signRes.ok || !data.uploadUrl || !data.key) {
           setStatus('err');
-          setNote(data.error || copy.errSign);
+          setNote(signRes.status === 401 ? copy.errAuth : data.error || copy.errSign);
           return;
         }
         const put = await fetch(data.uploadUrl, {

@@ -255,7 +255,9 @@ const server = http.createServer(async (req, res) => {
           send(res, 400, { error: 'Invalid JSON' });
           return;
         }
-        const result = await handleUploadSignPost(body);
+        const authHeader =
+          typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
+        const result = await handleUploadSignPost(body, { authHeader });
         if (result.ok) {
           send(res, 200, {
             uploadUrl: result.uploadUrl,

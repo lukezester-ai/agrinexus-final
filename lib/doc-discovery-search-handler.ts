@@ -5,6 +5,7 @@ import {
 } from './ml/embeddings-discovery.js';
 import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
 import { rerankSemanticResultsDl } from './doc-discovery/dl-rerank.js';
+import { isDeployProductionLike } from './deploy-env.js';
 
 function bearerToken(authHeader: string | undefined): string | null {
 	if (!authHeader || typeof authHeader !== 'string') return null;
@@ -30,6 +31,17 @@ export async function handleDocDiscoverySearchRequest(opts: {
 }): Promise<{ status: number; body: Record<string, unknown> }> {
 	if (opts.method !== 'GET') {
 		return { status: 405, body: { ok: false, error: 'Method not allowed' } };
+	}
+
+	if (isDeployProductionLike() && !process.env.DOC_DISCOVERY_SEARCH_SECRET?.trim()) {
+		return {
+			status: 503,
+			body: {
+				ok: false,
+				error: 'DOC_DISCOVERY_SEARCH_SECRET не е зададен в продукция.',
+				hint: 'Задай DOC_DISCOVERY_SEARCH_SECRET във Vercel Environment Variables и подай Authorization: Bearer <същата стойност>.',
+			},
+		};
 	}
 
 	const searchSecret = process.env.DOC_DISCOVERY_SEARCH_SECRET?.trim();

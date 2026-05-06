@@ -1,6 +1,7 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomBytes } from 'node:crypto';
+import { verifyUploadSignAuth } from './upload-sign-auth.js';
 
 const DEFAULT_MAX_BYTES = 15 * 1024 * 1024;
 
@@ -10,7 +11,8 @@ function sanitizeFilename(name: string): string {
 }
 
 export async function handleUploadSignPost(
-  rawBody: unknown
+  rawBody: unknown,
+  opts?: { authHeader?: string | undefined },
 ): Promise<
   | { ok: true; uploadUrl: string; key: string; publicUrl?: string }
   | { ok: false; status: number; error: string }
@@ -20,6 +22,11 @@ export async function handleUploadSignPost(
   const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY?.trim();
   if (!bucket || !accessKeyId || !secretAccessKey) {
     return { ok: false, status: 503, error: 'Object storage is not configured (S3_* env vars).' };
+  }
+
+  const auth = await verifyUploadSignAuth(opts?.authHeader);
+  if (!auth.ok) {
+    return { ok: false, status: auth.status, error: auth.error };
   }
 
   if (!rawBody || typeof rawBody !== 'object') {

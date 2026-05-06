@@ -21,7 +21,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const result = await handleUploadSignPost(parsed);
+  const authHeader =
+    (typeof req.headers.authorization === 'string' && req.headers.authorization) ||
+    (typeof req.headers.Authorization === 'string' && req.headers.Authorization) ||
+    undefined;
+
+  const result = await handleUploadSignPost(parsed, { authHeader });
   if (result.ok) {
     res.status(200).json({
       uploadUrl: result.uploadUrl,
