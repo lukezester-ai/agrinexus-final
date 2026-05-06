@@ -15,6 +15,16 @@ export function readMistralModel(): string {
 	return process.env.MISTRAL_MODEL?.trim() || 'mistral-small-latest';
 }
 
+/** Fine-tuned или друг модел само за `/api/chat` (иначе `MISTRAL_MODEL`). */
+export function readMistralChatModel(): string {
+	return process.env.MISTRAL_CHAT_MODEL?.trim() || readMistralModel();
+}
+
+/** Fine-tuned или друг модел за пазарни JSON инсайти (`market-watch-insights-llm` и др.). */
+export function readMistralMarketInsightsModel(): string {
+	return process.env.MISTRAL_MARKET_INSIGHTS_MODEL?.trim() || readMistralModel();
+}
+
 /** За мултимодални заявки (снимка на документ), напр. pixtral. */
 export function readMistralVisionModel(): string {
 	return (

@@ -13,7 +13,8 @@
     "icons": "node scripts/generate-pwa-icons.mjs",
     "test:mistral": "tsx scripts/smoke-mistral.ts",
     "test:mistral:vision": "tsx scripts/smoke-mistral-vision.ts",
-    "test:mail": "tsx scripts/smoke-mail.ts"
+    "test:mail": "tsx scripts/smoke-mail.ts",
+    "export:ft:market-watch": "tsx scripts/export-market-watch-ft-jsonl.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.716.0",

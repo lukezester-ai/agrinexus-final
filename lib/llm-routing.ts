@@ -5,6 +5,8 @@
 import {
 	MISTRAL_CHAT_COMPLETIONS_URL,
 	readMistralApiKey,
+	readMistralChatModel,
+	readMistralMarketInsightsModel,
 	readMistralModel,
 	readMistralVisionModel,
 } from './mistral-env.js';
@@ -26,17 +28,26 @@ export type TextChatUpstream = {
 	useJsonObjectFormat: boolean;
 };
 
+/** За Mistral: различни FT модели за чат vs структурирани пазарни изводи. Останалите доставчици игнорират `kind`. */
+export type TextChatUpstreamKind = 'chat' | 'market_insights';
+
 /** Текстов чат completions — същият приоритет като досега. */
-export function resolveTextChatUpstream(): TextChatUpstream | null {
+export function resolveTextChatUpstream(kind?: TextChatUpstreamKind): TextChatUpstream | null {
 	const mistralKey = readMistralApiKey();
 	const ollamaBase = readOllamaBaseUrl();
 	const openaiKey = readOpenAiApiKey();
 	if (mistralKey) {
+		const mistralModel =
+			kind === 'chat'
+				? readMistralChatModel()
+				: kind === 'market_insights'
+					? readMistralMarketInsightsModel()
+					: readMistralModel();
 		return {
 			provider: 'mistral',
 			completionUrl: MISTRAL_CHAT_COMPLETIONS_URL,
 			bearer: mistralKey,
-			model: readMistralModel(),
+			model: mistralModel,
 			useJsonObjectFormat: true,
 		};
 	}

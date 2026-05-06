@@ -59,3 +59,17 @@ export function uniqueInstrumentSymbols(): string[] {
 	}
 	return [...set];
 }
+
+/** Четими етикети по символ за LLM / операторски преглед. */
+export function instrumentHumanLabels(): Record<string, { bg: string; en: string }> {
+	const out: Record<string, { bg: string; en: string }> = {};
+	for (const [product, meta] of Object.entries(PRODUCT_INSTRUMENT)) {
+		if (!meta?.symbol) continue;
+		const sym = meta.symbol.toLowerCase();
+		out[sym] = {
+			bg: `${product} (${meta.unitBg})`,
+			en: `${product} (${meta.unitEn})`,
+		};
+	}
+	return out;
+}

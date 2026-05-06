@@ -331,7 +331,7 @@ export async function handleChatPost(rawBody: unknown): Promise<
 async function handleChatPostInner(rawBody: unknown): Promise<
   { ok: true; reply: string } | { ok: false; status: number; error: string; hint?: string }
 > {
-  const upstream = resolveTextChatUpstream();
+  const upstream = resolveTextChatUpstream('chat');
   if (!upstream) {
     return {
       ok: false,

@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleMarketQuotesGet } from '../lib/market-quotes-handler.js';
-import { persistMarketWatchSnapshot } from '../lib/market-watch-persist.js';
+import { handleMarketWatchGet } from '../lib/market-watch-api.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 	res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -16,10 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 			return;
 		}
 
-		const result = await handleMarketQuotesGet();
-		if (result.ok && result.mode === 'live') {
-			void persistMarketWatchSnapshot(result.quotes, result.fetchedAt);
-		}
+		const result = await handleMarketWatchGet();
 		res.status(200).json(result);
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Unexpected server error';
@@ -30,6 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 			fetchedAt: new Date().toISOString(),
 			source: null,
 			error: msg,
+			watch: null,
 		});
 	}
 }

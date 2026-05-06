@@ -14,6 +14,7 @@ import {
 	FileUp,
 	Globe2,
 	Leaf,
+	LineChart,
 	Loader2,
 	LogIn,
 	Mail,
@@ -36,6 +37,7 @@ import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaV
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
 import { OperationsHubView } from './components/OperationsHubView';
+import { MarketWatchView } from './components/MarketWatchView';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -299,6 +301,7 @@ function mergeLiveIntoDeals(
 type View =
 	| 'landing'
 	| 'market'
+	| 'market-watch'
 	| 'assistant'
 	| 'register'
 	| 'login'
@@ -315,7 +318,7 @@ type View =
 	| 'command'
 	| 'file-upload';
 
-const TRADING_VIEWS = new Set<View>(['market', 'crop-statistics', 'trade-documents']);
+const TRADING_VIEWS = new Set<View>(['market', 'market-watch', 'crop-statistics', 'trade-documents']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
@@ -2977,6 +2980,16 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
+									className={`nav-dropdown-item ${view === 'market-watch' ? 'active' : ''}`}
+									onClick={() => {
+										setView('market-watch');
+										setNavMenuOpen(null);
+									}}>
+									<LineChart size={14} aria-hidden /> {tr.navMarketWatch}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
 									className={`nav-dropdown-item ${view === 'crop-statistics' ? 'active' : ''}`}
 									onClick={() => {
 										setView('crop-statistics');
@@ -3182,6 +3195,9 @@ export default function App() {
 									setView('assistant');
 								}}>
 								<MessageSquare size={16} /> {lang === 'bg' ? 'AI Chat' : 'AI Chat'}
+							</button>
+							<button type="button" className="btn-mini" onClick={() => setView('market-watch')}>
+								<LineChart size={16} aria-hidden /> {tr.navMarketWatchShort}
 							</button>
 							<button
 								type="button"
@@ -3519,6 +3535,10 @@ export default function App() {
 						</p>
 					</div>
 				</section>
+			)}
+
+			{view === 'market-watch' && (
+				<MarketWatchView lang={lang} tr={tr} onBackToMarket={() => setView('market')} />
 			)}
 
 			{view === 'assistant' && (
@@ -4243,6 +4263,17 @@ export default function App() {
 								}}>
 								<Search size={16} aria-hidden />
 								<MobileNavLabel text={tr.navMarketShort} hint={tr.navMarket} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'market-watch' ? 'active' : ''}`}
+								aria-label={tr.navMarketWatch}
+								onClick={() => {
+									setView('market-watch');
+									setMobileNavExpand(null);
+								}}>
+								<LineChart size={16} aria-hidden />
+								<MobileNavLabel text={tr.navMarketWatchShort} hint={tr.navMarketWatch} />
 							</button>
 							<button
 								type="button"

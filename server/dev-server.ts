@@ -11,6 +11,8 @@ import { handleChatPost } from '../lib/chat-handler';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
+import { handleMarketWatchGet } from '../lib/market-watch-api';
+import { persistMarketWatchSnapshot } from '../lib/market-watch-persist';
 import { handleDocumentExplainPost } from '../lib/document-explain-handler';
 import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
 import { getPlatformPayload } from '../lib/infra/platform-layers';
@@ -38,6 +40,8 @@ function mergeDotEnvWithoutBom(): void {
 		apply('OPENAI_API_KEY');
 		apply('MISTRAL_API_KEY');
 		apply('MISTRAL_MODEL');
+		apply('MISTRAL_CHAT_MODEL');
+		apply('MISTRAL_MARKET_INSIGHTS_MODEL');
 		apply('MISTRAL_VISION_MODEL');
 		apply('OLLAMA_BASE_URL');
 		apply('OLLAMA_MODEL');
@@ -109,6 +113,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/platform', methods: ['GET'] },
             { path: '/api/chat', methods: ['GET', 'POST'] },
             { path: '/api/market-quotes', methods: ['GET'] },
+            { path: '/api/market-watch', methods: ['GET'] },
             { path: '/api/document-explain', methods: ['POST'] },
             { path: '/api/contact', methods: ['POST'] },
             { path: '/api/register-interest', methods: ['POST'] },
@@ -167,7 +172,16 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (path === '/api/market-quotes' && req.method === 'GET') {
-        send(res, 200, await handleMarketQuotesGet());
+        const marketQuotes = await handleMarketQuotesGet();
+        if (marketQuotes.ok && marketQuotes.mode === 'live') {
+          void persistMarketWatchSnapshot(marketQuotes.quotes, marketQuotes.fetchedAt);
+        }
+        send(res, 200, marketQuotes);
+        return;
+      }
+
+      if (path === '/api/market-watch' && req.method === 'GET') {
+        send(res, 200, await handleMarketWatchGet());
         return;
       }
 
