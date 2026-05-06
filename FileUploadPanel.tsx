@@ -247,7 +247,7 @@ export default function FileUploadPanel({ senderEmail, lang }: FileUploadPanelPr
           <li style={{ color: '#64748b', listStyle: 'none', marginLeft: -18 }}>{copy.none}</li>
         ) : (
           pendingFiles.map((f, idx) => (
-            <li key={`${f.name}-${f.size}-${idx}`}>
+            <li key={`${f.name}-${f.size}-${idx}`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
               {f.name}{' '}
               <span style={{ color: '#64748b' }}>
                 ({(f.size / 1024).toFixed(1)} KB{f.type ? ` · ${f.type}` : ''})
