@@ -79,8 +79,7 @@ function send(res: http.ServerResponse, status: number, body: unknown) {
   res.end(JSON.stringify(body));
 }
 
-http
-  .createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', 'http://127.0.0.1');
     const path = url.pathname.replace(/\/$/, '') || '/';
 
@@ -337,7 +336,19 @@ http
       console.error('[dev-api]', e);
       send(res, 500, { error: 'Internal server error' });
     }
-  })
-  .listen(PORT, '127.0.0.1', () => {
-    console.log(`[agrinexus] dev API listening on http://127.0.0.1:${PORT}`);
   });
+
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(
+      `[agrinexus] dev API: port ${PORT} is already in use on 127.0.0.1. Change DEV_API_PORT in .env (same value Vite proxies to) or stop the other process.`,
+    );
+    console.error(`Windows: netstat -ano | findstr :${PORT}   then   taskkill /PID <pid> /F`);
+    process.exit(1);
+  }
+  throw err;
+});
+
+server.listen(PORT, '127.0.0.1', () => {
+  console.log(`[agrinexus] dev API listening on http://127.0.0.1:${PORT}`);
+});
