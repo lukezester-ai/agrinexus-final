@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { chatDocDiscoveryRagFeatureEnabled } from '../lib/doc-discovery-chat-rag.js';
 import { handleChatPost } from '../lib/chat-handler.js';
 import { isOpenAiConfigured } from '../lib/openai-api-key.js';
 import { isMistralConfigured } from '../lib/mistral-env.js';
@@ -39,6 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         mistralConfigured: isMistralConfigured(),
         ollamaConfigured: isOllamaConfigured(),
         llmConfigured: llmConfiguredSnapshot(),
+        chatDocDiscoveryRag: chatDocDiscoveryRagFeatureEnabled(),
       });
       return;
     }

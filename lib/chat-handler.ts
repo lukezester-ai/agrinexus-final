@@ -1,5 +1,6 @@
 import type { ChatPersona } from './chat-persona';
 import { parseChatPersona } from './chat-persona.js';
+import { buildDocDiscoveryRagContextForChat } from './doc-discovery-chat-rag.js';
 import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing.js';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
@@ -48,6 +49,7 @@ function systemPrompt(
   dealContext: string,
   farmerContext: string,
   persona: ChatPersona,
+  ragBlock: string,
 ): string {
   const deals = truncate(dealContext, MAX_CONTEXT_CHARS);
   const farm = farmerContext.trim()
@@ -63,6 +65,13 @@ function systemPrompt(
 
   const mode = personaDirective(locale, persona);
 
+  const ragTail =
+    ragBlock.trim().length > 0
+      ? locale === 'bg'
+        ? '\n5) **Retrieval** — по-долу има блок RETRIEVAL SNAPSHOTS: приоритет към тези линкове за официална насоченост; в полето source кажи кои URL са информирали отговора; не преписвай „съдържание“, което не виждаш.'
+        : '\n5) **Retrieval** — RETRIEVAL SNAPSHOTS appear below: prioritize those links for official orientation; state which URLs informed your answer in source; do not quote unseen page bodies.'
+      : '';
+
   return `You are AgriNexus — the **farmer operating system** assistant. You are NOT three separate chatbots. You combine legal clarity, agronomic practice, and farm economics so documentation stays the spine of the answer.
 
 ${langRule}
@@ -74,7 +83,7 @@ Priority (all modes):
 1) **Documentation / DAFS / ISUN** — what to file, by when, what proves it; never replace official portals (dfz.bg, ISUN) or qualified advisers.
 2) **Legal** — translate regulation into plain language; explicit "must / must not" where reasonable; flag sanction or inspection risk.
 3) **Agronomy** — link real operations to paperwork (e.g. if user sprays X → what to record, what to declare, retention).
-4) **Finance & market** — subsidies, taxes, fixed costs, "is this scheme worth it", trade/logistics — after doc obligations are clear, or in a clearly separated paragraph if the user only asks markets.
+4) **Finance & market** — subsidies, taxes, fixed costs, "is this scheme worth it", trade/logistics — after doc obligations are clear, or in a clearly separated paragraph if the user only asks markets.${ragTail}
 
 Scope:
 - **In scope**: EU–MENA trade using marketplace snapshot below; Bulgarian (and generic EU) farmer compliance, subsidies, field records, when tied to the farmer snapshot or user question.
@@ -96,7 +105,8 @@ Marketplace / trade context (filtered deals — demo):
 ${deals}
 
 Farmer documentation snapshot:
-${farm}`;
+${farm}
+${ragBlock.trim() ? `\n\n${ragBlock.trim()}\n` : ''}`;
 }
 
 type ChatModelEnvelope = {
@@ -360,13 +370,21 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     return { ok: false, status: 400, error: 'No valid messages' };
   }
 
+  const lastUserTurn = [...cleaned].reverse().find((m) => m.role === 'user');
+  const ragBlock = lastUserTurn
+    ? await buildDocDiscoveryRagContextForChat(lastUserTurn.content, locale)
+    : '';
+
   const { provider, completionUrl, bearer, model, useJsonObjectFormat } = upstream;
 
   const temperature = Number(process.env.OPENAI_TEMPERATURE ?? 0.35);
   const safeTemp = Number.isFinite(temperature) ? Math.min(1.2, Math.max(0, temperature)) : 0.35;
 
   const chatMessages = [
-    { role: 'system' as const, content: systemPrompt(locale, dealContext, farmerContext, persona) },
+    {
+      role: 'system' as const,
+      content: systemPrompt(locale, dealContext, farmerContext, persona, ragBlock),
+    },
     ...cleaned.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
   ];
 

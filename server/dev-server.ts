@@ -18,6 +18,7 @@ import {
 	handleOperationsHubGet,
 	handleOperationsHubPost,
 } from '../lib/operations-hub-handler';
+import { chatDocDiscoveryRagFeatureEnabled } from '../lib/doc-discovery-chat-rag';
 import { handleDocDiscoveryCronRequest } from '../lib/doc-discovery-cron-handler';
 import { handleDocDiscoverySearchRequest } from '../lib/doc-discovery-search-handler';
 
@@ -160,6 +161,7 @@ const server = http.createServer(async (req, res) => {
           mistralConfigured: isMistralConfigured(),
           ollamaConfigured: isOllamaConfigured(),
           llmConfigured: isChatLlmConfigured(),
+          chatDocDiscoveryRag: chatDocDiscoveryRagFeatureEnabled(),
         });
         return;
       }
