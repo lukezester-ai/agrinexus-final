@@ -4,7 +4,8 @@ export const MISTRAL_CHAT_COMPLETIONS_URL = 'https://api.mistral.ai/v1/chat/comp
 /** Ключ от https://console.mistral.ai — облачен EU доставчик, OpenAI-съвместим чат API. */
 export function readMistralApiKey(): string {
 	let k = process.env.MISTRAL_API_KEY ?? '';
-	k = k.replace(/^\uFEFF/, '').trim();
+	k = k.replace(/^\uFEFF/, '').replace(/[\u200B-\u200D\uFEFF]/g, '');
+	k = k.replace(/\u00A0/g, ' ').trim();
 	if ((k.startsWith('"') && k.endsWith('"')) || (k.startsWith("'") && k.endsWith("'"))) {
 		k = k.slice(1, -1).trim();
 	}

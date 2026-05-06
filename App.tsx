@@ -587,8 +587,8 @@ async function apiChat(
 				if (looksLikeHtml || (!ct.includes('json') && !trimmed.startsWith('{'))) {
 					throw new Error(
 						locale === 'bg'
-							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ — очаква се JSON с „llmConfigured“. Във Vercel: OPENAI_API_KEY за Production (локален Ollama не се вижда от Vercel); Logs → Functions.`
-							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat — expect JSON with llmConfigured. On Vercel set OPENAI_API_KEY for Production (hosted servers cannot reach your PC's Ollama); check Functions logs.`
+							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ — очаква се JSON с llmConfigured / mistralConfigured. Във Vercel: задайте MISTRAL_API_KEY или OPENAI_API_KEY за Production, проверете че проектът деплойва папка api/ и домейнът сочи същия проект; Logs → Functions.`
+							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat — expect JSON with llmConfigured / mistralConfigured. On Vercel set MISTRAL_API_KEY or OPENAI_API_KEY for Production, ensure this deployment includes the api/ folder and the domain targets this project; check Functions logs.`
 					);
 				}
 				try {
@@ -758,6 +758,11 @@ export default function App() {
 		}
 	}, [view]);
 	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
+
+	const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+	const isLikelyLocalDev =
+		typeof window !== 'undefined' &&
+		(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 	useEffect(() => {
 		document.documentElement.lang = lang === 'bg' ? 'bg' : 'en';
@@ -3723,8 +3728,12 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									`Временен проблем при /api/chat (локално). Провери в нов таб http://localhost:5173/api/chat — ако върне JSON с "ok": true, API е наред и е нужно само Ctrl+F5. Ако не върне, стартирай npm run dev (не само dev:vite).`,
-									`Temporary local issue calling /api/chat. Check http://localhost:5173/api/chat in a new tab — if it returns JSON with "ok": true, the API is healthy and you only need Ctrl+F5. If it does not, run npm run dev (not dev:vite alone).`
+									isLikelyLocalDev
+										? `Временен проблем при /api/chat. В нов таб отвори ${browserOrigin || 'http://localhost:5173'}/api/chat — очаква се JSON с "ok": true. Ако не върне, стартирай npm run dev (не само dev:vite) и опитай Ctrl+F5.`
+										: `Няма връзка до /api/chat от ${browserOrigin || 'този сайт'}. В нов таб отвори ${browserOrigin}/api/chat — очаква се JSON с "ok": true и mistralConfigured (или друг LLM). На Vercel: домейнът да сочи същия проект, Environment Variables → Production → MISTRAL_API_KEY, после Redeploy; Logs → Functions при грешка.`,
+									isLikelyLocalDev
+										? `Temporary issue calling /api/chat. Open ${browserOrigin || 'http://localhost:5173'}/api/chat in a new tab — expect JSON with "ok": true. If not, run npm run dev (not dev:vite alone) and try Ctrl+F5.`
+										: `Cannot reach /api/chat from ${browserOrigin || 'this origin'}. Open ${browserOrigin}/api/chat — expect JSON with "ok": true and mistralConfigured (or another LLM). On Vercel: point the domain at this project, set Production env MISTRAL_API_KEY (or OPENAI_API_KEY), Redeploy; check Functions logs on failure.`
 								)}
 							</p>
 						</div>
