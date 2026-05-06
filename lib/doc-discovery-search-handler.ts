@@ -1,5 +1,8 @@
-import { embedTextsOpenAI, readOpenAiEmbeddingModel } from './ml/embeddings-openai.js';
-import { isOpenAiConfigured } from './openai-api-key.js';
+import {
+	discoveryEmbeddingsConfigured,
+	embedTextsForDiscovery,
+	resolveDiscoveryEmbedProvider,
+} from './ml/embeddings-discovery.js';
 import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
 import { rerankSemanticResultsDl } from './doc-discovery/dl-rerank.js';
 
@@ -51,12 +54,20 @@ export async function handleDocDiscoverySearchRequest(opts: {
 		};
 	}
 
-	if (!isOpenAiConfigured()) {
+	if (!discoveryEmbeddingsConfigured()) {
+		const forced = process.env.DOC_DISCOVERY_EMBEDDINGS?.trim().toLowerCase();
+		const hint =
+			forced === 'openai'
+				? 'Зададено е DOC_DISCOVERY_EMBEDDINGS=openai — нужен е OPENAI_API_KEY или премахни override и ползвай MISTRAL_API_KEY.'
+				: forced === 'mistral'
+					? 'Зададено е DOC_DISCOVERY_EMBEDDINGS=mistral — нужен е MISTRAL_API_KEY.'
+					: 'Задай MISTRAL_API_KEY (препоръчително) или OPENAI_API_KEY; pgvector таблицата трябва да е със същата размерност (виж .env.example).';
 		return {
 			status: 503,
 			body: {
 				ok: false,
-				error: 'OPENAI_API_KEY липсва — нужен е за embedding модела (семантично търсене).',
+				error: 'Няма конфигуриран доставчик за embeddings (семантично търсене).',
+				hint,
 			},
 		};
 	}
@@ -65,7 +76,8 @@ export async function handleDocDiscoverySearchRequest(opts: {
 	const dlRerankEnabled = parseFlag(opts.queryParams.get('dl')) || process.env.DOC_DISCOVERY_DL_RERANK === '1';
 
 	try {
-		const [queryEmbedding] = await embedTextsOpenAI([q]);
+		const { vectors, model: embedModel } = await embedTextsForDiscovery([q]);
+		const queryEmbedding = vectors[0]!;
 		const res = await searchDiscoveryEmbeddings(queryEmbedding, limit);
 		if (!res.ok) {
 			return {
@@ -73,7 +85,8 @@ export async function handleDocDiscoverySearchRequest(opts: {
 				body: {
 					ok: false,
 					error: res.error,
-					hint: 'Пусни supabase-doc-discovery-vectors.sql и провери таблицата + функцията match_doc_discovery_embeddings.',
+					hint:
+						'Пусни подходящия SQL за pgvector (Mistral: supabase-doc-discovery-vectors-mistral.sql, OpenAI: supabase-doc-discovery-vectors.sql) и провери match_doc_discovery_embeddings.',
 				},
 			};
 		}
@@ -86,7 +99,8 @@ export async function handleDocDiscoverySearchRequest(opts: {
 			body: {
 				ok: true,
 				kind: 'semantic_ml',
-				model: readOpenAiEmbeddingModel(),
+				embedProvider: resolveDiscoveryEmbedProvider(),
+				model: embedModel,
 				query: q,
 				limit,
 				results,

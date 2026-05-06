@@ -1,7 +1,8 @@
--- Семантично търсене (истински ML компонент): OpenAI embeddings + pgvector.
+-- Семантично търсене: OpenAI embeddings + pgvector (1536 dim).
+-- За Mistral (mistral-embed, 1024 dim) използвай supabase-doc-discovery-vectors-mistral.sql — не двете наведнъж.
 -- Изпълни в Supabase SQL Editor след supabase-doc-discovery.sql (state таблицата).
--- Изисква OPENAI_API_KEY на сървъра и DOC_DISCOVERY_ML_INDEX=1 за автоматично пълнене при cron.
--- vector(1536) съответства на text-embedding-3-small (по подразбиране). При друг модел смени размерността!
+-- DOC_DISCOVERY_ML_INDEX=1 за автоматично пълнене при cron; доставчикът за embeddings се избира в кода (Mistral приоритет при MISTRAL_API_KEY).
+-- vector(1536) = text-embedding-3-small (по подразбиране).
 
 create extension if not exists vector;
 

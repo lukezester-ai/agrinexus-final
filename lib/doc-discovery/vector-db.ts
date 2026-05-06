@@ -12,7 +12,7 @@ export type VectorSearchRow = {
 
 /**
  * Upsert на документни записи с embedding (pgvector).
- * Очаква колона `embedding vector(1536)` и модел text-embedding-3-small (или същото измерение).
+ * Размерността на колоната трябва да съвпада с доставчика: OpenAI text-embedding-3-small → vector(1536), Mistral mistral-embed → vector(1024).
  */
 export async function upsertDiscoveryEmbeddings(
 	rows: Array<{
