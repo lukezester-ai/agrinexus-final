@@ -24,6 +24,7 @@ config();
 const r = await sendInboundNotification({
 	subject: '[AgriNexus smoke] тестова поща',
 	html: '<p>Smoke test от <code>scripts/smoke-mail.ts</code></p>',
+	text: 'Smoke test от scripts/smoke-mail.ts',
 });
 
 if (r.status === 'sent') {

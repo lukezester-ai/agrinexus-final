@@ -15,14 +15,6 @@ import { handleDocumentExplainPost } from '../lib/document-explain-handler';
 import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
 import { getPlatformPayload } from '../lib/infra/platform-layers';
 import {
-	handleTransportDirectoryGet,
-	handleTransportDirectoryPost,
-} from '../lib/transport-directory-handler';
-import {
-	handleEquipmentRentalGet,
-	handleEquipmentRentalPost,
-} from '../lib/equipment-rental-handler';
-import {
 	handleOperationsHubGet,
 	handleOperationsHubPost,
 } from '../lib/operations-hub-handler';
@@ -56,6 +48,7 @@ function mergeDotEnvWithoutBom(): void {
 		apply('SMTP_FROM');
 		apply('SMTP_HOST');
 		apply('SMTP_PORT');
+		apply('SMTP_SECURE');
 		apply('SMTP_USER');
 		apply('SMTP_PASS');
 	} catch {
@@ -120,8 +113,6 @@ http
             { path: '/api/upload-sign', methods: ['POST'] },
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
-            { path: '/api/transport-directory', methods: ['GET', 'POST'] },
-            { path: '/api/equipment-rental', methods: ['GET', 'POST'] },
             { path: '/api/operations-hub', methods: ['GET', 'POST'] },
           ],
         });
@@ -130,48 +121,6 @@ http
 
       if (path === '/api/platform' && req.method === 'GET') {
         send(res, 200, getPlatformPayload());
-        return;
-      }
-
-      if (path === '/api/transport-directory' && req.method === 'GET') {
-        const r = await handleTransportDirectoryGet();
-        send(res, 200, r);
-        return;
-      }
-
-      if (path === '/api/transport-directory' && req.method === 'POST') {
-        const body = await readJson(req);
-        if (body === null) {
-          send(res, 400, { error: 'Invalid JSON' });
-          return;
-        }
-        const result = await handleTransportDirectoryPost(body);
-        if (result.ok) {
-          send(res, 200, { ok: true, company: result.company });
-          return;
-        }
-        send(res, result.status, { ok: false, error: result.error });
-        return;
-      }
-
-      if (path === '/api/equipment-rental' && req.method === 'GET') {
-        const r = await handleEquipmentRentalGet();
-        send(res, 200, r);
-        return;
-      }
-
-      if (path === '/api/equipment-rental' && req.method === 'POST') {
-        const body = await readJson(req);
-        if (body === null) {
-          send(res, 400, { error: 'Invalid JSON' });
-          return;
-        }
-        const result = await handleEquipmentRentalPost(body);
-        if (result.ok) {
-          send(res, 200, { ok: true, company: result.company });
-          return;
-        }
-        send(res, result.status, { ok: false, error: result.error });
         return;
       }
 

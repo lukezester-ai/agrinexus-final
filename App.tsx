@@ -23,10 +23,8 @@ import {
 	Search,
 	Send,
 	Shield,
-	Truck,
 	UserPlus,
 	Users,
-	Wrench,
 	X,
 } from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
@@ -37,8 +35,6 @@ import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
-import { TransportDirectoryView } from './components/TransportDirectoryView';
-import { EquipmentRentalDirectoryView } from './components/EquipmentRentalDirectoryView';
 import { OperationsHubView } from './components/OperationsHubView';
 import {
 	cycleUiLang,
@@ -60,6 +56,7 @@ import {
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 import type { FarmProductionFocus } from './lib/subsidy-calculator';
 import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
+import { useSupabaseSession } from './hooks/use-supabase-session';
 
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
@@ -313,21 +310,13 @@ type View =
 	| 'season-calendar'
 	| 'trade-documents'
 	| 'crop-statistics'
-	| 'transport-directory'
-	| 'equipment-rental'
 	| 'food-security'
 	| 'command'
 	| 'file-upload';
 
-const TRADING_VIEWS = new Set<View>(['market', 'crop-statistics']);
+const TRADING_VIEWS = new Set<View>(['market', 'crop-statistics', 'trade-documents']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar']);
-const LOGISTICS_VIEWS = new Set<View>([
-	'trade-documents',
-	'transport-directory',
-	'equipment-rental',
-	'food-security',
-	'file-upload',
-]);
+const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
 type ClientProfile = {
 	id: string;
@@ -696,6 +685,7 @@ function MobileNavLabel({ text, hint }: { text: string; hint?: string }) {
 }
 
 export default function App() {
+	const { user: supabaseUser } = useSupabaseSession();
 	const [view, setView] = useState<View>('landing');
 	const [navMenuOpen, setNavMenuOpen] = useState<'markets' | 'farm' | 'logistics' | null>(null);
 	const [mobileNavExpand, setMobileNavExpand] = useState<'markets' | 'farm' | 'logistics' | null>(
@@ -822,20 +812,22 @@ export default function App() {
 		const e = safeLocalGet('agrinexus-demo-email');
 		return e?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) ? e.trim() : null;
 	}, [sessionTick]);
+	const cloudAccountEmail = useMemo(() => {
+		const e = supabaseUser?.email?.trim() ?? '';
+		return e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
+	}, [supabaseUser?.email]);
+	/** Имейл за идентификация към /api/document-explain: демо localStorage или реален Supabase потребител. */
+	const identityEmailForAi = demoSessionEmail ?? cloudAccountEmail;
 	const [chatHealth, setChatHealth] = useState<'idle' | 'ready' | 'no_key' | 'offline'>('idle');
-	/** Микрофон и снимка на документ: при конфигуриран LLM не изискват демо вход. */
+	/** Микрофон и снимка на документ: LLM на сървъра ИЛИ регистриран/влязъл потребител (облак или демо имейл). */
 	const mediaAiUnlocked = useMemo(
-		() => chatHealth === 'ready' || Boolean(demoSessionEmail),
-		[chatHealth, demoSessionEmail],
+		() => chatHealth === 'ready' || Boolean(identityEmailForAi),
+		[chatHealth, identityEmailForAi],
 	);
 
 	const [regFullName, setRegFullName] = useState('');
-	const [regCompany, setRegCompany] = useState('');
 	const [regEmail, setRegEmail] = useState('');
 	const [regPassword, setRegPassword] = useState('');
-	const [regMarket, setRegMarket] = useState('');
-	const [regPhone, setRegPhone] = useState('');
-	const [regSubscribe, setRegSubscribe] = useState(true);
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
 
@@ -874,42 +866,18 @@ export default function App() {
 		() => safeLocalGet('agrinexus-alerts-muted') === '1'
 	);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-	const formatPhoneInput = (value: string) => {
-		const digitsOnly = value.replace(/\D/g, '');
-		if (!digitsOnly) return '';
-		return `+${digitsOnly}`.slice(0, 16);
-	};
-	const isValidPhoneInput = (value: string) => {
-		const normalized = formatPhoneInput(value);
-		if (!normalized) return true;
-		return /^\+[1-9]\d{7,14}$/.test(normalized);
-	};
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
 	const regPasswordOkForCloud = regPassword.length >= 6;
 	const canSubmitRegister =
-		regFullName.trim().length > 1 &&
-		regCompany.trim().length > 1 &&
-		isValidEmail(regEmail) &&
-		isValidPhoneInput(regPhone) &&
-		regMarket.trim().length > 1 &&
-		(!supabaseRegisterEnabled || regPasswordOkForCloud);
+		isValidEmail(regEmail) && (!supabaseRegisterEnabled || regPasswordOkForCloud);
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
 	const showRegisterPasswordError =
 		supabaseRegisterEnabled && regPassword.length > 0 && !regPasswordOkForCloud;
 	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
-	const showRegisterPhoneError = regPhone.trim().length > 0 && !isValidPhoneInput(regPhone);
 	const invalidEmailText =
 		lang === 'bg'
 			? 'Моля, въведи валиден имейл адрес.'
 			: 'Please enter a valid email address.';
-	const invalidPhoneText =
-		lang === 'bg'
-			? 'Моля, въведи телефон в E.164 формат (напр. +359881234567).'
-			: 'Please enter phone in E.164 format (e.g. +359881234567).';
-	const phoneHelperText =
-		lang === 'bg'
-			? 'Използвай международен код и само цифри (формат E.164).'
-			: 'Use country code and digits only (E.164 format).';
 
 	const demoDeals = useMemo(() => {
 		const products = [
@@ -1535,8 +1503,8 @@ export default function App() {
 		if (!mediaAiUnlocked) {
 			setAssistantNotice(
 				lang === 'bg'
-					? 'Микрофонът е достъпен след конфигуриран LLM на сървъра (виж /api/chat) или след вход с имейл (демо).'
-					: 'Microphone is available once a server LLM is configured (see /api/chat) or after demo Sign In with email.'
+					? 'Микрофонът е достъпен след конфигуриран LLM на сървъра, след регистрация и вход с облачен акаунт, или след демо вход с имейл.'
+					: 'Microphone unlocks when a server LLM is configured, after you register and sign in with your cloud account, or after demo sign-in with email.'
 			);
 			return;
 		}
@@ -1601,8 +1569,8 @@ export default function App() {
 			if (!mediaAiUnlocked) {
 				setAssistantNotice(
 					lang === 'bg'
-						? 'Обяснение на снимка: нужен е LLM на сървъра или вход с имейл (демо).'
-						: 'Document photo: configure a server LLM or use demo Sign In with email.'
+						? 'Обяснение на снимка: нужен е LLM на сървъра, или регистрация и облачен вход, или демо вход с имейл.'
+						: 'Document photo: configure a server LLM, or register and use cloud sign-in, or demo email sign-in.'
 				);
 				return;
 			}
@@ -1635,7 +1603,7 @@ export default function App() {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
-							...(demoSessionEmail ? { sessionEmail: demoSessionEmail } : {}),
+							...(identityEmailForAi ? { sessionEmail: identityEmailForAi } : {}),
 							locale: lang,
 							imageBase64: b64,
 							mimeType: file.type || 'image/jpeg',
@@ -1674,7 +1642,7 @@ export default function App() {
 			};
 			reader.readAsDataURL(file);
 		},
-		[mediaAiUnlocked, demoSessionEmail, docExplainLoading, lang, chatInput]
+		[mediaAiUnlocked, identityEmailForAi, docExplainLoading, lang, chatInput]
 	);
 
 	useEffect(() => {
@@ -1769,11 +1737,6 @@ export default function App() {
 			);
 			return;
 		}
-		if (!isValidPhoneInput(regPhone)) {
-			setRegStatus('err');
-			setRegMsg(invalidPhoneText);
-			return;
-		}
 		setRegStatus('loading');
 		setRegMsg('');
 		try {
@@ -1781,12 +1744,13 @@ export default function App() {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					fullName: regFullName,
-					companyName: regCompany,
+					fullName: regFullName.trim(),
+					companyName: '',
 					businessEmail: regEmail,
-					phone: formatPhoneInput(regPhone),
-					marketFocus: regMarket,
-					subscribeAlerts: regSubscribe,
+					phone: '',
+					marketFocus: '',
+					subscribeAlerts: false,
+					locale: lang === 'bg' ? 'bg' : 'en',
 				}),
 			});
 			let data: {
@@ -1815,16 +1779,17 @@ export default function App() {
 			let cloudAuthMsg: string | null = null;
 			if (supabaseClient) {
 				const redirect = `${window.location.origin}${window.location.pathname}`;
+				const display =
+					regFullName.trim().length >= 2
+						? regFullName.trim()
+						: regEmail.trim().split('@')[0] || '';
 				const { data: signUpData, error } = await supabaseClient.auth.signUp({
 					email: regEmail.trim(),
 					password: regPassword,
 					options: {
 						emailRedirectTo: redirect,
 						data: {
-							full_name: regFullName.trim(),
-							company_name: regCompany.trim(),
-							market_focus: regMarket.trim(),
-							...(formatPhoneInput(regPhone) ? { phone: formatPhoneInput(regPhone) } : {}),
+							full_name: display,
 						},
 					},
 				});
@@ -1846,8 +1811,8 @@ export default function App() {
 			} else {
 				setRegMsg(
 					lang === 'bg'
-						? 'Изпратено до info@agrinexus.eu — очаквайте потвърждение на имейла ви.'
-						: 'Sent to info@agrinexus.eu — please expect a confirmation by email.'
+						? 'Заявката е изпратена към екипа — очаквайте потвърждение на посочения имейл.'
+						: 'Your request was sent to our team — please expect a confirmation at the email you provided.'
 				);
 			}
 			if (cloudAuthMsg) {
@@ -1882,6 +1847,7 @@ export default function App() {
 					email: contactEmail,
 					company: contactCompany,
 					message: contactBody,
+					locale: lang === 'bg' ? 'bg' : 'en',
 				}),
 			});
 			let data: {
@@ -1914,8 +1880,8 @@ export default function App() {
 			} else {
 				setContactFeedback(
 					lang === 'bg'
-						? 'Съобщението е изпратено. Отговорът идва от info@agrinexus.eu.'
-						: 'Message sent. A reply will come from info@agrinexus.eu.'
+						? 'Съобщението е изпратено към екипа — очаквайте отговор на посочения имейл.'
+						: 'Your message was sent to our team — expect a reply at the email you provided.'
 				);
 			}
 			setContactBody('');
@@ -2957,6 +2923,16 @@ export default function App() {
 									}}>
 									<BarChart3 size={14} aria-hidden /> {tr.navCropStatistics}
 								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'trade-documents' ? 'active' : ''}`}
+									onClick={() => {
+										setView('trade-documents');
+										setNavMenuOpen(null);
+									}}>
+									<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
+								</button>
 							</div>
 						)}
 					</div>
@@ -3026,36 +3002,6 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
-									className={`nav-dropdown-item ${view === 'file-upload' ? 'active' : ''}`}
-									onClick={() => {
-										setView('file-upload');
-										setNavMenuOpen(null);
-									}}>
-									<FileUp size={14} aria-hidden /> {tr.portalLogisticsSubFileUpload}
-								</button>
-								<button
-									type="button"
-									role="menuitem"
-									className={`nav-dropdown-item ${view === 'trade-documents' ? 'active' : ''}`}
-									onClick={() => {
-										setView('trade-documents');
-										setNavMenuOpen(null);
-									}}>
-									<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
-								</button>
-								<button
-									type="button"
-									role="menuitem"
-									className={`nav-dropdown-item ${view === 'transport-directory' ? 'active' : ''}`}
-									onClick={() => {
-										setView('transport-directory');
-										setNavMenuOpen(null);
-									}}>
-									<Truck size={14} aria-hidden /> {tr.navTransportDirectory}
-								</button>
-								<button
-									type="button"
-									role="menuitem"
 									className={`nav-dropdown-item ${view === 'food-security' ? 'active' : ''}`}
 									onClick={() => {
 										setView('food-security');
@@ -3066,12 +3012,12 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
-									className={`nav-dropdown-item ${view === 'equipment-rental' ? 'active' : ''}`}
+									className={`nav-dropdown-item ${view === 'file-upload' ? 'active' : ''}`}
 									onClick={() => {
-										setView('equipment-rental');
+										setView('file-upload');
 										setNavMenuOpen(null);
 									}}>
-									<Wrench size={14} aria-hidden /> {tr.navEquipmentRental}
+									<FileUp size={14} aria-hidden /> {tr.portalLogisticsSubFileUpload}
 								</button>
 							</div>
 						)}
@@ -3766,16 +3712,8 @@ export default function App() {
 					<p className="muted">{tr.registerSubtitle}</p>
 					<div className="form-grid">
 						<input
-							placeholder={tr.fullNamePh}
-							value={regFullName}
-							onChange={e => setRegFullName(e.target.value)}
-						/>
-						<input
-							placeholder={tr.companyNamePh}
-							value={regCompany}
-							onChange={e => setRegCompany(e.target.value)}
-						/>
-						<input
+							type="email"
+							autoComplete="email"
 							placeholder={tr.businessEmailPh}
 							value={regEmail}
 							onChange={e => setRegEmail(e.target.value)}
@@ -3792,81 +3730,42 @@ export default function App() {
 							</p>
 						)}
 						<input
-							placeholder={tr.passwordPh}
-							type="password"
-							autoComplete="new-password"
-							value={regPassword}
-							onChange={e => setRegPassword(e.target.value)}
+							placeholder={tr.fullNamePh}
+							value={regFullName}
+							onChange={e => setRegFullName(e.target.value)}
+							autoComplete="name"
 						/>
-						<select value={regMarket} onChange={e => setRegMarket(e.target.value)}>
-							<option value="" disabled>
-								{tr.marketFocusPh}
-							</option>
-							<option value="Europe">{tr.marketEurope}</option>
-							<option value="MENA">{tr.marketMena}</option>
-							<option value="Both">{tr.marketBoth}</option>
-						</select>
 						{supabaseRegisterEnabled ? (
-							<p
-								className="muted"
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									fontSize: '.82rem',
-								}}>
-								{tr.registerPasswordCloudHint}
-							</p>
+							<>
+								<input
+									placeholder={tr.passwordPh}
+									type="password"
+									autoComplete="new-password"
+									value={regPassword}
+									onChange={e => setRegPassword(e.target.value)}
+								/>
+								<p
+									className="muted"
+									style={{
+										gridColumn: '1 / -1',
+										margin: '-6px 0 0',
+										fontSize: '.82rem',
+									}}>
+									{tr.registerPasswordCloudHint}
+								</p>
+								{showRegisterPasswordError ? (
+									<p
+										style={{
+											gridColumn: '1 / -1',
+											margin: '-6px 0 0',
+											color: '#f87171',
+											fontSize: '.84rem',
+										}}>
+										{tr.registerPasswordTooShort}
+									</p>
+								) : null}
+							</>
 						) : null}
-						{showRegisterPasswordError ? (
-							<p
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									color: '#f87171',
-									fontSize: '.84rem',
-								}}>
-								{tr.registerPasswordTooShort}
-							</p>
-						) : null}
-						<input
-							placeholder={tr.phonePh}
-							value={regPhone}
-							inputMode="tel"
-							autoComplete="tel"
-							maxLength={16}
-							onChange={e => setRegPhone(formatPhoneInput(e.target.value))}
-						/>
-						<p
-							className="muted"
-							style={{
-								gridColumn: '1 / -1',
-								margin: '-6px 0 0',
-								fontSize: '.82rem',
-							}}>
-							{phoneHelperText}
-						</p>
-						{showRegisterPhoneError && (
-							<p
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									color: '#f87171',
-									fontSize: '.84rem',
-								}}>
-								{invalidPhoneText}
-							</p>
-						)}
-					</div>
-					<div style={{ marginTop: 10 }}>
-						<label className="muted" style={{ fontSize: '.92rem' }}>
-							<input
-								type="checkbox"
-								checked={regSubscribe}
-								style={{ marginRight: 8 }}
-								onChange={e => setRegSubscribe(e.target.checked)}
-							/>
-							{tr.agreeUpdates}
-						</label>
 					</div>
 					<div
 						style={{
@@ -4002,11 +3901,6 @@ export default function App() {
 				/>
 			)}
 			{view === 'food-security' && <FoodSecurityBreakEvenView lang={lang} tr={tr} />}
-
-			{view === 'transport-directory' && (
-				<TransportDirectoryView tr={tr} onOpenFoodSecurity={() => setView('food-security')} />
-			)}
-			{view === 'equipment-rental' && <EquipmentRentalDirectoryView tr={tr} />}
 
 			{view === 'file-upload' && (
 				<section className="section">
@@ -4300,6 +4194,17 @@ export default function App() {
 								<BarChart3 size={16} aria-hidden />
 								<MobileNavLabel text={tr.navCropStatisticsShort} hint={tr.navCropStatistics} />
 							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}
+								aria-label={tr.navTradeDocuments}
+								onClick={() => {
+									setView('trade-documents');
+									setMobileNavExpand(null);
+								}}>
+								<FileText size={16} aria-hidden />
+								<MobileNavLabel text={tr.navTradeDocumentsShort} hint={tr.navTradeDocuments} />
+							</button>
 						</div>
 					)}
 					<div className="mobile-nav-row tools">
@@ -4367,42 +4272,6 @@ export default function App() {
 						<div className="mobile-nav-subrow cols-2">
 							<button
 								type="button"
-								className={`mobile-nav-btn ${view === 'file-upload' ? 'active' : ''}`}
-								aria-label={tr.portalLogisticsSubFileUpload}
-								onClick={() => {
-									setView('file-upload');
-									setMobileNavExpand(null);
-								}}>
-								<FileUp size={16} aria-hidden />
-								<MobileNavLabel
-									text={tr.navFileUploadShort}
-									hint={tr.portalLogisticsSubFileUpload}
-								/>
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'trade-documents' ? 'active' : ''}`}
-								aria-label={tr.navTradeDocuments}
-								onClick={() => {
-									setView('trade-documents');
-									setMobileNavExpand(null);
-								}}>
-								<FileText size={16} aria-hidden />
-								<MobileNavLabel text={tr.navTradeDocumentsShort} hint={tr.navTradeDocuments} />
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'transport-directory' ? 'active' : ''}`}
-								aria-label={tr.navTransportDirectory}
-								onClick={() => {
-									setView('transport-directory');
-									setMobileNavExpand(null);
-								}}>
-								<Truck size={16} aria-hidden />
-								<MobileNavLabel text={tr.navTransportShort} hint={tr.navTransportDirectory} />
-							</button>
-							<button
-								type="button"
 								className={`mobile-nav-btn ${view === 'food-security' ? 'active' : ''}`}
 								aria-label={tr.navFoodSecurity}
 								onClick={() => {
@@ -4414,14 +4283,17 @@ export default function App() {
 							</button>
 							<button
 								type="button"
-								className={`mobile-nav-btn ${view === 'equipment-rental' ? 'active' : ''}`}
-								aria-label={tr.navEquipmentRental}
+								className={`mobile-nav-btn ${view === 'file-upload' ? 'active' : ''}`}
+								aria-label={tr.portalLogisticsSubFileUpload}
 								onClick={() => {
-									setView('equipment-rental');
+									setView('file-upload');
 									setMobileNavExpand(null);
 								}}>
-								<Wrench size={16} aria-hidden />
-								<MobileNavLabel text={tr.navEquipmentRentalShort} hint={tr.navEquipmentRental} />
+								<FileUp size={16} aria-hidden />
+								<MobileNavLabel
+									text={tr.navFileUploadShort}
+									hint={tr.portalLogisticsSubFileUpload}
+								/>
 							</button>
 						</div>
 					)}

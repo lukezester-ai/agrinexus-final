@@ -2,7 +2,12 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
   buildContactEmailHtml,
+  buildContactEmailText,
   buildRegisterEmailHtml,
+  buildRegisterEmailText,
+  contactNotificationSubject,
+  parseMailLocale,
+  registerNotificationSubject,
   sendInboundNotification,
 } from './email.js';
 
@@ -37,6 +42,7 @@ export async function handleContactPost(
   const message = typeof b.message === 'string' ? b.message.trim() : '';
   const name = typeof b.name === 'string' ? b.name.trim() : '';
   const company = typeof b.company === 'string' ? b.company.trim() : '';
+  const locale = parseMailLocale(b.locale);
 
   if (!email || !EMAIL_RE.test(email)) {
     return { ok: false, status: 400, error: 'Valid email is required', hint: 'Provide a valid business email.' };
@@ -50,10 +56,12 @@ export async function handleContactPost(
 
   await maybeAppendJsonl({ type: 'contact', name, email, company, messagePreview: message.slice(0, 280) });
 
-  const html = buildContactEmailHtml({ name, email, company, message });
+  const html = buildContactEmailHtml({ name, email, company, message }, locale);
+  const text = buildContactEmailText({ name, email, company, message }, locale);
   const mail = await sendInboundNotification({
-    subject: `[AgriNexus] Contact · ${name || email}`,
+    subject: contactNotificationSubject(name || email, locale),
     html,
+    text,
     replyTo: email,
   });
   if (mail.status === 'failed') {
@@ -78,48 +86,67 @@ export async function handleRegisterInterestPost(
     return { ok: false, status: 400, error: 'Invalid JSON body' };
   }
   const b = rawBody as Record<string, unknown>;
-  const fullName = typeof b.fullName === 'string' ? b.fullName.trim() : '';
+  const rawFullName = typeof b.fullName === 'string' ? b.fullName.trim() : '';
   const companyName = typeof b.companyName === 'string' ? b.companyName.trim() : '';
   const businessEmail = typeof b.businessEmail === 'string' ? b.businessEmail.trim() : '';
   const phone = typeof b.phone === 'string' ? normalizePhone(b.phone) : '';
   const marketFocus = typeof b.marketFocus === 'string' ? b.marketFocus.trim() : '';
   const subscribeAlerts = Boolean(b.subscribeAlerts);
+  const locale = parseMailLocale(b.locale);
 
-  if (!fullName || fullName.length < 2) {
-    return { ok: false, status: 400, error: 'Full name required' };
-  }
   if (!businessEmail || !EMAIL_RE.test(businessEmail)) {
     return { ok: false, status: 400, error: 'Valid business email required' };
-  }
-  if (!companyName) {
-    return { ok: false, status: 400, error: 'Company name required' };
   }
   if (phone && !PHONE_RE.test(phone)) {
     return { ok: false, status: 400, error: 'Valid phone required', hint: 'Provide phone in E.164 format, e.g. +359881234567.' };
   }
 
-  const preview = `${fullName} · ${companyName} · ${businessEmail} · ${marketFocus || '—'} · alerts:${subscribeAlerts ? 'yes' : 'no'} · ${phone || 'no phone'}`;
+  const derivedFullName =
+    rawFullName.length >= 2
+      ? rawFullName
+      : (businessEmail.includes('@') ? businessEmail.split('@')[0] : '') || 'User';
+  const resolvedCompany =
+    companyName ||
+    (locale === 'bg' ? 'Не е посочено' : 'Not specified');
+  const resolvedMarket = marketFocus || '—';
+
+  const preview = `${derivedFullName} · ${resolvedCompany} · ${businessEmail} · ${resolvedMarket} · alerts:${subscribeAlerts ? 'yes' : 'no'} · ${phone || 'no phone'}`;
   await maybeAppendJsonl({
     type: 'register-interest',
-    fullName,
-    companyName,
+    fullName: derivedFullName,
+    companyName: resolvedCompany,
     businessEmail,
     phone,
-    marketFocus,
+    marketFocus: resolvedMarket === '—' ? '' : resolvedMarket,
     subscribeAlerts,
   });
 
-  const html = buildRegisterEmailHtml({
-    fullName,
-    companyName,
-    businessEmail,
-    phone,
-    marketFocus,
-    subscribeAlerts,
-  });
+  const html = buildRegisterEmailHtml(
+    {
+      fullName: derivedFullName,
+      companyName: resolvedCompany,
+      businessEmail,
+      phone,
+      marketFocus: resolvedMarket,
+      subscribeAlerts,
+    },
+    locale
+  );
+  const text = buildRegisterEmailText(
+    {
+      fullName: derivedFullName,
+      companyName: resolvedCompany,
+      businessEmail,
+      phone,
+      marketFocus: resolvedMarket,
+      subscribeAlerts,
+    },
+    locale
+  );
   const mail = await sendInboundNotification({
-    subject: `[AgriNexus] Registration · ${companyName}`,
+    subject: registerNotificationSubject(derivedFullName, locale),
     html,
+    text,
     replyTo: businessEmail,
   });
   if (mail.status === 'failed') {

@@ -6,9 +6,8 @@ import {
 	ClipboardList,
 	FileText,
 	LineChart,
+	Shield,
 	StickyNote,
-	Truck,
-	Wrench,
 } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
 import type { OpsHubPersistedV1, OpsTask, OpsTaskColumn } from '../lib/operations-hub-types';
@@ -23,12 +22,11 @@ const LEGACY_NOTES = 'agrinexus-ops-notes';
 
 export type OpsHubNavigate =
 	| 'subsidy-calculator'
-	| 'transport-directory'
-	| 'equipment-rental'
 	| 'crop-statistics'
 	| 'season-calendar'
 	| 'command'
 	| 'trade-documents'
+	| 'food-security'
 	| 'market'
 	| 'assistant'
 	| 'clients'
@@ -79,8 +77,8 @@ function seedTasks(lang: UiLang): OpsTask[] {
 		),
 		mk(
 			'seed-log',
-			'Оферти за транспорт или техника под наем',
-			'Request quotes — freight or equipment rental',
+			'Break-even и покритие за хранителна сигурност',
+			'Food security break-even and staple coverage check',
 			'doing',
 		),
 		mk(
@@ -688,17 +686,9 @@ export function OperationsHubView(props: {
 									type="button"
 									className="deal-chip-btn"
 									style={{ justifyContent: 'flex-start', gap: 10 }}
-									onClick={() => onNavigate('transport-directory')}>
-									<Truck size={17} aria-hidden />
-									{tr.opsLinkTransport}
-								</button>
-								<button
-									type="button"
-									className="deal-chip-btn"
-									style={{ justifyContent: 'flex-start', gap: 10 }}
-									onClick={() => onNavigate('equipment-rental')}>
-									<Wrench size={17} aria-hidden />
-									{tr.opsLinkRental}
+									onClick={() => onNavigate('food-security')}>
+									<Shield size={17} aria-hidden />
+									{tr.opsLinkFoodSecurity}
 								</button>
 								<button
 									type="button"
