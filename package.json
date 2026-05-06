@@ -10,6 +10,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "icons": "node scripts/generate-pwa-icons.mjs",
     "test:mistral": "tsx scripts/smoke-mistral.ts",
     "test:mistral:vision": "tsx scripts/smoke-mistral-vision.ts",
     "test:mail": "tsx scripts/smoke-mail.ts"
@@ -21,7 +22,7 @@
     "@vercel/node": "^5.0.4",
     "@vitejs/plugin-react": "^5.0.4",
     "lucide-react": "0.284.0",
-    "nodemailer": "^6.9.16",
+    "nodemailer": "^8.0.7",
     "pdf-lib": "^1.17.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -31,11 +32,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
-    "@types/nodemailer": "^6.4.17",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "concurrently": "^9.1.2",
     "dotenv": "^16.4.7",
+    "sharp": "^0.34.5",
     "tsx": "^4.19.2"
   }
 }

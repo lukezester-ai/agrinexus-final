@@ -1147,7 +1147,7 @@ export default function App() {
 			return x - Math.floor(x);
 		};
 
-		return Array.from({ length: 240 }, (_, i) => {
+		return Array.from({ length: 30 }, (_, i) => {
 			const product = products[i % products.length];
 			const market = importMarkets[i % importMarkets.length];
 			const base = market.region === 'MENA' ? 13 : 8;
