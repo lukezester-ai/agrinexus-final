@@ -2302,11 +2302,13 @@ export default function App() {
         .landing-hero {
           position: relative;
           isolation: isolate;
-          min-height: clamp(260px, 44vw, 440px);
+          min-height: clamp(380px, 62vw, 720px);
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          padding-top: 0;
+          justify-content: flex-start;
+          padding-top: clamp(18px, 4vw, 40px);
+          padding-bottom: 28px;
         }
         .landing-hero::before {
           content: '';
@@ -2315,7 +2317,7 @@ export default function App() {
           transform: translateX(-50%);
           top: 0;
           width: min(1180px, calc(100% + 48px));
-          height: clamp(260px, 44vw, 440px);
+          height: clamp(420px, 78vw, 820px);
           z-index: 0;
           pointer-events: none;
           border-radius: 0 0 22px 22px;
@@ -2353,6 +2355,98 @@ export default function App() {
         }
         .landing-hero .brand-wordmark .brand-agri { color: #ffffff; }
         .landing-hero .brand-wordmark .brand-nexus { color: #a8d98a; }
+
+        .landing-hero-inner {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          max-width: min(1120px, 100%);
+          padding: 0 14px;
+        }
+        .landing-glass-stack {
+          width: 100%;
+          margin-top: clamp(14px, 3vw, 26px);
+        }
+        .landing-glass-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 14px;
+        }
+        .landing-glass-card {
+          background: rgba(12, 22, 17, 0.36);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.13);
+          border-radius: 18px;
+          padding: 18px 20px 20px;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.06),
+            0 14px 44px rgba(0, 0, 0, 0.34);
+          text-align: left;
+        }
+        .landing-glass-card h2 {
+          margin: 0 0 12px;
+          font-size: clamp(1.05rem, 2vw, 1.22rem);
+          color: var(--accent-text);
+          letter-spacing: -0.02em;
+          line-height: 1.25;
+        }
+        .landing-glass-card p {
+          margin: 0 0 10px;
+          color: rgba(232, 247, 239, 0.9);
+          font-size: 0.9rem;
+          line-height: 1.55;
+        }
+        .landing-glass-card ul {
+          margin: 8px 0 16px;
+          padding-left: 1.15rem;
+          color: rgba(200, 218, 208, 0.93);
+          font-size: 0.84rem;
+          line-height: 1.48;
+        }
+        .landing-glass-card li {
+          margin-bottom: 7px;
+        }
+        .landing-glass-card li:last-child {
+          margin-bottom: 0;
+        }
+        .landing-glass-card .btn {
+          width: 100%;
+          justify-content: center;
+          margin-top: 6px;
+        }
+        .landing-glass-footer {
+          margin-top: 22px;
+          padding: 12px 10px 6px;
+          text-align: center;
+        }
+        .landing-glass-footer p {
+          margin: 0 0 12px;
+          font-size: 0.88rem;
+          color: var(--text-muted);
+          line-height: 1.45;
+        }
+        .landing-glass-mail-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+        }
+        @media (max-width: 820px) {
+          .landing-glass-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .landing-glass-card {
+            backdrop-filter: blur(9px);
+            -webkit-backdrop-filter: blur(9px);
+          }
+        }
+
         .landing-inquiry-strip {
           margin-top: 32px;
           margin-left: -14px;
@@ -3140,10 +3234,61 @@ export default function App() {
 			<main id="main-content" tabIndex={-1}>
 			{view === 'landing' && (
 				<section className="section hero landing-hero">
-					<h1 className="brand-wordmark">
-						<span className="brand-agri">Agri</span>
-						<span className="brand-nexus">Nexus</span>
-					</h1>
+					<div className="landing-hero-inner">
+						<h1 className="brand-wordmark">
+							<span className="brand-agri">Agri</span>
+							<span className="brand-nexus">Nexus</span>
+						</h1>
+						<div className="landing-glass-stack">
+							<div className="landing-glass-grid">
+								<article className="landing-glass-card">
+									<h2>{tr.landingGlassMarketTitle}</h2>
+									<p>{tr.landingGlassMarketP1}</p>
+									<p>{tr.landingGlassMarketP2}</p>
+									<button
+										type="button"
+										className="btn btn-primary"
+										onClick={() => setView('market')}
+										aria-label={tr.landingGlassMarketCta}>
+										<Search size={18} aria-hidden />
+										{tr.landingGlassMarketCta}
+									</button>
+								</article>
+								<article className="landing-glass-card">
+									<h2>{tr.landingGlassIntelTitle}</h2>
+									<p>{tr.landingGlassIntelP1}</p>
+									<p style={{ marginBottom: 6, fontSize: '.84rem', fontWeight: 650, color: 'var(--accent-text)' }}>
+										{tr.landingGlassIntelListIntro}
+									</p>
+									<ul>
+										<li>{tr.landingGlassIntelLi1}</li>
+										<li>{tr.landingGlassIntelLi2}</li>
+										<li>{tr.landingGlassIntelLi3}</li>
+										<li>{tr.landingGlassIntelLi4}</li>
+										<li>{tr.landingGlassIntelLi5}</li>
+									</ul>
+									<button
+										type="button"
+										className="btn btn-primary"
+										onClick={() => setView('market-watch')}
+										aria-label={tr.landingGlassIntelCta}>
+										<LineChart size={18} aria-hidden />
+										{tr.landingGlassIntelCta}
+									</button>
+								</article>
+							</div>
+							<div className="landing-glass-footer">
+								<p>{tr.landingGlassFooterLead}</p>
+								<a
+									className="btn btn-outline landing-glass-mail-btn"
+									href="mailto:info@agrinexus.eu"
+									aria-label={tr.landingGlassEmailAria}>
+									<Mail size={18} aria-hidden />
+									info@agrinexus.eu
+								</a>
+							</div>
+						</div>
+					</div>
 				</section>
 			)}
 

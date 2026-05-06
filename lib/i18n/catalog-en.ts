@@ -46,6 +46,26 @@ export const STR_EN = {
 	landingPortalAria: 'Trade intelligence modules',
 	landingInquiryPlaceholder: 'Ask about trade, certification, logistics…',
 	landingInquiryHint: 'Powered by AI',
+	landingGlassMarketTitle: 'Marketplace & trade orientation',
+	landingGlassMarketP1:
+		'Explore illustrative corridors with BUY/HOLD/AVOID-style signals, filters and ticker views — a structured entry point before you involve your desk or broker.',
+	landingGlassMarketP2:
+		'Figures stay demo-oriented until real feeds are connected; the flows mirror how teams scan opportunities.',
+	landingGlassMarketCta: 'Go to marketplace',
+	landingGlassIntelTitle: 'Statistics, AI & modules',
+	landingGlassIntelP1:
+		'AgriNexus combines analytics screens with assistants grounded in agri-food workflows — numbers first, AI as interpretation where configured.',
+	landingGlassIntelListIntro: 'The workspace includes:',
+	landingGlassIntelLi1:
+		'AI assistant for trade, compliance and agronomic context (orientation only — not investment advice).',
+	landingGlassIntelLi2:
+		'Market Watch — delayed references, rolling statistics and optional Bulgarian AI summaries & clusters.',
+	landingGlassIntelLi3: 'Bulgaria crop statistics and related data views.',
+	landingGlassIntelLi4: 'Subsidy calculator, season calendar, BG trade documents, food-security break-even and more.',
+	landingGlassIntelLi5: 'Operations hub, file uploads and modular navigation across markets & field tools.',
+	landingGlassIntelCta: 'Open market watch',
+	landingGlassFooterLead: 'Commercial inquiries or demos — reach us by email.',
+	landingGlassEmailAria: 'Send email to AgriNexus sales',
 	portalFarmSubCommand: 'Your plan — deadlines & documents',
 	portalLogisticsSubFileUpload: 'Upload files',
 	navFileUploadShort: 'Upload',

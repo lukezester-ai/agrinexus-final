@@ -48,6 +48,26 @@ export const STR_BG = {
 	landingPortalAria: 'Модули за търговска интелигентност',
 	landingInquiryPlaceholder: 'Запитване за търговия, сертификация, логистика…',
 	landingInquiryHint: 'Чрез AI',
+	landingGlassMarketTitle: 'Пазар и търговска логика',
+	landingGlassMarketP1:
+		'Прегледайте илюстративни коридори с ориентация BUY/HOLD/AVOID, филтри и тикер изглед — подредена отправна точка преди брокер или екип.',
+	landingGlassMarketP2:
+		'Числата са демонстрационни, докато не се вържат реални потоци; подредбата следва реални работни навици.',
+	landingGlassMarketCta: 'Към пазара',
+	landingGlassIntelTitle: 'Статистика, AI и модули',
+	landingGlassIntelP1:
+		'Платформата смесва аналитични екрани с асистенти в контекст на агро-хранителната верига — данни на преден план, AI като интерпретация където е конфигуриран.',
+	landingGlassIntelListIntro: 'Включва:',
+	landingGlassIntelLi1:
+		'AI помощник за търговия, съответствие и агрономски контекст (ориентация — не инвестиционен съвет).',
+	landingGlassIntelLi2:
+		'Пазарен надзор — забавени референции, натрупана статистика и по избор AI обобщения и клъстери на български.',
+	landingGlassIntelLi3: 'Статистика за култури (БГ) и свързани данни.',
+	landingGlassIntelLi4: 'Калкулатор субсидии, сезонен календар, документи внос/износ (БГ), break-even по хранителна сигурност и др.',
+	landingGlassIntelLi5: 'Operations hub, качване на файлове и навигация между пазар и поле.',
+	landingGlassIntelCta: 'Към пазарен контрол',
+	landingGlassFooterLead: 'Търговски запитвания или демо — пишете ни на имейл.',
+	landingGlassEmailAria: 'Изпрати имейл към AgriNexus',
 	portalFarmSubCommand: 'Твоят план — срокове и документи',
 	portalLogisticsSubFileUpload: 'Качване на файлове',
 	navFileUploadShort: 'Качване',
