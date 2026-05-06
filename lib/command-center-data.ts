@@ -101,10 +101,33 @@ export function formatDeadlineHeadline(d: CommandDeadline, lang: 'bg' | 'en'): s
 	return `By ${when}: ${pick(d.scheme, lang)}`;
 }
 
+/** Основна проверка за ЕГН (10 цифри) или ЕИК (9 или 13 цифри). Празно = невалидно за тази проверка. */
+export function looksLikeBulgarianUin(value: string): boolean {
+	const d = value.replace(/\s+/g, '');
+	if (!d) return false;
+	if (!/^\d+$/.test(d)) return false;
+	return d.length === 10 || d.length === 9 || d.length === 13;
+}
+
 export function getMissingDocuments(profile: FarmerLocalProfile): CommandMissingDoc[] {
 	const out: CommandMissingDoc[] = [];
-	const dec = Number(String(profile.decares).replace(',', '.'));
+	const dec = Number(String(profile.decares).replace(/[^\d.,]/g, '').replace(',', '.'));
 	const hasArea = Number.isFinite(dec) && dec > 0;
+	const uinTrim = profile.uin.trim();
+
+	if (uinTrim && !looksLikeBulgarianUin(uinTrim)) {
+		out.push({
+			id: 'uin-format',
+			label: {
+				bg: 'ЕГН/ЕИК изглежда с грешен формат (очакват се 10 цифри за ЕГН или 9/13 за ЕИК).',
+				en: 'Personal/company ID looks malformed (expect 10 digits for personal ID or 9/13 for company ID).',
+			},
+			hint: {
+				bg: 'Коригирай полето преди експорт на документи.',
+				en: 'Fix the field before exporting documents.',
+			},
+		});
+	}
 
 	if (hasArea && !profile.hasLandRightsDoc) {
 		out.push({
@@ -134,6 +157,34 @@ export function getMissingDocuments(profile: FarmerLocalProfile): CommandMissing
 		});
 	}
 
+	if (hasArea && !profile.iban.trim()) {
+		out.push({
+			id: 'iban',
+			label: {
+				bg: 'Липсва IBAN в профила — нужен е за насочване на плащания от ДФЗ.',
+				en: 'IBAN missing in profile — required for DAFS payment routing.',
+			},
+			hint: {
+				bg: 'Въведи IBAN и провери го в ИСУН спрямо банковото потвърждение.',
+				en: 'Enter IBAN and verify against ISUN and bank confirmation.',
+			},
+		});
+	}
+
+	if (hasArea && !profile.region.trim()) {
+		out.push({
+			id: 'region',
+			label: {
+				bg: 'Липсва регион / област — попълни за по-точни ориентири за мерки и доставки.',
+				en: 'Region / oblast missing — fill in for better scheme and logistics hints.',
+			},
+			hint: {
+				bg: 'Използвай областта по адрес на стопанството или основните земи.',
+				en: 'Use the region where the farm’s main land is located.',
+			},
+		});
+	}
+
 	if (profile.declaresOrganic && !profile.hasOrganicCertificate) {
 		out.push({
 			id: 'organic-cert',
@@ -148,7 +199,7 @@ export function getMissingDocuments(profile: FarmerLocalProfile): CommandMissing
 		});
 	}
 
-	if (!profile.uin.trim()) {
+	if (!uinTrim) {
 		out.push({
 			id: 'uin',
 			label: {
@@ -167,8 +218,20 @@ export function getMissingDocuments(profile: FarmerLocalProfile): CommandMissing
 
 export function getRiskFlags(profile: FarmerLocalProfile): CommandRisk[] {
 	const risks: CommandRisk[] = [];
-	const dec = Number(String(profile.decares).replace(',', '.'));
+	const dec = Number(String(profile.decares).replace(/[^\d.,]/g, '').replace(',', '.'));
 	const hasArea = Number.isFinite(dec) && dec > 0;
+	const uinTrim = profile.uin.trim();
+
+	if (uinTrim && !looksLikeBulgarianUin(uinTrim)) {
+		risks.push({
+			id: 'uin-invalid',
+			severity: 'medium',
+			label: {
+				bg: 'ЕГН/ЕИК не минава базова проверка за дължина/цифри — автоматичното попълване може да е грешно.',
+				en: 'ID fails basic digit-length validation — autofill may be wrong.',
+			},
+		});
+	}
 
 	if (profile.declaresOrganic && !profile.hasOrganicCertificate) {
 		risks.push({
@@ -177,6 +240,17 @@ export function getRiskFlags(profile: FarmerLocalProfile): CommandRisk[] {
 			label: {
 				bg: 'Имаш риск от санкция при проверка: декларирано био без валиден сертификат.',
 				en: 'Sanction risk on inspection: organic declared without a valid certificate.',
+			},
+		});
+	}
+
+	if (hasArea && !profile.iban.trim()) {
+		risks.push({
+			id: 'iban-gap',
+			severity: 'high',
+			label: {
+				bg: 'Има декларирана площ, но липсва IBAN — плащанията не могат да се насочат коректно.',
+				en: 'Area declared but IBAN missing — payments cannot be routed correctly.',
 			},
 		});
 	}

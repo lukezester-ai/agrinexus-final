@@ -18,6 +18,8 @@ import {
 	handleOperationsHubGet,
 	handleOperationsHubPost,
 } from '../lib/operations-hub-handler';
+import { handleDocDiscoveryCronRequest } from '../lib/doc-discovery-cron-handler';
+import { handleDocDiscoverySearchRequest } from '../lib/doc-discovery-search-handler';
 
 const PORT = Number(process.env.DEV_API_PORT || process.env.PORT || 8788);
 
@@ -114,6 +116,8 @@ http
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
             { path: '/api/operations-hub', methods: ['GET', 'POST'] },
+            { path: '/api/doc-discovery-cron', methods: ['GET', 'POST'] },
+            { path: '/api/doc-discovery-search', methods: ['GET'] },
           ],
         });
         return;
@@ -299,6 +303,26 @@ http
           uniqueVisitors: result.uniqueVisitors,
           storage: result.storage,
         });
+        return;
+      }
+
+      if (path === '/api/doc-discovery-cron' && (req.method === 'GET' || req.method === 'POST')) {
+        const auth =
+          typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
+        const r = await handleDocDiscoveryCronRequest({ method: req.method, authHeader: auth });
+        send(res, r.status, r.body);
+        return;
+      }
+
+      if (path === '/api/doc-discovery-search' && req.method === 'GET') {
+        const auth =
+          typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
+        const r = await handleDocDiscoverySearchRequest({
+          method: 'GET',
+          queryParams: url.searchParams,
+          authHeader: auth,
+        });
+        send(res, r.status, r.body);
         return;
       }
 

@@ -54,6 +54,7 @@ import {
 	quickPromptLabel,
 } from './lib/assistant-quick-actions';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
+import { scoreDealSearchMatch } from './lib/market-search';
 import type { FarmProductionFocus } from './lib/subsidy-calculator';
 import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
 import { useSupabaseSession } from './hooks/use-supabase-session';
@@ -335,16 +336,16 @@ type ClientProfile = {
 };
 
 const PRODUCT_BG_ALIASES: Record<string, string[]> = {
-	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно'],
-	Corn: ['царевица', 'зърно'],
-	Barley: ['ечемик', 'зърно'],
-	'Sunflower Seed': ['слънчогледово семе', 'слънчоглед'],
-	Rapeseed: ['рапица'],
-	Chickpeas: ['нахут'],
-	Lentils: ['леща'],
-	'Tomato Paste': ['доматено пюре'],
-	'Peeled Tomatoes': ['белени домати'],
-	'Sunflower Oil': ['слънчогледово масло'],
+	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно', 'wheat', 'durum', 'твърда пшеница'],
+	Corn: ['царевица', 'зърно', 'maize', 'corn'],
+	Barley: ['ечемик', 'зърно', 'barley'],
+	'Sunflower Seed': ['слънчогледово семе', 'слънчоглед', 'sunflower', 'seeds'],
+	Rapeseed: ['рапица', 'canola', 'rapeseed'],
+	Chickpeas: ['нахут', 'chickpea', 'garbanzo'],
+	Lentils: ['леща', 'lentil'],
+	'Tomato Paste': ['доматено пюре', 'paste', 'концентрат'],
+	'Peeled Tomatoes': ['белени домати', 'домат', 'tomatoes'],
+	'Sunflower Oil': ['слънчогледово масло', 'olio', 'veg oil'],
 };
 
 const CATEGORY_BG_ALIASES: Record<DealRow['category'], string[]> = {
@@ -1198,12 +1199,22 @@ export default function App() {
 		[allDeals]
 	);
 
-	const filteredDeals = searchableDeals.filter(d => {
-		const q = searchQuery.trim().toLowerCase();
-		const matchesCategory = selectedCategory === 'all' || d.category === selectedCategory;
-		const matchesQuery = q === '' || d.searchText.includes(q);
-		return matchesCategory && matchesQuery;
-	});
+	const filteredDeals = useMemo(() => {
+		const rawQ = searchQuery;
+		const matchesCategory = (d: SearchableDeal) =>
+			selectedCategory === 'all' || d.category === selectedCategory;
+		const rows = searchableDeals.filter(d => {
+			if (!matchesCategory(d)) return false;
+			const score = scoreDealSearchMatch(d.searchText, rawQ);
+			return score > 0;
+		});
+		const ql = rawQ.trim();
+		if (!ql) return rows;
+		return [...rows].sort(
+			(a, b) =>
+				scoreDealSearchMatch(b.searchText, rawQ) - scoreDealSearchMatch(a.searchText, rawQ)
+		);
+	}, [searchableDeals, searchQuery, selectedCategory]);
 
 	useEffect(() => {
 		const hasQuery = searchQuery.trim().length > 0;
@@ -1213,26 +1224,71 @@ export default function App() {
 
 	const inferSubsidyFocusFromMarket = useCallback(
 		(category: DealCategoryFilter, query: string): FarmProductionFocus => {
-			const q = query.toLowerCase();
-			if (q.includes('vine') || q.includes('grape') || q.includes('лозе') || q.includes('грозд')) {
+			const q = `${query} ${category}`.toLowerCase();
+			if (
+				q.includes('vine') ||
+				q.includes('grape') ||
+				q.includes('wine') ||
+				q.includes('вино') ||
+				q.includes('лозе') ||
+				q.includes('лозя') ||
+				q.includes('грозд')
+			) {
 				return 'vine';
 			}
 			if (
 				q.includes('vegetable') ||
 				q.includes('fruit') ||
 				q.includes('hort') ||
+				q.includes('orchard') ||
+				q.includes('овощ') ||
+				q.includes('ябълк') ||
+				q.includes('круша') ||
 				q.includes('домати') ||
 				q.includes('tomato') ||
+				q.includes('краставиц') ||
+				q.includes('картоф') ||
 				q.includes('плод') ||
 				q.includes('зеленчук')
 			) {
 				return 'horticulture';
 			}
-			if (q.includes('cow') || q.includes('cattle') || q.includes('livestock') || q.includes('живот')) {
+			if (
+				q.includes('cow') ||
+				q.includes('cattle') ||
+				q.includes('livestock') ||
+				q.includes('млек') ||
+				q.includes('овце') ||
+				q.includes('крав') ||
+				q.includes('живот')
+			) {
 				return 'livestock';
 			}
-			if (category === 'Grains') return 'grain';
-			if (category === 'Oilseeds' || category === 'Pulses') return 'mixed';
+			if (
+				q.includes('sunflower') ||
+				q.includes('rape') ||
+				q.includes('canola') ||
+				q.includes('слънчоглед') ||
+				q.includes('рапица') ||
+				q.includes('масло') ||
+				category === 'Oilseeds'
+			) {
+				return 'mixed';
+			}
+			if (
+				q.includes('wheat') ||
+				q.includes('barley') ||
+				q.includes('corn') ||
+				q.includes('maize') ||
+				q.includes('пшеница') ||
+				q.includes('ечемик') ||
+				q.includes('царевица') ||
+				q.includes('зърн') ||
+				category === 'Grains'
+			) {
+				return 'grain';
+			}
+			if (category === 'Pulses') return 'mixed';
 			return 'mixed';
 		},
 		[]
@@ -1790,6 +1846,11 @@ export default function App() {
 						emailRedirectTo: redirect,
 						data: {
 							full_name: display,
+							// Keep legacy metadata keys to satisfy existing DB triggers/policies
+							// in Supabase projects that expect these fields on signup.
+							company_name: 'Not specified',
+							market_focus: '—',
+							phone: '',
 						},
 					},
 				});

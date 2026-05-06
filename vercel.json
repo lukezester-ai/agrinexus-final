@@ -2,6 +2,12 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
+  "crons": [
+    {
+      "path": "/api/doc-discovery-cron",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "functions": {
     "api/**/*.ts": {
       "maxDuration": 60,

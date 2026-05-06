@@ -250,17 +250,25 @@ function extractFallbackAnswer(rawReply: string): string {
     }
   }
 
-  // Salvage common model output: `{"answer": {"Документация":"...", ...}}` even when truncated.
+  // Salvage common model output: nested answer sections even when truncated.
   if (pre.startsWith('{') && pre.includes('"answer"')) {
     const parts: string[] = [];
-    const docs = extractJsonishSection(pre, 'Документация');
-    const legal = extractJsonishSection(pre, 'Юрист');
-    const agr = extractJsonishSection(pre, 'Агроном');
-    const fin = extractJsonishSection(pre, 'Финанси');
-    if (docs) parts.push(`Документация\n${docs}`);
-    if (legal) parts.push(`Юрист\n${legal}`);
-    if (agr) parts.push(`Агроном\n${agr}`);
-    if (fin) parts.push(`Финанси\n${fin}`);
+    const docsBg = extractJsonishSection(pre, 'Документация');
+    const legalBg = extractJsonishSection(pre, 'Юрист');
+    const agrBg = extractJsonishSection(pre, 'Агроном');
+    const finBg = extractJsonishSection(pre, 'Финанси');
+    const docsEn = extractJsonishSection(pre, 'Documentation');
+    const legalEn = extractJsonishSection(pre, 'Legal');
+    const agrEn = extractJsonishSection(pre, 'Agronomy');
+    const finEn = extractJsonishSection(pre, 'Finance');
+    if (docsBg) parts.push(`Документация\n${docsBg}`);
+    else if (docsEn) parts.push(`Documentation\n${docsEn}`);
+    if (legalBg) parts.push(`Юрист\n${legalBg}`);
+    else if (legalEn) parts.push(`Legal\n${legalEn}`);
+    if (agrBg) parts.push(`Агроном\n${agrBg}`);
+    else if (agrEn) parts.push(`Agronomy\n${agrEn}`);
+    if (finBg) parts.push(`Финанси\n${finBg}`);
+    else if (finEn) parts.push(`Finance\n${finEn}`);
     if (parts.length > 0) return parts.join('\n\n');
   }
 
