@@ -12,6 +12,8 @@ import {
 
 import {
 
+	boostKeywordWeightsForTopicKeys,
+
 	bumpKeywordWeightsFromDiscoveries,
 
 	decayKeywordWeights,
@@ -52,6 +54,8 @@ import { defaultDiscoveryState, loadDiscoveryState, saveDiscoveryState } from '.
 
 import type { DiscoveredDocLink, DocDiscoveryJobResult } from './types.js';
 import { indexDiscoveriesForMl } from './ml-index.js';
+import { augmentLearnedKeywordsWithLlm } from './llm-learn.js';
+import { isAnyLlmConfigured } from '../llm-routing.js';
 
 
 
@@ -401,7 +405,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 
 
-	const selfLearnedKeywords = learnKeywordsFromDiscoveries(
+	let mergedExtraKeywords = learnKeywordsFromDiscoveries(
 
 		discovered,
 
@@ -413,7 +417,51 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	);
 
+	const llmLearnEnabled = process.env.DOC_DISCOVERY_LLM_LEARN === '1';
 
+	const llmMaxAddPerTopic = parsePositiveInt(process.env.DOC_DISCOVERY_LLM_MAX_KEYWORDS_PER_TOPIC, 12);
+
+	const llmKeywordBoot = parsePositiveFloat(process.env.DOC_DISCOVERY_LLM_KEYWORD_BOOT, 1.22);
+
+	const llmLearn: NonNullable<DocDiscoveryJobResult['llmLearn']> = {
+
+		enabled: llmLearnEnabled,
+
+		attempted: false,
+
+		addedKeywords: 0,
+
+	};
+
+	let llmAddedByTopic: Record<string, string[]> = {};
+
+	if (llmLearnEnabled && isAnyLlmConfigured()) {
+
+		llmLearn.attempted = true;
+
+		const lr = await augmentLearnedKeywordsWithLlm({
+
+			topics: DISCOVERY_TOPICS,
+
+			discovered,
+
+			currentExtraByTopic: mergedExtraKeywords,
+
+			maxAddPerTopic: llmMaxAddPerTopic,
+
+		});
+
+		llmLearn.model = lr.model;
+
+		if (lr.error) llmLearn.error = lr.error;
+
+		mergedExtraKeywords = lr.merged;
+
+		llmAddedByTopic = lr.addedByTopic;
+
+		llmLearn.addedKeywords = Object.values(lr.addedByTopic).reduce((s, a) => s + a.length, 0);
+
+	}
 
 	const bumped = bumpKeywordWeightsFromDiscoveries(
 
@@ -431,7 +479,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	topicWeights = ensureWeightsForExtraKeywords(
 
-		selfLearnedKeywords,
+		mergedExtraKeywords,
 
 		bumped.next,
 
@@ -440,6 +488,24 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 		weightFloor,
 
 	);
+
+	if (llmLearn.addedKeywords > 0) {
+
+		topicWeights = boostKeywordWeightsForTopicKeys(
+
+			topicWeights,
+
+			llmAddedByTopic,
+
+			llmKeywordBoot,
+
+			maxWeightKeysPerTopic,
+
+			weightFloor,
+
+		);
+
+	}
 
 
 
@@ -507,7 +573,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 		version: 1 as const,
 
-		topicExtraKeywords: selfLearnedKeywords,
+		topicExtraKeywords: mergedExtraKeywords,
 
 		topicMinScore: nextTopicMinScore,
 
@@ -593,7 +659,9 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 		persistError: saveRes.error,
 
-		selfLearnedKeywords,
+		selfLearnedKeywords: mergedExtraKeywords,
+
+		llmLearn,
 
 		sourcesFetchAttempted,
 

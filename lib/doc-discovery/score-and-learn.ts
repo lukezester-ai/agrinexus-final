@@ -194,6 +194,27 @@ export function bumpKeywordWeightsFromDiscoveries(
 }
 
 /** Нови думи от learning получават начално тегло 1 */
+/** По-силно начално тегло за ключови думи, предложени от LLM (следващият обход ги „утвърждава“ при удар). */
+export function boostKeywordWeightsForTopicKeys(
+	weights: Record<string, Record<string, number>>,
+	byTopic: Record<string, string[]>,
+	boost: number,
+	maxKeysPerTopic: number,
+	weightFloorPrune: number,
+): Record<string, Record<string, number>> {
+	const next: Record<string, Record<string, number>> = { ...weights };
+	for (const [tid, keys] of Object.entries(byTopic)) {
+		if (!keys?.length) continue;
+		const row = { ...(next[tid] ?? {}) };
+		for (const k of keys) {
+			const kk = k.toLowerCase();
+			row[kk] = Math.max(row[kk] ?? 1, boost);
+		}
+		next[tid] = pruneWeightRow(row, maxKeysPerTopic, weightFloorPrune);
+	}
+	return next;
+}
+
 export function ensureWeightsForExtraKeywords(
 	extraByTopic: Record<string, string[]>,
 	weights: Record<string, Record<string, number>>,

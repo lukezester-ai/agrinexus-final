@@ -63,6 +63,7 @@ export async function handleDocDiscoveryCronRequest(opts: {
 				persisted: result.persisted,
 				persistError: result.persistError,
 				selfLearnedKeywords: result.selfLearnedKeywords,
+				llmLearn: result.llmLearn,
 				learningSummary: result.learningSummary,
 				lastRunSummary: result.lastRunSummary,
 				mlIndex: result.mlIndex,

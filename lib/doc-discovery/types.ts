@@ -81,4 +81,12 @@ export type DocDiscoveryJobResult = {
 		model?: string;
 		error?: string;
 	};
+	/** Допълнително самообучение на ключови думи през текстов LLM (Mistral/Ollama/OpenAI) */
+	llmLearn?: {
+		enabled: boolean;
+		attempted: boolean;
+		addedKeywords: number;
+		model?: string;
+		error?: string;
+	};
 };
