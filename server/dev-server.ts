@@ -15,7 +15,6 @@ import { handleMarketWatchGet } from '../lib/market-watch-api';
 import { persistMarketWatchSnapshot } from '../lib/market-watch-persist';
 import { handleDocumentExplainPost } from '../lib/document-explain-handler';
 import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
-import { getPlatformPayload } from '../lib/infra/platform-layers';
 import {
 	handleOperationsHubGet,
 	handleOperationsHubPost,
@@ -110,7 +109,6 @@ const server = http.createServer(async (req, res) => {
         send(res, 200, {
           ok: true,
           routes: [
-            { path: '/api/platform', methods: ['GET'] },
             { path: '/api/chat', methods: ['GET', 'POST'] },
             { path: '/api/market-quotes', methods: ['GET'] },
             { path: '/api/market-watch', methods: ['GET'] },
@@ -125,11 +123,6 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/doc-discovery-search', methods: ['GET'] },
           ],
         });
-        return;
-      }
-
-      if (path === '/api/platform' && req.method === 'GET') {
-        send(res, 200, getPlatformPayload());
         return;
       }
 
