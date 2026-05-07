@@ -9,7 +9,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Inter, system-ui, sans-serif; background: #0f172a; color: #fff; }
-        .hero-container { position: relative; height: 100vh; width: 100%; overflow: hidden; }
+        .hero-container { position: relative; height: 100svh; min-height: 620px; width: 100%; overflow: hidden; }
         #hero-map { position: absolute; inset: 0; z-index: 1; }
         .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #10b981, transparent); box-shadow: 0 0 20px #10b981; animation: scan 4s linear infinite; z-index: 2; pointer-events: none; }
         @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
@@ -29,8 +29,24 @@
         .input-group select option { background: #0f172a; color: #fff; }
         .area-display { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); padding: 16px; border-radius: 8px; text-align: center; }
         .area-value { font-size: 2rem; font-weight: 700; color: #10b981; }
-        .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: 0; padding: 16px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        @media (max-width: 968px) { .form-grid { grid-template-columns: 1fr; } .data-overlay { right: 20px; top: 80px; width: calc(100% - 40px);} }
+        .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: 0; padding: 16px 32px; border-radius: 8px; font-weight: 600; cursor: pointer; min-height: 48px; }
+        @media (max-width: 968px) {
+            .hero-container { min-height: 700px; }
+            .form-grid { grid-template-columns: 1fr; gap: 20px; }
+            .data-overlay { right: 20px; top: 20px; width: calc(100% - 40px); }
+            .data-card { padding: 14px; margin-bottom: 10px; }
+            .time-control-panel { width: calc(100% - 24px); bottom: 12px; padding: 14px; }
+            .time-labels { font-size: .72rem; gap: 8px; }
+            .time-labels span { flex: 1; text-align: center; }
+            .field-watch-section { padding: 28px 12px 40px; }
+            #field-map { height: 360px; }
+            .input-group input, .input-group select { min-height: 46px; font-size: 16px; }
+        }
+        @media (max-width: 640px) {
+            .hero-container { min-height: 740px; }
+            .scan-line { display: none; }
+            .time-control-panel { position: absolute; bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
+        }
     </style>
 </head>
 <body>
@@ -54,7 +70,9 @@
             <div class="input-group"><label>Име на полето</label><input id="field-name" /></div>
             <div class="input-group"><label>Култура</label><select id="crop-type"><option value="">Изберете...</option><option value="wheat">Пшеница</option></select></div>
             <div class="area-display"><div class="area-value" id="calculated-area">0.00 дка</div></div>
+            <div class="input-group"><label>Забележки</label><input id="field-notes" placeholder="Кратки бележки за полето..." /></div>
             <button class="btn-primary" id="save-btn">Запази Полето</button>
+            <div id="save-status" style="font-size:.9rem;color:#94a3b8;min-height:22px;"></div>
         </div>
     </div>
 </div>
@@ -62,10 +80,23 @@
 <script src="https://unpkg.com/@maplibre/maplibre-gl-draw@1.5.0/dist/maplibre-gl-draw.js"></script>
 <script>
 const DOBRUDJA_COORDS = [27.8, 43.6];
+const SAVED_FIELDS_SOURCE_ID = "saved-fields-source";
+const SAVED_FIELDS_FILL_LAYER_ID = "saved-fields-fill";
+const SAVED_FIELDS_LINE_LAYER_ID = "saved-fields-line";
 function rasterStyle() {
   return { version: 8, sources: { osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256 } }, layers: [{ id: "osm", type: "raster", source: "osm" }] };
 }
-const heroMap = new maplibregl.Map({ container: "hero-map", style: rasterStyle(), center: DOBRUDJA_COORDS, zoom: 10, pitch: 45, bearing: -20 });
+const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
+const heroMap = new maplibregl.Map({
+  container: "hero-map",
+  style: rasterStyle(),
+  center: DOBRUDJA_COORDS,
+  zoom: isSmallScreen ? 9.4 : 10,
+  pitch: isSmallScreen ? 35 : 45,
+  bearing: -20,
+  dragRotate: !isSmallScreen,
+  touchPitch: !isSmallScreen
+});
 heroMap.addControl(new maplibregl.NavigationControl());
 const timeSlider = document.getElementById("timeSlider");
 const dateDisplay = document.getElementById("current-date-display");
@@ -124,13 +155,115 @@ timeSlider.addEventListener("input", (e) => {
   // При реална интеграция тук се сменят raster tile слоевете от Sentinel Hub.
   setTimelapseVisibility(selected.layerId);
 });
-const fieldMap = new maplibregl.Map({ container: "field-map", style: rasterStyle(), center: DOBRUDJA_COORDS, zoom: 13 });
+const fieldMap = new maplibregl.Map({
+  container: "field-map",
+  style: rasterStyle(),
+  center: DOBRUDJA_COORDS,
+  zoom: isSmallScreen ? 12.2 : 13
+});
 fieldMap.addControl(new maplibregl.NavigationControl());
 const draw = new MapLibreGlDraw({ displayControlsDefault: false, controls: { polygon: true, trash: true } });
 fieldMap.addControl(draw);
+fieldMap.on("load", () => {
+  void loadSavedFields();
+});
 fieldMap.on("draw.create", updateArea);
 fieldMap.on("draw.update", updateArea);
 fieldMap.on("draw.delete", updateArea);
+
+function toFeature(row) {
+  if (!row || !row.geometry || typeof row.geometry !== "object") return null;
+  const geom = row.geometry;
+  if (!geom.type || !geom.coordinates) return null;
+  return {
+    type: "Feature",
+    geometry: geom,
+    properties: {
+      id: row.id || "",
+      name: row.name || "Unnamed field",
+      crop: row.crop || "",
+      area: row.area_decares || 0,
+      notes: row.notes || "",
+      created_at: row.created_at || ""
+    }
+  };
+}
+
+function renderSavedFields(features) {
+  const fc = { type: "FeatureCollection", features };
+  if (fieldMap.getSource(SAVED_FIELDS_SOURCE_ID)) {
+    fieldMap.getSource(SAVED_FIELDS_SOURCE_ID).setData(fc);
+    return;
+  }
+  fieldMap.addSource(SAVED_FIELDS_SOURCE_ID, { type: "geojson", data: fc });
+  fieldMap.addLayer({
+    id: SAVED_FIELDS_FILL_LAYER_ID,
+    type: "fill",
+    source: SAVED_FIELDS_SOURCE_ID,
+    paint: {
+      "fill-color": "#22c55e",
+      "fill-opacity": 0.16
+    }
+  });
+  fieldMap.addLayer({
+    id: SAVED_FIELDS_LINE_LAYER_ID,
+    type: "line",
+    source: SAVED_FIELDS_SOURCE_ID,
+    paint: {
+      "line-color": "#16a34a",
+      "line-width": 2.2
+    }
+  });
+
+  fieldMap.on("mouseenter", SAVED_FIELDS_FILL_LAYER_ID, () => {
+    fieldMap.getCanvas().style.cursor = "pointer";
+  });
+  fieldMap.on("mouseleave", SAVED_FIELDS_FILL_LAYER_ID, () => {
+    fieldMap.getCanvas().style.cursor = "";
+  });
+  fieldMap.on("click", SAVED_FIELDS_FILL_LAYER_ID, (event) => {
+    const feature = event.features && event.features[0];
+    if (!feature) return;
+    const props = feature.properties || {};
+    const name = String(props.name || "Unnamed field");
+    const crop = String(props.crop || "-");
+    const area = String(props.area || "-");
+    const notes = String(props.notes || "").trim();
+    const createdRaw = String(props.created_at || "");
+    const created = createdRaw ? new Date(createdRaw).toLocaleString("bg-BG") : "-";
+    const coords =
+      event.lngLat && Number.isFinite(event.lngLat.lng) && Number.isFinite(event.lngLat.lat)
+        ? [event.lngLat.lng, event.lngLat.lat]
+        : null;
+    if (!coords) return;
+    const html =
+      "<div style='min-width:190px;color:#0f172a;font-size:12px;line-height:1.45;'>" +
+      "<div style='font-weight:700;font-size:13px;margin-bottom:6px;'>" + name + "</div>" +
+      "<div><strong>Култура:</strong> " + crop + "</div>" +
+      "<div><strong>Площ:</strong> " + area + " дка</div>" +
+      "<div><strong>Създадено:</strong> " + created + "</div>" +
+      (notes ? "<div style='margin-top:6px;'><strong>Бележки:</strong> " + notes + "</div>" : "") +
+      "</div>";
+    new maplibregl.Popup({ closeButton: true, closeOnClick: true })
+      .setLngLat(coords)
+      .setHTML(html)
+      .addTo(fieldMap);
+  });
+}
+
+async function loadSavedFields() {
+  try {
+    const res = await fetch("/api/fields");
+    const payload = await res.json();
+    if (!res.ok || !payload.ok || !Array.isArray(payload.fields)) {
+      throw new Error(payload && payload.error ? payload.error : "Неуспешно зареждане");
+    }
+    const features = payload.fields.map(toFeature).filter(Boolean);
+    renderSavedFields(features);
+  } catch (err) {
+    console.error("[FieldWatch] loadSavedFields failed:", err);
+  }
+}
 function calculatePolygonArea(coords) {
   let area = 0;
   for (let i = 0; i < coords.length - 1; i += 1) {
@@ -149,11 +282,63 @@ function updateArea() {
   window.currentFieldGeoJSON = data.features[0];
 }
 document.getElementById("save-btn").addEventListener("click", () => {
-  if (!window.currentFieldGeoJSON) { alert("Моля, очертайте поле първо."); return; }
-  alert("Полето е запазено успешно.");
+  void saveField();
 });
 let bearing = -20;
-setInterval(() => { bearing += 0.03; heroMap.setBearing(bearing); }, 120);
+if (!isSmallScreen) {
+  setInterval(() => { bearing += 0.03; heroMap.setBearing(bearing); }, 120);
+}
+
+async function saveField() {
+  const statusEl = document.getElementById("save-status");
+  const saveBtn = document.getElementById("save-btn");
+  if (!window.currentFieldGeoJSON) {
+    statusEl.textContent = "Моля, очертайте поле първо.";
+    statusEl.style.color = "#f87171";
+    return;
+  }
+  const fieldName = document.getElementById("field-name").value.trim();
+  const crop = document.getElementById("crop-type").value;
+  const notes = document.getElementById("field-notes").value.trim();
+  if (!fieldName || !crop) {
+    statusEl.textContent = "Попълнете име на поле и култура.";
+    statusEl.style.color = "#f59e0b";
+    return;
+  }
+
+  const areaText = document.getElementById("calculated-area").textContent || "0";
+  const areaDecares = Number.parseFloat(areaText.replace(",", "."));
+
+  saveBtn.disabled = true;
+  statusEl.textContent = "Записвам полето...";
+  statusEl.style.color = "#94a3b8";
+
+  try {
+    const res = await fetch("/api/fields", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: fieldName,
+        crop,
+        notes,
+        areaDecares,
+        geometry: window.currentFieldGeoJSON.geometry
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "Неуспешен запис");
+    }
+    statusEl.textContent = "Полето е запазено успешно.";
+    statusEl.style.color = "#10b981";
+    void loadSavedFields();
+  } catch (err) {
+    statusEl.textContent = "Грешка при запис: " + (err && err.message ? err.message : "неизвестна");
+    statusEl.style.color = "#f87171";
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>

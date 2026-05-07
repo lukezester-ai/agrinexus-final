@@ -3116,12 +3116,12 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
-									className={`nav-dropdown-item ${view === 'command' ? 'active' : ''}`}
+									className={`nav-dropdown-item ${view === 'field-watch' ? 'active' : ''}`}
 									onClick={() => {
-										setView('command');
+										setView('field-watch');
 										setNavMenuOpen(null);
 									}}>
-									<ClipboardList size={14} aria-hidden /> {tr.navCommand}
+									<FileImage size={14} aria-hidden /> {lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}
 								</button>
 								<button
 									type="button"
@@ -3146,12 +3146,12 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
-									className={`nav-dropdown-item ${view === 'field-watch' ? 'active' : ''}`}
+									className={`nav-dropdown-item ${view === 'command' ? 'active' : ''}`}
 									onClick={() => {
-										setView('field-watch');
+										setView('command');
 										setNavMenuOpen(null);
 									}}>
-									<FileImage size={14} aria-hidden /> {lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}
+									<ClipboardList size={14} aria-hidden /> {tr.navCommand}
 								</button>
 							</div>
 						)}
@@ -4164,12 +4164,12 @@ export default function App() {
 							borderRadius: 14,
 							overflow: 'hidden',
 							background: '#0b1120',
-							minHeight: 760,
+							minHeight: 'min(760px, 74vh)',
 						}}>
 						<iframe
 							title="AgriNexus Field Watch"
 							src="/agrinexus-field-watch.html"
-							style={{ width: '100%', height: '76vh', minHeight: 740, border: 0 }}
+							style={{ width: '100%', height: 'min(78vh, 760px)', minHeight: 520, border: 0 }}
 						/>
 					</div>
 				</section>
