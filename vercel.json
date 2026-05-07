@@ -6,6 +6,10 @@
     {
       "path": "/api/doc-discovery-cron",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/field-learning-cron",
+      "schedule": "30 2 * * *"
     }
   ],
   "functions": {
