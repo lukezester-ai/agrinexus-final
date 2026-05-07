@@ -17,6 +17,10 @@
     "icons": "node scripts/generate-pwa-icons.mjs",
     "test:mistral": "tsx scripts/smoke-mistral.ts",
     "test:mistral:vision": "tsx scripts/smoke-mistral-vision.ts",
+    "test:rag": "tsx scripts/smoke-rag.ts",
+    "ingest:rag": "tsx scripts/ingest-rag.ts",
+    "rag:setup": "tsx scripts/rag-setup.ts",
+    "rag:setup:json": "tsx scripts/rag-setup-json.ts",
     "test:mail": "tsx scripts/smoke-mail.ts",
     "export:ft:market-watch": "tsx scripts/export-market-watch-ft-jsonl.ts",
     "export:ft:field-watch": "tsx scripts/export-field-learning-jsonl.ts"
