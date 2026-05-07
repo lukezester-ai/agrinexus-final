@@ -316,10 +316,11 @@ type View =
 	| 'crop-statistics'
 	| 'food-security'
 	| 'command'
-	| 'file-upload';
+	| 'file-upload'
+	| 'field-watch';
 
 const TRADING_VIEWS = new Set<View>(['market', 'market-watch', 'crop-statistics', 'trade-documents']);
-const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar']);
+const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
 type ClientProfile = {
@@ -3142,6 +3143,16 @@ export default function App() {
 									}}>
 									<CalendarDays size={14} aria-hidden /> {tr.navSeasonCalendar}
 								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'field-watch' ? 'active' : ''}`}
+									onClick={() => {
+										setView('field-watch');
+										setNavMenuOpen(null);
+									}}>
+									<FileImage size={14} aria-hidden /> {lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}
+								</button>
 							</div>
 						)}
 					</div>
@@ -3272,6 +3283,14 @@ export default function App() {
 							</div>
 							<div className="landing-glass-footer">
 								<p>{tr.landingGlassFooterLead}</p>
+								<button
+									type="button"
+									className="btn btn-primary"
+									onClick={() => setView('field-watch')}
+									aria-label={lang === 'bg' ? 'Отвори Field Watch карта' : 'Open Field Watch map'}>
+									<FileImage size={18} aria-hidden />
+									{lang === 'bg' ? 'Отвори Field Watch' : 'Open Field Watch'}
+								</button>
 								<a
 									className="btn btn-outline landing-glass-mail-btn"
 									href="mailto:info@agrinexus.eu"
@@ -4112,6 +4131,48 @@ export default function App() {
 					tr={tr}
 					onOpenSubsidy={() => setView('subsidy-calculator')}
 				/>
+			)}
+
+			{view === 'field-watch' && (
+				<section className="section">
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							gap: 12,
+							flexWrap: 'wrap',
+							marginBottom: 14,
+						}}>
+						<h2 style={{ margin: 0 }}>{lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}</h2>
+						<a
+							className="btn btn-outline"
+							href="/agrinexus-field-watch.html"
+							target="_blank"
+							rel="noreferrer">
+							{lang === 'bg' ? 'Отвори в нов таб' : 'Open in new tab'}
+						</a>
+					</div>
+					<p className="muted" style={{ marginTop: 0, marginBottom: 12 }}>
+						{lang === 'bg'
+							? 'Интерактивна карта за полеви мониторинг с timelapse, Sentinel/NASA слоеве и NDVI режим.'
+							: 'Interactive field monitoring map with timelapse, Sentinel/NASA layers, and NDVI mode.'}
+					</p>
+					<div
+						style={{
+							border: '1px solid var(--line)',
+							borderRadius: 14,
+							overflow: 'hidden',
+							background: '#0b1120',
+							minHeight: 760,
+						}}>
+						<iframe
+							title="AgriNexus Field Watch"
+							src="/agrinexus-field-watch.html"
+							style={{ width: '100%', height: '76vh', minHeight: 740, border: 0 }}
+						/>
+					</div>
+				</section>
 			)}
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}

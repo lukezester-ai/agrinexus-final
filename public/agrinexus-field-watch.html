@@ -433,16 +433,48 @@
     const HISTORICAL_SOURCE_ID = "historical-source";
     const HISTORICAL_LAYER_ID = "historical-satellite";
     const SENTINEL_TIME_WINDOW_HOURS = 24;
+    const PRIMARY_STYLE_URL = "https://demotiles.maplibre.org/style.json";
+    const FALLBACK_STYLE = {
+        version: 8,
+        sources: {
+            osm: {
+                type: "raster",
+                tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+                tileSize: 256,
+                attribution: "&copy; OpenStreetMap contributors"
+            }
+        },
+        layers: [
+            {
+                id: "osm-raster",
+                type: "raster",
+                source: "osm"
+            }
+        ]
+    };
     let currentRenderMode = "true-color";
     let sentinelReady = false;
+    let mapStyleRecovered = false;
 
     const map = new maplibregl.Map({
         container: "map",
-        style: "https://demotiles.maplibre.org/style.json",
+        style: PRIMARY_STYLE_URL,
         center: CENTER_COORDS,
         zoom: DEFAULT_ZOOM,
         pitch: 45,
         antialias: true
+    });
+
+    map.on("error", (event) => {
+        const msg = event && event.error && event.error.message ? event.error.message : "";
+        if (!mapStyleRecovered && (msg.includes("style") || msg.includes("sprite") || msg.includes("glyph"))) {
+            mapStyleRecovered = true;
+            map.setStyle(FALLBACK_STYLE);
+            const sourceLabel = document.getElementById("imagery-source");
+            if (sourceLabel) {
+                sourceLabel.innerText = "Base map fallback: OpenStreetMap";
+            }
+        }
     });
 
     const draw = new MapLibreGlDraw({
