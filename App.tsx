@@ -2298,10 +2298,8 @@ export default function App() {
           align-items: center;
           flex-wrap: nowrap;
           white-space: nowrap;
-          overflow-x: auto;
-          scrollbar-width: none;
+          overflow: visible;
         }
-        .nav-actions::-webkit-scrollbar { display: none; }
 
         .nav-link {
           display: inline-flex;
