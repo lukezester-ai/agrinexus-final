@@ -895,6 +895,7 @@ export default function App() {
 	const [regFullName, setRegFullName] = useState('');
 	const [regEmail, setRegEmail] = useState('');
 	const [regPassword, setRegPassword] = useState('');
+	const [regPasswordConfirm, setRegPasswordConfirm] = useState('');
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
 
@@ -934,12 +935,22 @@ export default function App() {
 	);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
+	const regFullNameValid = regFullName.trim().length >= 2;
 	const regPasswordOkForCloud = regPassword.length >= 6;
+	const regPasswordsMatch = regPassword === regPasswordConfirm;
 	const canSubmitRegister =
-		isValidEmail(regEmail) && (!supabaseRegisterEnabled || regPasswordOkForCloud);
+		regFullNameValid &&
+		isValidEmail(regEmail) &&
+		(!supabaseRegisterEnabled || (regPasswordOkForCloud && regPasswordsMatch));
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
+	const showRegisterNameError = regFullName.trim().length > 0 && !regFullNameValid;
 	const showRegisterPasswordError =
 		supabaseRegisterEnabled && regPassword.length > 0 && !regPasswordOkForCloud;
+	const showRegisterPasswordMismatch =
+		supabaseRegisterEnabled &&
+		regPasswordConfirm.length > 0 &&
+		regPassword.length > 0 &&
+		!regPasswordsMatch;
 	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
 	const invalidEmailText =
 		lang === 'bg'
@@ -1857,6 +1868,15 @@ export default function App() {
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
+		if (!regFullNameValid) {
+			setRegStatus('err');
+			setRegMsg(
+				lang === 'bg'
+					? 'Въведи име с поне 2 символа.'
+					: 'Enter your name with at least 2 characters.'
+			);
+			return;
+		}
 		if (!isValidEmail(regEmail)) {
 			setRegStatus('err');
 			setRegMsg(
@@ -1864,6 +1884,11 @@ export default function App() {
 					? 'Моля, въведи валиден имейл адрес.'
 					: 'Please enter a valid email address.'
 			);
+			return;
+		}
+		if (supabaseRegisterEnabled && !regPasswordsMatch) {
+			setRegStatus('err');
+			setRegMsg(lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.');
 			return;
 		}
 		setRegStatus('loading');
@@ -1928,10 +1953,23 @@ export default function App() {
 					},
 				});
 				if (error) {
-					cloudAuthMsg =
-						`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
+					const msg = (error.message || '').toLowerCase();
+					if (
+						msg.includes('already') ||
+						msg.includes('registered') ||
+						msg.includes('exists')
+					) {
+						cloudAuthMsg =
+							lang === 'bg'
+								? 'Този имейл вече е регистриран. Използвай вход.'
+								: 'This email is already registered. Please sign in.';
+					} else {
+						cloudAuthMsg =
+							`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
+					}
 				} else if (signUpData.session) {
 					cloudAuthMsg = tr.registerCloudSignupOkSession;
+					setView('company');
 				} else {
 					cloudAuthMsg = tr.registerCloudSignupCheckEmail;
 				}
@@ -1953,6 +1991,7 @@ export default function App() {
 				setRegMsg((prev) => (prev ? `${prev}\n${cloudAuthMsg}` : cloudAuthMsg));
 			}
 			setRegPassword('');
+			setRegPasswordConfirm('');
 		} catch {
 			setRegStatus('err');
 			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
@@ -2256,10 +2295,14 @@ export default function App() {
           grid-column: 3;
           justify-self: end;
           display: flex;
-          gap: 8px;
+          gap: 6px;
           align-items: center;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
+          white-space: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
         }
+        .nav-actions::-webkit-scrollbar { display: none; }
 
         .nav-link {
           display: inline-flex;
@@ -2267,10 +2310,11 @@ export default function App() {
           gap: 6px;
           color: #fff;
           opacity: 0.92;
-          padding: 8px 10px;
+          padding: 7px 9px;
           border-radius: 8px;
           cursor: pointer;
           border: 1px solid transparent;
+          flex: 0 0 auto;
         }
         button.nav-link {
           margin: 0;
@@ -4014,6 +4058,19 @@ export default function App() {
 							onChange={e => setRegFullName(e.target.value)}
 							autoComplete="name"
 						/>
+						{showRegisterNameError ? (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{lang === 'bg'
+									? 'Името трябва да е поне 2 символа.'
+									: 'Name must be at least 2 characters.'}
+							</p>
+						) : null}
 						{supabaseRegisterEnabled ? (
 							<>
 								<input
@@ -4022,6 +4079,15 @@ export default function App() {
 									autoComplete="new-password"
 									value={regPassword}
 									onChange={e => setRegPassword(e.target.value)}
+								/>
+								<input
+									placeholder={
+										lang === 'bg' ? 'Повтори паролата' : 'Confirm password'
+									}
+									type="password"
+									autoComplete="new-password"
+									value={regPasswordConfirm}
+									onChange={e => setRegPasswordConfirm(e.target.value)}
 								/>
 								<p
 									className="muted"
@@ -4041,6 +4107,17 @@ export default function App() {
 											fontSize: '.84rem',
 										}}>
 										{tr.registerPasswordTooShort}
+									</p>
+								) : null}
+								{showRegisterPasswordMismatch ? (
+									<p
+										style={{
+											gridColumn: '1 / -1',
+											margin: '-6px 0 0',
+											color: '#f87171',
+											fontSize: '.84rem',
+										}}>
+										{lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.'}
 									</p>
 								) : null}
 							</>
