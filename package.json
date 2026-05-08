@@ -20,6 +20,7 @@
     "test:rag": "tsx scripts/smoke-rag.ts",
     "ingest:rag": "tsx scripts/ingest-rag.ts",
     "seed:rag": "tsx scripts/seed-rag-known-docs.ts",
+    "fetch:docs": "tsx scripts/fetch-and-index-docs.ts",
     "rag:setup": "tsx scripts/rag-setup.ts",
     "rag:setup:json": "tsx scripts/rag-setup-json.ts",
     "test:mail": "tsx scripts/smoke-mail.ts",
@@ -35,6 +36,7 @@
     "lucide-react": "0.284.0",
     "nodemailer": "^8.0.7",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "recharts": "2.10.3"
