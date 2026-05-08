@@ -2225,7 +2225,10 @@ export default function App() {
         }
 
         .nav {
-          display: flex; justify-content: space-between; align-items: center; gap: 12px;
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          align-items: center;
+          gap: 12px;
           padding: 14px 18px;
           background: rgba(14, 23, 18, 0.82);
           backdrop-filter: blur(12px);
@@ -2234,6 +2237,8 @@ export default function App() {
         }
         .brand {
           display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer;
+          grid-column: 2;
+          justify-self: center;
           border: none;
           margin: 0;
           padding: 0;
@@ -2245,7 +2250,14 @@ export default function App() {
         .brand-wordmark { letter-spacing: .01em; }
         .brand-agri { color: #ffffff; }
         .brand-nexus { color: #a8d98a; }
-        .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .nav-actions {
+          grid-column: 3;
+          justify-self: end;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
 
         .nav-link {
           display: inline-flex;
@@ -2971,12 +2983,6 @@ export default function App() {
             padding: 10px 12px;
             position: sticky;
             min-height: 58px;
-          }
-          .brand {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
           }
           .nav-actions { gap: 6px; }
           .nav-link { padding: 7px 8px; font-size: .86rem; }
