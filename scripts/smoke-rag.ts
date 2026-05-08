@@ -1,4 +1,21 @@
-import { buildDocDiscoveryRagContextForChat } from '../lib/doc-discovery-chat-rag.js';
+import { config } from 'dotenv';
+
+for (const key of [
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'MISTRAL_API_KEY',
+  'OPENAI_API_KEY',
+  'CHAT_DOC_DISCOVERY_RAG',
+  'DOC_DISCOVERY_EMBEDDINGS',
+  'DOC_DISCOVERY_VECTOR_DIM',
+]) {
+  delete process.env[key];
+}
+config();
+
+const { buildDocDiscoveryRagContextForChat } = await import(
+  '../lib/doc-discovery-chat-rag.js'
+);
 
 function readArg(name: string, fallback = ''): string {
   const prefix = `--${name}=`;

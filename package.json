@@ -19,6 +19,7 @@
     "test:mistral:vision": "tsx scripts/smoke-mistral-vision.ts",
     "test:rag": "tsx scripts/smoke-rag.ts",
     "ingest:rag": "tsx scripts/ingest-rag.ts",
+    "seed:rag": "tsx scripts/seed-rag-known-docs.ts",
     "rag:setup": "tsx scripts/rag-setup.ts",
     "rag:setup:json": "tsx scripts/rag-setup-json.ts",
     "test:mail": "tsx scripts/smoke-mail.ts",
