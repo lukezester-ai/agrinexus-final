@@ -14,6 +14,8 @@ import { fetchDocument } from './fetcher.js';
 import { extractPdfText } from './pdf-parser.js';
 import { stripHtmlToText } from './html-stripper.js';
 import { chunkText } from './chunker.js';
+import { extractDocxText } from './docx-parser.js';
+import { extractPdfTextWithOcr, isOcrEnabled, ocrMinTextChars } from './ocr.js';
 
 export type ContentDocInput = {
 	url: string;
@@ -29,6 +31,7 @@ export type ContentIndexResult = {
 	bytes: number;
 	model?: string;
 	error?: string;
+	usedOcr?: boolean;
 };
 
 const EMBED_BATCH = 16;
@@ -96,9 +99,16 @@ async function upsertChunks(
 	return { ok: true };
 }
 
-function inferMimeKind(contentType: string, url: string): 'pdf' | 'html' | 'text' {
+function inferMimeKind(contentType: string, url: string): 'pdf' | 'html' | 'text' | 'docx' {
 	const ct = contentType.toLowerCase();
 	if (ct.includes('pdf') || /\.pdf(\?|#|$)/i.test(url)) return 'pdf';
+	if (
+		ct.includes('officedocument.wordprocessingml.document') ||
+		ct.includes('application/msword') ||
+		/\.docx?(\?|#|$)/i.test(url)
+	) {
+		return 'docx';
+	}
 	if (ct.includes('html') || ct.includes('xhtml')) return 'html';
 	if (ct.includes('text/plain') || /\.txt(\?|#|$)/i.test(url)) return 'text';
 	if (/\.html?(\?|#|$)/i.test(url)) return 'html';
@@ -113,18 +123,32 @@ async function extractTextForDoc(
 	bytes: Uint8Array,
 	contentType: string,
 	url: string,
-): Promise<{ text: string; titleFromBody: string | null }> {
+): Promise<{ text: string; titleFromBody: string | null; usedOcr: boolean }> {
 	const kind = inferMimeKind(contentType, url);
 	if (kind === 'pdf') {
 		const text = await extractPdfText(bytes);
-		return { text, titleFromBody: null };
+		if (isOcrEnabled() && text.trim().length < ocrMinTextChars()) {
+			try {
+				const ocrText = await extractPdfTextWithOcr(bytes);
+				if (ocrText.trim().length > text.trim().length) {
+					return { text: ocrText, titleFromBody: null, usedOcr: true };
+				}
+			} catch {
+				/* OCR best-effort — върни pdfjs резултата */
+			}
+		}
+		return { text, titleFromBody: null, usedOcr: false };
+	}
+	if (kind === 'docx') {
+		const text = await extractDocxText(bytes);
+		return { text, titleFromBody: null, usedOcr: false };
 	}
 	if (kind === 'html') {
 		const html = bytesToUtf8(bytes);
 		const stripped = stripHtmlToText(html);
-		return { text: stripped.text, titleFromBody: stripped.title };
+		return { text: stripped.text, titleFromBody: stripped.title, usedOcr: false };
 	}
-	return { text: bytesToUtf8(bytes), titleFromBody: null };
+	return { text: bytesToUtf8(bytes), titleFromBody: null, usedOcr: false };
 }
 
 /**
@@ -138,14 +162,20 @@ export async function indexDocumentContent(
 	const { url } = doc;
 	try {
 		const fetched = await fetchDocument(url);
-		const { text, titleFromBody } = await extractTextForDoc(
+		const { text, titleFromBody, usedOcr } = await extractTextForDoc(
 			fetched.bytes,
 			fetched.contentType,
 			url,
 		);
 		const trimmed = text.trim();
 		if (trimmed.length < 80) {
-			return { url, status: 'empty', chunks: 0, bytes: fetched.bytes.byteLength };
+			return {
+				url,
+				status: 'empty',
+				chunks: 0,
+				bytes: fetched.bytes.byteLength,
+				usedOcr,
+			};
 		}
 
 		const chunks = chunkText(trimmed);
@@ -203,6 +233,7 @@ export async function indexDocumentContent(
 				chunks: 0,
 				bytes: fetched.bytes.byteLength,
 				error: up.error,
+				usedOcr,
 			};
 		}
 
@@ -212,6 +243,7 @@ export async function indexDocumentContent(
 			chunks: rows.length,
 			bytes: fetched.bytes.byteLength,
 			model,
+			usedOcr,
 		};
 	} catch (e) {
 		return {

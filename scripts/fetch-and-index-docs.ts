@@ -34,6 +34,7 @@ const {
 	indexDocumentContent,
 	loadKnownDocsForContentIndexing,
 } = await import('../lib/doc-discovery/content/pipeline.js');
+const { shutdownOcr } = await import('../lib/doc-discovery/content/ocr.js');
 
 function readArg(name: string): string | null {
 	const prefix = `--${name}=`;
@@ -72,35 +73,41 @@ let empty = 0;
 let failed = 0;
 let totalChunks = 0;
 let totalBytes = 0;
+let ocrUsed = 0;
 let modelUsed = '';
 
 for (let i = 0; i < docs.length; i++) {
 	const d = docs[i];
 	process.stdout.write(`[${i + 1}/${docs.length}] ${d.url} ... `);
 	const r = await indexDocumentContent(d, { force });
+	const ocrTag = r.usedOcr ? ' [OCR]' : '';
+	if (r.usedOcr) ocrUsed++;
 	if (r.status === 'indexed') {
 		indexed++;
 		totalChunks += r.chunks;
 		totalBytes += r.bytes;
 		if (r.model) modelUsed = r.model;
-		console.log(`OK (${r.chunks} chunks, ${(r.bytes / 1024).toFixed(1)} KB)`);
+		console.log(`OK${ocrTag} (${r.chunks} chunks, ${(r.bytes / 1024).toFixed(1)} KB)`);
 	} else if (r.status === 'unchanged') {
 		unchanged++;
-		console.log('пропуснат (непроменен)');
+		console.log(`пропуснат${ocrTag} (непроменен)`);
 	} else if (r.status === 'empty') {
 		empty++;
-		console.log('празен текст');
+		console.log(`празен текст${ocrTag}`);
 	} else {
 		failed++;
-		console.log(`FAIL — ${r.error ?? '(unknown)'}`);
+		console.log(`FAIL${ocrTag} — ${r.error ?? '(unknown)'}`);
 	}
 }
+
+await shutdownOcr();
 
 console.log('\n== Content RAG Summary ==');
 console.log(`Indexed:   ${indexed}`);
 console.log(`Unchanged: ${unchanged}`);
 console.log(`Empty:     ${empty}`);
 console.log(`Failed:    ${failed}`);
+console.log(`OCR used:  ${ocrUsed}`);
 console.log(`Chunks:    ${totalChunks}`);
 console.log(`Total KB:  ${(totalBytes / 1024).toFixed(1)}`);
 if (modelUsed) console.log(`Model:     ${modelUsed}`);
