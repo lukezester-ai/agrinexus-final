@@ -48,21 +48,21 @@ export const STR_EN = {
 	landingInquiryHint: 'Powered by AI',
 	landingGlassMarketTitle: 'Marketplace & trade orientation',
 	landingGlassMarketP1:
-		'Explore illustrative corridors with BUY/HOLD/AVOID-style signals, filters and ticker views — a structured entry point before you involve your desk or broker.',
+		'Illustrative market screen with BUY/HOLD/AVOID orientation, filters and a quick corridor overview.',
 	landingGlassMarketP2:
-		'Figures stay demo-oriented until real feeds are connected; the flows mirror how teams scan opportunities.',
+		'Figures are demo. Technical support: info@agrinexus.eu.',
 	landingGlassMarketCta: 'Go to marketplace',
 	landingGlassIntelTitle: 'Statistics, AI & modules',
 	landingGlassIntelP1:
-		'AgriNexus combines analytics screens with assistants grounded in agri-food workflows — numbers first, AI as interpretation where configured.',
+		'Core modules: statistics, AI assistant and practical operations tools.',
 	landingGlassIntelListIntro: 'The workspace includes:',
 	landingGlassIntelLi1:
-		'AI assistant for trade, compliance and agronomic context (orientation only — not investment advice).',
+		'AI assistant for trade, compliance and agronomy orientation.',
 	landingGlassIntelLi2:
-		'Market Watch — delayed references, rolling statistics and optional Bulgarian AI summaries & clusters.',
-	landingGlassIntelLi3: 'Bulgaria crop statistics and related data views.',
-	landingGlassIntelLi4: 'Subsidy calculator, season calendar, BG trade documents, food-security break-even and more.',
-	landingGlassIntelLi5: 'Operations hub, file uploads and modular navigation across markets & field tools.',
+		'Market Watch and Bulgaria crop statistics.',
+	landingGlassIntelLi3: 'Subsidy calculator, season calendar and BG trade documents.',
+	landingGlassIntelLi4: 'Operations hub and file upload.',
+	landingGlassIntelLi5: 'Technical support: info@agrinexus.eu.',
 	landingGlassIntelCta: 'Open market watch',
 	landingGlassFooterLead: 'Commercial inquiries or demos — reach us by email.',
 	landingGlassEmailAria: 'Send email to AgriNexus sales',
