@@ -58,8 +58,47 @@ type Props = {
 	onOpenSubsidy: () => void;
 };
 
+type SeasonFilter = 'all' | 'winter' | 'spring' | 'summer' | 'autumn';
+
+const SEASON_MONTHS: Record<Exclude<SeasonFilter, 'all'>, number[]> = {
+	winter: [12, 1, 2],
+	spring: [3, 4, 5],
+	summer: [6, 7, 8],
+	autumn: [9, 10, 11],
+};
+
+function seasonFilterLabel(lang: UiLang, key: SeasonFilter): string {
+	if (lang === 'bg') {
+		switch (key) {
+			case 'all':
+				return 'Всички';
+			case 'winter':
+				return 'Зима';
+			case 'spring':
+				return 'Пролет';
+			case 'summer':
+				return 'Лято';
+			case 'autumn':
+				return 'Есен';
+		}
+	}
+	switch (key) {
+		case 'all':
+			return 'All';
+		case 'winter':
+			return 'Winter';
+		case 'spring':
+			return 'Spring';
+		case 'summer':
+			return 'Summer';
+		case 'autumn':
+			return 'Autumn';
+	}
+}
+
 export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 	const [crop, setCrop] = useState<CropCalendarKey>('wheat_barley');
+	const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>('all');
 	const currentYear = new Date().getFullYear();
 	const currentMonth = new Date().getMonth() + 1;
 	const selectedYear = currentYear;
@@ -69,6 +108,10 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 	const [ragAnswer, setRagAnswer] = useState('');
 	const [ragTasksByMonth, setRagTasksByMonth] = useState<Record<number, string[]>>({});
 	const tasksByMonth = useMemo(() => SEASON_TASKS_BY_CROP[crop], [crop]);
+	const monthsToRender = useMemo(() => {
+		if (seasonFilter === 'all') return Array.from({ length: 12 }, (_, i) => i + 1);
+		return SEASON_MONTHS[seasonFilter];
+	}, [seasonFilter]);
 	const showBgNote = lang !== 'bg' && tr.seasonCalendarBgNote.length > 0;
 	const selectedMonthTasks = tasksByMonth[selectedMonth] ?? [];
 
@@ -168,6 +211,24 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				</div>
 			</div>
 
+			<div style={{ marginBottom: 20 }}>
+				<span className="muted" style={{ display: 'block', marginBottom: 8, fontSize: '.9rem' }}>
+					{lang === 'bg' ? 'Избор на сезон' : 'Season filter'}
+				</span>
+				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+					{(['all', 'winter', 'spring', 'summer', 'autumn'] as const).map((key) => (
+						<button
+							key={key}
+							type="button"
+							className={seasonFilter === key ? 'btn btn-primary' : 'btn btn-outline'}
+							onClick={() => setSeasonFilter(key)}
+							style={{ flex: '1 1 140px' }}>
+							{seasonFilterLabel(lang, key)}
+						</button>
+					))}
+				</div>
+			</div>
+
 			<div
 				className="contact-panel"
 				style={{
@@ -256,8 +317,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
 					gap: 18,
 				}}>
-				{MONTH_NAMES_BG.map((_, idx) => {
-					const m = idx + 1;
+				{monthsToRender.map((m) => {
+					const idx = m - 1;
 					const tasks = tasksByMonth[m] ?? [];
 					const ragTasks = ragTasksByMonth[m] ?? [];
 					const visual = resolveSeasonVisual(crop, m);
