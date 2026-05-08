@@ -2265,7 +2265,7 @@ export default function App() {
 
         .nav {
           display: grid;
-          grid-template-columns: 1fr auto 1fr;
+          grid-template-columns: auto 1fr;
           align-items: center;
           gap: 12px;
           padding: 14px 18px;
@@ -2276,10 +2276,9 @@ export default function App() {
         }
         .brand {
           display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer;
-          position: absolute;
-          left: 50%;
-          transform: translate(-50%, 4px);
-          z-index: 2;
+          grid-column: 1;
+          justify-self: start;
+          transform: none;
           border: none;
           margin: 0;
           padding: 0;
@@ -2292,7 +2291,7 @@ export default function App() {
         .brand-agri { color: #ffffff; }
         .brand-nexus { color: #a8d98a; }
         .nav-actions {
-          grid-column: 3;
+          grid-column: 2;
           justify-self: end;
           display: flex;
           gap: 6px;
@@ -3039,7 +3038,8 @@ export default function App() {
             min-height: 58px;
           }
           .brand {
-            position: static;
+            grid-column: 1;
+            justify-self: start;
             transform: none;
           }
           .nav-actions { gap: 6px; }
