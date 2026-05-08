@@ -1,4 +1,5 @@
 import type { ChatPersona } from './chat-persona';
+import { buildAgrinexusPlatformRagPreamble } from './agrinexus-platform-rag-context.js';
 import { parseChatPersona } from './chat-persona.js';
 import { buildDocDiscoveryRagContextForChat } from './doc-discovery-chat-rag.js';
 import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing.js';
@@ -68,8 +69,8 @@ function systemPrompt(
   const ragTail =
     ragBlock.trim().length > 0
       ? locale === 'bg'
-        ? '\n5) **Retrieval** — по-долу има блок RETRIEVAL SNAPSHOTS: приоритет към тези линкове за официална насоченост; в полето source кажи кои URL са информирали отговора; не преписвай „съдържание“, което не виждаш.'
-        : '\n5) **Retrieval** — RETRIEVAL SNAPSHOTS appear below: prioritize those links for official orientation; state which URLs informed your answer in source; do not quote unseen page bodies.'
+        ? '\n5) **Контекст** — по-долу: платформена карта на модулите AgriNexus и (ако има) RETRIEVAL SNAPSHOTS от индексирани документи. Използвай картата за навигация в UI; retrieval за официални източници; в source посочи кои URL са ползвани; не преписвай текст, който не виждаш.'
+        : '\n5) **Context** — below: AgriNexus module map plus optional RETRIEVAL SNAPSHOTS from indexed docs. Use the map for UI navigation; use retrieval for official sources; state which URLs informed source; do not quote unseen bodies.'
       : '';
 
   return `You are AgriNexus — the **farmer operating system** assistant. You are NOT three separate chatbots. You combine legal clarity, agronomic practice, and farm economics so documentation stays the spine of the answer.
@@ -86,7 +87,7 @@ Priority (all modes):
 4) **Finance & market** — subsidies, taxes, fixed costs, "is this scheme worth it", trade/logistics — after doc obligations are clear, or in a clearly separated paragraph if the user only asks markets.${ragTail}
 
 Scope:
-- **In scope**: EU–MENA trade using marketplace snapshot below; Bulgarian (and generic EU) farmer compliance, subsidies, field records, when tied to the farmer snapshot or user question.
+- **In scope**: AgriNexus modules (Field Watch, Weather+PDF, Operations/Kanban, Statistics, Food Sec., subsidies, calendar, command centre), EU–MENA trade using snapshot below, Bulgarian (and generic EU) farmer compliance and field records when tied to the farmer snapshot or user question.
 - **Out of scope**: unrelated topics — set in_scope=false briefly.
 
 Safety:
@@ -101,7 +102,7 @@ Output format (strict):
 - source: short basis e.g. "Farmer snapshot + marketplace filter" or "General DAFS orientation (user must verify)".
 - answer: structured text; in unified mode use line breaks and the four subtitles above in the user's language.
 
-Marketplace / trade context (filtered deals — demo):
+Trade snapshot (filtered deals — demo):
 ${deals}
 
 Farmer documentation snapshot:
@@ -371,9 +372,15 @@ async function handleChatPostInner(rawBody: unknown): Promise<
   }
 
   const lastUserTurn = [...cleaned].reverse().find((m) => m.role === 'user');
-  const ragBlock = lastUserTurn
+  const retrievalBlock = lastUserTurn
     ? await buildDocDiscoveryRagContextForChat(lastUserTurn.content, locale)
     : '';
+  const platformPreamble = buildAgrinexusPlatformRagPreamble(locale);
+  let ragBlock = [platformPreamble, retrievalBlock].filter((s) => s.trim().length > 0).join('\n\n');
+  const MAX_COMBINED_RAG_CHARS = 11000;
+  if (ragBlock.length > MAX_COMBINED_RAG_CHARS) {
+    ragBlock = truncate(ragBlock, MAX_COMBINED_RAG_CHARS);
+  }
 
   const { provider, completionUrl, bearer, model, useJsonObjectFormat } = upstream;
 

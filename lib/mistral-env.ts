@@ -26,15 +26,6 @@ export function readMistralMarketInsightsModel(): string {
 	return process.env.MISTRAL_MARKET_INSIGHTS_MODEL?.trim() || readMistralModel();
 }
 
-/** За мултимодални заявки (снимка на документ), напр. pixtral. */
-export function readMistralVisionModel(): string {
-	return (
-		process.env.MISTRAL_VISION_MODEL?.trim() ||
-		process.env.MISTRAL_MODEL?.trim() ||
-		'pixtral-12b-2409'
-	);
-}
-
 export function isMistralConfigured(): boolean {
 	return Boolean(readMistralApiKey());
 }

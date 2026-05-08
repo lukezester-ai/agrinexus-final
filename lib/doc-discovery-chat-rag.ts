@@ -3,8 +3,8 @@ import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
 import { searchContentChunks } from './doc-discovery/content/search.js';
 
 const MAX_RAG_CHARS = 6800;
-const TOP_K_META = 6;
-const TOP_K_CONTENT = 6;
+const TOP_K_META = 8;
+const TOP_K_CONTENT = 8;
 const MAX_SNIPPET_CHARS = 700;
 const MIN_QUERY_CHARS = 10;
 

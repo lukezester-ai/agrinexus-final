@@ -1,0 +1,28 @@
+/**
+ * Invariant product/process map for chat RAG: always injected so the model knows
+ * every major surface in AgriNexus (ops, fields, weather, compliance paths).
+ * Supplements pgvector retrieval from doc_discovery_* tables.
+ */
+export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {
+	if (locale === 'bg') {
+		return `=== AGRI NEXUS — ПЛАТФОРМЕН ОБХВАТ (вътрешна карта на процесите; не е правен съвет) ===
+Модули и потоци:
+• Начало / AI помощник: чат през /api/chat с personas unified|lawyer|agronomist|finance; контекст от профил „Твоят план“, Field Watch якор и опционално retrieval от индексирани документи (DAFS/износ и др.).
+• Статистика: статистика на култури (БГ); документи внос/износ (БГ); Метео+PDF — прогноза Open-Meteo по областен център, PDF с метео и ръчни полета „финансов ефект“.
+• Поле и поддръжка: Field Watch — Leaflet карта (сателит/OSM), geosearch, очертаване на полигон, площ и GeoJSON; опционален NDVI WMS при VITE_SENTINEL_WMS_URL + VITE_SENTINEL_WMS_LAYERS; класически timelapse през /agrinexus-field-watch.html; калкулатор субсидии; сезонен календар с RAG за месечен план; команден център (оперативен план и рискове от профил).
+• Food Sec.: хранителна сигурност / break-even; качване на файлове към логистиката.
+• Operations (навигация „Operations“): Kanban задачи todo/doing/done; бележки с локално + API workspace + Supabase; бутони RAG препоръка и дневен бриф към /api/chat с контекст задачи/полета/риск; линкове към команден център, Метео+PDF, Field Watch; списък полета от /api/fields когато е налично.
+• Backend dev: Vite прокси към dev API (DEV_API_PORT); метео /api/weather-forecast; operations hub sync към сървъра при логнат потребител.
+Подсказка: при въпрос за „какво прави приложението“ или оперативен процес — свържи отговора с горните модули и посочи къде потребителят натиска в UI.`;
+	}
+
+	return `=== AGRI NEXUS — PLATFORM SCOPE (internal process map; not legal advice) ===
+Modules and flows:
+• Home / AI assistant: chat via /api/chat with personas unified|lawyer|agronomist|finance; context from “Your plan” profile, Field Watch anchor, optional retrieval from indexed docs (DAFS, export, etc.).
+• Statistics: crop statistics (BG); trade/customs docs (BG); Weather+PDF — Open-Meteo by oblast centre, PDF export with manual “financial effect” notes.
+• Field & support: Field Watch — Leaflet (satellite/OSM), geosearch, polygon draw, area & GeoJSON; optional NDVI WMS via VITE_SENTINEL_WMS_URL + VITE_SENTINEL_WMS_LAYERS; legacy timelapse at /agrinexus-field-watch.html; subsidy calculator; season calendar with RAG month plan; command centre (operational plan and profile risks).
+• Food Sec.: food security / break-even; file upload for logistics.
+• Operations (nav label “Operations”): Kanban todo/doing/done; notes with local + API workspace + Supabase; “RAG recommendation” and daily brief call /api/chat with tasks/fields/risk context; links to command centre, Weather+PDF, Field Watch; field list from /api/fields when available.
+• Dev backend: Vite proxies to dev API (DEV_API_PORT); weather /api/weather-forecast; operations hub sync when signed in.
+Hint: for “what does the app do?” or operational workflow questions — tie answers to the modules above and name where the user clicks in the UI.`;
+}

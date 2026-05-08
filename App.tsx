@@ -9,23 +9,20 @@ import {
 	ChevronDown,
 	ChevronUp,
 	ClipboardList,
+	CloudRain,
 	FileImage,
 	FileText,
 	FileUp,
 	Globe2,
 	Leaf,
-	LineChart,
 	Loader2,
 	LogIn,
 	Mail,
 	MessageSquare,
 	Mic,
-	RefreshCw,
-	Search,
 	Send,
 	Shield,
 	UserPlus,
-	Users,
 	X,
 } from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
@@ -37,7 +34,8 @@ import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaV
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
 import { OperationsHubView } from './components/OperationsHubView';
-import { MarketWatchView } from './components/MarketWatchView';
+import { FieldWatchLeaflet } from './components/FieldWatchLeaflet';
+import { WeatherFarmView } from './components/WeatherFarmView';
 import {
 	cycleUiLang,
 	getUiStrings,
@@ -47,7 +45,6 @@ import {
 	uiLangShortLabel,
 	type UiLang,
 } from './lib/i18n';
-import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
 import { recordBrowserVisitOncePerSession } from './lib/track-browser-visit';
 import type { ChatPersona } from './lib/chat-persona';
 import {
@@ -56,8 +53,8 @@ import {
 	quickPromptLabel,
 } from './lib/assistant-quick-actions';
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
-import { scoreDealSearchMatch } from './lib/market-search';
 import type { FarmProductionFocus } from './lib/subsidy-calculator';
+import { FIELD_WATCH_OBLAST_PRESETS } from './lib/field-watch-oblast-presets';
 import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
 import { useSupabaseSession } from './hooks/use-supabase-session';
 
@@ -65,103 +62,16 @@ function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
 }
 
-/** When `VITE_MVP_MODE=1` in `.env`, hides clients/watchlist — core funnel only. Omit or leave unset for full navigation. */
+/** When `VITE_MVP_MODE=1` in `.env`, hides Operations hub tab ? core funnel only. Omit or leave unset for full navigation. */
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 
-/** За подсказка при офлайн `/api/chat` — същият порт като `DEV_API_PORT` в `.env` (vite proxy). */
+/** ??? ????????? ???? ??????? `/api/chat` ??? ????????? ?????? ????? `DEV_API_PORT` ? `.env` (vite proxy). */
 const DEV_API_PORT_HINT =
 	String(import.meta.env.VITE_DEV_API_PORT ?? '').trim() || '8788';
 const COOKIE_CONSENT_KEY = 'agrinexus-cookie-consent';
 type CookieConsent = 'accepted' | 'rejected';
 
-const PREVIEW_DEALS = [
-	{
-		id: 'p1',
-		product: 'Peeled Tomatoes',
-		packaging: '400g Tin Can',
-		certification: 'HALAL, ISO',
-		from: 'Bulgaria',
-		to: 'Dubai, UAE',
-		flag: '🇦🇪',
-		profit: 22,
-		price: '1.84 AED',
-		isMENA: true,
-	},
-	{
-		id: 'p2',
-		product: 'Wheat (Premium)',
-		packaging: 'Bulk (Silo)',
-		certification: 'SGS Inspection',
-		from: 'Romania',
-		to: 'Berlin, Germany',
-		flag: '🇩🇪',
-		profit: 14,
-		price: '0.43 EUR',
-		isMENA: false,
-	},
-	{
-		id: 'p3',
-		product: 'Rose Jam',
-		packaging: '380g Luxury Glass',
-		certification: 'HALAL, Export',
-		from: 'Greece',
-		to: 'Cairo, Egypt',
-		flag: '🇪🇬',
-		profit: 27,
-		price: '55.90 EGP',
-		isMENA: true,
-	},
-	{
-		id: 'p4',
-		product: 'Tomato Paste',
-		packaging: '70g Sachet / 24pcs',
-		certification: 'HALAL, Saber',
-		from: 'Turkey',
-		to: 'Riyadh, KSA',
-		flag: '🇸🇦',
-		profit: 21,
-		price: '2.10 SAR',
-		isMENA: true,
-	},
-];
-
-function getDecisionByProfit(profit: number) {
-	if (profit >= 21) return 'BUY';
-	if (profit >= 13) return 'HOLD';
-	return 'AVOID';
-}
-
-function getDecisionBySignals(input: {
-	profit: number;
-	volatility: 'LOW' | 'MED' | 'HIGH';
-	category: DealRow['category'];
-}): string {
-	let score = input.profit;
-	if (input.category === 'Grains') score -= 1;
-	if (input.volatility === 'HIGH') score -= 2;
-	else if (input.volatility === 'MED') score -= 1;
-	return getDecisionByProfit(score);
-}
-
-function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH' {
-	const delta = Math.abs(current - previous);
-	if (delta >= 5) return 'HIGH';
-	if (delta >= 3) return 'MED';
-	return 'LOW';
-}
-
-type MarketQuotesApi =
-	| { ok: true; mode: 'demo'; quotes: []; fetchedAt: string; source: null }
-	| {
-			ok: true;
-			mode: 'live';
-			quotes: Array<{ symbol: string; open: number; close: number; date: string; time: string }>;
-			fetchedAt: string;
-			source: 'stooq_delayed';
-	  }
-	| { ok: false; mode: 'error'; quotes: []; fetchedAt: string; source: null; error: string };
-
-/** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) — those crash the whole app with a blank screen. */
+/** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) ??? those crash the whole app with a blank screen. */
 function safeLocalGet(key: string): string | null {
 	try {
 		return localStorage.getItem(key);
@@ -213,40 +123,8 @@ function safeSessionRemove(key: string): void {
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 
 type SendChatOpts = { text?: string; persona?: ChatPersona };
-type OblastCity = { id: string; bg: string; en: string };
 
-const FIELD_WATCH_OBLAST_CITIES: OblastCity[] = [
-	{ id: 'blagoevgrad', bg: 'Благоевград', en: 'Blagoevgrad' },
-	{ id: 'burgas', bg: 'Бургас', en: 'Burgas' },
-	{ id: 'varna', bg: 'Варна', en: 'Varna' },
-	{ id: 'veliko-tarnovo', bg: 'Велико Търново', en: 'Veliko Tarnovo' },
-	{ id: 'vidin', bg: 'Видин', en: 'Vidin' },
-	{ id: 'vratsa', bg: 'Враца', en: 'Vratsa' },
-	{ id: 'gabrovo', bg: 'Габрово', en: 'Gabrovo' },
-	{ id: 'dobrich', bg: 'Добрич', en: 'Dobrich' },
-	{ id: 'kardzhali', bg: 'Кърджали', en: 'Kardzhali' },
-	{ id: 'kyustendil', bg: 'Кюстендил', en: 'Kyustendil' },
-	{ id: 'lovech', bg: 'Ловеч', en: 'Lovech' },
-	{ id: 'montana', bg: 'Монтана', en: 'Montana' },
-	{ id: 'pazardzhik', bg: 'Пазарджик', en: 'Pazardzhik' },
-	{ id: 'pernik', bg: 'Перник', en: 'Pernik' },
-	{ id: 'pleven', bg: 'Плевен', en: 'Pleven' },
-	{ id: 'plovdiv', bg: 'Пловдив', en: 'Plovdiv' },
-	{ id: 'razgrad', bg: 'Разград', en: 'Razgrad' },
-	{ id: 'ruse', bg: 'Русе', en: 'Ruse' },
-	{ id: 'silistra', bg: 'Силистра', en: 'Silistra' },
-	{ id: 'sliven', bg: 'Сливен', en: 'Sliven' },
-	{ id: 'smolyan', bg: 'Смолян', en: 'Smolyan' },
-	{ id: 'sofia', bg: 'София', en: 'Sofia' },
-	{ id: 'sofia-oblast', bg: 'София област', en: 'Sofia Oblast' },
-	{ id: 'stara-zagora', bg: 'Стара Загора', en: 'Stara Zagora' },
-	{ id: 'targovishte', bg: 'Търговище', en: 'Targovishte' },
-	{ id: 'haskovo', bg: 'Хасково', en: 'Haskovo' },
-	{ id: 'shumen', bg: 'Шумен', en: 'Shumen' },
-	{ id: 'yambol', bg: 'Ямбол', en: 'Yambol' },
-];
-
-/** Minimal typings — DOM lib does not always expose Web Speech API types. */
+/** Minimal typings ??? DOM lib does not always expose Web Speech API types. */
 type SpeechRecognitionResultEvt = {
 	results: ArrayLike<{ 0: { transcript: string } }>;
 };
@@ -272,78 +150,8 @@ function getSpeechRecognitionCtor(): (new () => SpeechRecognitionInstance) | nul
 	return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-type DealRow = {
-	id: number;
-	product: string;
-	category: 'Grains' | 'Oilseeds' | 'Pulses' | 'Processed Foods';
-	packaging: string;
-	certification: string;
-	qualitySpec: string;
-	availableVolume: string;
-	incoterm: string;
-	deliveryWindow: string;
-	from: string;
-	to: string;
-	flag: string;
-	profit: number;
-	margin: number;
-	price: string;
-	prevPrice: string;
-	isMENA: boolean;
-	decision: string;
-	prevProfit: number;
-	volatility: 'LOW' | 'MED' | 'HIGH';
-	/** Present when marketplace merges delayed futures references. */
-	priceSource?: 'synthetic' | 'futures_delayed';
-	referenceSymbol?: string;
-};
-type DealCategoryFilter = 'all' | DealRow['category'];
-type SearchableDeal = DealRow & { searchText: string };
-type Lang = UiLang;
-
-function mergeLiveIntoDeals(
-	deals: DealRow[],
-	quotes: Array<{ symbol: string; open: number; close: number }>,
-	lang: Lang,
-): DealRow[] {
-	const bySym = new Map(quotes.map(q => [q.symbol.toLowerCase(), q]));
-	return deals.map(deal => {
-		const inst = PRODUCT_INSTRUMENT[deal.product];
-		if (!inst) {
-			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
-		}
-		const q = bySym.get(inst.symbol.toLowerCase());
-		if (!q) {
-			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
-		}
-		const unit = lang === 'bg' ? inst.unitBg : inst.unitEn;
-		const pct = q.open !== 0 ? ((q.close - q.open) / q.open) * 100 : 0;
-		const profit = Math.min(34, Math.max(6, Math.round(16 + pct * 1.8)));
-		const prevProfit = Math.min(34, Math.max(6, Math.round(16 + (pct - 0.35) * 1.8)));
-		const volatility: DealRow['volatility'] =
-			Math.abs(pct) >= 2 ? 'HIGH' : Math.abs(pct) >= 0.85 ? 'MED' : 'LOW';
-		const decimals = inst.symbol === 'zr.f' ? 3 : 2;
-		const price = `${q.close.toFixed(decimals)} ${unit}`;
-		const prevPrice = `${q.open.toFixed(decimals)} ${unit}`;
-		return {
-			...deal,
-			price,
-			prevPrice,
-			profit,
-			prevProfit,
-			margin: Math.max(5, profit - 4),
-			volatility,
-			decision: getDecisionBySignals({ profit, volatility, category: deal.category }),
-			priceSource: 'futures_delayed' as const,
-			referenceSymbol: inst.symbol,
-		};
-	});
-}
-
 type View =
 	| 'landing'
-	| 'market'
-	| 'market-watch'
 	| 'assistant'
 	| 'register'
 	| 'login'
@@ -359,9 +167,11 @@ type View =
 	| 'food-security'
 	| 'command'
 	| 'file-upload'
-	| 'field-watch';
+	| 'field-watch'
+	| 'weather';
 
-const TRADING_VIEWS = new Set<View>(['market', 'market-watch', 'crop-statistics', 'trade-documents']);
+/** Crop statistics + trade docs ? legacy nav group label ?Markets?. */
+const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
@@ -380,38 +190,6 @@ type ClientProfile = {
 	creditStatus: 'Approved' | 'Pending' | 'Review';
 	notes: string;
 };
-
-const PRODUCT_BG_ALIASES: Record<string, string[]> = {
-	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно', 'wheat', 'durum', 'твърда пшеница'],
-	Corn: ['царевица', 'зърно', 'maize', 'corn'],
-	Barley: ['ечемик', 'зърно', 'barley'],
-	'Sunflower Seed': ['слънчогледово семе', 'слънчоглед', 'sunflower', 'seeds'],
-	Rapeseed: ['рапица', 'canola', 'rapeseed'],
-	Chickpeas: ['нахут', 'chickpea', 'garbanzo'],
-	Lentils: ['леща', 'lentil'],
-	'Tomato Paste': ['доматено пюре', 'paste', 'концентрат'],
-	'Peeled Tomatoes': ['белени домати', 'домат', 'tomatoes'],
-	'Sunflower Oil': ['слънчогледово масло', 'olio', 'veg oil'],
-};
-
-const CATEGORY_BG_ALIASES: Record<DealRow['category'], string[]> = {
-	Grains: ['зърнени', 'зърно'],
-	Oilseeds: ['маслодайни'],
-	Pulses: ['бобови'],
-	'Processed Foods': ['преработени', 'преработени храни'],
-};
-
-const MARKET_FLASH_EN = [
-	'Illustrative: tomato paste corridor TR → KSA with tighter spreads in this demo scenario.',
-	'Illustrative: sunflower oil bids from Egypt stay strong for the next loading windows in the demo set.',
-	'Illustrative: premium wheat routes into the EU skew HOLD due to freight pressure in the demo narrative.',
-];
-
-const MARKET_FLASH_BG = [
-	'Илюстративно: коридор доматено пюре TR → KSA с по-тесни спредове в демо сценария.',
-	'Илюстративно: оферти за слънчогледово масло от Египет остават силни за следващите прозорци за товарене (демо).',
-	'Илюстративно: премиум пшенични маршрути към EU — склонност към HOLD заради натиск върху превоза (демо).',
-];
 
 const CLIENT_PROFILES: ClientProfile[] = [
 	{
@@ -472,35 +250,35 @@ const CLIENT_PROFILE_BG_COPY: Record<
 	}
 > = {
 	'c-101': {
-		role: 'Директор снабдяване',
-		region: 'Египет (Кайро / Александрия)',
-		focus: 'Доматени продукти, слънчогледово масло',
-		monthlyVolume: '420 тона',
+		role: '???????????? ??????????',
+		region: '???????? (??????? / ????????????)',
+		focus: '?????????? ???????????, ??????????????? ?????',
+		monthlyVolume: '420 ?????',
 		notes:
-			'Високо търсене преди периода Рамадан. Предпочита стабилни месечни ценови прозорци.',
+			'??????? ?????????? ?????? ???????? ???????. ?????????????? ????????? ???????? ??????? ???????????.',
 	},
 	'c-102': {
-		role: 'Категориен мениджър',
-		region: 'Саудитска Арабия (Рияд / Джеда)',
-		focus: 'Сашета доматено пюре, бобови',
-		monthlyVolume: '290 тона',
+		role: '????????????? ??????????',
+		region: '??????????? ??????? (???? / ??????)',
+		focus: '???????? ????????? ??????, ??????',
+		monthlyVolume: '290 ?????',
 		notes:
-			'Изисква бърза валидация на сертификатите и стриктен график на експедициите.',
+			'???????? ??????? ?????????? ?? ?????????????????? ? ??????????? ???????? ?? ??????????????.',
 	},
 	'c-103': {
-		role: 'Ръководител внос',
-		region: 'Германия / Нидерландия',
-		focus: 'Премиум пшеница, ечемик',
-		monthlyVolume: '680 тона',
+		role: '????????????? ????',
+		region: '?????????? / ????????????',
+		focus: '?????????? ?????????, ???????',
+		monthlyVolume: '680 ?????',
 		notes:
-			'Чувствителен към маржа. Предпочита разделени договори със седмичен ценови преглед.',
+			'??????????????? ???? ??????. ?????????????? ?????????? ????????? ???? ????????? ??????? ????????.',
 	},
 };
 
 async function apiChat(
 	messages: ChatTurn[],
 	dealContext: string,
-	locale: Lang,
+	locale: UiLang,
 	signal: AbortSignal | undefined,
 	persona: ChatPersona,
 	farmerContext: string,
@@ -508,7 +286,6 @@ async function apiChat(
 	const normalizeAssistantReply = (raw: string): string => {
 		const stripFallbackMeta = (text: string): string => {
 			return text
-				.replace(/\n+\s*Ниво на увереност:[\s\S]*$/i, '')
 				.replace(/\n+\s*Confidence:\s*LOW[\s\S]*$/i, '')
 				.trim();
 		};
@@ -587,7 +364,7 @@ async function apiChat(
 		}
 	};
 
-	/** Mistral + дълъг system prompt + JSON mode често >15s; Vercel api/chat max 60s. */
+	/** Mistral + ??????? system prompt + JSON mode ??????? >15s; Vercel api/chat max 60s. */
 	const timeoutMs = 60000;
 	const maxAttempts = 2;
 	const requestBody = JSON.stringify({
@@ -630,8 +407,8 @@ async function apiChat(
 				if (looksLikeHtml || (!ct.includes('json') && !trimmed.startsWith('{'))) {
 					throw new Error(
 						locale === 'bg'
-							? `Хостингът върна страница вместо JSON (HTTP ${res.status}). Отворете „Вашият-домейн/api/chat“ — очаква се JSON с llmConfigured / mistralConfigured. Във Vercel: задайте MISTRAL_API_KEY или OPENAI_API_KEY за Production, проверете че проектът деплойва папка api/ и домейнът сочи същия проект; Logs → Functions.`
-							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat — expect JSON with llmConfigured / mistralConfigured. On Vercel set MISTRAL_API_KEY or OPENAI_API_KEY for Production, ensure this deployment includes the api/ folder and the domain targets this project; check Functions logs.`
+							? `???????????? ??????? ??????????? ??????? JSON (HTTP ${res.status}). ???????????? ????????????-??????/api/chat??? ??? ??????? ?? JSON ? llmConfigured / mistralConfigured. ????? Vercel: ???????? MISTRAL_API_KEY ??? OPENAI_API_KEY ?? Production, ???????????? ??? ???????????? ???????? ????? api/ ? ?????????? ????? ??????? ????????; Logs ??? Functions.`
+							: `Host returned a page instead of JSON (HTTP ${res.status}). Open /api/chat ??? expect JSON with llmConfigured / mistralConfigured. On Vercel set MISTRAL_API_KEY or OPENAI_API_KEY for Production, ensure this deployment includes the api/ folder and the domain targets this project; check Functions logs.`
 					);
 				}
 				try {
@@ -639,7 +416,7 @@ async function apiChat(
 				} catch {
 					throw new Error(
 						locale === 'bg'
-							? `Сървърът не върна валиден JSON (код ${res.status}). Проверете дали /api/chat се деплойва (папка api/) и логовете във Vercel.`
+							? `?????????????? ?? ??????? ??????? JSON (??? ${res.status}). ????????????? ???? /api/chat ?? ???????? (????? api/) ? ????????? ???? Vercel.`
 							: `Server did not return valid JSON (HTTP ${res.status}). Verify /api/chat is deployed and check Vercel function logs.`
 					);
 				}
@@ -648,11 +425,11 @@ async function apiChat(
 				throw new Error(
 					data.error ||
 						data.hint ||
-						(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed')
+						(locale === 'bg' ? '????????? ???? ????? ??????' : 'Chat request failed')
 				);
 			}
 			if (!data.reply) {
-				throw new Error(locale === 'bg' ? 'Празен AI отговор' : 'Empty AI response');
+				throw new Error(locale === 'bg' ? '???????? AI ?????????' : 'Empty AI response');
 			}
 			return normalizeAssistantReply(data.reply);
 		} catch (err) {
@@ -668,7 +445,7 @@ async function apiChat(
 				if (timeoutFired) {
 					throw new Error(
 						locale === 'bg'
-							? 'Чат заявката изтече по време. Проверете връзката и опитайте отново.'
+							? '???? ????????? ???????? ?? ??????. ????????????? ??????????? ? ?????????? ???????.'
 							: 'Chat request timed out. Check your connection and try again.'
 					);
 				}
@@ -682,7 +459,7 @@ async function apiChat(
 		}
 	}
 
-	throw new Error(locale === 'bg' ? 'Грешка при чат заявка' : 'Chat request failed');
+	throw new Error(locale === 'bg' ? '????????? ???? ????? ??????' : 'Chat request failed');
 }
 
 /**
@@ -707,7 +484,7 @@ function isIosTouchDevice(): boolean {
 	return /iPad|iPhone|iPod/.test(ua) || ipadOs13Plus;
 }
 
-/** More passes on iOS Safari — keyboard animation finishes later than on Chrome Android. */
+/** More passes on iOS Safari ??? keyboard animation finishes later than on Chrome Android. */
 function scheduleViewportResyncForKeyboard(): void {
 	const ios =
 		typeof document !== 'undefined' && document.documentElement.classList.contains('ios');
@@ -800,7 +577,7 @@ export default function App() {
 			setView('landing');
 		}
 	}, [view]);
-	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
+	const [lang, setLang] = useState<UiLang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
 	const [cookieConsent, setCookieConsent] = useState<CookieConsent | null>(() => {
 		const stored = safeLocalGet(COOKIE_CONSENT_KEY);
 		return stored === 'accepted' || stored === 'rejected' ? stored : null;
@@ -835,17 +612,8 @@ export default function App() {
 		safeLocalSet(COOKIE_CONSENT_KEY, cookieConsent);
 	}, [cookieConsent]);
 
-	const [searchQuery, setSearchQuery] = useState('');
-	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
-	const [searchPanelOpen, setSearchPanelOpen] = useState(false);
-	const [highlightedDealId, setHighlightedDealId] = useState<number | null>(null);
 	const [subsidyPrefillFocus, setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
 	const [subsidyPrefillQuery, setSubsidyPrefillQuery] = useState('');
-	const [nextUpdate, setNextUpdate] = useState(30 * 60);
-	const [refreshTick, setRefreshTick] = useState(0);
-	const [marketQuotes, setMarketQuotes] = useState<MarketQuotesApi | null>(null);
-	const [quotesLoading, setQuotesLoading] = useState(false);
-	const [marketFlashIndex, setMarketFlashIndex] = useState(0);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
@@ -863,16 +631,14 @@ export default function App() {
 	const chatTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 	const [sessionTick, setSessionTick] = useState(0);
 	const [voiceListening, setVoiceListening] = useState(false);
-	const [docExplainLoading, setDocExplainLoading] = useState(false);
 	const [assistantNotice, setAssistantNotice] = useState<string | null>(null);
 	const [assistantToolbarCollapsed, setAssistantToolbarCollapsed] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
 	);
 	const [selectedFieldCityId, setSelectedFieldCityId] = useState<string>('dobrich');
-	const docImageInputRef = useRef<HTMLInputElement>(null);
 	const selectedFieldCity =
-		FIELD_WATCH_OBLAST_CITIES.find((city) => city.id === selectedFieldCityId) ??
-		FIELD_WATCH_OBLAST_CITIES[0];
+		FIELD_WATCH_OBLAST_PRESETS.find((city) => city.id === selectedFieldCityId) ??
+		FIELD_WATCH_OBLAST_PRESETS[0];
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
 
 	const demoSessionEmail = useMemo(() => {
@@ -883,10 +649,10 @@ export default function App() {
 		const e = supabaseUser?.email?.trim() ?? '';
 		return e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
 	}, [supabaseUser?.email]);
-	/** Имейл за идентификация към /api/document-explain: демо localStorage или реален Supabase потребител. */
+	/** Email identity for unlocking mic when LLM health is idle (demo localStorage or Supabase session). */
 	const identityEmailForAi = demoSessionEmail ?? cloudAccountEmail;
 	const [chatHealth, setChatHealth] = useState<'idle' | 'ready' | 'no_key' | 'offline'>('idle');
-	/** Микрофон и снимка на документ: LLM на сървъра ИЛИ регистриран/влязъл потребител (облак или демо имейл). */
+	/** ??????????? ? ?????? ?? ??????????: LLM ?? ??????????? ?????? ???????????????/??????? ????????????? (????? ??? ???? ?????). */
 	const mediaAiUnlocked = useMemo(
 		() => chatHealth === 'ready' || Boolean(identityEmailForAi),
 		[chatHealth, identityEmailForAi],
@@ -909,30 +675,6 @@ export default function App() {
 	const [contactBody, setContactBody] = useState('');
 	const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [contactFeedback, setContactFeedback] = useState('');
-	const [watchlistIds, setWatchlistIds] = useState<number[]>(() => {
-		try {
-			const raw = safeLocalGet('agrinexus-watchlist');
-			return raw ? (JSON.parse(raw) as number[]) : [];
-		} catch {
-			return [];
-		}
-	});
-	const [alertsEnabledIds, setAlertsEnabledIds] = useState<number[]>(() => {
-		try {
-			const raw = safeLocalGet('agrinexus-alerts');
-			return raw ? (JSON.parse(raw) as number[]) : [];
-		} catch {
-			return [];
-		}
-	});
-	const [alertThreshold, setAlertThreshold] = useState<number>(() => {
-		const raw = safeLocalGet('agrinexus-alert-threshold');
-		const value = raw ? Number(raw) : 20;
-		return Number.isFinite(value) ? value : 20;
-	});
-	const [alertsMuted, setAlertsMuted] = useState<boolean>(
-		() => safeLocalGet('agrinexus-alerts-muted') === '1'
-	);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
 	const regFullNameValid = regFullName.trim().length >= 2;
@@ -954,568 +696,18 @@ export default function App() {
 	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
 	const invalidEmailText =
 		lang === 'bg'
-			? 'Моля, въведи валиден имейл адрес.'
+			? '?????, ??????? ??????? ????? ??????.'
 			: 'Please enter a valid email address.';
 
-	const demoDeals = useMemo(() => {
-		const products = [
-			{
-				name: 'Wheat (Premium)',
-				category: 'Grains' as const,
-				pack: 'Bulk (Silo)',
-				cert: 'SGS, Phytosanitary',
-				qualityOptions: ['Protein 12.5%', 'Protein 11.5%', 'Moisture ≤ 13.5%'],
-			},
-			{
-				name: 'Corn',
-				category: 'Grains' as const,
-				pack: 'Bulk',
-				cert: 'SGS, Phytosanitary',
-				qualityOptions: ['Moisture ≤ 14%', 'Broken Kernels ≤ 5%', 'Aflatoxin tested'],
-			},
-			{
-				name: 'Barley',
-				category: 'Grains' as const,
-				pack: 'Bulk',
-				cert: 'Phytosanitary, SGS',
-				qualityOptions: ['Test Weight 65+ kg/hl', 'Moisture ≤ 13.5%', 'Foreign Matter ≤ 2%'],
-			},
-			{
-				name: 'Sunflower Seed',
-				category: 'Oilseeds' as const,
-				pack: 'Bulk',
-				cert: 'SGS, HACCP',
-				qualityOptions: ['Oil Content 44%+', 'Moisture ≤ 9%', 'Impurities ≤ 2%'],
-			},
-			{
-				name: 'Rapeseed',
-				category: 'Oilseeds' as const,
-				pack: 'Bulk',
-				cert: 'SGS',
-				qualityOptions: ['Oil Content 40%+', 'Moisture ≤ 8%', 'Erucic Acid compliant'],
-			},
-			{
-				name: 'Chickpeas',
-				category: 'Pulses' as const,
-				pack: '25kg PP Bags',
-				cert: 'HALAL, Export',
-				qualityOptions: ['8-9 mm caliber', 'Moisture ≤ 12%', 'Cleaned / sorted'],
-			},
-			{
-				name: 'Lentils',
-				category: 'Pulses' as const,
-				pack: '25kg PP Bags',
-				cert: 'HALAL, Export',
-				qualityOptions: ['Size 4-6 mm', 'Foreign Matter ≤ 0.5%', 'Moisture ≤ 13%'],
-			},
-			{
-				name: 'Tomato Paste',
-				category: 'Processed Foods' as const,
-				pack: '70g Sachet / 24pcs',
-				cert: 'HALAL, Saber',
-				qualityOptions: ['Brix 28-30%', 'No additives', 'Aseptic line'],
-			},
-			{
-				name: 'Peeled Tomatoes',
-				category: 'Processed Foods' as const,
-				pack: '400g Tin Can',
-				cert: 'HALAL, ISO',
-				qualityOptions: ['Whole peeled grade A', 'Drained Weight compliant', 'EU origin'],
-			},
-			{
-				name: 'Sunflower Oil',
-				category: 'Processed Foods' as const,
-				pack: '1L / 5L PET',
-				cert: 'ISO 22000, HACCP',
-				qualityOptions: ['Refined, deodorized', 'FFA ≤ 0.1%', 'Peroxide compliant'],
-			},
-		];
-		const incoterms = ['FOB', 'CIF', 'DAP', 'FCA'];
-		const deliveryWindows = ['7-14 days', '15-30 days', '30-45 days'];
-
-		const sourceCountries = [
-			'Bulgaria',
-			'Romania',
-			'Greece',
-			'Turkey',
-			'Serbia',
-			'Poland',
-			'Ukraine',
-			'Spain',
-			'Hungary',
-			'France',
-			'Italy',
-			'Netherlands',
-		];
-
-		const importMarkets = [
-			{
-				to: 'Cairo, Egypt',
-				cur: 'EGP',
-				mult: 56,
-				flag: '🇪🇬',
-				region: 'MENA',
-				demandBoost: 1.2,
-			},
-			{
-				to: 'Alexandria, Egypt',
-				cur: 'EGP',
-				mult: 56,
-				flag: '🇪🇬',
-				region: 'MENA',
-				demandBoost: 1.15,
-			},
-			{ to: 'Dubai, UAE', cur: 'AED', mult: 4, flag: '🇦🇪', region: 'MENA', demandBoost: 1.1 },
-			{
-				to: 'Abu Dhabi, UAE',
-				cur: 'AED',
-				mult: 4,
-				flag: '🇦🇪',
-				region: 'MENA',
-				demandBoost: 1.05,
-			},
-			{
-				to: 'Riyadh, KSA',
-				cur: 'SAR',
-				mult: 4.1,
-				flag: '🇸🇦',
-				region: 'MENA',
-				demandBoost: 1.1,
-			},
-			{
-				to: 'Jeddah, KSA',
-				cur: 'SAR',
-				mult: 4.1,
-				flag: '🇸🇦',
-				region: 'MENA',
-				demandBoost: 1.08,
-			},
-			{
-				to: 'Doha, Qatar',
-				cur: 'QAR',
-				mult: 4,
-				flag: '🇶🇦',
-				region: 'MENA',
-				demandBoost: 1.07,
-			},
-			{
-				to: 'Kuwait City, Kuwait',
-				cur: 'KWD',
-				mult: 0.31,
-				flag: '🇰🇼',
-				region: 'MENA',
-				demandBoost: 1.08,
-			},
-			{
-				to: 'Amman, Jordan',
-				cur: 'JOD',
-				mult: 0.71,
-				flag: '🇯🇴',
-				region: 'MENA',
-				demandBoost: 1.04,
-			},
-			{
-				to: 'Casablanca, Morocco',
-				cur: 'MAD',
-				mult: 10.7,
-				flag: '🇲🇦',
-				region: 'MENA',
-				demandBoost: 1.02,
-			},
-			{
-				to: 'Berlin, Germany',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇩🇪',
-				region: 'EU',
-				demandBoost: 0.96,
-			},
-			{
-				to: 'Milan, Italy',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇮🇹',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-			{
-				to: 'Paris, France',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇫🇷',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-			{
-				to: 'Madrid, Spain',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇪🇸',
-				region: 'EU',
-				demandBoost: 0.94,
-			},
-			{
-				to: 'Amsterdam, Netherlands',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇳🇱',
-				region: 'EU',
-				demandBoost: 0.93,
-			},
-			{
-				to: 'Warsaw, Poland',
-				cur: 'PLN',
-				mult: 4.3,
-				flag: '🇵🇱',
-				region: 'EU',
-				demandBoost: 0.96,
-			},
-			{
-				to: 'Athens, Greece',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇬🇷',
-				region: 'EU',
-				demandBoost: 0.94,
-			},
-			{
-				to: 'Bucharest, Romania',
-				cur: 'RON',
-				mult: 5,
-				flag: '🇷🇴',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-		];
-
-		const seededRand = (seed: number) => {
-			const x = Math.sin(seed) * 10000;
-			return x - Math.floor(x);
-		};
-
-		return Array.from({ length: 30 }, (_, i) => {
-			const product = products[i % products.length];
-			const market = importMarkets[i % importMarkets.length];
-			const base = market.region === 'MENA' ? 13 : 8;
-			const randomFactor = Math.floor(seededRand(i + 1 + refreshTick) * 13);
-			const prevRandomFactor = Math.floor(
-				seededRand(i + 1 + Math.max(0, refreshTick - 1)) * 13
-			);
-			const profit = Math.round((base + randomFactor) * market.demandBoost);
-			const prevProfit = Math.round((base + prevRandomFactor) * market.demandBoost);
-			const margin = Math.max(5, profit - 4);
-			const currentPrice = `${(seededRand(i + 99 + refreshTick) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
-			const prevPrice = `${(seededRand(i + 99 + Math.max(0, refreshTick - 1)) * 8 * market.mult + 0.35).toFixed(2)} ${market.cur}`;
-			const volatility = getVolatility(profit, prevProfit);
-
-			return {
-				id: i + 1,
-				product: product.name,
-				category: product.category,
-				packaging: product.pack,
-				certification: product.cert,
-				qualitySpec: product.qualityOptions[i % product.qualityOptions.length],
-				availableVolume: `${Math.round(120 + seededRand(i + 333 + refreshTick) * 1780)} tons`,
-				incoterm: incoterms[i % incoterms.length],
-				deliveryWindow: deliveryWindows[i % deliveryWindows.length],
-				from: sourceCountries[i % sourceCountries.length],
-				to: market.to,
-				flag: market.flag,
-				profit,
-				prevProfit,
-				margin,
-				price: currentPrice,
-				prevPrice,
-				isMENA: market.region === 'MENA',
-				decision: getDecisionBySignals({
-					profit,
-					volatility,
-					category: product.category,
-				}),
-				volatility,
-			} satisfies DealRow;
-		});
-	}, [refreshTick]);
-
-	const allDeals = useMemo((): DealRow[] => {
-		if (
-			marketQuotes &&
-			marketQuotes.ok &&
-			marketQuotes.mode === 'live' &&
-			marketQuotes.quotes.length > 0
-		) {
-			return mergeLiveIntoDeals(demoDeals, marketQuotes.quotes, lang);
-		}
-		return demoDeals;
-	}, [demoDeals, marketQuotes, lang]);
-
-	const searchableDeals = useMemo<SearchableDeal[]>(
-		() =>
-			allDeals.map(deal => {
-				const productAliases = PRODUCT_BG_ALIASES[deal.product] ?? [];
-				const categoryAliases = CATEGORY_BG_ALIASES[deal.category] ?? [];
-				const searchText = [
-					deal.product,
-					deal.category,
-					...categoryAliases,
-					...productAliases,
-					deal.certification,
-					deal.qualitySpec,
-					deal.packaging,
-					deal.from,
-					deal.to,
-					deal.deliveryWindow,
-					deal.incoterm,
-					deal.referenceSymbol ?? '',
-					deal.priceSource ?? '',
-				]
-					.join(' ')
-					.toLowerCase();
-				return { ...deal, searchText };
-			}),
-		[allDeals]
-	);
-
-	const filteredDeals = useMemo(() => {
-		const rawQ = searchQuery;
-		const matchesCategory = (d: SearchableDeal) =>
-			selectedCategory === 'all' || d.category === selectedCategory;
-		const rows = searchableDeals.filter(d => {
-			if (!matchesCategory(d)) return false;
-			const score = scoreDealSearchMatch(d.searchText, rawQ);
-			return score > 0;
-		});
-		const ql = rawQ.trim();
-		if (!ql) return rows;
-		return [...rows].sort(
-			(a, b) =>
-				scoreDealSearchMatch(b.searchText, rawQ) - scoreDealSearchMatch(a.searchText, rawQ)
-		);
-	}, [searchableDeals, searchQuery, selectedCategory]);
-
-	useEffect(() => {
-		const hasQuery = searchQuery.trim().length > 0;
-		setSearchPanelOpen(hasQuery);
-		if (!hasQuery) setHighlightedDealId(null);
-	}, [searchQuery]);
-
-	const inferSubsidyFocusFromMarket = useCallback(
-		(category: DealCategoryFilter, query: string): FarmProductionFocus => {
-			const q = `${query} ${category}`.toLowerCase();
-			if (
-				q.includes('vine') ||
-				q.includes('grape') ||
-				q.includes('wine') ||
-				q.includes('вино') ||
-				q.includes('лозе') ||
-				q.includes('лозя') ||
-				q.includes('грозд')
-			) {
-				return 'vine';
-			}
-			if (
-				q.includes('vegetable') ||
-				q.includes('fruit') ||
-				q.includes('hort') ||
-				q.includes('orchard') ||
-				q.includes('овощ') ||
-				q.includes('ябълк') ||
-				q.includes('круша') ||
-				q.includes('домати') ||
-				q.includes('tomato') ||
-				q.includes('краставиц') ||
-				q.includes('картоф') ||
-				q.includes('плод') ||
-				q.includes('зеленчук')
-			) {
-				return 'horticulture';
-			}
-			if (
-				q.includes('cow') ||
-				q.includes('cattle') ||
-				q.includes('livestock') ||
-				q.includes('млек') ||
-				q.includes('овце') ||
-				q.includes('крав') ||
-				q.includes('живот')
-			) {
-				return 'livestock';
-			}
-			if (
-				q.includes('sunflower') ||
-				q.includes('rape') ||
-				q.includes('canola') ||
-				q.includes('слънчоглед') ||
-				q.includes('рапица') ||
-				q.includes('масло') ||
-				category === 'Oilseeds'
-			) {
-				return 'mixed';
-			}
-			if (
-				q.includes('wheat') ||
-				q.includes('barley') ||
-				q.includes('corn') ||
-				q.includes('maize') ||
-				q.includes('пшеница') ||
-				q.includes('ечемик') ||
-				q.includes('царевица') ||
-				q.includes('зърн') ||
-				category === 'Grains'
-			) {
-				return 'grain';
-			}
-			if (category === 'Pulses') return 'mixed';
-			return 'mixed';
-		},
-		[]
-	);
-
-	const grainUniverse = useMemo(
-		() => allDeals.filter(deal => deal.category === 'Grains'),
-		[allDeals]
-	);
-
-	const grainInsights = useMemo(() => {
-		const scoped =
-			selectedCategory === 'Grains'
-				? filteredDeals.filter(deal => deal.category === 'Grains')
-				: grainUniverse;
-		if (scoped.length === 0) {
-			return {
-				count: 0,
-				avgMargin: 0,
-				buyCount: 0,
-				topRoute: '—',
-				topProduct: '—',
-			};
-		}
-		const avgMargin = Math.round(
-			scoped.reduce((sum, deal) => sum + deal.margin, 0) / scoped.length
-		);
-		const buyCount = scoped.filter(deal => deal.decision === 'BUY').length;
-		const topDeal = [...scoped].sort((a, b) => b.profit - a.profit)[0];
-		return {
-			count: scoped.length,
-			avgMargin,
-			buyCount,
-			topRoute: `${topDeal.from} → ${topDeal.to}`,
-			topProduct: topDeal.product,
-		};
-	}, [filteredDeals, grainUniverse, selectedCategory]);
-
 	const dealContextForAI = useMemo(() => {
-		const slice = filteredDeals.slice(0, 18);
-			const feedNote =
-			marketQuotes?.ok && marketQuotes.mode === 'live'
-				? lang === 'bg'
-					? '[Пазар: забавени фючърсни референции от Stooq за мапнати стоки; редове без инструмент са илюстративни; не са оферти.]\n'
-					: '[Market: delayed futures refs from Stooq for mapped products; rows without a listed instrument remain illustrative; not offers.]\n'
-				: '';
-		return (
-			feedNote +
-			slice
-				.map(
-					d =>
-						`#${d.id} ${d.product} | ${d.from}→${d.to} | ${d.decision} | est. +${d.profit}% | ${d.price}${d.priceSource === 'futures_delayed' ? ` | ref:${d.referenceSymbol ?? ''}` : ''}`
-				)
-				.join('\n')
-		);
-	}, [filteredDeals, marketQuotes, lang]);
-
-	const topMovers = useMemo(
-		() =>
-			[...filteredDeals]
-				.sort(
-					(a, b) => Math.abs(b.profit - b.prevProfit) - Math.abs(a.profit - a.prevProfit)
-				)
-				.slice(0, 4),
-		[filteredDeals]
-	);
-
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setNextUpdate(prev => {
-				if (prev <= 1) {
-					setRefreshTick(v => v + 1);
-					return 30 * 60;
-				}
-				return prev - 1;
-			});
-		}, 1000);
-		return () => clearInterval(timer);
-	}, []);
-
-	useEffect(() => {
-		const flashTimer = setInterval(() => {
-			const flashes = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
-			setMarketFlashIndex(v => (v + 1) % flashes.length);
-		}, 9000);
-		return () => clearInterval(flashTimer);
-	}, [lang]);
-
-	useEffect(() => {
-		safeLocalSet('agrinexus-watchlist', JSON.stringify(watchlistIds));
-	}, [watchlistIds]);
-
-	useEffect(() => {
-		safeLocalSet('agrinexus-alerts', JSON.stringify(alertsEnabledIds));
-	}, [alertsEnabledIds]);
+		const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
+		return `[Field Watch: ${cityLabel}] Leaflet map with draw tools, optional NDVI WMS, weather PDF with manual financial notes. Prioritize agronomic signals and RAG.`;
+	}, [lang, selectedFieldCity]);
 
 	useEffect(() => {
 		safeLocalSet('agrinexus-lang', lang);
 	}, [lang]);
 
-	useEffect(() => {
-		safeLocalSet('agrinexus-alert-threshold', String(alertThreshold));
-	}, [alertThreshold]);
-
-	useEffect(() => {
-		safeLocalSet('agrinexus-alerts-muted', alertsMuted ? '1' : '0');
-	}, [alertsMuted]);
-
-	useEffect(() => {
-		if (import.meta.env.VITE_SKIP_MARKET_QUOTES === '1') {
-			setMarketQuotes({
-				ok: true,
-				mode: 'demo',
-				quotes: [],
-				fetchedAt: new Date().toISOString(),
-				source: null,
-			});
-			setQuotesLoading(false);
-			return;
-		}
-
-		let cancelled = false;
-		setQuotesLoading(true);
-		void fetch('/api/market-quotes')
-			.then(r => r.json() as Promise<MarketQuotesApi>)
-			.then(data => {
-				if (!cancelled) setMarketQuotes(data);
-			})
-			.catch(() => {
-				if (!cancelled) {
-					setMarketQuotes({
-						ok: false,
-						mode: 'error',
-						quotes: [],
-						fetchedAt: new Date().toISOString(),
-						source: null,
-						error: 'network',
-					});
-				}
-			})
-			.finally(() => {
-				if (!cancelled) setQuotesLoading(false);
-			});
-
-		return () => {
-			cancelled = true;
-		};
-	}, [refreshTick]);
-
-	const formatTime = `${Math.floor(nextUpdate / 60)}:${(nextUpdate % 60).toString().padStart(2, '0')}`;
 	const selectedClient =
 		CLIENT_PROFILES.find(profile => profile.id === selectedClientId) || CLIENT_PROFILES[0];
 	const selectedClientLocalized =
@@ -1528,40 +720,11 @@ export default function App() {
 	const selectedClientStatusLabel =
 		lang === 'bg'
 			? selectedClient.creditStatus === 'Approved'
-				? 'Одобрен'
+				? '???????'
 				: selectedClient.creditStatus === 'Pending'
-					? 'В изчакване'
-					: 'Преглед'
+					? '? ?????????'
+					: '???????'
 			: selectedClient.creditStatus;
-	const tickerItems = filteredDeals.slice(0, 12);
-	const watchedDeals = allDeals.filter(deal => watchlistIds.includes(deal.id));
-	const lastSavedDeal = useMemo(() => {
-		const lastSavedId = watchlistIds[watchlistIds.length - 1];
-		if (!lastSavedId) return null;
-		return allDeals.find(deal => deal.id === lastSavedId) ?? null;
-	}, [allDeals, watchlistIds]);
-	const lastAlertDeal = useMemo(() => {
-		const lastAlertId = alertsEnabledIds[alertsEnabledIds.length - 1];
-		if (!lastAlertId) return null;
-		return allDeals.find(deal => deal.id === lastAlertId) ?? null;
-	}, [alertsEnabledIds, allDeals]);
-
-	const toggleWatchlist = (dealId: number) => {
-		setWatchlistIds(prev =>
-			prev.includes(dealId) ? prev.filter(id => id !== dealId) : [...prev, dealId]
-		);
-	};
-
-	const toggleAlert = (dealId: number) => {
-		setAlertsEnabledIds(prev =>
-			prev.includes(dealId) ? prev.filter(id => id !== dealId) : [...prev, dealId]
-		);
-	};
-
-	const forceRefreshDeals = () => {
-		setRefreshTick(v => v + 1);
-		setNextUpdate(30 * 60);
-	};
 
 	const sendChat = useCallback(async (opts?: SendChatOpts) => {
 		const trimmed = (opts?.text ?? chatInput).trim();
@@ -1601,18 +764,18 @@ export default function App() {
 				e instanceof Error
 					? e.message
 					: lang === 'bg'
-						? 'Грешка при AI заявка'
+						? '????????? ???? AI ??????'
 						: 'AI request error';
 			let normalized = msg;
 			if (msg.includes('OpenAI is not configured')) {
 				normalized =
 					lang === 'bg'
-						? 'AI не е конфигуриран на сървъра. Добавете OPENAI_API_KEY в променливите на средата (напр. Vercel).'
+						? 'AI ?? ? ???????????????? ?? ???????????. ?????????? OPENAI_API_KEY ? ?????????????? ?? ????????? (?????. Vercel).'
 						: 'AI is not configured on the server. Add OPENAI_API_KEY to environment variables (e.g. Vercel).';
 			} else if (/incorrect api key|invalid_api_key|authentication/i.test(msg)) {
 				normalized =
 					lang === 'bg'
-						? 'Ключът за OpenAI не е приет (грешен, оттеглен или с интервал). Вземете нов секретен ключ от platform.openai.com/api-keys, сложете го в .env като OPENAI_API_KEY=sk-... без кавички, рестартирайте npm run dev; за Vercel — обновете Environment Variables.'
+						? '??????????? ?? OpenAI ?? ? ??????? (????????, ?????????? ??? ? ??????????). ????????? ??? ?????????? ?????? ??? platform.openai.com/api-keys, ???????? ?? ? .env ????? OPENAI_API_KEY=sk-... ??? ????????, ??????????????????? npm run dev; ?? Vercel ??? ????????? Environment Variables.'
 						: 'OpenAI rejected the API key (wrong, revoked, or extra spaces). Create a new secret at platform.openai.com/api-keys, set OPENAI_API_KEY in .env (no quotes), restart npm run dev; update Vercel env for production.';
 			}
 			setChatMessages(prev => [...prev, { role: 'assistant', content: normalized }]);
@@ -1643,7 +806,7 @@ export default function App() {
 		if (!mediaAiUnlocked) {
 			setAssistantNotice(
 				lang === 'bg'
-					? 'Микрофонът е достъпен след конфигуриран LLM на сървъра, след регистрация и вход с облачен акаунт, или след демо вход с имейл.'
+					? '??????????????? ? ?????????? ???? ???????????????? LLM ?? ???????????, ???? ??????????????? ? ????? ? ???????? ????????, ??? ???? ???? ????? ? ?????.'
 					: 'Microphone unlocks when a server LLM is configured, after you register and sign in with your cloud account, or after demo sign-in with email.'
 			);
 			return;
@@ -1662,8 +825,8 @@ export default function App() {
 		if (!Ctor) {
 			setAssistantNotice(
 				lang === 'bg'
-					? 'Този браузър не поддържа гласово разпознаване — опитайте Chrome или Edge.'
-					: 'Speech recognition is not supported — try Chrome or Edge.'
+					? '???? ??????????? ?? ?????????? ??????? ????????????? ??? ?????????? Chrome ??? Edge.'
+					: 'Speech recognition is not supported ??? try Chrome or Edge.'
 			);
 			return;
 		}
@@ -1682,7 +845,7 @@ export default function App() {
 		rec.onerror = () => {
 			setVoiceListening(false);
 			speechRef.current = null;
-			setAssistantNotice(lang === 'bg' ? 'Грешка при разпознаване на глас.' : 'Speech recognition error.');
+			setAssistantNotice(lang === 'bg' ? '????????? ???? ????????????? ?? ????.' : 'Speech recognition error.');
 		};
 		rec.onend = () => {
 			setVoiceListening(false);
@@ -1696,94 +859,10 @@ export default function App() {
 			setVoiceListening(false);
 			speechRef.current = null;
 			setAssistantNotice(
-				lang === 'bg' ? 'Неуспешно стартиране на микрофона.' : 'Could not start microphone.'
+				lang === 'bg' ? '??????????? ?????????????? ?? ???????????.' : 'Could not start microphone.'
 			);
 		}
 	}, [mediaAiUnlocked, voiceListening, lang]);
-
-	const onDocImageChange = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0];
-			e.target.value = '';
-			if (!file || docExplainLoading) return;
-			if (!mediaAiUnlocked) {
-				setAssistantNotice(
-					lang === 'bg'
-						? 'Обяснение на снимка: нужен е LLM на сървъра, или регистрация и облачен вход, или демо вход с имейл.'
-						: 'Document photo: configure a server LLM, or register and use cloud sign-in, or demo email sign-in.'
-				);
-				return;
-			}
-			if (!file.type.startsWith('image/')) {
-				setAssistantNotice(
-					lang === 'bg' ? 'Избери изображение (JPEG, PNG, WebP, GIF).' : 'Choose an image file.'
-				);
-				return;
-			}
-			if (file.size > 5 * 1024 * 1024) {
-				setAssistantNotice(lang === 'bg' ? 'Файлът е над 5 MB.' : 'File is over 5 MB.');
-				return;
-			}
-
-			const reader = new FileReader();
-			reader.onload = async () => {
-				const result = reader.result;
-				if (typeof result !== 'string') return;
-
-				const comma = result.indexOf(',');
-				const b64 = comma >= 0 ? result.slice(comma + 1) : result;
-
-				const userLabel =
-					lang === 'bg' ? `[Документ — снимка] ${file.name}` : `[Document image] ${file.name}`;
-				setChatMessages(prev => [...prev, { role: 'user', content: userLabel }]);
-				setDocExplainLoading(true);
-				try {
-					const q = chatInput.trim();
-					const res = await fetch('/api/document-explain', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							...(identityEmailForAi ? { sessionEmail: identityEmailForAi } : {}),
-							locale: lang,
-							imageBase64: b64,
-							mimeType: file.type || 'image/jpeg',
-							...(q ? { question: q } : {}),
-						}),
-					});
-					let data: { reply?: string; error?: string; hint?: string } = {};
-					try {
-						data = (await res.json()) as typeof data;
-					} catch {
-						data = {};
-					}
-					const text =
-						res.ok && data.reply
-							? data.reply
-							: data.hint ||
-								data.error ||
-								(lang === 'bg'
-									? 'Грешка при обяснение на документ.'
-									: 'Document explain failed.');
-					setChatMessages(prev => [...prev, { role: 'assistant', content: text }]);
-				} catch {
-					setChatMessages(prev => [
-						...prev,
-						{
-							role: 'assistant',
-							content:
-								lang === 'bg'
-									? 'Мрежова грешка към /api/document-explain.'
-									: 'Network error calling /api/document-explain.',
-						},
-					]);
-				} finally {
-					setDocExplainLoading(false);
-				}
-			};
-			reader.readAsDataURL(file);
-		},
-		[mediaAiUnlocked, identityEmailForAi, docExplainLoading, lang, chatInput]
-	);
 
 	useEffect(() => {
 		const onStorage = (ev: StorageEvent) => {
@@ -1872,7 +951,7 @@ export default function App() {
 			setRegStatus('err');
 			setRegMsg(
 				lang === 'bg'
-					? 'Въведи име с поне 2 символа.'
+					? '???????? ??? ? ???? 2 ???????.'
 					: 'Enter your name with at least 2 characters.'
 			);
 			return;
@@ -1881,14 +960,14 @@ export default function App() {
 			setRegStatus('err');
 			setRegMsg(
 				lang === 'bg'
-					? 'Моля, въведи валиден имейл адрес.'
+					? '?????, ??????? ??????? ????? ??????.'
 					: 'Please enter a valid email address.'
 			);
 			return;
 		}
 		if (supabaseRegisterEnabled && !regPasswordsMatch) {
 			setRegStatus('err');
-			setRegMsg(lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.');
+			setRegMsg(lang === 'bg' ? '??????????? ?? ??????????.' : 'Passwords do not match.');
 			return;
 		}
 		setRegStatus('loading');
@@ -1924,7 +1003,7 @@ export default function App() {
 				setRegMsg(
 					data.hint ||
 						data.error ||
-						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
+						(lang === 'bg' ? '??????????? ???????????' : 'Failed to submit')
 				);
 				return;
 			}
@@ -1947,7 +1026,7 @@ export default function App() {
 							// Keep legacy metadata keys to satisfy existing DB triggers/policies
 							// in Supabase projects that expect these fields on signup.
 							company_name: 'Not specified',
-							market_focus: '—',
+							market_focus: '???',
 							phone: '',
 						},
 					},
@@ -1961,7 +1040,7 @@ export default function App() {
 					) {
 						cloudAuthMsg =
 							lang === 'bg'
-								? 'Този имейл вече е регистриран. Използвай вход.'
+								? '???? ????? ????? ? ???????????????. ?????????? ?????.'
 								: 'This email is already registered. Please sign in.';
 					} else {
 						cloudAuthMsg =
@@ -1977,14 +1056,14 @@ export default function App() {
 			if (data.mailDelivery === 'skipped') {
 				setRegMsg(
 					lang === 'bg'
-						? 'Заявката е приета, но имейлът не е изпратен: на сървъра задайте RESEND_API_KEY и MAIL_FROM (напр. във Vercel → Environment Variables).'
-						: 'Request received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. Vercel → Environment Variables).'
+						? '?????????? ? ????????, ?? ????????? ?? ? ??????????: ?? ??????????? ???????? RESEND_API_KEY ? MAIL_FROM (?????. ???? Vercel ??? Environment Variables).'
+						: 'Request received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. Vercel ??? Environment Variables).'
 				);
 			} else {
 				setRegMsg(
 					lang === 'bg'
-						? 'Заявката е изпратена към екипа — очаквайте потвърждение на посочения имейл.'
-						: 'Your request was sent to our team — please expect a confirmation at the email you provided.'
+						? '?????????? ? ??????????? ???? ????? ??? ??????????? ??????????????? ?? ?????????? ?????.'
+						: 'Your request was sent to our team ??? please expect a confirmation at the email you provided.'
 				);
 			}
 			if (cloudAuthMsg) {
@@ -1994,7 +1073,7 @@ export default function App() {
 			setRegPasswordConfirm('');
 		} catch {
 			setRegStatus('err');
-			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
+			setRegMsg(lang === 'bg' ? '????????? ????????.' : 'Network error.');
 		}
 	};
 
@@ -2004,7 +1083,7 @@ export default function App() {
 			setContactStatus('err');
 			setContactFeedback(
 				lang === 'bg'
-					? 'Моля, въведи валиден имейл адрес.'
+					? '?????, ??????? ??????? ????? ??????.'
 					: 'Please enter a valid email address.'
 			);
 			return;
@@ -2039,7 +1118,7 @@ export default function App() {
 				setContactFeedback(
 					data.hint ||
 						data.error ||
-						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
+						(lang === 'bg' ? '??????????? ???????????' : 'Failed to submit')
 				);
 				return;
 			}
@@ -2047,20 +1126,20 @@ export default function App() {
 			if (data.mailDelivery === 'skipped') {
 				setContactFeedback(
 					lang === 'bg'
-						? 'Съобщението е прието, но имейлът не е изпратен: на сървъра задайте RESEND_API_KEY и MAIL_FROM (напр. във Vercel).'
+						? '?????????????? ? ????????, ?? ????????? ?? ? ??????????: ?? ??????????? ???????? RESEND_API_KEY ? MAIL_FROM (?????. ???? Vercel).'
 						: 'Message received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. in Vercel).'
 				);
 			} else {
 				setContactFeedback(
 					lang === 'bg'
-						? 'Съобщението е изпратено към екипа — очаквайте отговор на посочения имейл.'
-						: 'Your message was sent to our team — expect a reply at the email you provided.'
+						? '?????????????? ? ??????????? ???? ????? ??? ??????????? ????????? ?? ?????????? ?????.'
+						: 'Your message was sent to our team ??? expect a reply at the email you provided.'
 				);
 			}
 			setContactBody('');
 		} catch {
 			setContactStatus('err');
-			setContactFeedback(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
+			setContactFeedback(lang === 'bg' ? '????????? ????????.' : 'Network error.');
 		}
 	};
 
@@ -2069,7 +1148,7 @@ export default function App() {
 		if (!isValidEmail(loginEmail)) {
 			setLoginMsg(
 				lang === 'bg'
-					? 'Въведи валиден имейл, за да продължиш към демо изгледа.'
+					? '???????? ??????? ?????, ?? ?? ???????????? ???? ???? ???????.'
 					: 'Enter a valid email to continue to the demo workspace.'
 			);
 			return;
@@ -2077,7 +1156,7 @@ export default function App() {
 		if (loginPassword.trim().length < 4) {
 			setLoginMsg(
 				lang === 'bg'
-					? 'За демо въведи поне 4 знака в полето за парола (не се изпраща към сървъра).'
+					? '??? ???? ??????? ???? 4 ????? ? ??????? ?? ??????? (?? ?? ????????? ???? ???????????).'
 					: 'For demo, enter at least 4 characters in the password field (not sent to any server).'
 			);
 			return;
@@ -2089,49 +1168,6 @@ export default function App() {
 
 	const tr = useMemo(() => getUiStrings(lang), [lang]);
 
-	const marketBannerMessage = useMemo(() => {
-		if (quotesLoading && marketQuotes === null) return tr.marketQuotesLoading;
-		if (!marketQuotes || (marketQuotes.ok && marketQuotes.mode === 'demo'))
-			return tr.demoMarketBanner;
-		if (marketQuotes.ok && marketQuotes.mode === 'live') {
-			const ts = marketQuotes.fetchedAt
-				? new Date(marketQuotes.fetchedAt).toLocaleString(localeTagFor(lang), {
-						dateStyle: 'short',
-						timeStyle: 'medium',
-					})
-				: '';
-			return ts ? `${tr.liveMarketBannerStooq} (${ts})` : tr.liveMarketBannerStooq;
-		}
-		return `${tr.liveMarketErrorBanner}${marketQuotes.error ? ` (${marketQuotes.error})` : ''}`;
-	}, [quotesLoading, marketQuotes, tr, lang]);
-
-	const marketFlashLines = lang === 'bg' ? MARKET_FLASH_BG : MARKET_FLASH_EN;
-	const categoryCounts = useMemo(() => {
-		const counts: Record<DealCategoryFilter, number> = {
-			all: allDeals.length,
-			Grains: 0,
-			Oilseeds: 0,
-			Pulses: 0,
-			'Processed Foods': 0,
-		};
-		for (const deal of allDeals) {
-			counts[deal.category] += 1;
-		}
-		return counts;
-	}, [allDeals]);
-	const categoryFilterOptions: { value: DealCategoryFilter; label: string }[] = [
-		{ value: 'all', label: `${tr.filterAll} (${categoryCounts.all})` },
-		{ value: 'Grains', label: `${tr.filterGrains} (${categoryCounts.Grains})` },
-		{
-			value: 'Oilseeds',
-			label: `${tr.filterOilseeds} (${categoryCounts.Oilseeds})`,
-		},
-		{ value: 'Pulses', label: `${tr.filterPulses} (${categoryCounts.Pulses})` },
-		{
-			value: 'Processed Foods',
-			label: `${tr.filterProcessed} (${categoryCounts['Processed Foods']})`,
-		},
-	];
 
 	return (
 		<div className="app">
@@ -2175,7 +1211,7 @@ export default function App() {
           background-repeat: no-repeat;
           background-attachment: fixed;
         }
-        /* Фин film-grain върху целия фон (SVG turbulence — без допълнителни HTTP заявки). */
+        /* ??? film-grain ????????? ?????? ???? (SVG turbulence ??? ??? ?????????????? HTTP ??????). */
         .app::after {
           content: '';
           position: fixed;
@@ -2423,7 +1459,7 @@ export default function App() {
           text-shadow: none;
         }
 
-        /* Отделен широк банер с реална снимка само на началната страница (под заглавието). */
+        /* ????????? ??????? ?????? ? ??????? ?????? ???? ?? ??????????? ??????????? (??? ???????????). */
         .landing-hero {
           position: relative;
           isolation: isolate;
@@ -2797,13 +1833,6 @@ export default function App() {
           align-self: flex-start;
           background: #141f18;
           border: 1px solid #3d5248;
-        }
-        .assistant-doc-toolbar {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 10px;
         }
         .assistant-icon-btn {
           flex-shrink: 0;
@@ -3194,22 +2223,12 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
-									className={`nav-dropdown-item ${view === 'market' ? 'active' : ''}`}
+									className={`nav-dropdown-item ${view === 'weather' ? 'active' : ''}`}
 									onClick={() => {
-										setView('market');
+										setView('weather');
 										setNavMenuOpen(null);
 									}}>
-									<Search size={14} aria-hidden /> {tr.navMarket}
-								</button>
-								<button
-									type="button"
-									role="menuitem"
-									className={`nav-dropdown-item ${view === 'market-watch' ? 'active' : ''}`}
-									onClick={() => {
-										setView('market-watch');
-										setNavMenuOpen(null);
-									}}>
-									<LineChart size={14} aria-hidden /> {tr.navMarketWatch}
+									<CloudRain size={14} aria-hidden /> {tr.navMeteoPdf}
 								</button>
 								<button
 									type="button"
@@ -3257,7 +2276,7 @@ export default function App() {
 										setView('field-watch');
 										setNavMenuOpen(null);
 									}}>
-									<FileImage size={14} aria-hidden /> {lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}
+									<FileImage size={14} aria-hidden /> {lang === 'bg' ? 'Field Watch ?????' : 'Field Watch Map'}
 								</button>
 								<button
 									type="button"
@@ -3331,20 +2350,12 @@ export default function App() {
 						)}
 					</div>
 					{!MVP_MODE && (
-						<>
-							<button
-								type="button"
-								className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
-								onClick={() => setView('clients')}>
-								{tr.navClients}
-							</button>
-							<button
-								type="button"
-								className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
-								onClick={() => setView('watchlist')}>
-								{tr.navWatchlist}
-							</button>
-						</>
+						<button
+							type="button"
+							className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
+							onClick={() => setView('watchlist')}>
+							{tr.navWatchlist}
+						</button>
 					)}
 					<button
 						type="button"
@@ -3383,400 +2394,6 @@ export default function App() {
 				</section>
 			)}
 
-			{view === 'market' && (
-				<section className="section">
-					<div className="market-head">
-						<div className="search-wrap">
-							<div className="search-inline">
-								<div className="search-input-shell">
-									<Search className="search-icon" size={18} />
-									<input
-										type="text"
-										aria-label={lang === 'bg' ? 'Търсене в оферти' : 'Search in deals'}
-										placeholder={tr.searchPh}
-										value={searchQuery}
-										onChange={e => setSearchQuery(e.target.value)}
-									/>
-								</div>
-								<button
-									type="button"
-									className="btn-mini"
-									onClick={() => setSearchQuery(q => q.trim())}>
-									{lang === 'bg' ? 'Търси' : 'Search'}
-								</button>
-							</div>
-							<p className="search-help-note">
-								{lang === 'bg'
-									? 'Това поле е търсачка за оферти. За въпроси използвайте AI Chat.'
-									: 'This field filters deals. For questions, use AI Chat.'}
-							</p>
-						</div>
-						<div
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: 10,
-								flexWrap: 'wrap',
-							}}>
-							<button
-								type="button"
-								className="btn-mini"
-								onClick={() => {
-									if (searchQuery.trim()) {
-										const seed = lang === 'bg'
-											? `Искам анализ за: ${searchQuery.trim()}`
-											: `I need analysis for: ${searchQuery.trim()}`;
-										setChatInput(prev => (prev.trim() ? prev : seed));
-									}
-									setView('assistant');
-								}}>
-								<MessageSquare size={16} /> {lang === 'bg' ? 'AI Chat' : 'AI Chat'}
-							</button>
-							<button type="button" className="btn-mini" onClick={() => setView('market-watch')}>
-								<LineChart size={16} aria-hidden /> {tr.navMarketWatchShort}
-							</button>
-							<button
-								type="button"
-								className="btn-mini"
-								onClick={() => {
-									const q = searchQuery.trim();
-									setSubsidyPrefillQuery(q);
-									setSubsidyPrefillFocus(
-										inferSubsidyFocusFromMarket(selectedCategory, q)
-									);
-									setView('subsidy-calculator');
-								}}>
-								<Calculator size={16} /> {lang === 'bg' ? 'Към субсидии' : 'To Subsidies'}
-							</button>
-							<span
-								className="muted"
-								style={{ fontSize: '.78rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-								<span className="live-dot" style={{ marginRight: 0 }} />
-								{lang === 'bg' ? 'Авто-обновяване' : 'Auto refresh'}
-							</span>
-						</div>
-					</div>
-					{searchQuery.trim() ? (
-						<div className="contact-panel" style={{ marginTop: 0, marginBottom: 12, padding: 12 }}>
-							<div
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-									gap: 10,
-									flexWrap: 'wrap',
-								}}>
-								<strong style={{ fontSize: '.9rem' }}>
-									{lang === 'bg'
-										? `Намерени оферти: ${filteredDeals.length}`
-										: `Found offers: ${filteredDeals.length}`}
-								</strong>
-								<button
-									type="button"
-									className="btn-mini"
-									onClick={() => setSearchPanelOpen(v => !v)}>
-									{searchPanelOpen
-										? lang === 'bg'
-											? 'Скрий резултатите'
-											: 'Hide results'
-										: lang === 'bg'
-											? 'Покажи резултатите'
-											: 'Show results'}
-								</button>
-							</div>
-							{searchPanelOpen ? (
-								filteredDeals.length > 0 ? (
-									<div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
-										{filteredDeals.slice(0, 6).map((deal) => (
-											<button
-												key={`result-${deal.id}`}
-												type="button"
-												className="btn-mini"
-												style={{ textAlign: 'left', justifyContent: 'flex-start' }}
-												onClick={() => {
-													setHighlightedDealId(deal.id);
-													const el = document.getElementById(`deal-card-${deal.id}`);
-													if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-												}}>
-												#{deal.id} {deal.product} · {deal.from} → {deal.to}
-											</button>
-										))}
-									</div>
-								) : (
-									<p className="muted" style={{ margin: '10px 0 0', fontSize: '.85rem' }}>
-										{lang === 'bg'
-											? 'Няма съвпадения за тази фраза.'
-											: 'No matches for this query.'}
-									</p>
-								)
-							) : null}
-						</div>
-					) : null}
-					<div className="demo-banner" role="note">
-						{quotesLoading && marketQuotes === null ? (
-							<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-								<Loader2 className="spin" size={16} /> {marketBannerMessage}
-							</span>
-						) : (
-							marketBannerMessage
-						)}
-					</div>
-					<div className="deal-actions" style={{ margin: '2px 0 14px' }}>
-						{categoryFilterOptions.map(option => (
-							<button
-								key={option.value}
-								type="button"
-								className={`deal-chip-btn ${selectedCategory === option.value ? 'active' : ''}`}
-								onClick={() => setSelectedCategory(option.value)}>
-								{option.label}
-							</button>
-						))}
-					</div>
-					<div className="contact-panel" style={{ marginTop: 0, marginBottom: 12 }}>
-						<h3 style={{ margin: '0 0 8px' }}>{tr.grainInsightTitle}</h3>
-						<div
-							style={{
-								display: 'grid',
-								gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-								gap: 8,
-							}}>
-							<div className="meta-kv">
-								<strong>{tr.grainInsightDeals}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{grainInsights.count}
-								</p>
-							</div>
-							<div className="meta-kv">
-								<strong>{tr.grainInsightAvgMargin}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{grainInsights.avgMargin}%
-								</p>
-							</div>
-							<div className="meta-kv">
-								<strong>{tr.grainInsightBuy}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{grainInsights.buyCount}
-								</p>
-							</div>
-							<div className="meta-kv">
-								<strong>{tr.grainInsightTopProduct}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{grainInsights.topProduct}
-								</p>
-							</div>
-							<div className="meta-kv" style={{ gridColumn: '1 / -1' }}>
-								<strong>{tr.grainInsightTopRoute}</strong>
-								<p className="muted" style={{ margin: '6px 0 0' }}>
-									{grainInsights.topRoute}
-								</p>
-							</div>
-						</div>
-					</div>
-
-					<div className="ticker-wrap">
-						<div className="ticker-track">
-							{[...tickerItems, ...tickerItems].map((deal, idx) => (
-								<span key={`${deal.id}-tk-${idx}`} className="ticker-item">
-									#{deal.id} {deal.product}
-									<strong>+{deal.profit}%</strong> · {deal.from} → {deal.to}
-								</span>
-							))}
-						</div>
-					</div>
-
-					<div className="terminal-strip">
-						{topMovers.map(deal => (
-							<div key={deal.id} className="terminal-metric">
-								<strong>
-									{deal.product.length > 26
-										? `${deal.product.slice(0, 26)}…`
-										: deal.product}
-								</strong>
-								<span>
-									{tr.terminalVol}: {deal.volatility} · Δ{' '}
-									{deal.profit - deal.prevProfit >= 0 ? '+' : ''}
-									{deal.profit - deal.prevProfit}%
-								</span>
-							</div>
-						))}
-					</div>
-
-					<div className="pulse-toolbar">
-						<p className="market-flash-line">
-							<span className="live-dot" />
-							{tr.marketPulse}:{' '}
-							{marketFlashLines[marketFlashIndex % marketFlashLines.length]}
-						</p>
-						<label
-							className="muted"
-							style={{
-								fontSize: '.82rem',
-								display: 'flex',
-								alignItems: 'center',
-								gap: 6,
-							}}>
-							<input
-								type="checkbox"
-								checked={alertsMuted}
-								onChange={e => setAlertsMuted(e.target.checked)}
-							/>
-							{tr.alertMute}
-						</label>
-						<label
-							className="muted"
-							style={{
-								fontSize: '.82rem',
-								display: 'flex',
-								alignItems: 'center',
-								gap: 8,
-							}}>
-							{tr.alertThreshold}
-							<input
-								type="number"
-								min={5}
-								max={45}
-								value={alertThreshold}
-								onChange={e => setAlertThreshold(Number(e.target.value))}
-								style={{
-									width: 56,
-									padding: '4px 6px',
-									borderRadius: 8,
-									border: '1px solid #3d5248',
-									background: '#141f18',
-									color: '#fff',
-								}}
-							/>
-						</label>
-					</div>
-
-					<div className="grid">
-						{filteredDeals.map((deal, i) => {
-							const delta = deal.profit - deal.prevProfit;
-							return (
-								<div
-									id={`deal-card-${deal.id}`}
-									className={`deal-card ${i < 8 ? 'top' : ''} ${highlightedDealId === deal.id ? 'search-hit' : ''}`}
-									key={deal.id}>
-									<div>
-										<div
-											style={{
-												display: 'flex',
-												justifyContent: 'space-between',
-												marginBottom: 8,
-											}}>
-											<span
-												style={{
-													fontSize: '.75rem',
-													background: deal.isMENA ? '#f59e0b' : '#3b82f6',
-													borderRadius: 6,
-													padding: '3px 9px',
-												}}>
-												{deal.flag} {deal.isMENA ? 'MENA' : 'EU'}
-											</span>
-											<strong style={{ color: '#7ccd9c' }}>
-												+{deal.profit}%
-											</strong>
-										</div>
-										<h3 style={{ margin: '0 0 6px' }}>{deal.product}</h3>
-										<div className="muted" style={{ fontSize: '.84rem' }}>
-											{deal.from} → {deal.to}
-										</div>
-										<div
-											className="muted"
-											style={{
-												background: '#101914',
-												marginTop: 8,
-												borderRadius: 8,
-												padding: 8,
-												fontSize: '.84rem',
-											}}>
-											<div>📦 {deal.packaging}</div>
-											<div style={{ color: '#7ccd9c', marginTop: 3 }}>
-												📜 {deal.certification}
-											</div>
-											<div style={{ marginTop: 3 }}>
-												🏷️ {tr.dealCategory}: {deal.category}
-											</div>
-											<div style={{ marginTop: 3 }}>
-												🧪 {tr.dealQuality}: {deal.qualitySpec}
-											</div>
-											<div style={{ marginTop: 3 }}>
-												📦 {tr.dealVolume}: {deal.availableVolume}
-											</div>
-											<div style={{ marginTop: 3 }}>
-												🚢 {tr.dealIncoterm}: {deal.incoterm}
-											</div>
-											<div style={{ marginTop: 3 }}>
-												📅 {tr.dealDelivery}: {deal.deliveryWindow}
-											</div>
-										</div>
-										<div
-											className="muted"
-											style={{ fontSize: '.8rem', marginTop: 6 }}>
-											{tr.terminalVol}: {deal.volatility} · Δ{' '}
-											{delta >= 0 ? '+' : ''}
-											{delta}%
-										</div>
-										<div style={{ marginTop: 8, fontSize: '.86rem' }}>
-											{tr.decision}:{' '}
-											<strong
-												style={{
-													color:
-														deal.decision === 'BUY'
-															? '#7ccd9c'
-															: deal.decision === 'HOLD'
-																? '#f59e0b'
-																: '#ef4444',
-												}}>
-												{deal.decision}
-											</strong>
-										</div>
-										<div className="muted" style={{ fontSize: '.84rem' }}>
-											{tr.estMargin}: {deal.margin}%
-										</div>
-										<div style={{ marginTop: 8, fontWeight: 900 }}>
-											{deal.price}
-										</div>
-										<div className="deal-actions">
-											<button
-												type="button"
-												className={`deal-chip-btn ${watchlistIds.includes(deal.id) ? 'active' : ''}`}
-												onClick={() => toggleWatchlist(deal.id)}>
-												{watchlistIds.includes(deal.id)
-													? tr.watchSaved
-													: tr.watchSave}
-											</button>
-											<button
-												type="button"
-												className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`}
-												onClick={() => toggleAlert(deal.id)}>
-												{alertsEnabledIds.includes(deal.id)
-													? tr.alertOn
-													: tr.alertOff}
-												{!alertsMuted && deal.profit >= alertThreshold
-													? ' ●'
-													: ''}
-											</button>
-										</div>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-
-					<div className="contact-panel">
-						<h3 style={{ margin: 0 }}>{tr.coverageTitle}</h3>
-						<p className="muted" style={{ margin: '8px 0 0' }}>
-							{tr.coverageBody}
-						</p>
-					</div>
-				</section>
-			)}
-
-			{view === 'market-watch' && (
-				<MarketWatchView lang={lang} tr={tr} onBackToMarket={() => setView('market')} />
-			)}
-
 			{view === 'assistant' && (
 				<section className="section assistant-route">
 					<div className="assistant-route-actions">
@@ -3784,7 +2401,7 @@ export default function App() {
 							type="button"
 							className="btn btn-outline"
 							style={{ marginBottom: 0 }}
-							onClick={() => setView('market')}>
+							onClick={() => setView('landing')}>
 							<ArrowLeft size={16} aria-hidden /> {tr.assistantBack}
 						</button>
 						<div className="assistant-route-actions-group">
@@ -3827,11 +2444,11 @@ export default function App() {
 								{uiPickTwo(
 									lang,
 									isLikelyLocalDev
-										? `Временен проблем при /api/chat. В нов таб отвори ${browserOrigin || 'http://localhost:5173'}/api/chat — очаква се JSON с "ok": true. Ако не върне, стартирай npm run dev (не само dev:vite) и опитай Ctrl+F5.`
-										: `Няма връзка до /api/chat от ${browserOrigin || 'този сайт'}. В нов таб отвори ${browserOrigin}/api/chat — очаква се JSON с "ok": true и mistralConfigured (или друг LLM). На Vercel: домейнът да сочи същия проект, Environment Variables → Production → MISTRAL_API_KEY, после Redeploy; Logs → Functions при грешка.`,
+										? `?????????? ???????? ???? /api/chat. ?? ??? ???? ???????? ${browserOrigin || 'http://localhost:5173'}/api/chat ??? ??????? ?? JSON ? "ok": true. ??? ?? ???????, ????????????? npm run dev (?? ???? dev:vite) ? ??????? Ctrl+F5.`
+										: `???? ???????? ?? /api/chat ??? ${browserOrigin || '????? ?????'}. ?? ??? ???? ???????? ${browserOrigin}/api/chat ??? ??????? ?? JSON ? "ok": true ? mistralConfigured (??? ?????? LLM). ?? Vercel: ?????????? ?? ????? ??????? ????????, Environment Variables ??? Production ??? MISTRAL_API_KEY, ????? Redeploy; Logs ??? Functions ???? ????????.`,
 									isLikelyLocalDev
-										? `Temporary issue calling /api/chat. Open ${browserOrigin || 'http://localhost:5173'}/api/chat in a new tab — expect JSON with "ok": true. If not, run npm run dev (not dev:vite alone) and try Ctrl+F5.`
-										: `Cannot reach /api/chat from ${browserOrigin || 'this origin'}. Open ${browserOrigin}/api/chat — expect JSON with "ok": true and mistralConfigured (or another LLM). On Vercel: point the domain at this project, set Production env MISTRAL_API_KEY (or OPENAI_API_KEY), Redeploy; check Functions logs on failure.`
+										? `Temporary issue calling /api/chat. Open ${browserOrigin || 'http://localhost:5173'}/api/chat in a new tab ??? expect JSON with "ok": true. If not, run npm run dev (not dev:vite alone) and try Ctrl+F5.`
+										: `Cannot reach /api/chat from ${browserOrigin || 'this origin'}. Open ${browserOrigin}/api/chat ??? expect JSON with "ok": true and mistralConfigured (or another LLM). On Vercel: point the domain at this project, set Production env MISTRAL_API_KEY (or OPENAI_API_KEY), Redeploy; check Functions logs on failure.`
 								)}
 							</p>
 						</div>
@@ -3847,7 +2464,7 @@ export default function App() {
 							<p style={{ margin: 0, fontSize: '.88rem', lineHeight: 1.5 }}>
 								{uiPickTwo(
 									lang,
-									'Няма конфигуриран LLM за чат: добавете MISTRAL_API_KEY (EU облак), OPENAI_API_KEY или локален Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 и OLLAMA_MODEL). Файл .env в корена; после рестарт на npm run dev. За Vercel задайте същите променливи в Environment Variables.',
+									'???? ???????????????? LLM ?? ?????: ????????? MISTRAL_API_KEY (EU ?????), OPENAI_API_KEY ??? ??????? Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 ? OLLAMA_MODEL). ???? .env ? ???????; ????? ??????????? ?? npm run dev. ??? Vercel ???????? ????????? ??????????? ? Environment Variables.',
 									'No LLM for chat: set MISTRAL_API_KEY (EU cloud), OPENAI_API_KEY, or local Ollama (OLLAMA_BASE_URL=http://127.0.0.1:11434 and OLLAMA_MODEL) in project root .env, then restart npm run dev. On Vercel, set the same variables under Environment Variables.'
 								)}
 							</p>
@@ -3895,33 +2512,6 @@ export default function App() {
 								)}
 							</div>
 						) : null}
-						{mediaAiUnlocked && (
-							<div className="assistant-doc-toolbar">
-								<input
-									ref={docImageInputRef}
-									type="file"
-									hidden
-									accept="image/jpeg,image/png,image/webp,image/gif"
-									onChange={onDocImageChange}
-								/>
-								<button
-									type="button"
-									className="btn btn-outline"
-									style={{ fontSize: '.82rem', padding: '8px 12px' }}
-									disabled={docExplainLoading || chatLoading}
-									onClick={() => docImageInputRef.current?.click()}>
-									<FileImage size={16} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-									{docExplainLoading ? (
-										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-											<Loader2 size={14} className="spin" aria-hidden />
-											…
-										</span>
-									) : (
-										tr.chatExplainDoc
-									)}
-								</button>
-							</div>
-						)}
 						{assistantToolbarCollapsed && assistantNotice ? (
 							<p
 								className="muted"
@@ -3988,7 +2578,7 @@ export default function App() {
 									<button
 										type="button"
 										className={`assistant-icon-btn${voiceListening ? ' listening' : ''}`}
-										disabled={chatLoading || docExplainLoading}
+										disabled={chatLoading}
 										onClick={() => toggleVoiceInput()}
 										aria-pressed={voiceListening}
 										title={voiceListening ? tr.chatMicStopAria : tr.chatMicAria}
@@ -4013,18 +2603,7 @@ export default function App() {
 			)}
 
 			{view === 'watchlist' && (
-				<OperationsHubView
-					tr={tr}
-					lang={lang}
-					watchedDeals={watchedDeals}
-					alertsEnabledIds={alertsEnabledIds}
-					toggleWatchlist={toggleWatchlist}
-					toggleAlert={toggleAlert}
-					onNavigate={v => setView(v as View)}
-					MVP_MODE={MVP_MODE}
-					lastSavedDeal={lastSavedDeal}
-					lastAlertDeal={lastAlertDeal}
-				/>
+				<OperationsHubView tr={tr} lang={lang} onNavigate={v => setView(v as View)} />
 			)}
 
 			{view === 'register' && (
@@ -4065,7 +2644,7 @@ export default function App() {
 									fontSize: '.84rem',
 								}}>
 								{lang === 'bg'
-									? 'Името трябва да е поне 2 символа.'
+									? '??????? ???????? ?? ? ???? 2 ???????.'
 									: 'Name must be at least 2 characters.'}
 							</p>
 						) : null}
@@ -4080,7 +2659,7 @@ export default function App() {
 								/>
 								<input
 									placeholder={
-										lang === 'bg' ? 'Повтори паролата' : 'Confirm password'
+										lang === 'bg' ? '?????????? ??????????' : 'Confirm password'
 									}
 									type="password"
 									autoComplete="new-password"
@@ -4115,7 +2694,7 @@ export default function App() {
 											color: '#f87171',
 											fontSize: '.84rem',
 										}}>
-										{lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.'}
+										{lang === 'bg' ? '??????????? ?? ??????????.' : 'Passwords do not match.'}
 									</p>
 								) : null}
 							</>
@@ -4229,11 +2808,6 @@ export default function App() {
 					onOpenCalendar={() => setView('season-calendar')}
 					initialFocus={subsidyPrefillFocus}
 					initialMarketQuery={subsidyPrefillQuery}
-					onOpenMarketWithQuery={(query) => {
-						setSearchQuery(query);
-						setSelectedCategory('all');
-						setView('market');
-					}}
 				/>
 			)}
 
@@ -4256,31 +2830,31 @@ export default function App() {
 							flexWrap: 'wrap',
 							marginBottom: 14,
 						}}>
-						<h2 style={{ margin: 0 }}>{lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}</h2>
+						<h2 style={{ margin: 0 }}>{lang === 'bg' ? 'Field Watch ?????' : 'Field Watch Map'}</h2>
 						<a
 							className="btn btn-outline"
 							href={`/agrinexus-field-watch.html?oblast=${encodeURIComponent(selectedFieldCityId)}&lang=${lang}`}
 							target="_blank"
 							rel="noreferrer">
-							{lang === 'bg' ? 'Отвори в нов таб' : 'Open in new tab'}
+							{lang === 'bg' ? '????????? ? ??? ????' : 'Open in new tab'}
 						</a>
 					</div>
 					<p className="muted" style={{ marginTop: 0, marginBottom: 12 }}>
 						{lang === 'bg'
-							? 'Интерактивна карта за полеви мониторинг с timelapse, Sentinel/NASA слоеве и NDVI режим.'
+							? '???????????????? ??????? ?? ?????? ???????????? ? timelapse, Sentinel/NASA ?????? ? NDVI ??????.'
 							: 'Interactive field monitoring map with timelapse, Sentinel/NASA layers, and NDVI mode.'}
 					</p>
 					<div
 						className="contact-panel"
 						style={{ marginBottom: 12, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
 						<label style={{ fontSize: '.88rem' }}>
-							{lang === 'bg' ? 'Областен град' : 'Oblast city'}
+							{lang === 'bg' ? '?????????? ?????' : 'Oblast city'}
 						</label>
 						<select
 							value={selectedFieldCityId}
 							onChange={(event) => setSelectedFieldCityId(event.target.value)}
 							style={{ minWidth: 220 }}>
-							{FIELD_WATCH_OBLAST_CITIES.map((city) => (
+							{FIELD_WATCH_OBLAST_PRESETS.map((city) => (
 								<option key={city.id} value={city.id}>
 									{lang === 'bg' ? city.bg : city.en}
 								</option>
@@ -4293,13 +2867,13 @@ export default function App() {
 								const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
 								const prompt =
 									lang === 'bg'
-										? `Дай агро прогноза с RAG за област ${cityLabel}: риск от суша, препоръчани култури, и 3 практически действия за следващите 30 дни.`
+										? `???? ????? ????????? ? RAG ?? ??????? ${cityLabel}: ????? ??? ??????, ??????????????? ???????????, ? 3 ?????????????? ????????? ?? ???????????? 30 ???.`
 										: `Give me a RAG-backed agri forecast for ${cityLabel} oblast: drought risk, recommended crops, and 3 practical actions for the next 30 days.`;
 								setChatInput(prompt);
 								setPendingAutoChatPrompt(prompt);
 								setView('assistant');
 							}}>
-							{lang === 'bg' ? 'Попитай AI за областта' : 'Ask AI for this oblast'}
+							{lang === 'bg' ? '????????? AI ?? ??????????' : 'Ask AI for this oblast'}
 						</button>
 					</div>
 					<div
@@ -4310,18 +2884,20 @@ export default function App() {
 							background: '#0b1120',
 							minHeight: isMobileViewport ? '62vh' : 'min(760px, 74vh)',
 						}}>
-						<iframe
-							title="AgriNexus Field Watch"
-							src={`/agrinexus-field-watch.html?oblast=${encodeURIComponent(selectedFieldCityId)}&lang=${lang}`}
-							style={{
-								width: '100%',
-								height: isMobileViewport ? '64vh' : 'min(78vh, 760px)',
-								minHeight: isMobileViewport ? 420 : 520,
-								border: 0,
-							}}
+						<FieldWatchLeaflet
+							key={selectedFieldCityId}
+							lang={lang}
+							initialLat={selectedFieldCity.lat}
+							initialLon={selectedFieldCity.lon}
+							initialZoom={12}
+							onWeatherAnchor={() => setView('weather')}
 						/>
 					</div>
 				</section>
+			)}
+
+			{view === 'weather' && (
+				<WeatherFarmView lang={lang} tr={tr} onOpenFieldWatch={() => setView('field-watch')} />
 			)}
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
@@ -4445,7 +3021,7 @@ export default function App() {
 										<div
 											className="muted"
 											style={{ marginTop: 4, fontSize: '.82rem' }}>
-											{profile.contactPerson} · {profileLocalized.region}
+											{profile.contactPerson} ? {profileLocalized.region}
 										</div>
 									</button>
 								);
@@ -4463,7 +3039,7 @@ export default function App() {
 								<span className="status-pill">{selectedClientStatusLabel}</span>
 							</h3>
 							<p className="muted" style={{ marginTop: 0 }}>
-								{selectedClientLocalized.role} · {selectedClientLocalized.contactPerson}
+								{selectedClientLocalized.role} ? {selectedClientLocalized.contactPerson}
 							</p>
 							<div className="client-meta-grid">
 								<div className="meta-kv">
@@ -4520,20 +3096,20 @@ export default function App() {
 			<footer className="site-footer">
 				<div className="site-footer-inner">
 					<p className="site-footer-copy muted">
-						© {new Date().getFullYear()} AgriNexus — {tr.footerRightsTagline}
+						? {new Date().getFullYear()} AgriNexus ??? {tr.footerRightsTagline}
 					</p>
 					<div className="site-footer-links">
 						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
 							info@agrinexus.eu
 						</a>
 						<span className="site-footer-sep" aria-hidden>
-							·
+							?
 						</span>
 						<button type="button" className="footer-link-btn" onClick={() => setView('privacy')}>
 							{tr.footerPrivacy}
 						</button>
 						<span className="site-footer-sep" aria-hidden>
-							·
+							?
 						</span>
 						<button type="button" className="footer-link-btn" onClick={() => setView('terms')}>
 							{tr.footerTerms}
@@ -4631,49 +3207,28 @@ export default function App() {
 								</button>
 							</>
 						) : (
-							<>
-								<button
-									type="button"
-									className={`mobile-nav-btn ${view === 'clients' ? 'active' : ''}`}
-									onClick={() => setView('clients')}
-									aria-label={tr.navClients}>
-									<Users size={16} aria-hidden />
-									<MobileNavLabel text={tr.navClients} />
-								</button>
-								<button
-									type="button"
-									className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
-									onClick={() => setView('watchlist')}
-									aria-label={tr.navWatchlist}>
-									<Bookmark size={16} aria-hidden />
-									<MobileNavLabel text={tr.navWatchlist} />
-								</button>
-							</>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
+								onClick={() => setView('watchlist')}
+								aria-label={tr.navWatchlist}>
+								<Bookmark size={16} aria-hidden />
+								<MobileNavLabel text={tr.navWatchlist} />
+							</button>
 						)}
 					</div>
 					{mobileNavExpand === 'markets' && (
-						<div className="mobile-nav-subrow cols-2">
+						<div className="mobile-nav-subrow">
 							<button
 								type="button"
-								className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
-								aria-label={tr.navMarket}
+								className={`mobile-nav-btn ${view === 'weather' ? 'active' : ''}`}
+								aria-label={tr.navMeteoPdf}
 								onClick={() => {
-									setView('market');
+									setView('weather');
 									setMobileNavExpand(null);
 								}}>
-								<Search size={16} aria-hidden />
-								<MobileNavLabel text={tr.navMarketShort} hint={tr.navMarket} />
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'market-watch' ? 'active' : ''}`}
-								aria-label={tr.navMarketWatch}
-								onClick={() => {
-									setView('market-watch');
-									setMobileNavExpand(null);
-								}}>
-								<LineChart size={16} aria-hidden />
-								<MobileNavLabel text={tr.navMarketWatchShort} hint={tr.navMarketWatch} />
+								<CloudRain size={16} aria-hidden />
+								<MobileNavLabel text={tr.navMeteoPdf} hint={tr.weatherTitle} />
 							</button>
 							<button
 								type="button"
@@ -4725,6 +3280,20 @@ export default function App() {
 					</div>
 					{mobileNavExpand === 'farm' && (
 						<div className="mobile-nav-subrow">
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'field-watch' ? 'active' : ''}`}
+								aria-label={lang === 'bg' ? 'Field Watch ?????' : 'Field Watch Map'}
+								onClick={() => {
+									setView('field-watch');
+									setMobileNavExpand(null);
+								}}>
+								<FileImage size={16} aria-hidden />
+								<MobileNavLabel
+									text={lang === 'bg' ? '?????' : 'Map'}
+									hint={lang === 'bg' ? 'Field Watch ?????' : 'Field Watch Map'}
+								/>
+							</button>
 							<button
 								type="button"
 								className={`mobile-nav-btn ${view === 'command' ? 'active' : ''}`}

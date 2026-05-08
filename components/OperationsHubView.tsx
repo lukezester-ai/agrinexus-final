@@ -17,34 +17,14 @@ export type OpsHubNavigate =
 	| 'subsidy-calculator'
 	| 'crop-statistics'
 	| 'season-calendar'
+	| 'weather'
 	| 'command'
 	| 'field-watch'
 	| 'trade-documents'
 	| 'food-security'
-	| 'market'
 	| 'assistant'
 	| 'clients'
 	| 'company';
-
-export type OperationsHubDealSnapshot = {
-	id: number;
-	product: string;
-	category: string;
-	packaging: string;
-	certification: string;
-	qualitySpec: string;
-	availableVolume: string;
-	incoterm: string;
-	deliveryWindow: string;
-	from: string;
-	to: string;
-	flag: string;
-	profit: number;
-	prevProfit: number;
-	price: string;
-	isMENA: boolean;
-	volatility: string;
-};
 
 type FieldApiRow = {
 	id: string | number;
@@ -134,19 +114,8 @@ function pickNewest(
 	return best;
 }
 
-export function OperationsHubView(props: {
-	tr: AppStrings;
-	lang: UiLang;
-	watchedDeals: OperationsHubDealSnapshot[];
-	alertsEnabledIds: number[];
-	toggleWatchlist: (dealId: number) => void;
-	toggleAlert: (dealId: number) => void;
-	onNavigate: (view: OpsHubNavigate) => void;
-	MVP_MODE: boolean;
-	lastSavedDeal: OperationsHubDealSnapshot | null;
-	lastAlertDeal: OperationsHubDealSnapshot | null;
-}) {
-	const { tr, lang, watchedDeals, alertsEnabledIds, toggleWatchlist, toggleAlert, onNavigate } = props;
+export function OperationsHubView(props: { tr: AppStrings; lang: UiLang; onNavigate: (view: OpsHubNavigate) => void }) {
+	const { tr, lang, onNavigate } = props;
 	const pick = (bg: string, en: string) => (lang === 'bg' ? bg : en);
 	const [persisted, setPersisted] = useState<OpsHubPersistedV1>(() => loadInitialPersisted(lang));
 	const [draftTask, setDraftTask] = useState('');
@@ -306,6 +275,22 @@ export function OperationsHubView(props: {
 		if (!q) return;
 		setRagError('');
 		setRagLoading(true);
+		const kanban =
+			lang === 'bg'
+				? `Kanban: todo=${byColumn('todo').length}, doing=${byColumn('doing').length}, done=${byColumn('done').length}`
+				: `Kanban: todo=${byColumn('todo').length}, doing=${byColumn('doing').length}, done=${byColumn('done').length}`;
+		const taskLines = persisted.tasks
+			.slice(0, 28)
+			.map(t => `- [${t.column}] ${t.title}`)
+			.join('\n');
+		const tasksBlock =
+			lang === 'bg'
+				? `${kanban}\nЗадачи:\n${taskLines || '- (няма)'}`
+				: `${kanban}\nTasks:\n${taskLines || '- (none)'}`;
+		const farmOps =
+			lang === 'bg'
+				? `Полета: ${fields.length}, обща площ (дка): ${totalDecares.toFixed(1)}, критични профилни рискове: ${farmerRiskCount}, топ риск: ${farmerTopRisk || 'няма'}`
+				: `Fields: ${fields.length}, total area (decares): ${totalDecares.toFixed(1)}, critical profile risks: ${farmerRiskCount}, top risk: ${farmerTopRisk || 'none'}`;
 		try {
 			const res = await fetch('/api/chat', {
 				method: 'POST',
@@ -314,7 +299,7 @@ export function OperationsHubView(props: {
 					messages: [
 						{
 							role: 'user',
-							content: `${q}\n\nOperations workspace notes:\n${persisted.notes || '(empty)'}`,
+							content: `${q}\n\n--- Operations hub snapshot ---\n${farmOps}\n${tasksBlock}\n\nWorkspace notes:\n${persisted.notes || '(empty)'}`,
 						},
 					],
 					locale: lang,
@@ -451,28 +436,17 @@ export function OperationsHubView(props: {
 			{ label: pick('Полета (API)', 'Fields (API)'), value: String(fields.length) },
 			{ label: pick('Обща площ (дка)', 'Total area (decares)'), value: totalDecares > 0 ? totalDecares.toFixed(1) : '0' },
 			{ label: pick('Критичен риск (профил)', 'Critical risk (profile)'), value: String(farmerRiskCount) },
-			{ label: pick('Следени оферти', 'Watched deals'), value: String(watchedDeals.length) },
-			{ label: pick('Активни сигнали', 'Active alerts'), value: String(alertsEnabledIds.length) },
 			{
 				label: pick('Последна синхронизация', 'Last sync'),
 				value: persisted.updatedAt ? new Date(persisted.updatedAt).toLocaleString() : '—',
 			},
 		],
-		[
-			alertsEnabledIds.length,
-			farmerRiskCount,
-			fields.length,
-			lang,
-			persisted.tasks.length,
-			persisted.updatedAt,
-			totalDecares,
-			watchedDeals.length,
-		],
+		[farmerRiskCount, fields.length, lang, persisted.tasks.length, persisted.updatedAt, totalDecares],
 	);
 
 	return (
 		<section
-			className="section"
+			className="section ops-hub-scope"
 			style={{
 				color: '#1a1a18',
 				background: '#f4f3ee',
@@ -481,6 +455,36 @@ export function OperationsHubView(props: {
 				border: '1px solid rgba(0,0,0,.08)',
 			}}>
 			<style>{`
+				.section.ops-hub-scope {
+					--ops-nexus: #a8d98a;
+					--ops-nexus-border: rgba(168, 217, 138, 0.5);
+					--ops-nexus-soft: rgba(168, 217, 138, 0.2);
+				}
+				.ops-page-title {
+					color: var(--ops-nexus);
+					font-weight: 800;
+					letter-spacing: 0.02em;
+				}
+				.ops-task-toolbar {
+					display: flex;
+					gap: 8px;
+					margin-bottom: 10px;
+					padding: 10px;
+					border-radius: 10px;
+					background: var(--ops-nexus-soft);
+					border: 1px solid var(--ops-nexus-border);
+				}
+				.ops-kanban-lane {
+					background: var(--ops-nexus-soft) !important;
+					border: 1px solid var(--ops-nexus-border) !important;
+				}
+				.ops-kanban-lane:hover {
+					border-color: rgba(168, 217, 138, 0.72) !important;
+					background: rgba(168, 217, 138, 0.26) !important;
+				}
+				.ops-kanban-lane > strong {
+					color: #2f4a24;
+				}
 				.ops-grid { display:grid; gap:12px; }
 				.ops-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
 				.ops-main { display:grid; grid-template-columns: 1.3fr .9fr; gap:12px; }
@@ -558,6 +562,10 @@ export function OperationsHubView(props: {
 					color: #ffffff;
 					border-color: #2a9d6e;
 				}
+				.section.ops-hub-scope .deal-chip-btn.active:disabled {
+					opacity: 0.55;
+					cursor: not-allowed;
+				}
 				.ops-panel input,
 				.ops-panel textarea,
 				.ops-panel select {
@@ -608,7 +616,7 @@ export function OperationsHubView(props: {
 
 			<div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
 				<div>
-					<h2 style={{ margin: 0, color: '#1a1a18' }}>
+					<h2 className="ops-page-title" style={{ margin: 0 }}>
 						{tr.opsHubPageTitle}
 					</h2>
 					<p className="ops-sub">{pick('Свързан с RAG и облачно запазване за регистрирани', 'RAG-connected with cloud save for registered users')}</p>
@@ -638,7 +646,7 @@ export function OperationsHubView(props: {
 						<p className="ops-sub" style={{ marginBottom: 10 }}>
 							{pick('Няма предварително попълнени стойности. Добавете реални задачи.', 'No prefilled values. Add real tasks.')}
 						</p>
-						<div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+						<div className="ops-task-toolbar">
 							<input
 								value={draftTask}
 								disabled={!user?.id}
@@ -649,13 +657,13 @@ export function OperationsHubView(props: {
 								placeholder={pick('Нова задача...', 'New task...')}
 								style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid rgba(0,0,0,.1)' }}
 							/>
-							<button disabled={!user?.id} onClick={() => addTask('todo')} className="deal-chip-btn">
+							<button disabled={!user?.id} onClick={() => addTask('todo')} className="deal-chip-btn active">
 								{pick('Добави', 'Add')}
 							</button>
 						</div>
 						<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(120px,1fr))', gap: 8 }}>
 							{(['todo', 'doing', 'done'] as OpsTaskColumn[]).map(col => (
-								<div key={col} className="ops-task">
+								<div key={col} className="ops-task ops-kanban-lane">
 									<strong style={{ fontSize: 12 }}>
 										{col === 'todo' ? tr.opsColTodo : col === 'doing' ? tr.opsColDoing : tr.opsColDone}
 									</strong>
@@ -805,40 +813,16 @@ export function OperationsHubView(props: {
 				</div>
 
 				<div className="ops-panel">
-					<h3 className="ops-title">{pick('Пазарни оферти', 'Market offers')}</h3>
-					{watchedDeals.length === 0 ? (
-						<p className="ops-sub">{tr.opsPinsEmpty}</p>
-					) : (
-						<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 8 }}>
-							{watchedDeals.map(deal => (
-								<div key={deal.id} className="ops-task">
-									<strong>{deal.product}</strong>
-									<p className="ops-sub" style={{ marginTop: 4 }}>
-										{deal.from} → {deal.to} · {deal.price}
-									</p>
-									<div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-										<button className="deal-chip-btn active" onClick={() => toggleWatchlist(deal.id)}>
-											{tr.watchSaved}
-										</button>
-										<button className={`deal-chip-btn ${alertsEnabledIds.includes(deal.id) ? 'active' : ''}`} onClick={() => toggleAlert(deal.id)}>
-											{alertsEnabledIds.includes(deal.id) ? tr.alertOn : tr.alertOff}
-										</button>
-									</div>
-								</div>
-							))}
-						</div>
-					)}
-					{fieldsError ? <p className="ops-sub" style={{ marginTop: 8, color: '#b91c1c' }}>{fieldsError}</p> : null}
-				</div>
-
-				<div className="ops-panel">
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
 						<h3 className="ops-title" style={{ margin: 0 }}>
 							{pick('Field Watch връзка', 'Field Watch link')}
 						</h3>
-						<div style={{ display: 'flex', gap: 8 }}>
+						<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
 							<button type="button" className="deal-chip-btn" onClick={() => onNavigate('command')}>
 								{pick('Команден център', 'Command Center')}
+							</button>
+							<button type="button" className="deal-chip-btn" onClick={() => onNavigate('weather')}>
+								{tr.navMeteoPdf}
 							</button>
 							<button type="button" className="deal-chip-btn active" onClick={() => onNavigate('field-watch')}>
 								{pick('Отвори Field Watch', 'Open Field Watch')}
@@ -867,6 +851,7 @@ export function OperationsHubView(props: {
 							))}
 						</div>
 					)}
+					{fieldsError ? <p className="ops-sub" style={{ marginTop: 8, color: '#b91c1c' }}>{fieldsError}</p> : null}
 				</div>
 			</div>
 		</section>

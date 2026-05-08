@@ -12,8 +12,8 @@ import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } fro
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
 import { handleMarketWatchGet } from '../lib/market-watch-api';
+import { handleWeatherForecastGet } from '../lib/weather-handler';
 import { persistMarketWatchSnapshot } from '../lib/market-watch-persist';
-import { handleDocumentExplainPost } from '../lib/document-explain-handler';
 import { handleVisitPost, handleVisitStatsGet } from '../lib/visit-stats-handler';
 import {
 	handleOperationsHubGet,
@@ -41,10 +41,8 @@ function mergeDotEnvWithoutBom(): void {
 		apply('MISTRAL_MODEL');
 		apply('MISTRAL_CHAT_MODEL');
 		apply('MISTRAL_MARKET_INSIGHTS_MODEL');
-		apply('MISTRAL_VISION_MODEL');
 		apply('OLLAMA_BASE_URL');
 		apply('OLLAMA_MODEL');
-		apply('OLLAMA_VISION_MODEL');
 		apply('RESEND_API_KEY');
 		apply('MAIL_FROM');
 		apply('MAIL_TO');
@@ -112,7 +110,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/chat', methods: ['GET', 'POST'] },
             { path: '/api/market-quotes', methods: ['GET'] },
             { path: '/api/market-watch', methods: ['GET'] },
-            { path: '/api/document-explain', methods: ['POST'] },
+            { path: '/api/weather-forecast', methods: ['GET'] },
             { path: '/api/contact', methods: ['POST'] },
             { path: '/api/register-interest', methods: ['POST'] },
             { path: '/api/upload-sign', methods: ['POST'] },
@@ -178,6 +176,16 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (path === '/api/weather-forecast' && req.method === 'GET') {
+        const result = await handleWeatherForecastGet(url.searchParams);
+        if (!result.ok) {
+          send(res, 400, result);
+          return;
+        }
+        send(res, 200, result);
+        return;
+      }
+
       if (path === '/api/chat' && req.method === 'POST') {
         const body = await readJson(req);
         if (body === null) {
@@ -185,21 +193,6 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         const result = await handleChatPost(body);
-        if (result.ok) {
-          send(res, 200, { reply: result.reply });
-          return;
-        }
-        send(res, result.status, { error: result.error, hint: result.hint });
-        return;
-      }
-
-      if (path === '/api/document-explain' && req.method === 'POST') {
-        const body = await readJson(req);
-        if (body === null) {
-          send(res, 400, { error: 'Invalid JSON' });
-          return;
-        }
-        const result = await handleDocumentExplainPost(body);
         if (result.ok) {
           send(res, 200, { reply: result.reply });
           return;

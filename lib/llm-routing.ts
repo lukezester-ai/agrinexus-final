@@ -1,6 +1,5 @@
 /**
  * Единна логика за избор на LLM доставчик (Mistral → Ollama → OpenAI).
- * Ползва се от чат и от vision (обяснение на документ), за да няма разминаване.
  */
 import {
 	MISTRAL_CHAT_COMPLETIONS_URL,
@@ -8,7 +7,6 @@ import {
 	readMistralChatModel,
 	readMistralMarketInsightsModel,
 	readMistralModel,
-	readMistralVisionModel,
 } from './mistral-env.js';
 import { readOpenAiApiKey } from './openai-api-key.js';
 import { readOllamaBaseUrl } from './ollama-env.js';
@@ -67,48 +65,6 @@ export function resolveTextChatUpstream(kind?: TextChatUpstreamKind): TextChatUp
 			bearer: openaiKey,
 			model: process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini',
 			useJsonObjectFormat: true,
-		};
-	}
-	return null;
-}
-
-export type VisionUpstream = {
-	provider: LlmBackendId;
-	completionUrl: string;
-	bearer: string | undefined;
-	model: string;
-};
-
-/** Vision completions — Pixtral / llava / OpenAI vision модел. */
-export function resolveVisionUpstream(): VisionUpstream | null {
-	const mistralKey = readMistralApiKey();
-	const ollamaBase = readOllamaBaseUrl();
-	const openaiKey = readOpenAiApiKey();
-	if (mistralKey) {
-		return {
-			provider: 'mistral',
-			completionUrl: MISTRAL_CHAT_COMPLETIONS_URL,
-			bearer: mistralKey,
-			model: readMistralVisionModel(),
-		};
-	}
-	if (ollamaBase) {
-		return {
-			provider: 'ollama',
-			completionUrl: `${ollamaBase}/v1/chat/completions`,
-			bearer: undefined,
-			model:
-				process.env.OLLAMA_VISION_MODEL?.trim() ||
-				process.env.OLLAMA_MODEL?.trim() ||
-				'llava',
-		};
-	}
-	if (openaiKey) {
-		return {
-			provider: 'openai',
-			completionUrl: 'https://api.openai.com/v1/chat/completions',
-			bearer: openaiKey,
-			model: process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini',
 		};
 	}
 	return null;

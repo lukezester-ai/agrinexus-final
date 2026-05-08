@@ -5,6 +5,10 @@ interface ImportMetaEnv {
 	readonly VITE_DEV_API_PORT?: string;
 	readonly VITE_MVP_MODE?: string;
 	readonly VITE_SKIP_MARKET_QUOTES?: string;
+	/** Optional Sentinel Hub / WMS base URL for NDVI overlay in Field Watch (Leaflet). */
+	readonly VITE_SENTINEL_WMS_URL?: string;
+	/** WMS layer name(s), comma-separated if needed (provider-specific). */
+	readonly VITE_SENTINEL_WMS_LAYERS?: string;
 	/** Supabase project URL (public) */
 	readonly VITE_SUPABASE_URL?: string;
 	/** Supabase anon key (public) */
