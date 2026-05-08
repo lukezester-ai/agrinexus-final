@@ -71,6 +71,8 @@ const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 /** За подсказка при офлайн `/api/chat` — същият порт като `DEV_API_PORT` в `.env` (vite proxy). */
 const DEV_API_PORT_HINT =
 	String(import.meta.env.VITE_DEV_API_PORT ?? '').trim() || '8788';
+const COOKIE_CONSENT_KEY = 'agrinexus-cookie-consent';
+type CookieConsent = 'accepted' | 'rejected';
 
 const PREVIEW_DEALS = [
 	{
@@ -176,6 +178,14 @@ function safeLocalSet(key: string, value: string): void {
 	}
 }
 
+function safeLocalRemove(key: string): void {
+	try {
+		localStorage.removeItem(key);
+	} catch {
+		/* ignore */
+	}
+}
+
 function safeSessionGet(key: string): string | null {
 	try {
 		return sessionStorage.getItem(key);
@@ -203,6 +213,38 @@ function safeSessionRemove(key: string): void {
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 
 type SendChatOpts = { text?: string; persona?: ChatPersona };
+type OblastCity = { id: string; bg: string; en: string };
+
+const FIELD_WATCH_OBLAST_CITIES: OblastCity[] = [
+	{ id: 'blagoevgrad', bg: 'Благоевград', en: 'Blagoevgrad' },
+	{ id: 'burgas', bg: 'Бургас', en: 'Burgas' },
+	{ id: 'varna', bg: 'Варна', en: 'Varna' },
+	{ id: 'veliko-tarnovo', bg: 'Велико Търново', en: 'Veliko Tarnovo' },
+	{ id: 'vidin', bg: 'Видин', en: 'Vidin' },
+	{ id: 'vratsa', bg: 'Враца', en: 'Vratsa' },
+	{ id: 'gabrovo', bg: 'Габрово', en: 'Gabrovo' },
+	{ id: 'dobrich', bg: 'Добрич', en: 'Dobrich' },
+	{ id: 'kardzhali', bg: 'Кърджали', en: 'Kardzhali' },
+	{ id: 'kyustendil', bg: 'Кюстендил', en: 'Kyustendil' },
+	{ id: 'lovech', bg: 'Ловеч', en: 'Lovech' },
+	{ id: 'montana', bg: 'Монтана', en: 'Montana' },
+	{ id: 'pazardzhik', bg: 'Пазарджик', en: 'Pazardzhik' },
+	{ id: 'pernik', bg: 'Перник', en: 'Pernik' },
+	{ id: 'pleven', bg: 'Плевен', en: 'Pleven' },
+	{ id: 'plovdiv', bg: 'Пловдив', en: 'Plovdiv' },
+	{ id: 'razgrad', bg: 'Разград', en: 'Razgrad' },
+	{ id: 'ruse', bg: 'Русе', en: 'Ruse' },
+	{ id: 'silistra', bg: 'Силистра', en: 'Silistra' },
+	{ id: 'sliven', bg: 'Сливен', en: 'Sliven' },
+	{ id: 'smolyan', bg: 'Смолян', en: 'Smolyan' },
+	{ id: 'sofia', bg: 'София', en: 'Sofia' },
+	{ id: 'sofia-oblast', bg: 'София област', en: 'Sofia Oblast' },
+	{ id: 'stara-zagora', bg: 'Стара Загора', en: 'Stara Zagora' },
+	{ id: 'targovishte', bg: 'Търговище', en: 'Targovishte' },
+	{ id: 'haskovo', bg: 'Хасково', en: 'Haskovo' },
+	{ id: 'shumen', bg: 'Шумен', en: 'Shumen' },
+	{ id: 'yambol', bg: 'Ямбол', en: 'Yambol' },
+];
 
 /** Minimal typings — DOM lib does not always expose Web Speech API types. */
 type SpeechRecognitionResultEvt = {
@@ -759,6 +801,10 @@ export default function App() {
 		}
 	}, [view]);
 	const [lang, setLang] = useState<Lang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
+	const [cookieConsent, setCookieConsent] = useState<CookieConsent | null>(() => {
+		const stored = safeLocalGet(COOKIE_CONSENT_KEY);
+		return stored === 'accepted' || stored === 'rejected' ? stored : null;
+	});
 
 	const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 	const isLikelyLocalDev =
@@ -780,8 +826,14 @@ export default function App() {
 	}, [view]);
 
 	useEffect(() => {
+		if (cookieConsent !== 'accepted') return;
 		recordBrowserVisitOncePerSession();
-	}, []);
+	}, [cookieConsent]);
+
+	useEffect(() => {
+		if (!cookieConsent) return;
+		safeLocalSet(COOKIE_CONSENT_KEY, cookieConsent);
+	}, [cookieConsent]);
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<DealCategoryFilter>('all');
@@ -804,6 +856,7 @@ export default function App() {
 	const [chatInput, setChatInput] = useState(
 		() => safeSessionGet('agrinexus-chat-draft') ?? ''
 	);
+	const [pendingAutoChatPrompt, setPendingAutoChatPrompt] = useState<string | null>(null);
 	const [chatLoading, setChatLoading] = useState(false);
 	const chatAbortRef = useRef<AbortController | null>(null);
 	const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -815,7 +868,11 @@ export default function App() {
 	const [assistantToolbarCollapsed, setAssistantToolbarCollapsed] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
 	);
+	const [selectedFieldCityId, setSelectedFieldCityId] = useState<string>('dobrich');
 	const docImageInputRef = useRef<HTMLInputElement>(null);
+	const selectedFieldCity =
+		FIELD_WATCH_OBLAST_CITIES.find((city) => city.id === selectedFieldCityId) ??
+		FIELD_WATCH_OBLAST_CITIES[0];
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
 
 	const demoSessionEmail = useMemo(() => {
@@ -1563,6 +1620,13 @@ export default function App() {
 		},
 		[chatLoading, lang, sendChat],
 	);
+
+	useEffect(() => {
+		if (view !== 'assistant' || !pendingAutoChatPrompt || chatLoading) return;
+		const prompt = pendingAutoChatPrompt;
+		setPendingAutoChatPrompt(null);
+		void sendChat({ text: prompt });
+	}, [view, pendingAutoChatPrompt, chatLoading, sendChat]);
 
 	const toggleVoiceInput = useCallback(() => {
 		if (!mediaAiUnlocked) {
@@ -4147,7 +4211,7 @@ export default function App() {
 						<h2 style={{ margin: 0 }}>{lang === 'bg' ? 'Field Watch карта' : 'Field Watch Map'}</h2>
 						<a
 							className="btn btn-outline"
-							href="/agrinexus-field-watch.html"
+							href={`/agrinexus-field-watch.html?oblast=${encodeURIComponent(selectedFieldCityId)}&lang=${lang}`}
 							target="_blank"
 							rel="noreferrer">
 							{lang === 'bg' ? 'Отвори в нов таб' : 'Open in new tab'}
@@ -4159,6 +4223,38 @@ export default function App() {
 							: 'Interactive field monitoring map with timelapse, Sentinel/NASA layers, and NDVI mode.'}
 					</p>
 					<div
+						className="contact-panel"
+						style={{ marginBottom: 12, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+						<label style={{ fontSize: '.88rem' }}>
+							{lang === 'bg' ? 'Областен град' : 'Oblast city'}
+						</label>
+						<select
+							value={selectedFieldCityId}
+							onChange={(event) => setSelectedFieldCityId(event.target.value)}
+							style={{ minWidth: 220 }}>
+							{FIELD_WATCH_OBLAST_CITIES.map((city) => (
+								<option key={city.id} value={city.id}>
+									{lang === 'bg' ? city.bg : city.en}
+								</option>
+							))}
+						</select>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => {
+								const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
+								const prompt =
+									lang === 'bg'
+										? `Дай агро прогноза с RAG за област ${cityLabel}: риск от суша, препоръчани култури, и 3 практически действия за следващите 30 дни.`
+										: `Give me a RAG-backed agri forecast for ${cityLabel} oblast: drought risk, recommended crops, and 3 practical actions for the next 30 days.`;
+								setChatInput(prompt);
+								setPendingAutoChatPrompt(prompt);
+								setView('assistant');
+							}}>
+							{lang === 'bg' ? 'Попитай AI за областта' : 'Ask AI for this oblast'}
+						</button>
+					</div>
+					<div
 						style={{
 							border: '1px solid var(--line)',
 							borderRadius: 14,
@@ -4168,7 +4264,7 @@ export default function App() {
 						}}>
 						<iframe
 							title="AgriNexus Field Watch"
-							src="/agrinexus-field-watch.html"
+							src={`/agrinexus-field-watch.html?oblast=${encodeURIComponent(selectedFieldCityId)}&lang=${lang}`}
 							style={{ width: '100%', height: 'min(78vh, 760px)', minHeight: 520, border: 0 }}
 						/>
 					</div>
@@ -4218,6 +4314,18 @@ export default function App() {
 						<p className="muted">{tr.privacyP2}</p>
 						<p className="muted">{tr.privacyP3}</p>
 						<p className="muted">{tr.privacyP4}</p>
+						<div style={{ marginTop: 12 }}>
+							<button
+								type="button"
+								className="btn btn-outline"
+								onClick={() => {
+									safeLocalRemove(COOKIE_CONSENT_KEY);
+									safeSessionRemove('agrinexus-visit-tracked');
+									setCookieConsent(null);
+								}}>
+								{tr.cookieConsentManage}
+							</button>
+						</div>
 					</div>
 					<button type="button" className="btn btn-outline" onClick={() => setView('landing')}>
 						{tr.privacyBackHome}
@@ -4380,6 +4488,40 @@ export default function App() {
 					</div>
 				</div>
 			</footer>
+
+			{cookieConsent === null && (
+				<div
+					className="contact-panel"
+					style={{
+						position: 'fixed',
+						left: 16,
+						right: 16,
+						bottom: isMobileViewport ? 84 : 16,
+						zIndex: 1200,
+						margin: 0,
+						borderColor: 'rgba(124, 205, 156, 0.35)',
+						background: 'rgba(8, 16, 12, 0.94)',
+						backdropFilter: 'blur(8px)',
+					}}>
+					<p className="muted" style={{ margin: '0 0 10px', fontSize: '.88rem', lineHeight: 1.5 }}>
+						{tr.cookieConsentText}
+					</p>
+					<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+						<button
+							type="button"
+							className="btn btn-outline"
+							onClick={() => setCookieConsent('rejected')}>
+							{tr.cookieConsentReject}
+						</button>
+						<button
+							type="button"
+							className="btn btn-primary"
+							onClick={() => setCookieConsent('accepted')}>
+							{tr.cookieConsentAccept}
+						</button>
+					</div>
+				</div>
+			)}
 
 			{isMobileViewport && (
 				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>

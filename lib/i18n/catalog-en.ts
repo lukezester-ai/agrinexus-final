@@ -248,6 +248,11 @@ export const STR_EN = {
 	privacyP3:
 		'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
 	privacyP4: 'Questions about data: info@agrinexus.eu',
+	cookieConsentText:
+		'We use essential browser storage for core features and optional visit analytics to improve the product. You can accept or reject analytics cookies.',
+	cookieConsentAccept: 'Accept',
+	cookieConsentReject: 'Reject',
+	cookieConsentManage: 'Change cookie preferences',
 	termsTitle: 'Terms of use',
 	termsBackHome: 'Back to home',
 	termsP1:

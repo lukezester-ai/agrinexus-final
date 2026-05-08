@@ -54,7 +54,14 @@
     <div id="hero-map"></div>
     <div class="scan-line"></div>
     <div class="data-overlay">
-        <div class="data-card"><strong>Добруджа Зона A</strong><div style="margin-top:8px;color:#10b981;">NDVI: 0.82</div></div>
+        <div class="data-card">
+            <strong id="overlay-title">Областни градове (България)</strong>
+            <div style="margin-top:10px;">
+                <label for="oblast-city" style="display:block;color:#94a3b8;font-size:.78rem;margin-bottom:6px;">Избери град</label>
+                <select id="oblast-city" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.05);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:8px;"></select>
+            </div>
+            <div id="overlay-ndvi" style="margin-top:8px;color:#10b981;">NDVI: —</div>
+        </div>
     </div>
     <div class="time-control-panel">
         <div style="display:flex;justify-content:space-between;"><h3 style="font-size:1rem;">Времева Лента</h3><span id="current-date-display" style="color:#10b981;">Днес</span></div>
@@ -79,7 +86,42 @@
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/@maplibre/maplibre-gl-draw@1.5.0/dist/maplibre-gl-draw.js"></script>
 <script>
-const DOBRUDJA_COORDS = [27.8, 43.6];
+const OBLAST_CITIES = [
+  { id: "blagoevgrad", name: "Благоевград", coords: [23.1005, 42.0209], ndvi: 0.66 },
+  { id: "burgas", name: "Бургас", coords: [27.4678, 42.5048], ndvi: 0.68 },
+  { id: "varna", name: "Варна", coords: [27.9147, 43.2141], ndvi: 0.71 },
+  { id: "veliko-tarnovo", name: "Велико Търново", coords: [25.6172, 43.0757], ndvi: 0.67 },
+  { id: "vidin", name: "Видин", coords: [22.8829, 43.9962], ndvi: 0.63 },
+  { id: "vratsa", name: "Враца", coords: [23.5528, 43.2102], ndvi: 0.64 },
+  { id: "gabrovo", name: "Габрово", coords: [25.3239, 42.8747], ndvi: 0.62 },
+  { id: "dobrich", name: "Добрич", coords: [27.8273, 43.5726], ndvi: 0.82 },
+  { id: "kardzhali", name: "Кърджали", coords: [25.3669, 41.6500], ndvi: 0.65 },
+  { id: "kyustendil", name: "Кюстендил", coords: [22.6911, 42.2839], ndvi: 0.61 },
+  { id: "lovech", name: "Ловеч", coords: [24.7159, 43.1368], ndvi: 0.66 },
+  { id: "montana", name: "Монтана", coords: [23.2250, 43.4083], ndvi: 0.64 },
+  { id: "pazardzhik", name: "Пазарджик", coords: [24.3336, 42.1928], ndvi: 0.69 },
+  { id: "pernik", name: "Перник", coords: [23.0378, 42.6050], ndvi: 0.58 },
+  { id: "pleven", name: "Плевен", coords: [24.6067, 43.4170], ndvi: 0.68 },
+  { id: "plovdiv", name: "Пловдив", coords: [24.7453, 42.1354], ndvi: 0.70 },
+  { id: "razgrad", name: "Разград", coords: [26.5379, 43.5333], ndvi: 0.73 },
+  { id: "ruse", name: "Русе", coords: [25.9547, 43.8356], ndvi: 0.67 },
+  { id: "silistra", name: "Силистра", coords: [27.2606, 44.1171], ndvi: 0.74 },
+  { id: "sliven", name: "Сливен", coords: [26.3242, 42.6818], ndvi: 0.65 },
+  { id: "smolyan", name: "Смолян", coords: [24.7137, 41.5774], ndvi: 0.59 },
+  { id: "sofia", name: "София", coords: [23.3219, 42.6977], ndvi: 0.57 },
+  { id: "sofia-oblast", name: "София област", coords: [23.7350, 42.8270], ndvi: 0.60 },
+  { id: "stara-zagora", name: "Стара Загора", coords: [25.6345, 42.4258], ndvi: 0.69 },
+  { id: "targovishte", name: "Търговище", coords: [26.5725, 43.2512], ndvi: 0.68 },
+  { id: "haskovo", name: "Хасково", coords: [25.5556, 41.9342], ndvi: 0.66 },
+  { id: "shumen", name: "Шумен", coords: [26.9307, 43.2712], ndvi: 0.72 },
+  { id: "yambol", name: "Ямбол", coords: [26.5038, 42.4841], ndvi: 0.67 }
+];
+const params = new URLSearchParams(window.location.search);
+const requestedOblast = params.get("oblast");
+const selectedCityState = {
+  city: OBLAST_CITIES.find((x) => x.id === requestedOblast) || OBLAST_CITIES.find((x) => x.id === "dobrich") || OBLAST_CITIES[0]
+};
+const DOBRUDJA_COORDS = selectedCityState.city.coords;
 const SAVED_FIELDS_SOURCE_ID = "saved-fields-source";
 const SAVED_FIELDS_FILL_LAYER_ID = "saved-fields-fill";
 const SAVED_FIELDS_LINE_LAYER_ID = "saved-fields-line";
@@ -87,6 +129,21 @@ function rasterStyle() {
   return { version: 8, sources: { osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256 } }, layers: [{ id: "osm", type: "raster", source: "osm" }] };
 }
 const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
+const oblastCitySelect = document.getElementById("oblast-city");
+const overlayNdvi = document.getElementById("overlay-ndvi");
+const overlayTitle = document.getElementById("overlay-title");
+for (const city of OBLAST_CITIES) {
+  const opt = document.createElement("option");
+  opt.value = city.id;
+  opt.textContent = city.name;
+  oblastCitySelect.appendChild(opt);
+}
+oblastCitySelect.value = selectedCityState.city.id;
+function updateOverlayForCity(city) {
+  overlayTitle.textContent = "Областен град: " + city.name;
+  overlayNdvi.textContent = "NDVI: " + city.ndvi.toFixed(2);
+}
+updateOverlayForCity(selectedCityState.city);
 const heroMap = new maplibregl.Map({
   container: "hero-map",
   style: rasterStyle(),
@@ -160,6 +217,18 @@ const fieldMap = new maplibregl.Map({
   style: rasterStyle(),
   center: DOBRUDJA_COORDS,
   zoom: isSmallScreen ? 12.2 : 13
+});
+function focusCity(city) {
+  selectedCityState.city = city;
+  updateOverlayForCity(city);
+  heroMap.easeTo({ center: city.coords, duration: 700 });
+  fieldMap.easeTo({ center: city.coords, duration: 700 });
+}
+oblastCitySelect.addEventListener("change", (event) => {
+  const cityId = event.target.value;
+  const city = OBLAST_CITIES.find((x) => x.id === cityId);
+  if (!city) return;
+  focusCity(city);
 });
 fieldMap.addControl(new maplibregl.NavigationControl());
 const draw = new MapLibreGlDraw({ displayControlsDefault: false, controls: { polygon: true, trash: true } });
