@@ -157,7 +157,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 							key={k}
 							type="button"
 							className={`season-cal-crop-btn ${crop === k ? 'btn btn-primary' : 'btn btn-outline'}`}
-							onClick={() => setCrop(k)}>
+							onClick={() => setCrop(k)}
+							style={{ flex: '1 1 180px', justifyContent: 'center' }}>
 							<span style={{ fontSize: '1.15rem', lineHeight: 1 }} aria-hidden>
 								{CROP_EMOJI[k]}
 							</span>
@@ -166,8 +167,6 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					))}
 				</div>
 			</div>
-
-			
 
 			<div
 				className="contact-panel"
@@ -203,7 +202,14 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 					borderColor: 'rgba(124, 205, 156, 0.35)',
 					background: 'rgba(16, 31, 22, 0.6)',
 				}}>
-				<div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						gap: 8,
+						alignItems: 'center',
+						flexWrap: 'wrap',
+					}}>
 					<div>
 						<p style={{ margin: 0, fontSize: '.9rem', fontWeight: 700 }}>
 							{lang === 'bg' ? 'RAG управление на календар' : 'RAG calendar control'}
@@ -214,7 +220,12 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 								: `Generates an AI plan for ${monthLabel(tr, selectedMonth - 1)} ${selectedYear} and injects it into that month.`}
 						</p>
 					</div>
-					<button type="button" className="btn btn-primary" onClick={() => void askRagForMonthPlan()} disabled={ragLoading}>
+					<button
+						type="button"
+						className="btn btn-primary"
+						onClick={() => void askRagForMonthPlan()}
+						disabled={ragLoading}
+						style={{ flex: '1 1 240px' }}>
 						{ragLoading ? (lang === 'bg' ? 'Генерирам...' : 'Generating...') : lang === 'bg' ? 'RAG план за месеца' : 'RAG month plan'}
 					</button>
 				</div>
@@ -226,6 +237,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 						style={{
 							marginTop: 10,
 							whiteSpace: 'pre-wrap',
+							overflowWrap: 'anywhere',
 							fontFamily: 'inherit',
 							fontSize: '.82rem',
 							background: 'rgba(10, 20, 14, 0.55)',
@@ -241,7 +253,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 			<div
 				style={{
 					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fill, minmax(288px, 1fr))',
+					gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
 					gap: 18,
 				}}>
 				{MONTH_NAMES_BG.map((_, idx) => {
@@ -260,7 +272,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 								display: 'flex',
 								flexDirection: 'column',
 								justifyContent: 'flex-start',
-								minHeight: 320,
+								minHeight: 'clamp(250px, 44vw, 320px)',
 								borderColor: isSelectedMonth
 									? 'rgba(124, 205, 156, 0.7)'
 									: 'rgba(124, 205, 156, 0.22)',

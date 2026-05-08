@@ -4310,12 +4310,17 @@ export default function App() {
 							borderRadius: 14,
 							overflow: 'hidden',
 							background: '#0b1120',
-							minHeight: 'min(760px, 74vh)',
+							minHeight: isMobileViewport ? '62vh' : 'min(760px, 74vh)',
 						}}>
 						<iframe
 							title="AgriNexus Field Watch"
 							src={`/agrinexus-field-watch.html?oblast=${encodeURIComponent(selectedFieldCityId)}&lang=${lang}`}
-							style={{ width: '100%', height: 'min(78vh, 760px)', minHeight: 520, border: 0 }}
+							style={{
+								width: '100%',
+								height: isMobileViewport ? '64vh' : 'min(78vh, 760px)',
+								minHeight: isMobileViewport ? 420 : 520,
+								border: 0,
+							}}
 						/>
 					</div>
 				</section>
