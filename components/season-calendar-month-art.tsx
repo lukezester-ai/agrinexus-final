@@ -2,6 +2,26 @@ import { useEffect, useState } from 'react';
 
 import type { SeasonVisual } from '../lib/season-calendar-visuals';
 
+const VISUAL_OBJECT_POSITION: Record<SeasonVisual, string> = {
+	seeds_plan: 'center center',
+	tractor_soil: 'center 42%',
+	seeding: 'center 44%',
+	young_crop: 'center 46%',
+	docs_admin: 'center center',
+	spray_field: 'center 42%',
+	combine_harvest: 'center 44%',
+	grain_logistics: 'center 44%',
+	sunflower_gold: 'center 40%',
+	corn_rows: 'center 42%',
+	irrigate: 'center 45%',
+	vine_row: 'center 42%',
+	grape_harvest: 'center 42%',
+	wine_cellar: 'center center',
+	orchard_prune: 'center 42%',
+	orchard_fruit: 'center 40%',
+	winter_rest: 'center 46%',
+};
+
 function SkyGround({ sky, ground }: { sky: string; ground: string }) {
 	return (
 		<>
@@ -407,8 +427,9 @@ export function SeasonMonthArtBanner({ visual }: { visual: SeasonVisual }) {
 							width: '100%',
 							height: '100%',
 							objectFit: 'cover',
-							objectPosition: 'center center',
+							objectPosition: VISUAL_OBJECT_POSITION[visual],
 							display: 'block',
+							transform: 'translateZ(0)',
 						}}
 					/>
 					<div

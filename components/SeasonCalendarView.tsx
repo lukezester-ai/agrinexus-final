@@ -62,15 +62,53 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 	const [crop, setCrop] = useState<CropCalendarKey>('wheat_barley');
 	const currentYear = new Date().getFullYear();
 	const currentMonth = new Date().getMonth() + 1;
-	const [selectedYear, setSelectedYear] = useState(currentYear);
-	const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+	const selectedYear = currentYear;
+	const selectedMonth = currentMonth;
+	const [ragLoading, setRagLoading] = useState(false);
+	const [ragError, setRagError] = useState('');
+	const [ragAnswer, setRagAnswer] = useState('');
+	const [ragTasksByMonth, setRagTasksByMonth] = useState<Record<number, string[]>>({});
 	const tasksByMonth = useMemo(() => SEASON_TASKS_BY_CROP[crop], [crop]);
 	const showBgNote = lang !== 'bg' && tr.seasonCalendarBgNote.length > 0;
-	const dateInputValue = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
-	const yearOptions = useMemo(
-		() => Array.from({ length: 7 }, (_, i) => currentYear - 2 + i),
-		[currentYear]
-	);
+	const selectedMonthTasks = tasksByMonth[selectedMonth] ?? [];
+
+	const askRagForMonthPlan = async () => {
+		if (ragLoading) return;
+		setRagError('');
+		setRagLoading(true);
+		try {
+			const cropName = cropLabel(tr, crop);
+			const monthName = monthLabel(tr, selectedMonth - 1);
+			const contextList = selectedMonthTasks.length > 0 ? selectedMonthTasks.map(t => `- ${t}`).join('\n') : '-';
+			const userPrompt =
+				lang === 'bg'
+					? `Ти си агроном-оператор. Направи кратък оперативен план за ${cropName} за ${monthName} ${selectedYear} в 5-7 точки.\nИзползвай контекст от календара:\n${contextList}\n\nВърни само списък с кратки точки, по една на ред, без допълнителни обяснения.`
+					: `You are an agronomy operations planner. Build a concise action plan for ${cropName} for ${monthName} ${selectedYear} in 5-7 bullets.\nUse this season-calendar context:\n${contextList}\n\nReturn only bullet-like lines, one per row, no extra explanation.`;
+			const res = await fetch('/api/chat', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					messages: [{ role: 'user', content: userPrompt }],
+					locale: lang,
+					persona: 'finance',
+				}),
+			});
+			const data = (await res.json()) as { reply?: string; error?: string };
+			if (!res.ok) throw new Error(data.error || 'RAG request failed');
+			const reply = (data.reply || '').trim();
+			setRagAnswer(reply);
+			const parsed = reply
+				.split('\n')
+				.map(line => line.replace(/^[-*•\d.\s]+/, '').trim())
+				.filter(Boolean)
+				.slice(0, 10);
+			setRagTasksByMonth(prev => ({ ...prev, [selectedMonth]: parsed }));
+		} catch (e) {
+			setRagError(e instanceof Error ? e.message : 'RAG request failed');
+		} finally {
+			setRagLoading(false);
+		}
+	};
 
 	return (
 		<section className="section">
@@ -129,64 +167,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				</div>
 			</div>
 
-			<div
-				className="contact-panel"
-				style={{
-					marginBottom: 18,
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-					gap: 10,
-					alignItems: 'end',
-				}}>
-				<label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-					<span className="muted" style={{ fontSize: '.82rem' }}>
-						{lang === 'bg' ? 'Година' : 'Year'}
-					</span>
-					<select
-						value={selectedYear}
-						onChange={e => setSelectedYear(Number(e.target.value))}
-						style={{
-							padding: '10px 12px',
-							borderRadius: 10,
-							border: '1px solid #3d5248',
-							background: '#101914',
-							color: '#fff',
-							fontFamily: 'inherit',
-						}}>
-						{yearOptions.map((y) => (
-							<option key={y} value={y}>
-								{y}
-							</option>
-						))}
-					</select>
-				</label>
-
-				<label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-					<span className="muted" style={{ fontSize: '.82rem' }}>
-						{lang === 'bg' ? 'Дата' : 'Date'}
-					</span>
-					<input
-						type="date"
-						value={dateInputValue}
-						onChange={e => {
-							const v = e.target.value;
-							if (!v) return;
-							const [y, m] = v.split('-').map(Number);
-							if (!Number.isFinite(y) || !Number.isFinite(m)) return;
-							setSelectedYear(y);
-							setSelectedMonth(m);
-						}}
-						style={{
-							padding: '10px 12px',
-							borderRadius: 10,
-							border: '1px solid #3d5248',
-							background: '#101914',
-							color: '#fff',
-							fontFamily: 'inherit',
-						}}
-					/>
-				</label>
-			</div>
+			
 
 			<div
 				className="contact-panel"
@@ -216,6 +197,48 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 			</p>
 
 			<div
+				className="contact-panel"
+				style={{
+					marginBottom: 20,
+					borderColor: 'rgba(124, 205, 156, 0.35)',
+					background: 'rgba(16, 31, 22, 0.6)',
+				}}>
+				<div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+					<div>
+						<p style={{ margin: 0, fontSize: '.9rem', fontWeight: 700 }}>
+							{lang === 'bg' ? 'RAG управление на календар' : 'RAG calendar control'}
+						</p>
+						<p className="muted" style={{ margin: '6px 0 0', fontSize: '.82rem' }}>
+							{lang === 'bg'
+								? `Генерира AI план за ${monthLabel(tr, selectedMonth - 1)} ${selectedYear} и го добавя към месеца.`
+								: `Generates an AI plan for ${monthLabel(tr, selectedMonth - 1)} ${selectedYear} and injects it into that month.`}
+						</p>
+					</div>
+					<button type="button" className="btn btn-primary" onClick={() => void askRagForMonthPlan()} disabled={ragLoading}>
+						{ragLoading ? (lang === 'bg' ? 'Генерирам...' : 'Generating...') : lang === 'bg' ? 'RAG план за месеца' : 'RAG month plan'}
+					</button>
+				</div>
+				{ragError ? (
+					<p style={{ marginTop: 10, color: '#f87171', fontSize: '.82rem' }}>{ragError}</p>
+				) : null}
+				{ragAnswer ? (
+					<pre
+						style={{
+							marginTop: 10,
+							whiteSpace: 'pre-wrap',
+							fontFamily: 'inherit',
+							fontSize: '.82rem',
+							background: 'rgba(10, 20, 14, 0.55)',
+							border: '1px solid rgba(124, 205, 156, 0.24)',
+							borderRadius: 8,
+							padding: 10,
+						}}>
+						{ragAnswer}
+					</pre>
+				) : null}
+			</div>
+
+			<div
 				style={{
 					display: 'grid',
 					gridTemplateColumns: 'repeat(auto-fill, minmax(288px, 1fr))',
@@ -223,8 +246,8 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 				}}>
 				{MONTH_NAMES_BG.map((_, idx) => {
 					const m = idx + 1;
-					const tasks = tasksByMonth[m];
-					if (!tasks?.length) return null;
+					const tasks = tasksByMonth[m] ?? [];
+					const ragTasks = ragTasksByMonth[m] ?? [];
 					const visual = resolveSeasonVisual(crop, m);
 					const isSelectedMonth = m === selectedMonth;
 					return (
@@ -234,6 +257,10 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 							style={{
 								margin: 0,
 								padding: 16,
+								display: 'flex',
+								flexDirection: 'column',
+								justifyContent: 'flex-start',
+								minHeight: 320,
 								borderColor: isSelectedMonth
 									? 'rgba(124, 205, 156, 0.7)'
 									: 'rgba(124, 205, 156, 0.22)',
@@ -245,7 +272,7 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 							<h3
 								style={{
 									marginTop: 0,
-									marginBottom: 10,
+									marginBottom: tasks.length > 0 || ragTasks.length > 0 ? 10 : 0,
 									display: 'flex',
 									alignItems: 'center',
 									gap: 8,
@@ -267,13 +294,29 @@ export function SeasonCalendarView({ lang, tr, onOpenSubsidy }: Props) {
 								</span>
 								{monthLabel(tr, idx)} {selectedYear}
 							</h3>
-							<ul style={{ margin: 0, paddingLeft: 18, fontSize: '.85rem' }} className="muted">
-								{tasks.map((t, i) => (
-									<li key={i} style={{ marginBottom: 6 }}>
-										{t}
-									</li>
-								))}
-							</ul>
+							{tasks.length > 0 ? (
+								<ul style={{ margin: 0, paddingLeft: 18, fontSize: '.85rem' }} className="muted">
+									{tasks.map((t, i) => (
+										<li key={i} style={{ marginBottom: 6 }}>
+											{t}
+										</li>
+									))}
+								</ul>
+							) : null}
+							{ragTasks.length > 0 ? (
+								<>
+									<p style={{ margin: '12px 0 8px', fontSize: '.74rem', fontWeight: 700, letterSpacing: '.03em' }}>
+										{lang === 'bg' ? 'AI оперативни задачи' : 'AI operational tasks'}
+									</p>
+									<ul style={{ margin: 0, paddingLeft: 18, fontSize: '.82rem', color: '#cdeed9' }}>
+										{ragTasks.map((t, i) => (
+											<li key={`${m}-rag-${i}`} style={{ marginBottom: 6 }}>
+												{t}
+											</li>
+										))}
+									</ul>
+								</>
+							) : null}
 						</div>
 					);
 				})}

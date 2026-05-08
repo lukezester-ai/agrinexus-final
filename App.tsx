@@ -2967,7 +2967,17 @@ export default function App() {
             border-radius: 14px;
             margin-top: 8px;
           }
-          .nav { padding: 10px 12px; }
+          .nav {
+            padding: 10px 12px;
+            position: sticky;
+            min-height: 58px;
+          }
+          .brand {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+          }
           .nav-actions { gap: 6px; }
           .nav-link { padding: 7px 8px; font-size: .86rem; }
           .nav-link-mobile-hide { display: none !important; }
@@ -3307,63 +3317,6 @@ export default function App() {
 							<span className="brand-agri">Agri</span>
 							<span className="brand-nexus">Nexus</span>
 						</h1>
-						<div className="landing-glass-stack">
-							<div className="landing-glass-grid">
-								<article className="landing-glass-card">
-									<h2>{tr.landingGlassMarketTitle}</h2>
-									<p>{tr.landingGlassMarketP1}</p>
-									<p>{tr.landingGlassMarketP2}</p>
-									<button
-										type="button"
-										className="btn btn-primary"
-										onClick={() => setView('market')}
-										aria-label={tr.landingGlassMarketCta}>
-										<Search size={18} aria-hidden />
-										{tr.landingGlassMarketCta}
-									</button>
-								</article>
-								<article className="landing-glass-card">
-									<h2>{tr.landingGlassIntelTitle}</h2>
-									<p>{tr.landingGlassIntelP1}</p>
-									<p style={{ marginBottom: 6, fontSize: '.84rem', fontWeight: 650, color: 'var(--accent-text)' }}>
-										{tr.landingGlassIntelListIntro}
-									</p>
-									<ul>
-										<li>{tr.landingGlassIntelLi1}</li>
-										<li>{tr.landingGlassIntelLi2}</li>
-										<li>{tr.landingGlassIntelLi3}</li>
-										<li>{tr.landingGlassIntelLi4}</li>
-										<li>{tr.landingGlassIntelLi5}</li>
-									</ul>
-									<button
-										type="button"
-										className="btn btn-primary"
-										onClick={() => setView('market-watch')}
-										aria-label={tr.landingGlassIntelCta}>
-										<LineChart size={18} aria-hidden />
-										{tr.landingGlassIntelCta}
-									</button>
-								</article>
-							</div>
-							<div className="landing-glass-footer">
-								<p>{tr.landingGlassFooterLead}</p>
-								<button
-									type="button"
-									className="btn btn-primary"
-									onClick={() => setView('field-watch')}
-									aria-label={lang === 'bg' ? 'Отвори Field Watch карта' : 'Open Field Watch map'}>
-									<FileImage size={18} aria-hidden />
-									{lang === 'bg' ? 'Отвори Field Watch' : 'Open Field Watch'}
-								</button>
-								<a
-									className="btn btn-outline landing-glass-mail-btn"
-									href="mailto:info@agrinexus.eu"
-									aria-label={tr.landingGlassEmailAria}>
-									<Mail size={18} aria-hidden />
-									info@agrinexus.eu
-								</a>
-							</div>
-						</div>
 					</div>
 				</section>
 			)}

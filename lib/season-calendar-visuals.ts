@@ -87,7 +87,24 @@ export const SEASON_MONTH_VISUAL: Record<CropCalendarKey, Partial<Record<number,
 	},
 };
 
+/** Общ сезонен fallback за месеци без конкретна операция по култура. */
+const GENERIC_MONTH_VISUAL: Record<number, SeasonVisual> = {
+	1: 'winter_rest',
+	2: 'winter_rest',
+	3: 'tractor_soil',
+	4: 'young_crop',
+	5: 'docs_admin',
+	6: 'irrigate',
+	7: 'spray_field',
+	8: 'combine_harvest',
+	9: 'grain_logistics',
+	10: 'orchard_fruit',
+	11: 'docs_admin',
+	12: 'winter_rest',
+};
+
 export function resolveSeasonVisual(crop: CropCalendarKey, month: number): SeasonVisual {
 	const v = SEASON_MONTH_VISUAL[crop][month];
-	return v ?? 'young_crop';
+	if (v) return v;
+	return GENERIC_MONTH_VISUAL[month] ?? 'young_crop';
 }
