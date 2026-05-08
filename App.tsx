@@ -2237,8 +2237,10 @@ export default function App() {
         }
         .brand {
           display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer;
-          grid-column: 2;
-          justify-self: center;
+          position: absolute;
+          left: 50%;
+          transform: translate(-50%, 4px);
+          z-index: 2;
           border: none;
           margin: 0;
           padding: 0;
@@ -2427,6 +2429,14 @@ export default function App() {
           backdrop-filter: none;
           -webkit-backdrop-filter: none;
           box-shadow: none;
+        }
+        .landing-hero h1.brand-wordmark {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          text-align: center;
+          margin-top: clamp(84px, 16vw, 170px);
+          margin-bottom: clamp(8px, 1.6vw, 16px);
         }
         .landing-hero .brand-wordmark .brand-agri,
         .landing-hero .brand-wordmark .brand-nexus {
@@ -2983,6 +2993,10 @@ export default function App() {
             padding: 10px 12px;
             position: sticky;
             min-height: 58px;
+          }
+          .brand {
+            position: static;
+            transform: none;
           }
           .nav-actions { gap: 6px; }
           .nav-link { padding: 7px 8px; font-size: .86rem; }
