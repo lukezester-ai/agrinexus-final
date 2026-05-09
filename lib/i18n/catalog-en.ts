@@ -184,7 +184,7 @@ export const STR_EN = {
 	personaLawyer: 'Legal',
 	personaAgronomist: 'Agronomy',
 	personaFinance: 'Finance',
-	assistantBack: 'Back to marketplace',
+	assistantBack: 'Back to home',
 	assistantCloseChat: 'Close',
 	assistantCollapseTools: 'Hide toolbar',
 	assistantExpandTools: 'Show toolbar',

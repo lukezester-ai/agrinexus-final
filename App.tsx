@@ -2203,16 +2203,23 @@ export default function App() {
             bottom: calc(10px + env(safe-area-inset-bottom, 0px) + var(--keyboard-cover, 0px));
             z-index: 160;
             width: auto;
-            max-width: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+            max-width: min(
+              calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+              100%
+            );
+            max-height: min(46vh, 360px);
             box-sizing: border-box;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             background: rgba(14, 22, 18, 0.97);
             border: 1px solid #3d5248;
             border-radius: 14px;
-            padding: 8px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             backdrop-filter: blur(6px);
             transition: transform 0.28s ease, opacity 0.22s ease;
           }
@@ -2230,19 +2237,25 @@ export default function App() {
           .mobile-nav-row {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 4px;
+            gap: 3px;
             min-width: 0;
+            flex-shrink: 0;
           }
           .mobile-nav-row.tools {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 1px;
+            padding-top: 3px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
           }
           .mobile-nav-subrow {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 4px;
-            padding: 4px 0 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            gap: 3px;
+            padding: 3px 0 1px;
+            margin-top: 1px;
+            border-top: 1px solid rgba(124, 205, 156, 0.18);
             min-width: 0;
+            flex-shrink: 0;
           }
           .mobile-nav-subrow.cols-2 {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2252,8 +2265,8 @@ export default function App() {
             background: #101914;
             color: #cbd5e1;
             border-radius: 10px;
-            padding: 8px 4px;
-            min-height: 48px;
+            padding: 6px 3px;
+            min-height: 44px;
             min-width: 0;
             max-width: 100%;
             font-size: .65rem;

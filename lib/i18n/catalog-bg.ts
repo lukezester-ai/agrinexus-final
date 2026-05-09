@@ -186,7 +186,7 @@ export const STR_BG = {
 	personaLawyer: 'Юрист',
 	personaAgronomist: 'Агроном',
 	personaFinance: 'Финансист',
-	assistantBack: 'Към Пазара',
+	assistantBack: 'Към началото',
 	assistantCloseChat: 'Затвори',
 	assistantCollapseTools: 'Скрий лентата',
 	assistantExpandTools: 'Покажи лентата',
