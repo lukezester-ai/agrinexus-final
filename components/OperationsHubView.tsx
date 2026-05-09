@@ -684,6 +684,8 @@ export function OperationsHubView(props: {
 					border-radius: 18px;
 					padding: 16px;
 					border: 1px solid rgba(0,0,0,.08);
+					max-width: 100%;
+					box-sizing: border-box;
 				}
 				.farm-dash-top {
 					display: flex;
@@ -697,6 +699,7 @@ export function OperationsHubView(props: {
 					display: flex;
 					flex-wrap: wrap;
 					gap: 6px;
+					min-width: 0;
 				}
 				.farm-dash-nav .nav-item {
 					border: 1px solid rgba(0,0,0,.12);
@@ -708,6 +711,7 @@ export function OperationsHubView(props: {
 					font-size: 13px;
 					cursor: pointer;
 					transition: background .15s, color .15s, border-color .15s;
+					touch-action: manipulation;
 				}
 				.farm-dash-nav .nav-item:hover {
 					border-color: rgba(42,157,110,.45);
@@ -771,6 +775,24 @@ export function OperationsHubView(props: {
 				}
 				@media (max-width: 1000px) {
 					.farm-dash-grid-2 { grid-template-columns: 1fr; }
+				}
+				/* Narrow phones: keep tab row on one line; swipe horizontally */
+				@media (max-width: 640px) {
+					.farm-dash-nav {
+						flex-wrap: nowrap;
+						overflow-x: auto;
+						-webkit-overflow-scrolling: touch;
+						scrollbar-width: thin;
+						padding-bottom: 4px;
+						margin-bottom: -2px;
+					}
+					.farm-dash-nav .nav-item {
+						flex: 0 0 auto;
+					}
+					.farm-dash-top-actions {
+						width: 100%;
+						justify-content: flex-start;
+					}
 				}
 				.farm-panel {
 					background: #fff;
@@ -885,6 +907,15 @@ export function OperationsHubView(props: {
 					border-bottom: 1px solid rgba(0,0,0,.08);
 					text-align: left;
 				}
+				.fields-table-scroll {
+					overflow-x: auto;
+					-webkit-overflow-scrolling: touch;
+					width: 100%;
+					margin: 0 -2px;
+				}
+				.fields-table-scroll .fields-table {
+					min-width: min(100%, 320px);
+				}
 				.farm-dash-scope input[type="search"], .farm-dash-scope textarea {
 					width: 100%;
 					padding: 10px;
@@ -904,12 +935,22 @@ export function OperationsHubView(props: {
 				.farm-data-row label { font-size: 12px; font-weight: 700; min-width: 120px; }
 				.farm-month-grid {
 					display: grid;
-					grid-template-columns: repeat(7, minmax(52px, 1fr));
+					/* minmax(0,1fr) avoids horizontal overflow on ~320px viewports */
+					grid-template-columns: repeat(7, minmax(0, 1fr));
 					gap: 6px;
 					align-items: end;
 					margin-top: 8px;
 				}
 				.farm-month-grid span { font-size: 10px; font-weight: 700; text-align: center; opacity: .75; }
+				@media (max-width: 480px) {
+					.farm-month-grid { gap: 4px; }
+					.farm-month-grid span { font-size: 9px; }
+					.farm-dash-scope input.in-num {
+						max-width: none;
+						padding: 6px 4px;
+						font-size: 12px;
+					}
+				}
 				.farm-dash-scope .rag-actions {
 					display: flex;
 					flex-wrap: wrap;
@@ -1029,48 +1070,51 @@ export function OperationsHubView(props: {
 						value={fieldSearch}
 						onChange={e => setFieldSearch(e.target.value)}
 					/>
-					<table className="fields-table" id="fieldsTable">
-						<thead>
-							<tr>
-								<th>#</th>
-								<th>{pick('Статус', 'Status')}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredFields.map(f => (
-								<tr key={f.id}>
-									<td>{pick('Поле', 'Field')} {f.id}</td>
-									<td>
-										<select
-											value={f.status}
-											onChange={e => {
-												const st = e.target.value as FieldTileStatus;
-												setDash(prev => ({
-													...prev,
-													fields: prev.fields.map(row =>
-														row.id === f.id ? { ...row, status: st } : row,
-													),
-												}));
-											}}
-											style={{
-												padding: '6px 8px',
-												borderRadius: 8,
-												border: '1px solid rgba(0,0,0,.15)',
-												fontFamily: 'inherit',
-												width: '100%',
-												maxWidth: 200,
-											}}>
-											{(Object.keys(statusLabels) as FieldTileStatus[]).map(key => (
-												<option key={key} value={key}>
-													{statusLabels[key]}
-												</option>
-											))}
-										</select>
-									</td>
+					<div className="fields-table-scroll">
+						<table className="fields-table" id="fieldsTable">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>{pick('Статус', 'Status')}</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								{filteredFields.map(f => (
+									<tr key={f.id}>
+										<td>{pick('Поле', 'Field')} {f.id}</td>
+										<td>
+											<select
+												value={f.status}
+												onChange={e => {
+													const st = e.target.value as FieldTileStatus;
+													setDash(prev => ({
+														...prev,
+														fields: prev.fields.map(row =>
+															row.id === f.id ? { ...row, status: st } : row,
+														),
+													}));
+												}}
+												style={{
+													padding: '6px 8px',
+													borderRadius: 8,
+													border: '1px solid rgba(0,0,0,.15)',
+													fontFamily: 'inherit',
+													width: '100%',
+													maxWidth: 200,
+													minHeight: 44,
+												}}>
+												{(Object.keys(statusLabels) as FieldTileStatus[]).map(key => (
+													<option key={key} value={key}>
+														{statusLabels[key]}
+													</option>
+												))}
+											</select>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 
