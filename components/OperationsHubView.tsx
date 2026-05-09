@@ -755,11 +755,13 @@ export function OperationsHubView(props: {
 					font-weight: 600;
 					color: #1a1a18;
 				}
-				.page-title {
+				/* Beat global .app / section text color so title stays dark on cream panel */
+				main#main-content .farm-dash-scope.section h2.page-title {
 					margin: 0 0 12px;
 					font-size: 1.35rem;
 					font-weight: 800;
-					color: #1a1a18;
+					color: #121812;
+					-webkit-text-fill-color: currentColor;
 				}
 				.farm-dash-hidden { display: none !important; }
 				.farm-dash-grid-2 {

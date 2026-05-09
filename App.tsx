@@ -677,15 +677,16 @@ export default function App() {
 	const [contactFeedback, setContactFeedback] = useState('');
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
-	const regFullNameValid = regFullName.trim().length >= 2;
+	/** Empty OK; if user types a name, require at least 2 characters (matches server normalization). */
+	const regNameOk = regFullName.trim().length === 0 || regFullName.trim().length >= 2;
 	const regPasswordOkForCloud = regPassword.length >= 6;
 	const regPasswordsMatch = regPassword === regPasswordConfirm;
 	const canSubmitRegister =
-		regFullNameValid &&
 		isValidEmail(regEmail) &&
+		regNameOk &&
 		(!supabaseRegisterEnabled || (regPasswordOkForCloud && regPasswordsMatch));
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
-	const showRegisterNameError = regFullName.trim().length > 0 && !regFullNameValid;
+	const showRegisterNameError = regFullName.trim().length > 0 && !regNameOk;
 	const showRegisterPasswordError =
 		supabaseRegisterEnabled && regPassword.length > 0 && !regPasswordOkForCloud;
 	const showRegisterPasswordMismatch =
@@ -947,12 +948,12 @@ export default function App() {
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
-		if (!regFullNameValid) {
+		if (!regNameOk) {
 			setRegStatus('err');
 			setRegMsg(
 				lang === 'bg'
-					? 'Въведете име с поне 2 знака.'
-					: 'Enter your name with at least 2 characters.'
+					? 'Ако посочите име, то трябва да е поне 2 знака (или оставете полето празно).'
+					: 'If you enter a display name, use at least 2 characters — or leave it blank.'
 			);
 			return;
 		}
@@ -973,13 +974,14 @@ export default function App() {
 		setRegStatus('loading');
 		setRegMsg('');
 		try {
+			const emailTrim = regEmail.trim();
 			const res = await fetch('/api/register-interest', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					fullName: regFullName.trim(),
 					companyName: '',
-					businessEmail: regEmail,
+					businessEmail: emailTrim,
 					phone: '',
 					marketFocus: '',
 					subscribeAlerts: false,
@@ -1013,11 +1015,9 @@ export default function App() {
 			if (supabaseClient) {
 				const redirect = `${window.location.origin}${window.location.pathname}`;
 				const display =
-					regFullName.trim().length >= 2
-						? regFullName.trim()
-						: regEmail.trim().split('@')[0] || '';
+					regFullName.trim().length >= 2 ? regFullName.trim() : emailTrim.split('@')[0] || '';
 				const { data: signUpData, error } = await supabaseClient.auth.signUp({
-					email: regEmail.trim(),
+					email: emailTrim,
 					password: regPassword,
 					options: {
 						emailRedirectTo: redirect,
@@ -2612,6 +2612,25 @@ export default function App() {
 					<p className="muted">{tr.registerSubtitle}</p>
 					<div className="form-grid">
 						<input
+							placeholder={tr.fullNamePh}
+							value={regFullName}
+							onChange={e => setRegFullName(e.target.value)}
+							autoComplete="name"
+						/>
+						{showRegisterNameError ? (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{lang === 'bg'
+									? 'Име е по избор; ако го попълните — поне 2 знака.'
+									: 'Name is optional; if you enter one — at least 2 characters.'}
+							</p>
+						) : null}
+						<input
 							type="email"
 							autoComplete="email"
 							placeholder={tr.businessEmailPh}
@@ -2629,25 +2648,6 @@ export default function App() {
 								{invalidEmailText}
 							</p>
 						)}
-						<input
-							placeholder={tr.fullNamePh}
-							value={regFullName}
-							onChange={e => setRegFullName(e.target.value)}
-							autoComplete="name"
-						/>
-						{showRegisterNameError ? (
-							<p
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									color: '#f87171',
-									fontSize: '.84rem',
-								}}>
-								{lang === 'bg'
-									? 'Името трябва да е поне 2 знака.'
-									: 'Name must be at least 2 characters.'}
-							</p>
-						) : null}
 						{supabaseRegisterEnabled ? (
 							<>
 								<input

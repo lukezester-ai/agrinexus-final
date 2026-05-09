@@ -218,8 +218,8 @@ export const STR_EN = {
 	grainInsightTopProduct: 'Top product',
 	registerTitle: 'Create Account',
 	registerSubtitle:
-		'Email and optional name; with Supabase enabled add a password for cloud signup (confirmation email from Supabase). The team gets a short notice when mail is configured.',
-	fullNamePh: 'Display name (optional)',
+		'Required: a valid email. Name is optional (≥2 characters if you enter one). With Supabase enabled: password + confirmation, then Supabase email verification. The team gets a notice when server mail is configured.',
+	fullNamePh: 'Display name (optional — leave blank OK)',
 	companyNamePh: 'Company Name',
 	businessEmailPh: 'Email',
 	passwordPh: 'Password',
