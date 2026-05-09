@@ -24,6 +24,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     build: {
+      /** App shell stays large (many routes in App.tsx); Chart.js alone tips default 500 kB warning */
+      chunkSizeWarningLimit: 850,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -33,6 +35,8 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/lucide-react')) return 'lucide';
             if (id.includes('node_modules/@supabase')) return 'supabase';
             if (id.includes('node_modules/pdf-lib')) return 'pdf-lib';
+            if (id.includes('node_modules/chart.js')) return 'chartjs';
+            if (id.includes('node_modules/react-chartjs-2')) return 'chartjs';
             return undefined;
           },
         },
