@@ -1294,6 +1294,56 @@ export function OperationsHubView(props: {
 				className="farm-panel"
 				style={{
 					marginBottom: 14,
+					borderColor: 'rgba(22, 101, 52, 0.42)',
+					background: 'linear-gradient(175deg, rgba(220, 252, 231, 0.92) 0%, #fff 58%)',
+					boxShadow: '0 4px 20px rgba(22, 101, 52, 0.1)',
+				}}>
+				<h3 style={{ marginBottom: 6 }}>
+					{pick('Първичен съветник (RAG + табло)', 'Primary advisor (RAG + dashboard)')}
+				</h3>
+				<p style={{ fontSize: 12, opacity: 0.88, marginTop: 0, lineHeight: 1.45 }}>
+					{pick(
+						'Основен агрономичен канал към /api/chat (persona agronomist): пълен dealContext и farmer snapshot. При конфигуриран индекс — retrieval от документи; отговорите трябва да се основават на откъсите и таблото.',
+						'Primary agronomy channel via /api/chat (agronomist persona): full dealContext and farmer snapshot. With a configured index, document retrieval applies—answers must ground in excerpts and the dashboard.',
+					)}
+				</p>
+				<textarea
+					rows={4}
+					placeholder={pick(
+						'Напр. Дай 3 действия за полетата с „Внимание“ и „Критичен“ тази седмица.',
+						'e.g. Give 3 actions for Warning and Critical fields this week.',
+					)}
+					value={ragQuestion}
+					onChange={e => setRagQuestion(e.target.value)}
+				/>
+				<div className="rag-actions">
+					<button type="button" className="primary" disabled={ragLoading} onClick={() => void runRag()}>
+						{ragLoading ? pick('Генерирам…', 'Generating…') : pick('Препоръка (RAG)', 'RAG recommendation')}
+					</button>
+					<button type="button" onClick={() => onNavigate('assistant')}>
+						{tr.opsLinkAssistant}
+					</button>
+				</div>
+				{ragError ? <p style={{ color: '#b91c1c', fontSize: 13 }}>{ragError}</p> : null}
+				{ragAnswer ? (
+					<div
+						style={{
+							marginTop: 10,
+							background: '#f7f7f4',
+							borderRadius: 10,
+							padding: 12,
+							whiteSpace: 'pre-wrap',
+							fontSize: 13,
+							border: '1px solid rgba(0,0,0,.08)',
+						}}>
+						{ragAnswer}
+					</div>
+				) : null}
+			</div>
+			<div
+				className="farm-panel"
+				style={{
+					marginBottom: 14,
 					borderColor: 'rgba(42,157,110,.35)',
 					background: 'linear-gradient(165deg, rgba(232,247,239,0.8) 0%, #fff 100%)',
 				}}>
@@ -2202,48 +2252,6 @@ export function OperationsHubView(props: {
 						</button>
 					</div>
 				</div>
-			</div>
-
-			<div className="farm-panel" style={{ marginTop: 16 }}>
-				<h3>{pick('RAG асистент (агроном)', 'RAG assistant (agronomist)')}</h3>
-				<p style={{ fontSize: 12, opacity: 0.75, marginTop: 0 }}>
-					{pick(
-						'Заявката отива към /api/chat с persona agronomist, dealContext за таблото и farmer snapshot — ползва се retrieval от индекса, ако е конфигуриран.',
-						'Requests go to /api/chat with agronomist persona, dashboard deal context and farmer snapshot — uses retrieval when configured.',
-					)}
-				</p>
-				<textarea
-					rows={4}
-					placeholder={pick(
-						'Напр. Дай 3 действия за полетата с „Внимание“ и „Критичен“ тази седмица.',
-						'e.g. Give 3 actions for Warning and Critical fields this week.',
-					)}
-					value={ragQuestion}
-					onChange={e => setRagQuestion(e.target.value)}
-				/>
-				<div className="rag-actions">
-					<button type="button" className="primary" disabled={ragLoading} onClick={() => void runRag()}>
-						{ragLoading ? pick('Генерирам…', 'Generating…') : pick('RAG препоръка', 'RAG recommendation')}
-					</button>
-					<button type="button" onClick={() => onNavigate('assistant')}>
-						{tr.opsLinkAssistant}
-					</button>
-				</div>
-				{ragError ? <p style={{ color: '#b91c1c', fontSize: 13 }}>{ragError}</p> : null}
-				{ragAnswer ? (
-					<div
-						style={{
-							marginTop: 10,
-							background: '#f7f7f4',
-							borderRadius: 10,
-							padding: 12,
-							whiteSpace: 'pre-wrap',
-							fontSize: 13,
-							border: '1px solid rgba(0,0,0,.08)',
-						}}>
-						{ragAnswer}
-					</div>
-				) : null}
 			</div>
 		</section>
 	);

@@ -66,18 +66,27 @@ function systemPrompt(
 
   const mode = personaDirective(locale, persona);
 
+  const hasRetrievedDocs =
+    ragBlock.includes('RETRIEVED CONTENT') || ragBlock.includes('RELATED DOCUMENTS');
+  const retrievalFirst =
+    hasRetrievedDocs
+      ? locale === 'bg'
+        ? '**Retrieval-first:** Когато по-долу има „RETRIEVED CONTENT“ или „RELATED DOCUMENTS“, тези откъси и линкове са **водещи за факти** пред общите познания на модела. Цитирай URL; не противоречи на индексирания текст без да кажеш, че проверяваш официалния източник.\n\n'
+        : '**Retrieval-first:** When “RETRIEVED CONTENT” or “RELATED DOCUMENTS” appears below, treat excerpts and URLs as **authoritative for facts** ahead of model priors. Cite URLs; do not contradict indexed text without telling the user to verify the official source.\n\n'
+      : '';
+
   const ragTail =
     ragBlock.trim().length > 0
       ? locale === 'bg'
-        ? '\n5) **Контекст** — по-долу: платформена карта на модулите AgriNexus и (ако има) RETRIEVAL SNAPSHOTS от индексирани документи. Използвай картата за навигация в UI; retrieval за официални източници; в source посочи кои URL са ползвани; не преписвай текст, който не виждаш.'
-        : '\n5) **Context** — below: AgriNexus module map plus optional RETRIEVAL SNAPSHOTS from indexed docs. Use the map for UI navigation; use retrieval for official sources; state which URLs informed source; do not quote unseen bodies.'
+        ? '\n5) **Контекст** — по-долу: платформена карта на модулите AgriNexus и (ако има) RETRIEVAL SNAPSHOTS от индексирани документи. Това не е „резервен“ слой: при налични откъси retrieval е равностоен на DAFS ориентацията за факти от тези документи. Използвай картата за навигация в UI; retrieval за официални източници; в source посочи кои URL са ползвани; не преписвай текст, който не виждаш.'
+        : '\n5) **Context** — below: AgriNexus module map plus optional RETRIEVAL SNAPSHOTS from indexed docs. This is not a “backup” layer: when excerpts exist, retrieval is co-equal with DAFS orientation for facts from those documents. Use the map for UI navigation; use retrieval for official sources; state which URLs informed source; do not quote unseen bodies.'
       : '';
 
   return `You are AgriNexus — the **farmer operating system** assistant. You are NOT three separate chatbots. You combine legal clarity, agronomic practice, and farm economics so documentation stays the spine of the answer.
 
 ${langRule}
 
-Active lens: ${persona}
+${retrievalFirst}Active lens: ${persona}
 ${mode}
 
 Priority (all modes):
@@ -377,7 +386,7 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     : '';
   const platformPreamble = buildAgrinexusPlatformRagPreamble(locale);
   let ragBlock = [platformPreamble, retrievalBlock].filter((s) => s.trim().length > 0).join('\n\n');
-  const MAX_COMBINED_RAG_CHARS = 11000;
+  const MAX_COMBINED_RAG_CHARS = 15000;
   if (ragBlock.length > MAX_COMBINED_RAG_CHARS) {
     ragBlock = truncate(ragBlock, MAX_COMBINED_RAG_CHARS);
   }
