@@ -1431,7 +1431,7 @@ export default function App() {
           padding: 24px 14px 36px;
           position: relative;
         }
-        main#main-content .section:not(.landing-hero) {
+        main#main-content .section:not(.landing-hero):not(.farm-dash-scope) {
           margin-top: 12px;
           border-radius: 20px;
           border: 1px solid var(--border-soft);
@@ -1442,6 +1442,13 @@ export default function App() {
             inset 0 1px 0 rgba(255, 255, 255, 0.04),
             0 18px 40px rgba(0, 0, 0, 0.28);
           backdrop-filter: blur(5px);
+        }
+        /* Operations dashboard — solid cream panel; avoids WebKit backdrop compositing hiding headings */
+        main#main-content .section.farm-dash-scope {
+          margin-top: 12px;
+          border-radius: 20px;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
         .section h2 {
           margin: 0 0 16px;
@@ -2055,7 +2062,11 @@ export default function App() {
 
         @media (max-width: 900px) {
           .section { padding: 16px 10px 110px; }
-          main#main-content .section:not(.landing-hero) {
+          main#main-content .section:not(.landing-hero):not(.farm-dash-scope) {
+            border-radius: 14px;
+            margin-top: 8px;
+          }
+          main#main-content .section.farm-dash-scope {
             border-radius: 14px;
             margin-top: 8px;
           }

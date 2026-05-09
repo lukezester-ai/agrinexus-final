@@ -676,7 +676,6 @@ export function OperationsHubView(props: {
 	return (
 		<section className="section farm-dash-scope">
 			<style>{`
-				@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 				.farm-dash-scope {
 					font-family: 'DM Sans', system-ui, sans-serif;
 					color: #1a1a18;
@@ -686,6 +685,9 @@ export function OperationsHubView(props: {
 					border: 1px solid rgba(0,0,0,.08);
 					max-width: 100%;
 					box-sizing: border-box;
+					isolation: isolate;
+					position: relative;
+					-webkit-font-smoothing: antialiased;
 				}
 				.farm-dash-top {
 					display: flex;
@@ -759,13 +761,14 @@ export function OperationsHubView(props: {
 					font-weight: 600;
 					color: #1a1a18;
 				}
-				/* Beat global .app / section text color so title stays dark on cream panel */
 				main#main-content .farm-dash-scope.section h2.page-title {
 					margin: 0 0 12px;
 					font-size: 1.35rem;
 					font-weight: 800;
-					color: #121812;
-					-webkit-text-fill-color: currentColor;
+					line-height: 1.25;
+					color: #121812 !important;
+					-webkit-text-fill-color: #121812 !important;
+					opacity: 1 !important;
 				}
 				.farm-dash-hidden { display: none !important; }
 				.farm-dash-grid-2 {
@@ -1009,7 +1012,14 @@ export function OperationsHubView(props: {
 				</div>
 			</div>
 
-			<h2 className="page-title">{pageTitle}</h2>
+			<h2
+				className="page-title"
+				style={{
+					color: '#121812',
+					WebkitTextFillColor: '#121812',
+				}}>
+				{pageTitle}
+			</h2>
 
 			<div id="page-dashboard" className={page === 'dashboard' ? '' : 'farm-dash-hidden'}>
 				<p style={{ margin: '0 0 14px', fontSize: 13, opacity: 0.78, lineHeight: 1.45 }}>
