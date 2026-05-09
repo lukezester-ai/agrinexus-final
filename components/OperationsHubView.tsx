@@ -64,6 +64,7 @@ export type OpsHubNavigate =
 	| 'company';
 
 type FarmPage = 'dashboard' | 'fields' | 'weather' | 'harvest' | 'alerts' | 'settings';
+const RAG_LAYER_STORAGE_KEY = 'agrinexus-rag-layer-v1';
 
 const BG_STATUS_LABEL: Record<FieldTileStatus, string> = {
 	great: 'Отличен',
@@ -188,6 +189,17 @@ function countStatuses(rows: FieldTile[]): Record<FieldTileStatus, number> {
 	return init;
 }
 
+function extractDecisionTasks(text: string): string[] {
+	if (!text.trim()) return [];
+	return text
+		.split('\n')
+		.map(line => line.trim())
+		.filter(line => /^[-*•]\s+/.test(line) || /^\d+[\.\)]\s+/.test(line))
+		.map(line => line.replace(/^([-*•]\s+|\d+[\.\)]\s+)/, '').trim())
+		.filter(line => line.length >= 8)
+		.slice(0, 10);
+}
+
 const chartFont = { size: 12, family: 'DM Sans, system-ui, sans-serif' };
 
 const dashboardHarvestOpts: ChartOptions<'bar'> = {
@@ -223,9 +235,85 @@ export function OperationsHubView(props: {
 	const [ragDecisionLoading, setRagDecisionLoading] = useState(false);
 	const [ragDecisionError, setRagDecisionError] = useState('');
 	const [ragAutoOnTabSwitch, setRagAutoOnTabSwitch] = useState(true);
+	const [ragDecisionTone, setRagDecisionTone] = useState<'concise' | 'balanced' | 'strict'>('balanced');
+	const [ragDecisionUpdatedAt, setRagDecisionUpdatedAt] = useState<string>('');
+	const [ragTaskDone, setRagTaskDone] = useState<Record<string, boolean>>({});
+	const [ragDecisionHistory, setRagDecisionHistory] = useState<
+		Array<{ at: string; scope: 'tab' | 'global'; page: FarmPage; risk: number; urgency: number; summary: string }>
+	>([]);
 
 	const statusLabels = lang === 'bg' ? BG_STATUS_LABEL : EN_STATUS_LABEL;
 	const statusCounts = useMemo(() => countStatuses(dash.fields), [dash.fields]);
+	const decisionTasks = useMemo(() => extractDecisionTasks(ragDecision), [ragDecision]);
+	const doneTaskList = useMemo(
+		() => decisionTasks.filter(task => ragTaskDone[task]),
+		[decisionTasks, ragTaskDone],
+	);
+
+	const decisionScore = useMemo(() => {
+		const riskRaw =
+			statusCounts.critical * 30 +
+			statusCounts.warn * 12 +
+			Math.max(0, 70 - (dash.moisture.reduce((s, x) => s + x, 0) / Math.max(1, dash.moisture.length))) * 0.9;
+		const weatherRisk = 0;
+		const urgencyRaw = riskRaw * 0.6 + weatherRisk * 0.4 + (page === 'alerts' ? 18 : 6);
+		const risk = Math.max(0, Math.min(100, Math.round(riskRaw)));
+		const urgency = Math.max(0, Math.min(100, Math.round(urgencyRaw)));
+		const grade = urgency >= 75 ? 'high' : urgency >= 45 ? 'medium' : 'low';
+		return { risk, urgency, grade };
+	}, [dash.moisture, page, statusCounts.critical, statusCounts.warn]);
+
+	useEffect(() => {
+		if (!decisionTasks.length) return;
+		setRagTaskDone(prev => {
+			const next: Record<string, boolean> = {};
+			for (const t of decisionTasks) next[t] = Boolean(prev[t]);
+			return next;
+		});
+	}, [decisionTasks]);
+
+	useEffect(() => {
+		try {
+			const raw = localStorage.getItem(RAG_LAYER_STORAGE_KEY);
+			if (!raw) return;
+			const parsed = JSON.parse(raw) as {
+				decision?: string;
+				updatedAt?: string;
+				autoOnTabSwitch?: boolean;
+				tone?: 'concise' | 'balanced' | 'strict';
+				taskDone?: Record<string, boolean>;
+				history?: Array<{ at: string; scope: 'tab' | 'global'; page: FarmPage; risk: number; urgency: number; summary: string }>;
+			};
+			if (typeof parsed.decision === 'string') setRagDecision(parsed.decision);
+			if (typeof parsed.updatedAt === 'string') setRagDecisionUpdatedAt(parsed.updatedAt);
+			if (typeof parsed.autoOnTabSwitch === 'boolean') setRagAutoOnTabSwitch(parsed.autoOnTabSwitch);
+			if (parsed.tone === 'concise' || parsed.tone === 'balanced' || parsed.tone === 'strict') {
+				setRagDecisionTone(parsed.tone);
+			}
+			if (parsed.taskDone && typeof parsed.taskDone === 'object') setRagTaskDone(parsed.taskDone);
+			if (Array.isArray(parsed.history)) setRagDecisionHistory(parsed.history.slice(-12));
+		} catch {
+			/* ignore corrupt local data */
+		}
+	}, []);
+
+	useEffect(() => {
+		try {
+			localStorage.setItem(
+				RAG_LAYER_STORAGE_KEY,
+				JSON.stringify({
+					decision: ragDecision,
+					updatedAt: ragDecisionUpdatedAt,
+					autoOnTabSwitch: ragAutoOnTabSwitch,
+					tone: ragDecisionTone,
+					taskDone: ragTaskDone,
+					history: ragDecisionHistory.slice(-12),
+				}),
+			);
+		} catch {
+			/* ignore storage errors */
+		}
+	}, [ragAutoOnTabSwitch, ragDecision, ragDecisionHistory, ragDecisionTone, ragDecisionUpdatedAt, ragTaskDone]);
 
 	useEffect(() => {
 		const id = window.setTimeout(() => {
@@ -305,6 +393,31 @@ export function OperationsHubView(props: {
 
 	const decisionPromptByPage = useCallback((scope: 'tab' | 'global') => {
 		const isBg = lang === 'bg';
+		const recentMemory = ragDecisionHistory
+			.slice(-3)
+			.map(h => `${h.at.slice(0, 16)} [${h.scope}/${h.page}] r${h.risk} u${h.urgency}: ${h.summary}`)
+			.join('\n');
+		const memoryLine = recentMemory
+			? (isBg
+				? `Памет (последни решения):\n${recentMemory}`
+				: `Memory (latest decisions):\n${recentMemory}`)
+			: (isBg ? 'Памет: няма предишни решения.' : 'Memory: no previous decisions.');
+		const doneLine = doneTaskList.length
+			? (isBg
+				? `Вече изпълнени задачи: ${doneTaskList.join(' | ')}`
+				: `Already completed tasks: ${doneTaskList.join(' | ')}`)
+			: (isBg ? 'Вече изпълнени задачи: няма.' : 'Already completed tasks: none.');
+		const scoreLine = isBg
+			? `Текущи вътрешни scores: risk=${decisionScore.risk}, urgency=${decisionScore.urgency}, grade=${decisionScore.grade}.`
+			: `Current internal scores: risk=${decisionScore.risk}, urgency=${decisionScore.urgency}, grade=${decisionScore.grade}.`;
+		const toneLine =
+			ragDecisionTone === 'concise'
+				? (isBg ? 'Пиши възможно най-кратко (макс 8 bullets).' : 'Keep it very concise (max 8 bullets).')
+				: ragDecisionTone === 'strict'
+					? (isBg
+						? 'Бъди строг и приоритетно-ориентиран: първо критични рискове, после действия с краен срок.'
+						: 'Be strict and priority-driven: critical risks first, then deadline-based actions.')
+					: (isBg ? 'Тон: балансиран, практичен, без общи приказки.' : 'Tone: balanced, practical, no fluff.');
 		const pageHint =
 			page === 'dashboard'
 				? (isBg ? 'Табло' : 'Dashboard')
@@ -318,14 +431,14 @@ export function OperationsHubView(props: {
 								? (isBg ? 'Известия' : 'Alerts')
 								: (isBg ? 'Настройки' : 'Settings');
 		if (scope === 'global') {
-			return isBg
+			return (isBg
 				? 'Действай като централен Decision Engine за Operations. На база snapshot-а, дай: (1) Топ 5 приоритета за следващите 7 дни; (2) конкретни задачи по модули (Полета, Времето, Реколта, Известия, Настройки); (3) рискове и как да се намалят; (4) една ясна управленска препоръка за днес. Пиши кратко, структурирано, с bullets.'
-				: 'Act as the central Decision Engine for Operations. From the snapshot provide: (1) top 5 priorities for the next 7 days; (2) concrete actions by module (Fields, Weather, Harvest, Alerts, Settings); (3) key risks and mitigations; (4) one clear management decision for today. Keep it concise and bullet-based.';
+				: 'Act as the central Decision Engine for Operations. From the snapshot provide: (1) top 5 priorities for the next 7 days; (2) concrete actions by module (Fields, Weather, Harvest, Alerts, Settings); (3) key risks and mitigations; (4) one clear management decision for today. Keep it concise and bullet-based.') + `\n${toneLine}\n${scoreLine}\n${doneLine}\n${memoryLine}`;
 		}
-		return isBg
+		return (isBg
 			? `Дай решение за активния таб "${pageHint}". Формат: 3 приоритета, 3 конкретни действия (какво/кога), 2 риска и какво следим утре.`
-			: `Give a decision brief for active tab "${pageHint}". Format: 3 priorities, 3 concrete actions (what/when), 2 risks, and what to monitor tomorrow.`;
-	}, [lang, page]);
+			: `Give a decision brief for active tab "${pageHint}". Format: 3 priorities, 3 concrete actions (what/when), 2 risks, and what to monitor tomorrow.`) + `\n${toneLine}\n${scoreLine}\n${doneLine}\n${memoryLine}`;
+	}, [decisionScore.grade, decisionScore.risk, decisionScore.urgency, doneTaskList, lang, page, ragDecisionHistory, ragDecisionTone]);
 
 	const runRag = async () => {
 		const q = ragQuestion.trim();
@@ -347,13 +460,24 @@ export function OperationsHubView(props: {
 		setRagDecisionLoading(true);
 		try {
 			const reply = await askRag(decisionPromptByPage(scope));
+			const nowIso = new Date().toISOString();
 			setRagDecision(reply);
+			setRagDecisionUpdatedAt(nowIso);
+			const summary = reply
+				.split('\n')
+				.map(x => x.trim())
+				.find(Boolean)
+				?.slice(0, 140) || (lang === 'bg' ? 'Ново решение' : 'New decision');
+			setRagDecisionHistory(prev => [
+				...prev.slice(-11),
+				{ at: nowIso, scope, page, risk: decisionScore.risk, urgency: decisionScore.urgency, summary },
+			]);
 		} catch (e) {
 			setRagDecisionError(e instanceof Error ? e.message : 'RAG request failed');
 		} finally {
 			setRagDecisionLoading(false);
 		}
-	}, [askRag, decisionPromptByPage, ragDecisionLoading]);
+	}, [askRag, decisionPromptByPage, decisionScore.risk, decisionScore.urgency, lang, page, ragDecisionLoading]);
 
 	useEffect(() => {
 		if (!ragAutoOnTabSwitch) return;
@@ -364,7 +488,20 @@ export function OperationsHubView(props: {
 				setRagDecisionLoading(true);
 				try {
 					const reply = await askRag(decisionPromptByPage('tab'));
-					if (!cancelled) setRagDecision(reply);
+					if (!cancelled) {
+						const nowIso = new Date().toISOString();
+						setRagDecision(reply);
+						setRagDecisionUpdatedAt(nowIso);
+						const summary = reply
+							.split('\n')
+							.map(x => x.trim())
+							.find(Boolean)
+							?.slice(0, 140) || (lang === 'bg' ? 'Авто решение' : 'Auto decision');
+						setRagDecisionHistory(prev => [
+							...prev.slice(-11),
+							{ at: nowIso, scope: 'tab', page, risk: decisionScore.risk, urgency: decisionScore.urgency, summary },
+						]);
+					}
 				} catch (e) {
 					if (!cancelled) {
 						setRagDecisionError(e instanceof Error ? e.message : 'RAG request failed');
@@ -378,7 +515,7 @@ export function OperationsHubView(props: {
 			cancelled = true;
 			window.clearTimeout(t);
 		};
-	}, [askRag, decisionPromptByPage, page, ragAutoOnTabSwitch]);
+	}, [askRag, decisionPromptByPage, decisionScore.risk, decisionScore.urgency, lang, page, ragAutoOnTabSwitch]);
 
 	useEffect(() => {
 		const ac = new AbortController();
@@ -1044,6 +1181,64 @@ export function OperationsHubView(props: {
 					color: #fff;
 					border-color: #2a9d6e;
 				}
+				.rag-score-grid {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+					gap: 8px;
+					margin-top: 10px;
+				}
+				.rag-score-card {
+					border-radius: 10px;
+					border: 1px solid rgba(0,0,0,.09);
+					background: #fff;
+					padding: 10px;
+				}
+				.rag-score-card strong {
+					display: block;
+					font-size: 11px;
+					opacity: .7;
+					margin-bottom: 4px;
+				}
+				.rag-score-card span {
+					font-size: 20px;
+					font-weight: 800;
+				}
+				.rag-task-list {
+					margin-top: 10px;
+					display: grid;
+					gap: 6px;
+				}
+				.rag-task-item {
+					display: flex;
+					gap: 8px;
+					align-items: flex-start;
+					border: 1px solid rgba(0,0,0,.08);
+					background: #fff;
+					padding: 8px 10px;
+					border-radius: 10px;
+					font-size: 12px;
+				}
+				.rag-task-item.done {
+					opacity: .65;
+					text-decoration: line-through;
+				}
+				.rag-history-row {
+					margin-top: 8px;
+					display: flex;
+					flex-wrap: wrap;
+					gap: 6px;
+				}
+				.rag-history-chip {
+					font-size: 11px;
+					padding: 4px 8px;
+					border-radius: 999px;
+					background: #fff;
+					border: 1px solid rgba(0,0,0,.1);
+					max-width: 320px;
+					white-space: nowrap;
+					overflow: hidden;
+					text-overflow: ellipsis;
+				}
 			`}</style>
 
 			<div className="farm-dash-top">
@@ -1122,8 +1317,92 @@ export function OperationsHubView(props: {
 						/>
 						{pick('Авто анализ при смяна на таб', 'Auto-analyze on tab switch')}
 					</label>
+					<select
+						value={ragDecisionTone}
+						onChange={e => setRagDecisionTone(e.target.value as 'concise' | 'balanced' | 'strict')}
+						style={{ minWidth: 180 }}>
+						<option value="concise">{pick('Тон: кратко', 'Tone: concise')}</option>
+						<option value="balanced">{pick('Тон: балансиран', 'Tone: balanced')}</option>
+						<option value="strict">{pick('Тон: строг / приоритети', 'Tone: strict / priorities')}</option>
+					</select>
+					{ragDecision ? (
+						<button
+							type="button"
+							onClick={async () => {
+								try {
+									await navigator.clipboard.writeText(ragDecision);
+								} catch {
+									/* ignore clipboard errors */
+								}
+							}}>
+							{pick('Копирай решението', 'Copy decision')}
+						</button>
+					) : null}
+					{decisionTasks.length > 0 ? (
+						<button
+							type="button"
+							onClick={() => {
+								setRagTaskDone({});
+							}}>
+							{pick('Нулирай чеклист', 'Reset checklist')}
+						</button>
+					) : null}
 				</div>
 				{ragDecisionError ? <p style={{ color: '#b91c1c', fontSize: 13 }}>{ragDecisionError}</p> : null}
+				<div className="rag-score-grid">
+					<div className="rag-score-card">
+						<strong>{pick('Risk score', 'Risk score')}</strong>
+						<span>{decisionScore.risk}</span>
+					</div>
+					<div className="rag-score-card">
+						<strong>{pick('Urgency score', 'Urgency score')}</strong>
+						<span>{decisionScore.urgency}</span>
+					</div>
+					<div className="rag-score-card">
+						<strong>{pick('Decision grade', 'Decision grade')}</strong>
+						<span style={{ fontSize: 16 }}>
+							{decisionScore.grade === 'high'
+								? pick('Висок', 'High')
+								: decisionScore.grade === 'medium'
+									? pick('Среден', 'Medium')
+									: pick('Нисък', 'Low')}
+						</span>
+					</div>
+				</div>
+				{ragDecisionUpdatedAt ? (
+					<p style={{ marginTop: 8, fontSize: 11, opacity: 0.7 }}>
+						{pick('Последно обновяване: ', 'Last updated: ')}
+						{new Date(ragDecisionUpdatedAt).toLocaleString(lang === 'bg' ? 'bg-BG' : 'en-GB')}
+					</p>
+				) : null}
+				{decisionTasks.length > 0 ? (
+					<div className="rag-task-list">
+						<p style={{ margin: '6px 0 0', fontSize: 12, fontWeight: 800 }}>
+							{pick('Изпълними задачи', 'Executable tasks')}
+						</p>
+						{decisionTasks.map(task => (
+							<label key={task} className={`rag-task-item ${ragTaskDone[task] ? 'done' : ''}`}>
+								<input
+									type="checkbox"
+									checked={Boolean(ragTaskDone[task])}
+									onChange={e => {
+										setRagTaskDone(prev => ({ ...prev, [task]: e.target.checked }));
+									}}
+								/>
+								<span>{task}</span>
+							</label>
+						))}
+					</div>
+				) : null}
+				{ragDecisionHistory.length > 0 ? (
+					<div className="rag-history-row">
+						{ragDecisionHistory.slice(-4).reverse().map((h, i) => (
+							<span key={`${h.at}-${i}`} className="rag-history-chip" title={h.summary}>
+								{`${h.scope}/${h.page} · r${h.risk} u${h.urgency} · ${h.summary}`}
+							</span>
+						))}
+					</div>
+				) : null}
 				{ragDecision ? (
 					<div
 						style={{
