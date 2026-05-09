@@ -2,11 +2,11 @@ import { discoveryEmbeddingsConfigured, embedTextsForDiscovery } from './ml/embe
 import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
 import { searchContentChunks } from './doc-discovery/content/search.js';
 
-const MAX_RAG_CHARS = 10000;
-const TOP_K_META = 12;
-const TOP_K_CONTENT = 12;
-const MAX_SNIPPET_CHARS = 780;
-const MIN_QUERY_CHARS = 5;
+const MAX_RAG_CHARS = 14000;
+const TOP_K_META = 16;
+const TOP_K_CONTENT = 16;
+const MAX_SNIPPET_CHARS = 1000;
+const MIN_QUERY_CHARS = 2;
 
 function chatRagEnabled(): boolean {
 	const v = process.env.CHAT_DOC_DISCOVERY_RAG?.trim().toLowerCase();

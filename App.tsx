@@ -1235,6 +1235,7 @@ export default function App() {
           background: var(--bg);
           color: var(--text-main);
           overflow-x: hidden;
+          overflow-y: auto;
           overscroll-behavior-x: none;
           width: 100%;
           max-width: 100vw;
@@ -1242,6 +1243,7 @@ export default function App() {
         }
         #root {
           overflow-x: clip;
+          overflow-y: visible;
           width: 100%;
           max-width: 100vw;
           min-height: 100%;
@@ -1871,6 +1873,25 @@ export default function App() {
         }
         html.ios .assistant-msgs {
           -webkit-overflow-scrolling: touch;
+        }
+        /* Desktop: един вертикален скрол (страницата), без вложени ленти в чата */
+        @media (min-width: 901px) {
+          .assistant-workbench {
+            max-height: none;
+            min-height: 0;
+          }
+          .assistant-quick-prompts-scroll {
+            max-height: none;
+            overflow-y: visible;
+            scrollbar-gutter: auto;
+            padding-right: 0;
+          }
+          .assistant-msgs {
+            flex: 1 1 auto;
+            min-height: 240px;
+            max-height: none;
+            overflow-y: visible;
+          }
         }
         .assistant-panel-foot {
           flex-shrink: 0;
