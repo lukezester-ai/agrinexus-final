@@ -993,6 +993,8 @@ export function OperationsHubView(props: {
 						flex-wrap: nowrap;
 						overflow-x: auto;
 						-webkit-overflow-scrolling: touch;
+						overscroll-behavior-x: contain;
+						touch-action: pan-x pan-y;
 						scrollbar-width: thin;
 						padding-bottom: 4px;
 						margin-bottom: -2px;
@@ -1121,6 +1123,8 @@ export function OperationsHubView(props: {
 				.fields-table-scroll {
 					overflow-x: auto;
 					-webkit-overflow-scrolling: touch;
+					overscroll-behavior-x: contain;
+					touch-action: pan-x pan-y;
 					width: 100%;
 					margin: 0 -2px;
 				}

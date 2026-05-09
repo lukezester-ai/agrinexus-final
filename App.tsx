@@ -462,16 +462,26 @@ async function apiChat(
 	throw new Error(locale === 'bg' ? 'Заявката за чат не бе успешна' : 'Chat request failed');
 }
 
-/**
- * Map `visualViewport` to CSS vars for the software keyboard (Chrome Android, iPhone Safari, etc.).
- */
-function syncVisualViewportInsets(): void {
+/** Coalesce rapid visualViewport events into one rAF to reduce bottom-bar jitter on mobile. */
+let visualViewportFlushId = 0;
+
+function flushVisualViewportInsets(): void {
+	visualViewportFlushId = 0;
 	const vv = typeof window !== 'undefined' ? window.visualViewport : null;
 	if (!vv) return;
 	const cover = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
 	document.documentElement.style.setProperty('--keyboard-cover', `${cover}px`);
 	document.documentElement.style.setProperty('--vv-height', `${vv.height}px`);
 	document.body.toggleAttribute('data-vk-open', cover > 56);
+}
+
+/**
+ * Map `visualViewport` to CSS vars for the software keyboard (Chrome Android, iPhone Safari, etc.).
+ */
+function syncVisualViewportInsets(): void {
+	if (typeof window === 'undefined') return;
+	if (visualViewportFlushId) cancelAnimationFrame(visualViewportFlushId);
+	visualViewportFlushId = requestAnimationFrame(flushVisualViewportInsets);
 }
 
 function isIosTouchDevice(): boolean {
@@ -498,14 +508,9 @@ if (typeof document !== 'undefined' && isIosTouchDevice()) {
 	document.documentElement.classList.add('ios');
 }
 
-/** Compact mobile nav caption; `hint` becomes tooltip + clearer aria when provided. */
-function MobileNavLabel({ text, hint }: { text: string; hint?: string }) {
-	const title = hint ?? text;
-	return (
-		<span className="mobile-nav-label" title={title}>
-			{text}
-		</span>
-	);
+/** Compact mobile nav caption (no `title` tooltips — long‑press on phones showed “AI помощник” and felt like a nagging “help” popup). */
+function MobileNavLabel({ text, hint: _hint }: { text: string; hint?: string }) {
+	return <span className="mobile-nav-label">{text}</span>;
 }
 
 export default function App() {
@@ -515,6 +520,8 @@ export default function App() {
 	const [mobileNavExpand, setMobileNavExpand] = useState<'markets' | 'farm' | 'logistics' | null>(
 		null
 	);
+	const mobileNavExpandRef = useRef(mobileNavExpand);
+	mobileNavExpandRef.current = mobileNavExpand;
 	const navFlyoutRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -562,6 +569,8 @@ export default function App() {
 		window.addEventListener('resize', syncVisualViewportInsets);
 		syncVisualViewportInsets();
 		return () => {
+			if (visualViewportFlushId) cancelAnimationFrame(visualViewportFlushId);
+			visualViewportFlushId = 0;
 			vv.removeEventListener('resize', syncVisualViewportInsets);
 			vv.removeEventListener('scroll', syncVisualViewportInsets);
 			window.removeEventListener('resize', syncVisualViewportInsets);
@@ -618,6 +627,8 @@ export default function App() {
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
+	const [mobileNavScrollHidden, setMobileNavScrollHidden] = useState(false);
+	const mobileNavLastScrollYRef = useRef(0);
 
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
 	const [chatPersona, setChatPersona] = useState<ChatPersona>('unified');
@@ -908,6 +919,31 @@ export default function App() {
 	}, []);
 
 	useEffect(() => {
+		if (!isMobileViewport) {
+			setMobileNavScrollHidden(false);
+			return;
+		}
+		mobileNavLastScrollYRef.current = window.scrollY || document.documentElement.scrollTop;
+		const onScroll = () => {
+			if (mobileNavExpandRef.current !== null) {
+				setMobileNavScrollHidden(false);
+				return;
+			}
+			const y = window.scrollY || document.documentElement.scrollTop;
+			const dy = y - mobileNavLastScrollYRef.current;
+			mobileNavLastScrollYRef.current = y;
+			if (y < 40) {
+				setMobileNavScrollHidden(false);
+				return;
+			}
+			if (dy > 12) setMobileNavScrollHidden(true);
+			else if (dy < -12) setMobileNavScrollHidden(false);
+		};
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	}, [isMobileViewport]);
+
+	useEffect(() => {
 		if (view !== 'assistant') {
 			setChatHealth('idle');
 			return;
@@ -1189,15 +1225,35 @@ export default function App() {
           --gold: #d4b876;
         }
         * { box-sizing: border-box; }
+        html {
+          overflow-x: hidden;
+          overscroll-behavior-x: none;
+        }
         body {
           margin: 0;
           font-family: 'DM Sans', Inter, system-ui, Segoe UI, Arial, sans-serif;
           background: var(--bg);
           color: var(--text-main);
+          overflow-x: hidden;
+          overscroll-behavior-x: none;
+          width: 100%;
+          max-width: 100vw;
+          position: relative;
+        }
+        #root {
+          overflow-x: clip;
+          width: 100%;
+          max-width: 100vw;
+          min-height: 100%;
         }
         .app {
           position: relative;
           min-height: 100vh;
+          min-height: 100dvh;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: clip;
+          overscroll-behavior-x: none;
           color: var(--text-main);
           display: flex;
           flex-direction: column;
@@ -1234,6 +1290,8 @@ export default function App() {
           flex: 1;
           position: relative;
           z-index: 2;
+          max-width: 100%;
+          overflow-x: clip;
         }
 
         .site-footer {
@@ -1714,12 +1772,17 @@ export default function App() {
           position: relative;
           backdrop-filter: blur(10px);
           box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
-          transition: transform .2s ease, box-shadow .22s ease, border-color .22s ease;
+          transition: box-shadow .22s ease, border-color .22s ease;
         }
-        .deal-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
-          border-color: rgba(168, 217, 138, 0.26);
+        @media (hover: hover) and (pointer: fine) {
+          .deal-card {
+            transition: transform .2s ease, box-shadow .22s ease, border-color .22s ease;
+          }
+          .deal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+            border-color: rgba(168, 217, 138, 0.26);
+          }
         }
         .deal-card.search-hit {
           border-color: rgba(124, 205, 156, 0.72);
@@ -1995,6 +2058,8 @@ export default function App() {
         .table-shell {
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+          touch-action: pan-x pan-y;
           border-radius: 12px;
           border: 1px solid var(--border);
           background: #101914;
@@ -2099,6 +2164,9 @@ export default function App() {
         }
 
         @media (max-width: 900px) {
+          .app {
+            touch-action: pan-y pinch-zoom;
+          }
           .section { padding: 16px 10px 110px; }
           main#main-content .section:not(.landing-hero):not(.farm-dash-scope) {
             border-radius: 14px;
@@ -2130,10 +2198,14 @@ export default function App() {
 
           .mobile-nav {
             position: fixed;
-            left: 10px;
-            right: 10px;
+            left: max(10px, env(safe-area-inset-left, 0px));
+            right: max(10px, env(safe-area-inset-right, 0px));
             bottom: calc(10px + env(safe-area-inset-bottom, 0px) + var(--keyboard-cover, 0px));
             z-index: 160;
+            width: auto;
+            max-width: calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+            box-sizing: border-box;
+            overflow: hidden;
             background: rgba(14, 22, 18, 0.97);
             border: 1px solid #3d5248;
             border-radius: 14px;
@@ -2142,14 +2214,24 @@ export default function App() {
             flex-direction: column;
             gap: 4px;
             backdrop-filter: blur(6px);
+            transition: transform 0.28s ease, opacity 0.22s ease;
+          }
+          .mobile-nav.mobile-nav--scroll-hidden {
+            transform: translate3d(0, calc(100% + 28px), 0);
+            opacity: 0;
+            pointer-events: none;
           }
           html.ios .mobile-nav {
             transform: translateZ(0);
+          }
+          html.ios .mobile-nav.mobile-nav--scroll-hidden {
+            transform: translate3d(0, calc(100% + 28px), 0);
           }
           .mobile-nav-row {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 4px;
+            min-width: 0;
           }
           .mobile-nav-row.tools {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2160,6 +2242,7 @@ export default function App() {
             gap: 4px;
             padding: 4px 0 0;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
+            min-width: 0;
           }
           .mobile-nav-subrow.cols-2 {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2171,6 +2254,8 @@ export default function App() {
             border-radius: 10px;
             padding: 8px 4px;
             min-height: 48px;
+            min-width: 0;
+            max-width: 100%;
             font-size: .65rem;
             font-weight: 700;
             font-family: inherit;
@@ -2180,11 +2265,12 @@ export default function App() {
             justify-content: center;
             flex-direction: column;
             gap: 4px;
-            transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, opacity .12s ease;
             touch-action: manipulation;
           }
           .mobile-nav-btn:active {
-            transform: scale(0.97);
+            opacity: 0.88;
+            background: #0c1310;
           }
           .mobile-nav-btn svg {
             width: 15px;
@@ -2231,6 +2317,12 @@ export default function App() {
             animation: none !important;
           }
           .mobile-nav-btn {
+            transition: none;
+          }
+          .mobile-nav-btn:active {
+            opacity: 1;
+          }
+          .mobile-nav.mobile-nav--scroll-hidden {
             transition: none;
           }
         }
@@ -3200,7 +3292,10 @@ export default function App() {
 			)}
 
 			{isMobileViewport && (
-				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>
+				<div
+					className={`mobile-nav${mobileNavScrollHidden ? ' mobile-nav--scroll-hidden' : ''}`}
+					role="navigation"
+					aria-label={tr.mobileNavAria}>
 					<div className="mobile-nav-row">
 						<button
 							type="button"

@@ -201,7 +201,7 @@ export const STR_BG = {
 	chatThinking: 'Мисля…',
 	chatMicAria: 'Гласов вход',
 	chatMicStopAria: 'Спри записа',
-	mobileAssistantTab: 'AI',
+	mobileAssistantTab: 'Чат',
 	dealCategory: 'Категория',
 	dealQuality: 'Качество',
 	dealVolume: 'Обем',
