@@ -51,6 +51,12 @@ export const STR_EN = {
 	weatherFinanceRiskLabel: 'Risk from drought or crop stress',
 	weatherFinancePlaceholderSaved: 'e.g. ~420 BGN fewer spray passes on low-NDVI zones',
 	weatherFinancePlaceholderRisk: 'e.g. ~2800 BGN yield value at risk without irrigation',
+	fieldWatchPageTitle: 'Field Watch map',
+	fieldWatchPageSubtitle:
+		'Interactive field monitoring map with timelapse, Sentinel/NASA layers, and NDVI mode.',
+	fieldWatchOpenLegacy: 'Open in new tab',
+	fieldWatchAskAiOblast: 'Ask AI for this oblast',
+	fieldWatchMobileShort: 'Map',
 	navClients: 'Clients',
 	navWatchlist: 'Operations',
 	navLogin: 'Sign In',

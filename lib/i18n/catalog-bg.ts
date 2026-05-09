@@ -53,6 +53,12 @@ export const STR_BG = {
 	weatherFinanceRiskLabel: 'Риск от суша или стрес на културата',
 	weatherFinancePlaceholderSaved: 'напр. ~420 лв. по-малко пръскания в зони с нисък NDVI',
 	weatherFinancePlaceholderRisk: 'напр. ~2800 лв. застрашена стойност без напояване',
+	fieldWatchPageTitle: 'Field Watch карта',
+	fieldWatchPageSubtitle:
+		'Интерактивна карта за наблюдение на полета с timelapse, слоеве Sentinel/NASA и режим NDVI.',
+	fieldWatchOpenLegacy: 'Отвори в нов раздел',
+	fieldWatchAskAiOblast: 'Попитай AI за тази област',
+	fieldWatchMobileShort: 'Карта',
 	navClients: 'Клиенти',
 	navWatchlist: 'Operations',
 	navLogin: 'Вход',
