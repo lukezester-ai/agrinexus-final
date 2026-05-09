@@ -423,32 +423,31 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 				<p className="muted" style={{ margin: '0 0 12px', fontSize: '.86rem', lineHeight: 1.55 }}>
 					{tr.foodSecSensitivityHint}
 				</p>
-				<div style={{ overflowX: 'auto' }}>
-					<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.88rem' }}>
+				<div className="table-shell">
+					<table className="data-table">
 						<thead>
-							<tr style={{ color: '#94a3b8', textAlign: 'left' }}>
-								<th style={{ padding: '8px 10px 8px 0', fontWeight: 600 }}>{tr.foodSecSensitivityColCase}</th>
-								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColMarginTotal}</th>
-								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColMarginPerT}</th>
-								<th style={{ padding: '8px 10px', fontWeight: 600 }}>{tr.foodSecSensitivityColLandHa}</th>
+							<tr>
+								<th>{tr.foodSecSensitivityColCase}</th>
+								<th>{tr.foodSecSensitivityColMarginTotal}</th>
+								<th>{tr.foodSecSensitivityColMarginPerT}</th>
+								<th>{tr.foodSecSensitivityColLandHa}</th>
 							</tr>
 						</thead>
 						<tbody>
-							{sensitivityRows.map(row => (
-								<tr key={row.label} style={{ borderTop: '1px solid rgba(148,163,184,0.18)' }}>
-									<td style={{ padding: '10px 10px 10px 0', color: '#e2e8f0' }}>{row.label}</td>
+							{sensitivityRows.map((row, idx) => (
+								<tr key={row.label} style={idx % 2 ? { background: 'rgba(15,23,42,0.08)' } : undefined}>
+									<td style={{ color: '#e2e8f0' }}>{row.label}</td>
 									<td
 										style={{
-											padding: '10px',
 											color: row.d.marginTotal >= 0 ? '#86efac' : '#fdba74',
 											fontWeight: 600,
 										}}>
 										{`${Math.round(row.d.marginTotal).toLocaleString(locale)} EUR`}
 									</td>
-									<td style={{ padding: '10px', color: '#cbd5e1' }}>
+									<td style={{ color: '#cbd5e1' }}>
 										{`${row.d.marginPerT.toFixed(1)} EUR/t`}
 									</td>
-									<td style={{ padding: '10px', color: '#cbd5e1' }}>{`${row.d.ha.toFixed(1)} ha`}</td>
+									<td style={{ color: '#cbd5e1' }}>{`${row.d.ha.toFixed(1)} ha`}</td>
 								</tr>
 							))}
 						</tbody>

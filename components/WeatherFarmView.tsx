@@ -253,30 +253,30 @@ export function WeatherFarmView({ lang, tr, onOpenFieldWatch }: Props) {
 
 					<div className="contact-panel" style={{ padding: 16 }}>
 						<h3 style={{ margin: '0 0 10px', fontSize: '1rem' }}>{tr.weatherSevenDay}</h3>
-						<div style={{ overflowX: 'auto' }}>
-							<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.88rem' }}>
+						<div className="table-shell">
+							<table className="data-table">
 								<thead>
-									<tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border, #e2e8f0)' }}>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherDayCol}</th>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherMinMax}</th>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherRainCol}</th>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherPopCol}</th>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherWindMaxCol}</th>
-										<th style={{ padding: '8px 6px' }}>{tr.weatherSky}</th>
+									<tr>
+										<th>{tr.weatherDayCol}</th>
+										<th>{tr.weatherMinMax}</th>
+										<th>{tr.weatherRainCol}</th>
+										<th>{tr.weatherPopCol}</th>
+										<th>{tr.weatherWindMaxCol}</th>
+										<th>{tr.weatherSky}</th>
 									</tr>
 								</thead>
 								<tbody>
 									{daily.time.slice(0, 7).map((day, i) => (
-										<tr key={day} style={{ borderBottom: '1px solid var(--border, #f1f5f9)' }}>
-											<td style={{ padding: '8px 6px', whiteSpace: 'nowrap' }}>{day}</td>
-											<td style={{ padding: '8px 6px' }}>
+										<tr key={day}>
+											<td style={{ whiteSpace: 'nowrap' }}>{day}</td>
+											<td>
 												{daily.temperature_2m_min[i]?.toFixed(0)} –{' '}
 												{daily.temperature_2m_max[i]?.toFixed(0)} °C
 											</td>
-											<td style={{ padding: '8px 6px' }}>{daily.precipitation_sum[i]?.toFixed(1)} mm</td>
-											<td style={{ padding: '8px 6px' }}>{daily.precipitation_probability_max[i]}%</td>
-											<td style={{ padding: '8px 6px' }}>{daily.wind_speed_10m_max[i]?.toFixed(0)} km/h</td>
-											<td style={{ padding: '8px 6px' }}>{wmoShort(lang, daily.weather_code[i])}</td>
+											<td>{daily.precipitation_sum[i]?.toFixed(1)} mm</td>
+											<td>{daily.precipitation_probability_max[i]}%</td>
+											<td>{daily.wind_speed_10m_max[i]?.toFixed(0)} km/h</td>
+											<td>{wmoShort(lang, daily.weather_code[i])}</td>
 										</tr>
 									))}
 								</tbody>

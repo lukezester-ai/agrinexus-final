@@ -227,29 +227,29 @@ export function MarketWatchView({ lang, tr, onBackToMarket }: MarketWatchViewPro
 			{payload && sortedQuotes.length > 0 ? (
 				<div style={{ marginTop: 18 }}>
 					<h3 style={{ margin: '0 0 10px', fontSize: '1.05rem' }}>{tr.marketWatchQuotesTitle}</h3>
-					<div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid var(--border)', background: '#101914' }}>
-						<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.88rem' }}>
+					<div className="table-shell">
+						<table className="data-table">
 							<thead>
-								<tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-									<th style={{ padding: '10px 12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+								<tr>
+									<th>
 										{lang === 'bg' ? 'Инструмент' : 'Instrument'}
 									</th>
-									<th style={{ padding: '10px 12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+									<th>
 										{lang === 'bg' ? 'Последна' : 'Last'}
 									</th>
-									<th style={{ padding: '10px 12px', color: 'var(--text-muted)', fontWeight: 700 }}>
+									<th>
 										{lang === 'bg' ? 'Дата' : 'Date'}
 									</th>
 								</tr>
 							</thead>
 							<tbody>
 								{sortedQuotes.map(q => (
-									<tr key={q.symbol} style={{ borderBottom: '1px solid rgba(46, 67, 56, 0.6)' }}>
-										<td style={{ padding: '9px 12px', fontWeight: 650 }}>{labelForSymbol(q.symbol, lang)}</td>
-										<td style={{ padding: '9px 12px', color: 'var(--accent-text)', fontVariantNumeric: 'tabular-nums' }}>
+									<tr key={q.symbol}>
+										<td style={{ fontWeight: 650 }}>{labelForSymbol(q.symbol, lang)}</td>
+										<td style={{ color: 'var(--accent-text)', fontVariantNumeric: 'tabular-nums' }}>
 											{Number.isFinite(q.close) ? q.close.toLocaleString(localeTagFor(lang)) : '—'}
 										</td>
-										<td style={{ padding: '9px 12px', color: 'var(--text-muted)' }}>
+										<td style={{ color: 'var(--text-muted)' }}>
 											{q.date}
 											{q.time ? ` · ${q.time}` : ''}
 										</td>

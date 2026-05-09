@@ -390,30 +390,21 @@ export function SubsidyCalculatorView({
 							</ul>
 						</div>
 					</div>
-					<div style={{ marginTop: 12, overflowX: 'auto' }}>
+					<div style={{ marginTop: 12 }}>
 						<p className="muted" style={{ margin: '0 0 6px', fontSize: '.85rem' }}>
 							{t2('Сравнение II.Д.1 vs II.Д.2', 'II.D.1 vs II.D.2 comparison')}
 						</p>
-						<table
-							style={{
-								width: '100%',
-								borderCollapse: 'collapse',
-								fontSize: '.86rem',
-								minWidth: 520,
-								background: 'rgba(15,23,42,0.14)',
-								border: '1px solid rgba(148,163,184,0.25)',
-								borderRadius: 8,
-								overflow: 'hidden',
-							}}>
+						<div className="table-shell">
+						<table className="data-table" style={{ minWidth: 520 }}>
 							<thead>
 								<tr>
-									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									<th>
 										{t2('Параметър', 'Parameter')}
 									</th>
-									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									<th>
 										II.Д.1
 									</th>
-									<th style={{ textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.25)' }}>
+									<th>
 										II.Д.2
 									</th>
 								</tr>
@@ -447,13 +438,14 @@ export function SubsidyCalculatorView({
 								],
 								].map((row, idx) => (
 									<tr key={row[0]} style={{ background: idx % 2 ? 'rgba(15,23,42,0.08)' : 'transparent' }}>
-										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[0]}</td>
-										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[1]}</td>
-										<td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(148,163,184,0.15)' }}>{row[2]}</td>
+										<td>{row[0]}</td>
+										<td>{row[1]}</td>
+										<td>{row[2]}</td>
 									</tr>
 								))}
 							</tbody>
 						</table>
+						</div>
 					</div>
 				</div>
 			</div>
