@@ -219,6 +219,10 @@ export function OperationsHubView(props: {
 	const [ragAnswer, setRagAnswer] = useState('');
 	const [ragLoading, setRagLoading] = useState(false);
 	const [ragError, setRagError] = useState('');
+	const [ragDecision, setRagDecision] = useState('');
+	const [ragDecisionLoading, setRagDecisionLoading] = useState(false);
+	const [ragDecisionError, setRagDecisionError] = useState('');
+	const [ragAutoOnTabSwitch, setRagAutoOnTabSwitch] = useState(true);
 
 	const statusLabels = lang === 'bg' ? BG_STATUS_LABEL : EN_STATUS_LABEL;
 	const statusCounts = useMemo(() => countStatuses(dash.fields), [dash.fields]);
@@ -277,37 +281,104 @@ export function OperationsHubView(props: {
 		return `${hdr}${w ? `${w}\n` : ''}`;
 	}, [lang, pageTitle, statusCounts, weatherSnap, dash]);
 
+	const askRag = useCallback(async (userMessage: string): Promise<string> => {
+		const res = await fetch('/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				messages: [
+					{
+						role: 'user',
+						content: `${userMessage}\n\n${ragSnapshot()}`,
+					},
+				],
+				locale: lang,
+				persona: 'agronomist',
+				dealContext: dashboardDealContext,
+				farmerContext,
+			}),
+		});
+		const data = (await res.json()) as { reply?: string; error?: string };
+		if (!res.ok) throw new Error(data.error || 'RAG request failed');
+		return (data.reply || '').trim();
+	}, [dashboardDealContext, farmerContext, lang, ragSnapshot]);
+
+	const decisionPromptByPage = useCallback((scope: 'tab' | 'global') => {
+		const isBg = lang === 'bg';
+		const pageHint =
+			page === 'dashboard'
+				? (isBg ? 'Табло' : 'Dashboard')
+				: page === 'fields'
+					? (isBg ? 'Полета' : 'Fields')
+					: page === 'weather'
+						? (isBg ? 'Времето' : 'Weather')
+						: page === 'harvest'
+							? (isBg ? 'Реколта' : 'Harvest')
+							: page === 'alerts'
+								? (isBg ? 'Известия' : 'Alerts')
+								: (isBg ? 'Настройки' : 'Settings');
+		if (scope === 'global') {
+			return isBg
+				? 'Действай като централен Decision Engine за Operations. На база snapshot-а, дай: (1) Топ 5 приоритета за следващите 7 дни; (2) конкретни задачи по модули (Полета, Времето, Реколта, Известия, Настройки); (3) рискове и как да се намалят; (4) една ясна управленска препоръка за днес. Пиши кратко, структурирано, с bullets.'
+				: 'Act as the central Decision Engine for Operations. From the snapshot provide: (1) top 5 priorities for the next 7 days; (2) concrete actions by module (Fields, Weather, Harvest, Alerts, Settings); (3) key risks and mitigations; (4) one clear management decision for today. Keep it concise and bullet-based.';
+		}
+		return isBg
+			? `Дай решение за активния таб "${pageHint}". Формат: 3 приоритета, 3 конкретни действия (какво/кога), 2 риска и какво следим утре.`
+			: `Give a decision brief for active tab "${pageHint}". Format: 3 priorities, 3 concrete actions (what/when), 2 risks, and what to monitor tomorrow.`;
+	}, [lang, page]);
+
 	const runRag = async () => {
 		const q = ragQuestion.trim();
 		if (!q || ragLoading) return;
 		setRagError('');
 		setRagLoading(true);
 		try {
-			const res = await fetch('/api/chat', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					messages: [
-						{
-							role: 'user',
-							content: `${q}\n\n${ragSnapshot()}`,
-						},
-					],
-					locale: lang,
-					persona: 'agronomist',
-					dealContext: dashboardDealContext,
-					farmerContext,
-				}),
-			});
-			const data = (await res.json()) as { reply?: string; error?: string };
-			if (!res.ok) throw new Error(data.error || 'RAG request failed');
-			setRagAnswer((data.reply || '').trim());
+			setRagAnswer(await askRag(q));
 		} catch (e) {
 			setRagError(e instanceof Error ? e.message : 'RAG request failed');
 		} finally {
 			setRagLoading(false);
 		}
 	};
+
+	const runDecisionRag = useCallback(async (scope: 'tab' | 'global') => {
+		if (ragDecisionLoading) return;
+		setRagDecisionError('');
+		setRagDecisionLoading(true);
+		try {
+			const reply = await askRag(decisionPromptByPage(scope));
+			setRagDecision(reply);
+		} catch (e) {
+			setRagDecisionError(e instanceof Error ? e.message : 'RAG request failed');
+		} finally {
+			setRagDecisionLoading(false);
+		}
+	}, [askRag, decisionPromptByPage, ragDecisionLoading]);
+
+	useEffect(() => {
+		if (!ragAutoOnTabSwitch) return;
+		let cancelled = false;
+		const t = window.setTimeout(() => {
+			void (async () => {
+				setRagDecisionError('');
+				setRagDecisionLoading(true);
+				try {
+					const reply = await askRag(decisionPromptByPage('tab'));
+					if (!cancelled) setRagDecision(reply);
+				} catch (e) {
+					if (!cancelled) {
+						setRagDecisionError(e instanceof Error ? e.message : 'RAG request failed');
+					}
+				} finally {
+					if (!cancelled) setRagDecisionLoading(false);
+				}
+			})();
+		}, 220);
+		return () => {
+			cancelled = true;
+			window.clearTimeout(t);
+		};
+	}, [askRag, decisionPromptByPage, page, ragAutoOnTabSwitch]);
 
 	useEffect(() => {
 		const ac = new AbortController();
@@ -1020,6 +1091,54 @@ export function OperationsHubView(props: {
 				}}>
 				{pageTitle}
 			</h2>
+			<div
+				className="farm-panel"
+				style={{
+					marginBottom: 14,
+					borderColor: 'rgba(42,157,110,.35)',
+					background: 'linear-gradient(165deg, rgba(232,247,239,0.8) 0%, #fff 100%)',
+				}}>
+				<h3 style={{ marginBottom: 6 }}>{pick('RAG Decision Layer', 'RAG Decision Layer')}</h3>
+				<p style={{ fontSize: 12, opacity: 0.78, marginTop: 0 }}>
+					{pick(
+						'Централен агрономически слой за решения. Обхваща всички табове в Operations и връща приоритети + действия.',
+						'Central agronomic decision layer. Covers all Operations tabs and returns priorities + actions.',
+					)}
+				</p>
+				<div className="rag-actions">
+					<button type="button" className="primary" disabled={ragDecisionLoading} onClick={() => void runDecisionRag('tab')}>
+						{ragDecisionLoading
+							? pick('Анализирам…', 'Analyzing…')
+							: pick('Решение за текущия таб', 'Decision for current tab')}
+					</button>
+					<button type="button" disabled={ragDecisionLoading} onClick={() => void runDecisionRag('global')}>
+						{pick('Глобален план (всички операции)', 'Global plan (all operations)')}
+					</button>
+					<label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 12, fontWeight: 700 }}>
+						<input
+							type="checkbox"
+							checked={ragAutoOnTabSwitch}
+							onChange={e => setRagAutoOnTabSwitch(e.target.checked)}
+						/>
+						{pick('Авто анализ при смяна на таб', 'Auto-analyze on tab switch')}
+					</label>
+				</div>
+				{ragDecisionError ? <p style={{ color: '#b91c1c', fontSize: 13 }}>{ragDecisionError}</p> : null}
+				{ragDecision ? (
+					<div
+						style={{
+							marginTop: 10,
+							background: '#f7f7f4',
+							borderRadius: 10,
+							padding: 12,
+							whiteSpace: 'pre-wrap',
+							fontSize: 13,
+							border: '1px solid rgba(0,0,0,.08)',
+						}}>
+						{ragDecision}
+					</div>
+				) : null}
+			</div>
 
 			<div id="page-dashboard" className={page === 'dashboard' ? '' : 'farm-dash-hidden'}>
 				<p style={{ margin: '0 0 14px', fontSize: 13, opacity: 0.78, lineHeight: 1.45 }}>
