@@ -622,13 +622,10 @@ export default function App() {
 	}, [cookieConsent]);
 
 	const [subsidyPrefillFocus, setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
-	const [subsidyPrefillQuery, setSubsidyPrefillQuery] = useState('');
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
 	);
-	const [mobileNavScrollHidden, setMobileNavScrollHidden] = useState(false);
-	const mobileNavLastScrollYRef = useRef(0);
 
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
 	const [chatPersona, setChatPersona] = useState<ChatPersona>('unified');
@@ -919,31 +916,6 @@ export default function App() {
 	}, []);
 
 	useEffect(() => {
-		if (!isMobileViewport) {
-			setMobileNavScrollHidden(false);
-			return;
-		}
-		mobileNavLastScrollYRef.current = window.scrollY || document.documentElement.scrollTop;
-		const onScroll = () => {
-			if (mobileNavExpandRef.current !== null) {
-				setMobileNavScrollHidden(false);
-				return;
-			}
-			const y = window.scrollY || document.documentElement.scrollTop;
-			const dy = y - mobileNavLastScrollYRef.current;
-			mobileNavLastScrollYRef.current = y;
-			if (y < 40) {
-				setMobileNavScrollHidden(false);
-				return;
-			}
-			if (dy > 12) setMobileNavScrollHidden(true);
-			else if (dy < -12) setMobileNavScrollHidden(false);
-		};
-		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => window.removeEventListener('scroll', onScroll);
-	}, [isMobileViewport]);
-
-	useEffect(() => {
 		if (view !== 'assistant') {
 			setChatHealth('idle');
 			return;
@@ -1226,27 +1198,31 @@ export default function App() {
         }
         * { box-sizing: border-box; }
         html {
-          overflow-x: hidden;
+          overflow-x: clip;
           overscroll-behavior-x: none;
+          height: 100%;
         }
         body {
           margin: 0;
           font-family: 'DM Sans', Inter, system-ui, Segoe UI, Arial, sans-serif;
           background: var(--bg);
           color: var(--text-main);
-          overflow-x: hidden;
+          overflow-x: clip;
           overflow-y: auto;
           overscroll-behavior-x: none;
           width: 100%;
-          max-width: 100vw;
+          max-width: 100%;
           position: relative;
+          min-height: 100%;
+          min-height: 100svh;
         }
         #root {
           overflow-x: clip;
           overflow-y: visible;
           width: 100%;
-          max-width: 100vw;
+          max-width: 100%;
           min-height: 100%;
+          min-height: 100svh;
         }
         .app {
           position: relative;
@@ -1289,10 +1265,11 @@ export default function App() {
           .app { background-attachment: scroll; }
         }
         main#main-content {
-          flex: 1;
+          flex: 1 1 auto;
           position: relative;
           z-index: 2;
           max-width: 100%;
+          min-width: 0;
           overflow-x: clip;
         }
 
@@ -1310,10 +1287,9 @@ export default function App() {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          justify-content: space-between;
+          justify-content: center;
           gap: 12px;
         }
-        .site-footer-copy { margin: 0; font-size: .82rem; line-height: 1.45; max-width: 52ch; }
         .site-footer-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .footer-link-btn {
           background: none;
@@ -2185,10 +2161,18 @@ export default function App() {
         }
 
         @media (max-width: 900px) {
+          html {
+            overscroll-behavior-y: contain;
+          }
+          body {
+            overscroll-behavior-y: contain;
+            -webkit-text-size-adjust: 100%;
+          }
           .app {
             touch-action: pan-y pinch-zoom;
+            max-width: 100%;
           }
-          .section { padding: 16px 10px 110px; }
+          .section { padding: 16px 10px 100px; }
           main#main-content .section:not(.landing-hero):not(.farm-dash-scope) {
             border-radius: 14px;
             margin-top: 8px;
@@ -2198,7 +2182,7 @@ export default function App() {
             margin-top: 8px;
           }
           .nav {
-            padding: 10px 12px;
+            padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
             position: sticky;
             min-height: 58px;
           }
@@ -2215,7 +2199,7 @@ export default function App() {
           .deal-card h3 { font-size: 1rem; }
           .muted { font-size: .9rem; }
 
-          .site-footer { padding-bottom: 148px; }
+          .site-footer { padding-bottom: 118px; }
 
           .mobile-nav {
             position: fixed;
@@ -2224,11 +2208,6 @@ export default function App() {
             bottom: calc(10px + env(safe-area-inset-bottom, 0px) + var(--keyboard-cover, 0px));
             z-index: 160;
             width: auto;
-            max-width: min(
-              calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-              100%
-            );
-            max-height: min(46vh, 360px);
             box-sizing: border-box;
             overflow-x: hidden;
             overflow-y: auto;
@@ -2242,31 +2221,32 @@ export default function App() {
             flex-direction: column;
             gap: 2px;
             backdrop-filter: blur(6px);
-            transition: transform 0.28s ease, opacity 0.22s ease;
-          }
-          .mobile-nav.mobile-nav--scroll-hidden {
-            transform: translate3d(0, calc(100% + 28px), 0);
-            opacity: 0;
-            pointer-events: none;
+            transform: translateZ(0);
+            max-height: min(52vh, 380px);
           }
           html.ios .mobile-nav {
             transform: translateZ(0);
           }
-          html.ios .mobile-nav.mobile-nav--scroll-hidden {
-            transform: translate3d(0, calc(100% + 28px), 0);
-          }
           .mobile-nav-row {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
             gap: 3px;
             min-width: 0;
             flex-shrink: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-x: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
           }
-          .mobile-nav-row.tools {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 1px;
-            padding-top: 3px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+          .mobile-nav-row::-webkit-scrollbar {
+            display: none;
+          }
+          .mobile-nav-row > .mobile-nav-btn {
+            flex: 0 0 auto;
+            min-width: 62px;
+            max-width: 88px;
           }
           .mobile-nav-subrow {
             display: grid;
@@ -2313,7 +2293,7 @@ export default function App() {
           .mobile-nav-label {
             display: -webkit-box;
             -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 1;
             overflow: hidden;
             width: 100%;
             max-width: 100%;
@@ -2332,7 +2312,7 @@ export default function App() {
             visibility: hidden;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.12s ease;
+            transition: opacity 0.15s ease;
           }
           body[data-assistant-route][data-vk-open] .section.assistant-route {
             padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
@@ -2356,7 +2336,7 @@ export default function App() {
           .mobile-nav-btn:active {
             opacity: 1;
           }
-          .mobile-nav.mobile-nav--scroll-hidden {
+          body[data-assistant-route][data-vk-open] .mobile-nav {
             transition: none;
           }
         }
@@ -2982,7 +2962,6 @@ export default function App() {
 					tr={tr}
 					onOpenCalendar={() => setView('season-calendar')}
 					initialFocus={subsidyPrefillFocus}
-					initialMarketQuery={subsidyPrefillQuery}
 				/>
 			)}
 
@@ -3266,9 +3245,6 @@ export default function App() {
 
 			<footer className="site-footer">
 				<div className="site-footer-inner">
-					<p className="site-footer-copy muted">
-						© {new Date().getFullYear()} AgriNexus — {tr.footerRightsTagline}
-					</p>
 					<div className="site-footer-links">
 						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
 							info@agrinexus.eu
@@ -3294,12 +3270,12 @@ export default function App() {
 					className="contact-panel"
 					style={{
 						position: 'fixed',
-						left: 16,
-						right: 16,
-						bottom: isMobileViewport ? 138 : 16,
+						left: 'max(16px, env(safe-area-inset-left, 0px))',
+						right: 'max(16px, env(safe-area-inset-right, 0px))',
+						bottom: isMobileViewport ? 102 : 16,
 						zIndex: isMobileViewport ? 140 : 1200,
 						margin: 0,
-						maxWidth: isMobileViewport ? 'calc(100vw - 32px)' : 720,
+						maxWidth: isMobileViewport ? undefined : 720,
 						marginInline: 'auto',
 						borderColor: 'rgba(124, 205, 156, 0.35)',
 						background: 'rgba(8, 16, 12, 0.94)',
@@ -3327,7 +3303,7 @@ export default function App() {
 
 			{isMobileViewport && (
 				<div
-					className={`mobile-nav${mobileNavScrollHidden ? ' mobile-nav--scroll-hidden' : ''}`}
+					className="mobile-nav"
 					role="navigation"
 					aria-label={tr.mobileNavAria}>
 					<div className="mobile-nav-row">
@@ -3390,6 +3366,28 @@ export default function App() {
 								<MobileNavLabel text={tr.navWatchlist} />
 							</button>
 						)}
+						<button
+							type="button"
+							className={`mobile-nav-btn ${FARM_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={mobileNavExpand === 'farm'}
+							aria-label={tr.navGroupFarm}
+							onClick={() =>
+								setMobileNavExpand(prev => (prev === 'farm' ? null : 'farm'))
+							}>
+							<ChevronDown size={16} aria-hidden />
+							<MobileNavLabel text={tr.navGroupFarmShort} hint={tr.navGroupFarm} />
+						</button>
+						<button
+							type="button"
+							className={`mobile-nav-btn ${LOGISTICS_VIEWS.has(view) ? 'active' : ''}`}
+							aria-expanded={mobileNavExpand === 'logistics'}
+							aria-label={tr.navLogistics}
+							onClick={() =>
+								setMobileNavExpand(prev => (prev === 'logistics' ? null : 'logistics'))
+							}>
+							<ChevronDown size={16} aria-hidden />
+							<MobileNavLabel text={tr.navLogisticsShort} hint={tr.navLogistics} />
+						</button>
 					</div>
 					{mobileNavExpand === 'markets' && (
 						<div className="mobile-nav-subrow">
@@ -3428,30 +3426,6 @@ export default function App() {
 							</button>
 						</div>
 					)}
-					<div className="mobile-nav-row tools">
-						<button
-							type="button"
-							className={`mobile-nav-btn ${FARM_VIEWS.has(view) ? 'active' : ''}`}
-							aria-expanded={mobileNavExpand === 'farm'}
-							aria-label={tr.navGroupFarm}
-							onClick={() =>
-								setMobileNavExpand(prev => (prev === 'farm' ? null : 'farm'))
-							}>
-							<ChevronDown size={16} aria-hidden />
-							<MobileNavLabel text={tr.navGroupFarmShort} hint={tr.navGroupFarm} />
-						</button>
-						<button
-							type="button"
-							className={`mobile-nav-btn ${LOGISTICS_VIEWS.has(view) ? 'active' : ''}`}
-							aria-expanded={mobileNavExpand === 'logistics'}
-							aria-label={tr.navLogistics}
-							onClick={() =>
-								setMobileNavExpand(prev => (prev === 'logistics' ? null : 'logistics'))
-							}>
-							<ChevronDown size={16} aria-hidden />
-							<MobileNavLabel text={tr.navLogisticsShort} hint={tr.navLogistics} />
-						</button>
-					</div>
 					{mobileNavExpand === 'farm' && (
 						<div className="mobile-nav-subrow">
 							<button

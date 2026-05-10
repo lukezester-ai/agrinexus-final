@@ -46,8 +46,6 @@ type Props = {
 	tr: AppStrings;
 	onOpenCalendar: () => void;
 	initialFocus?: FarmProductionFocus | null;
-	initialMarketQuery?: string;
-	onOpenMarketWithQuery?: (query: string) => void;
 };
 
 export function SubsidyCalculatorView({
@@ -55,8 +53,6 @@ export function SubsidyCalculatorView({
 	tr,
 	onOpenCalendar,
 	initialFocus,
-	initialMarketQuery,
-	onOpenMarketWithQuery,
 }: Props) {
 	const [decares, setDecares] = useState('50');
 	const [focus, setFocus] = useState<FarmProductionFocus>('grain');
@@ -152,22 +148,6 @@ export function SubsidyCalculatorView({
 		t2('Нереалистични приходи без пазарно обосноваване', 'Unrealistic revenues without market grounding'),
 		t2('Липсва ясно как ще се постигне ръстът на СПО', 'No clear path on how SO growth is achieved'),
 	];
-	const marketQueryForFocus = useMemo(() => {
-		if (initialMarketQuery?.trim()) return initialMarketQuery.trim();
-		switch (focus) {
-			case 'grain':
-				return lang === 'bg' ? 'пшеница' : 'wheat';
-			case 'horticulture':
-				return lang === 'bg' ? 'зеленчуци' : 'vegetables';
-			case 'vine':
-				return lang === 'bg' ? 'грозде' : 'grape';
-			case 'livestock':
-				return lang === 'bg' ? 'животновъдство' : 'livestock';
-			default:
-				return lang === 'bg' ? 'земеделие' : 'agri';
-		}
-	}, [focus, initialMarketQuery, lang]);
-
 	return (
 		<section className="section">
 			<div
@@ -186,14 +166,6 @@ export function SubsidyCalculatorView({
 				<button type="button" className="btn btn-outline" onClick={onOpenCalendar}>
 					{tr.subsidyCalcGoCalendar}
 				</button>
-				{onOpenMarketWithQuery ? (
-					<button
-						type="button"
-						className="btn btn-outline"
-						onClick={() => onOpenMarketWithQuery(marketQueryForFocus)}>
-						{lang === 'bg' ? 'Покажи оферти в Пазар' : 'Show offers in Market'}
-					</button>
-				) : null}
 			</div>
 			<p className="muted" style={{ marginTop: 0 }}>
 				{tr.subsidyCalcSubtitle}
