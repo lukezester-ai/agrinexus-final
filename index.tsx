@@ -16,7 +16,7 @@ class ErrorBoundary extends React.Component<
 	}
 
 	componentDidCatch(err: Error) {
-		console.error('[AgriNexus]', err);
+		console.error('[SIMA]', err);
 	}
 
 	render() {
@@ -56,7 +56,7 @@ class ErrorBoundary extends React.Component<
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-	throw new Error('AgriNexus: missing #root in index.html');
+	throw new Error('SIMA: missing #root in index.html');
 }
 const root = createRoot(rootElement);
 

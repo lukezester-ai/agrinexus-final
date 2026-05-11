@@ -195,7 +195,7 @@ export function formatShareSnippet(
 	const low = lowBgn.toLocaleString(loc);
 	const high = highBgn.toLocaleString(loc);
 	if (lang === 'en') {
-		return `AgriNexus indicative subsidy calculator: for ${decares} decares the rough range is ${low}–${high} BGN/year (non-binding). Open: ${u}`;
+		return `SIMA indicative subsidy calculator: for ${decares} decares the rough range is ${low}–${high} BGN/year (non-binding). Open: ${u}`;
 	}
-	return `Според ориентировъчния калкулатор на AgriNexus за ${decares} декара приблизителният диапазон е ${low}–${high} лв/година (неофициално, без гаранция). Виж на: ${u}`;
+	return `Според ориентировъчния калкулатор на SIMA за ${decares} декара приблизителният диапазон е ${low}–${high} лв/година (неофициално, без гаранция). Виж на: ${u}`;
 }

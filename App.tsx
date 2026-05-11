@@ -22,6 +22,7 @@ import {
 	Mic,
 	Send,
 	Shield,
+	Store,
 	UserPlus,
 	X,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
+import { VegetableConserveMarketView } from './components/VegetableConserveMarketView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
 import { OperationsHubView } from './components/OperationsHubView';
 import { FieldWatchLeaflet } from './components/FieldWatchLeaflet';
@@ -168,10 +170,11 @@ type View =
 	| 'command'
 	| 'file-upload'
 	| 'field-watch'
-	| 'weather';
+	| 'weather'
+	| 'market';
 
 /** Crop statistics + trade docs ? legacy nav group label ?Markets?. */
-const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather']);
+const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather', 'market']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
@@ -1200,7 +1203,6 @@ export default function App() {
         html {
           overflow-x: clip;
           overscroll-behavior-x: none;
-          height: 100%;
         }
         body {
           margin: 0;
@@ -1208,21 +1210,21 @@ export default function App() {
           background: var(--bg);
           color: var(--text-main);
           overflow-x: clip;
-          overflow-y: auto;
+          overflow-y: visible;
           overscroll-behavior-x: none;
           width: 100%;
           max-width: 100%;
           position: relative;
-          min-height: 100%;
           min-height: 100svh;
+          min-height: 100dvh;
         }
         #root {
           overflow-x: clip;
           overflow-y: visible;
           width: 100%;
           max-width: 100%;
-          min-height: 100%;
           min-height: 100svh;
+          min-height: 100dvh;
         }
         .app {
           position: relative;
@@ -1799,14 +1801,10 @@ export default function App() {
         .assistant-workbench {
           display: flex;
           flex-direction: column;
-          max-height: min(88dvh, 960px);
+          max-height: none;
+          min-height: 0;
           padding: 14px !important;
           overscroll-behavior-y: contain;
-        }
-        @media (max-width: 900px) {
-          .assistant-workbench {
-            max-height: min(calc(var(--vv-height, 100dvh) - 28px), 960px);
-          }
         }
         .assistant-panel-head {
           flex-shrink: 0;
@@ -1819,15 +1817,10 @@ export default function App() {
           margin-bottom: 10px !important;
         }
         .assistant-quick-prompts-scroll {
-          max-height: 132px;
-          overflow-y: auto;
-          padding-right: 6px;
-          scrollbar-gutter: stable;
-        }
-        @media (max-width: 640px) {
-          .assistant-quick-prompts-scroll {
-            max-height: min(120px, 28vh);
-          }
+          max-height: none;
+          overflow-y: visible;
+          padding-right: 0;
+          scrollbar-gutter: auto;
         }
         .assistant-prompts-scroll-hint {
           margin: 0 0 6px;
@@ -1838,35 +1831,38 @@ export default function App() {
         }
         .assistant-msgs {
           flex: 1 1 auto;
-          min-height: clamp(200px, 42vh, 520px);
+          min-height: 240px;
           max-height: none;
-          overflow-y: auto;
+          overflow-y: visible;
           display: flex;
           flex-direction: column;
           gap: 10px;
           margin: 0;
           padding: 8px 4px 8px 0;
         }
-        html.ios .assistant-msgs {
-          -webkit-overflow-scrolling: touch;
-        }
-        /* Desktop: един вертикален скрол (страницата), без вложени ленти в чата */
-        @media (min-width: 901px) {
-          .assistant-workbench {
-            max-height: none;
-            min-height: 0;
+        /* По подразбиране: един скрол (страницата). На тесен екран (асистент) — компактен workbench с вътрешен скрол. */
+        @media (max-width: 900px) {
+          body[data-assistant-route] .assistant-workbench {
+            max-height: min(calc(var(--vv-height, 100dvh) - 28px), 960px);
           }
-          .assistant-quick-prompts-scroll {
-            max-height: none;
-            overflow-y: visible;
-            scrollbar-gutter: auto;
-            padding-right: 0;
+          body[data-assistant-route] .assistant-quick-prompts-scroll {
+            max-height: 132px;
+            overflow-y: auto;
+            padding-right: 6px;
           }
-          .assistant-msgs {
+          body[data-assistant-route] .assistant-msgs {
             flex: 1 1 auto;
-            min-height: 240px;
+            min-height: 0;
             max-height: none;
-            overflow-y: visible;
+            overflow-y: auto;
+          }
+          html.ios body[data-assistant-route] .assistant-msgs {
+            -webkit-overflow-scrolling: touch;
+          }
+        }
+        @media (max-width: 640px) {
+          body[data-assistant-route] .assistant-quick-prompts-scroll {
+            max-height: min(120px, 28vh);
           }
         }
         .assistant-panel-foot {
@@ -2349,8 +2345,7 @@ export default function App() {
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
 					<Leaf color="#a8d98a" size={24} aria-hidden />
 					<span className="brand-wordmark">
-						<span className="brand-agri">Agri</span>
-						<span className="brand-nexus">Nexus</span>
+						<span className="brand-nexus">SIMA</span>
 					</span>
 				</button>
 				<div className="nav-actions" ref={navFlyoutRef}>
@@ -2404,6 +2399,16 @@ export default function App() {
 										setNavMenuOpen(null);
 									}}>
 									<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'market' ? 'active' : ''}`}
+									onClick={() => {
+										setView('market');
+										setNavMenuOpen(null);
+									}}>
+									<Store size={14} aria-hidden /> {tr.navMarket}
 								</button>
 							</div>
 						)}
@@ -2542,9 +2547,31 @@ export default function App() {
 				<section className="section hero landing-hero">
 					<div className="landing-hero-inner">
 						<h1 className="brand-wordmark">
-							<span className="brand-agri">Agri</span>
-							<span className="brand-nexus">Nexus</span>
+							<span className="brand-nexus">SIMA</span>
 						</h1>
+						<p
+							className="green-note"
+							style={{
+								margin: 'clamp(10px, 2vw, 18px) auto 0',
+								textAlign: 'center',
+								maxWidth: 'min(560px, 92vw)',
+								fontSize: 'clamp(0.9rem, 2.4vw, 1.05rem)',
+								lineHeight: 1.5,
+								fontWeight: 650,
+							}}>
+							{tr.taglineProducerBuyerBridge}
+						</p>
+						<p
+							className="muted"
+							style={{
+								margin: '8px auto 0',
+								textAlign: 'center',
+								maxWidth: 'min(520px, 92vw)',
+								fontSize: 'clamp(0.78rem, 2vw, 0.88rem)',
+								lineHeight: 1.45,
+							}}>
+							{tr.brandFoundationNote}
+						</p>
 					</div>
 				</section>
 			)}
@@ -3052,6 +3079,8 @@ export default function App() {
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
 
+			{view === 'market' && <VegetableConserveMarketView lang={lang} tr={tr} />}
+
 			{view === 'crop-statistics' && (
 				<CropStatisticsBulgariaView
 					lang={lang}
@@ -3245,6 +3274,17 @@ export default function App() {
 
 			<footer className="site-footer">
 				<div className="site-footer-inner">
+					<p
+						className="muted"
+						style={{
+							margin: '0 0 14px',
+							textAlign: 'center',
+							width: '100%',
+							fontSize: '.82rem',
+							lineHeight: 1.45,
+						}}>
+						{tr.brandFoundationNote}
+					</p>
 					<div className="site-footer-links">
 						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
 							info@agrinexus.eu
@@ -3423,6 +3463,17 @@ export default function App() {
 								}}>
 								<FileText size={16} aria-hidden />
 								<MobileNavLabel text={tr.navTradeDocumentsShort} hint={tr.navTradeDocuments} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
+								aria-label={tr.navMarket}
+								onClick={() => {
+									setView('market');
+									setMobileNavExpand(null);
+								}}>
+								<Store size={16} aria-hidden />
+								<MobileNavLabel text={tr.navMarketShort} hint={tr.navMarket} />
 							</button>
 						</div>
 					)}

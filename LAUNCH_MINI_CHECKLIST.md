@@ -1,4 +1,4 @@
-# AgriNexus Launch Mini Checklist
+# SIMA Launch Mini Checklist
 
 ## Quick Go/No-Go
 

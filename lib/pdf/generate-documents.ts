@@ -73,7 +73,7 @@ export async function buildDeclarationPdf(profile: FarmerLocalProfile): Promise<
 		`Банкова сметка (IBAN): ${profile.iban || '…………………………'}`,
 		``,
 		`Декларирам, че имам право да ползвам заявените площи и притежавам изискуемите документи по приложимите схеми.`,
-		`Настоящата декларация е генерирана автоматично от AgriNexus за чернова — не подменя официални бланци и е-подпис в ИСУН.`,
+		`Настоящата декларация е генерирана автоматично от SIMA за чернова — не подменя официални бланци и е-подпис в ИСУН.`,
 	];
 	await pageWithHeader(
 		pdfDoc,
@@ -106,7 +106,7 @@ export async function buildApplicationSummaryPdf(profile: FarmerLocalProfile): P
 		pdfDoc,
 		'ЗАЯВЛЕНИЕ — обобщение',
 		body,
-		'Генерирано от AgriNexus. Не е подписан документ за държавни органи.',
+		'Генерирано от SIMA. Не е подписан документ за държавни органи.',
 	);
 	return pdfDoc.save();
 }
@@ -131,7 +131,7 @@ export async function buildLeaseContractDraftPdf(profile: FarmerLocalProfile): P
 		pdfDoc,
 		'ДОГОВОР — чернова',
 		body,
-		'Образец за преговори. Задължителен преглед от юрист. AgriNexus не носи отговорност за съдържанието.',
+		'Образец за преговори. Задължителен преглед от юрист. SIMA не носи отговорност за съдържанието.',
 	);
 	return pdfDoc.save();
 }

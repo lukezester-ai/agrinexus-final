@@ -25,7 +25,7 @@ export function AssistantPersonaCertPdfs({ persona, lang, tr }: Props) {
 				<FileText size={14} aria-hidden style={{ marginRight: 6, verticalAlign: 'text-bottom', opacity: 0.85 }} />
 				{tr.assistantCertPdfSectionTitle}
 			</p>
-			<div className="deal-actions assistant-quick-prompts-scroll" style={{ maxHeight: 120 }} role="list">
+			<div className="deal-actions assistant-quick-prompts-scroll" role="list">
 				{docs.map(d => (
 					<a
 						key={d.href}

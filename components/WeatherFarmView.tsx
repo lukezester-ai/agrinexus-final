@@ -104,7 +104,7 @@ export function WeatherFarmView({ lang, tr, onOpenFieldWatch }: Props) {
 			const a = document.createElement('a');
 			a.href = url;
 			const slug = locationLabel.replace(/\s+/g, '_').slice(0, 40);
-			a.download = `AgriNexus-meteo-${slug}-${data.generatedAt.slice(0, 10)}.pdf`;
+			a.download = `SIMA-meteo-${slug}-${data.generatedAt.slice(0, 10)}.pdf`;
 			a.click();
 			URL.revokeObjectURL(url);
 		} finally {

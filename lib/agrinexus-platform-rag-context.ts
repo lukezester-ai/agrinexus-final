@@ -1,6 +1,6 @@
 /**
  * Invariant product/process map for chat RAG: always injected so the model knows
- * every major surface in AgriNexus (ops, fields, weather, compliance paths).
+ * every major surface in SIMA (ops, fields, weather, compliance paths).
  * Supplements pgvector retrieval from doc_discovery_* tables.
  */
 export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {

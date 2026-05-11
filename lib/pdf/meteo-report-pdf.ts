@@ -104,8 +104,8 @@ export async function buildMeteoReportPdf(input: MeteoPdfInput): Promise<Uint8Ar
 
 	const title =
 		lang === 'bg'
-			? 'AgriNexus — метео доклад (ориентир)'
-			: 'AgriNexus — weather brief (orientation)';
+			? 'SIMA — метео доклад (ориентир)'
+			: 'SIMA — weather brief (orientation)';
 	page.drawText(title, { x: 48, y, size: 14, font, color: rgb(0.05, 0.15, 0.12) });
 	y -= 22;
 

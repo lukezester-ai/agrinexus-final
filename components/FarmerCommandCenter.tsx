@@ -73,19 +73,19 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 				let name: string;
 				if (kind === 'declaration') {
 					bytes = await buildDeclarationPdf(profile);
-					name = 'agrinexus-deklaratsiya-chernova.pdf';
+					name = 'sima-deklaratsiya-chernova.pdf';
 				} else if (kind === 'application') {
 					bytes = await buildApplicationSummaryPdf(profile);
-					name = 'agrinexus-zayavlenie-obobshtenie.pdf';
+					name = 'sima-zayavlenie-obobshtenie.pdf';
 				} else if (kind === 'lease') {
 					bytes = await buildLeaseContractDraftPdf(profile);
-					name = 'agrinexus-dogovor-arenda-chernova.pdf';
+					name = 'sima-dogovor-arenda-chernova.pdf';
 				} else if (kind === 'statement') {
 					bytes = await buildStatementPdf(profile);
-					name = 'agrinexus-spravka.pdf';
+					name = 'sima-spravka.pdf';
 				} else {
 					bytes = await buildDocumentPackPdf(profile);
-					name = 'agrinexus-paket-dokumenti.pdf';
+					name = 'sima-paket-dokumenti.pdf';
 				}
 				downloadPdfBytes(bytes, name);
 			} catch {

@@ -1,4 +1,4 @@
-# Resend + деплой към Vercel (AgriNexus)
+# Resend + деплой към Vercel (SIMA)
 
 Кратък ред на действията: домейн в Resend → ключ и `MAIL_FROM` → качване на проекта във Vercel → копиране на environment variables → deploy → тест на форми и чат.
 
@@ -8,7 +8,7 @@
 2. **Domains** → добавете домейна си (напр. `agrinexus.eu`) и добавете DNS записите, които Resend показва (SPF/DKIM и т.н.), докато статусът стане верифициран.
 3. **API Keys** → създайте ключ с права за изпращане — това е **`RESEND_API_KEY`** (не го споделяйте в чат или в Git).
 4. **`MAIL_FROM`** трябва да използва адрес от **верифицирания домейн**, например:
-   - `AgriNexus <noreply@agrinexus.eu>`
+   - `SIMA <noreply@agrinexus.eu>`
    - или само `noreply@agrinexus.eu` ако приема вашият формат в Resend.
 
 5. **`MAIL_TO`** (или `CONTACT_TO_EMAIL`) — към кой пощенски ящик да пристигат контактът и регистрациите (напр. `info@agrinexus.eu`). Стойността може да е същият имейл като пощата, която реално отваряте.
@@ -21,7 +21,7 @@
 
 ```env
 RESEND_API_KEY=re_...
-MAIL_FROM=AgriNexus <noreply@вашият-домейн.com>
+MAIL_FROM=SIMA <noreply@вашият-домейн.com>
 MAIL_TO=info@agrinexus.eu
 OPENAI_API_KEY=sk-...
 ```

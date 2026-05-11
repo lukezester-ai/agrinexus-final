@@ -1,4 +1,4 @@
-# AgriNexus Launch Readiness (Definition of Done)
+# SIMA Launch Readiness (Definition of Done)
 
 Използвайте този чеклист преди публично промотиране.
 Статусите са:
@@ -42,7 +42,7 @@
 
 ## 6) Business Readiness
 
-- [ ] Има едно ясно value proposition изречение (какъв проблем решава AgriNexus).
+- [ ] Има едно ясно value proposition изречение (какъв проблем решава SIMA).
 - [ ] Има 2-3 demo сценария за показване пред клиент (end-to-end).
 - [ ] Има готова кратка sales презентация (1-pager или 5 слайда).
 - [ ] Има ясна точка за контакт за продажби и onboarding.

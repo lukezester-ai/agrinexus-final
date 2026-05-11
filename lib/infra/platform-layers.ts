@@ -68,7 +68,7 @@ export function getPlatformPayload(): {
 	if (!layers.objectStorage) hints.push('Optional: S3_* for presigned uploads.');
 	return {
 		ok: true,
-		name: 'agrinexus-pro',
+		name: 'sima-pro',
 		layers,
 		hints,
 	};

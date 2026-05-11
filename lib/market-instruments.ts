@@ -1,4 +1,4 @@
-/** Maps AgriNexus product rows to delayed futures symbols on Stooq (suffix .f). Not investment advice; refs only. */
+/** Maps SIMA product rows to delayed futures symbols on Stooq (suffix .f). Not investment advice; refs only. */
 
 export type InstrumentMeta = {
 	symbol: string;

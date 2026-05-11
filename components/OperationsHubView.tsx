@@ -578,7 +578,7 @@ export function OperationsHubView(props: {
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = `agrinexus-dashboard-export-${stamp}.json`;
+			a.download = `sima-dashboard-export-${stamp}.json`;
 			a.rel = 'noopener';
 			document.body.appendChild(a);
 			a.click();
@@ -644,7 +644,7 @@ export function OperationsHubView(props: {
 			const copy = Uint8Array.from(bytes);
 			const blob = new Blob([copy], { type: 'application/pdf' });
 			const stamp = new Date().toISOString().slice(0, 10);
-			const name = `agrinexus-operations-${stamp}.pdf`;
+			const name = `sima-operations-${stamp}.pdf`;
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
@@ -1969,8 +1969,8 @@ export function OperationsHubView(props: {
 					<h3>{pick('Бързи връзки', 'Quick links')}</h3>
 					<p style={{ fontSize: 13, opacity: 0.85, marginTop: 0 }}>
 						{pick(
-							'Отворете основните модули на AgriNexus оттук.',
-							'Open core AgriNexus modules from here.',
+							'Отворете основните модули на SIMA оттук.',
+							'Open core SIMA modules from here.',
 						)}
 					</p>
 					<div className="rag-actions">

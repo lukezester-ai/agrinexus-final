@@ -28,7 +28,7 @@ export async function fetchStooqBatch(symbols: string[]): Promise<StooqRow[]> {
 		const res = await fetch(url, {
 			signal: ac.signal,
 			headers: {
-				'User-Agent': 'AgriNexusMarketQuotes/1.0',
+				'User-Agent': 'SIMAMarketQuotes/1.0',
 				Accept: 'text/csv,*/*',
 			},
 		});

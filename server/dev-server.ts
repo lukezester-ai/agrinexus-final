@@ -96,7 +96,7 @@ const server = http.createServer(async (req, res) => {
       if (path === '/' && req.method === 'GET') {
         send(res, 200, {
           ok: true,
-          service: 'agrinexus-dev-api',
+          service: 'sima-dev-api',
           hint: 'Use paths under /api/… Open the app at http://localhost:5173 (Vite proxies /api here).',
           discover: 'GET /api',
         });
@@ -345,7 +345,7 @@ const server = http.createServer(async (req, res) => {
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') {
     console.error(
-      `[agrinexus] dev API: port ${PORT} is already in use on 127.0.0.1. Change DEV_API_PORT in .env (same value Vite proxies to) or stop the other process.`,
+      `[sima] dev API: port ${PORT} is already in use on 127.0.0.1. Change DEV_API_PORT in .env (same value Vite proxies to) or stop the other process.`,
     );
     console.error(`Windows: netstat -ano | findstr :${PORT}   then   taskkill /PID <pid> /F`);
     process.exit(1);
@@ -354,5 +354,5 @@ server.on('error', (err: NodeJS.ErrnoException) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[agrinexus] dev API listening on http://127.0.0.1:${PORT}`);
+  console.log(`[sima] dev API listening on http://127.0.0.1:${PORT}`);
 });

@@ -1,5 +1,5 @@
 -- Еднократно изпълнение в Supabase SQL Editor (service role чете/писа без RLS проблем при сървърен ключ).
--- Пази научените ключови думи и лог на нощните обходи за AgriNexus doc-discovery cron.
+-- Пази научените ключови думи и лог на нощните обходи за SIMA doc-discovery cron.
 
 create table if not exists public.doc_discovery_state (
   id text primary key default 'singleton',

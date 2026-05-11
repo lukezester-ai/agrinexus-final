@@ -140,20 +140,20 @@ export async function sendInboundNotification(opts: {
 
 const contactStrings = {
   bg: {
-    heading: 'AgriNexus — контактна форма',
+    heading: 'SIMA — контактна форма',
     name: 'Име',
     email: 'Имейл',
     company: 'Фирма',
     message: 'Съобщение',
-    subjectPrefix: '[AgriNexus] Контакт',
+    subjectPrefix: '[SIMA] Контакт',
   },
   en: {
-    heading: 'AgriNexus — contact form',
+    heading: 'SIMA — contact form',
     name: 'Name',
     email: 'Email',
     company: 'Company',
     message: 'Message',
-    subjectPrefix: '[AgriNexus] Contact',
+    subjectPrefix: '[SIMA] Contact',
   },
 } as const;
 
@@ -209,7 +209,7 @@ export function contactNotificationSubject(nameOrEmail: string, locale: MailLoca
 
 const registerStrings = {
   bg: {
-    heading: 'AgriNexus — интерес за регистрация',
+    heading: 'SIMA — интерес за регистрация',
     fullName: 'Име и фамилия',
     company: 'Фирма',
     businessEmail: 'Служебен имейл',
@@ -218,10 +218,10 @@ const registerStrings = {
     subscribeAlerts: 'Абонамент за известия',
     yes: 'да',
     no: 'не',
-    subjectPrefix: '[AgriNexus] Регистрация',
+    subjectPrefix: '[SIMA] Регистрация',
   },
   en: {
-    heading: 'AgriNexus — registration interest',
+    heading: 'SIMA — registration interest',
     fullName: 'Full name',
     company: 'Company',
     businessEmail: 'Business email',
@@ -230,7 +230,7 @@ const registerStrings = {
     subscribeAlerts: 'Subscribe to alerts',
     yes: 'yes',
     no: 'no',
-    subjectPrefix: '[AgriNexus] Registration',
+    subjectPrefix: '[SIMA] Registration',
   },
 } as const;
 

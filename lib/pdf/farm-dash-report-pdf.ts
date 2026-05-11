@@ -101,8 +101,8 @@ export async function buildFarmDashReportPdf(input: FarmDashReportPdfInput): Pro
 
 	const title =
 		lang === 'bg'
-			? 'AgriNexus — Operations табло (PDF доклад)'
-			: 'AgriNexus — Operations dashboard (PDF report)';
+			? 'SIMA — Operations табло (PDF доклад)'
+			: 'SIMA — Operations dashboard (PDF report)';
 	page.drawText(title, { x: left, y, size: 14, font, color: rgb(0.05, 0.15, 0.12) });
 	y -= 22;
 
