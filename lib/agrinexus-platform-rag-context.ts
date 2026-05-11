@@ -6,7 +6,7 @@
 export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {
 	if (locale === 'bg') {
 		return `=== AGRI NEXUS — ПЛАТФОРМЕН ОБХВАТ (вътрешна карта на процесите; не е правен съвет) ===
-Индексираното търсене (RAG) не е странична функция: когато има откъси от документи по-долу в prompt-а, те са **съвместен водещ източник** за факти заедно с DAFS/официалните портали — не „резерва“ след общите познания на модела.
+Индексираното търсене (RAG) е **водещ слой за факти**, щом в prompt-а има откъси от документи по-долу: тогава отговорът тръгва от тях, а DAFS/официалните портали допълват рамката и проверката — не обратното.
 Модули и потоци:
 • Начало / AI помощник: чат през /api/chat с personas unified|lawyer|agronomist|finance; контекст от профил „Твоят план“, Field Watch якор и retrieval от индексирани документи (DAFS/износ и др.) когато е конфигурирано.
 • Статистика: статистика на култури (БГ); документи внос/износ (БГ); Метео+PDF — прогноза Open-Meteo по областен център, PDF с метео и ръчни полета „финансов ефект“.
@@ -18,7 +18,7 @@ export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {
 	}
 
 	return `=== AGRI NEXUS — PLATFORM SCOPE (internal process map; not legal advice) ===
-Indexed retrieval (RAG) is not a side feature: when document excerpts appear later in the prompt, they are a **co-primary factual basis** alongside DAFS/official portals — not a fallback after model priors.
+Indexed retrieval (RAG) is the **leading factual layer** whenever document excerpts appear later in the prompt: the answer starts from them, and DAFS/official portals extend the frame and verification — not the other way around.
 Modules and flows:
 • Home / AI assistant: chat via /api/chat with personas unified|lawyer|agronomist|finance; context from “Your plan” profile, Field Watch anchor, and retrieval from indexed docs (DAFS, export, etc.) when configured.
 • Statistics: crop statistics (BG); trade/customs docs (BG); Weather+PDF — Open-Meteo by oblast centre, PDF export with manual “financial effect” notes.

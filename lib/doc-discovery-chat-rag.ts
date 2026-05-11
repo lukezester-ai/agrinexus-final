@@ -1,10 +1,10 @@
 import { discoveryEmbeddingsConfigured, embedTextsForDiscovery } from './ml/embeddings-discovery.js';
 import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
 import { searchContentChunks } from './doc-discovery/content/search.js';
+import { MAX_DOC_DISCOVERY_RAG_CHARS } from './rag-limits.js';
 
-const MAX_RAG_CHARS = 14000;
-const TOP_K_META = 16;
-const TOP_K_CONTENT = 16;
+const TOP_K_META = 20;
+const TOP_K_CONTENT = 20;
 const MAX_SNIPPET_CHARS = 1000;
 const MIN_QUERY_CHARS = 2;
 
@@ -61,8 +61,8 @@ export async function buildDocDiscoveryRagContextForChat(
 		if (contentRows.length > 0) {
 			lines.push(
 				locale === 'bg'
-					? '=== RETRIEVED CONTENT (откъси от индексирани документи; цитирай URL и не измисляй детайли) ==='
-					: '=== RETRIEVED CONTENT (excerpts from indexed documents; cite URL and do not invent details) ===',
+					? '=== RAG-LED — RETRIEVED CONTENT (откъси от индексирани документи; води отговора за факти; цитирай URL; не измисляй детайли) ==='
+					: '=== RAG-LED — RETRIEVED CONTENT (indexed excerpts; lead factual answers from here; cite URL; do not invent details) ===',
 			);
 			for (const r of contentRows) {
 				const sim = (Math.min(1, Math.max(0, r.similarity)) * 100).toFixed(1);
@@ -81,8 +81,8 @@ export async function buildDocDiscoveryRagContextForChat(
 		if (remainingMeta.length > 0) {
 			lines.push(
 				locale === 'bg'
-					? '=== RELATED DOCUMENTS (заглавия/линкове без съдържание; ако е приложимо, насочи потребителя да отвори линка) ==='
-					: '=== RELATED DOCUMENTS (titles/links without content; if relevant, point the user to the link) ===',
+					? '=== RAG-LED — RELATED DOCUMENTS (заглавия/линкове; ползвай за навигация и допълване след RETRIEVED CONTENT) ==='
+					: '=== RAG-LED — RELATED DOCUMENTS (titles/links; use for navigation and follow-up after RETRIEVED CONTENT) ===',
 			);
 			for (const r of remainingMeta) {
 				const sim = (Math.min(1, Math.max(0, r.similarity)) * 100).toFixed(1);
@@ -94,13 +94,13 @@ export async function buildDocDiscoveryRagContextForChat(
 
 		const footer =
 			locale === 'bg'
-				? 'Не измисляй съдържание — ако твърдиш факт, той трябва да присъства в RETRIEVED CONTENT по-горе. Винаги напомняй на потребителя да провери на официалния източник.'
-				: 'Do not fabricate content — any claim must appear in RETRIEVED CONTENT above. Always remind the user to verify on the official source.';
+				? 'RAG-led: не твърди факт извън показаните откъси; ако въпросът не е покрит — кажи че индексът няма отговор и насочи към официален източник.'
+				: 'RAG-led: do not state a fact not supported by the excerpts shown; if the question is not covered — say the index has no match and point to an official source.';
 		lines.push('', footer);
 
 		let block = lines.join('\n');
-		if (block.length > MAX_RAG_CHARS) {
-			block = `${block.slice(0, MAX_RAG_CHARS)}\n…`;
+		if (block.length > MAX_DOC_DISCOVERY_RAG_CHARS) {
+			block = `${block.slice(0, MAX_DOC_DISCOVERY_RAG_CHARS)}\n…`;
 		}
 		return block;
 	} catch {

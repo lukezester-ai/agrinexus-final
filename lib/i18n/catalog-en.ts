@@ -119,9 +119,9 @@ export const STR_EN = {
 		'Use the same email as in the contact form on the home page so we can match your upload.',
 	fileUploadPageBack: 'Back to home',
 	createAccount: 'Create your account',
-	assistantTitle: 'AI assistant',
+	assistantTitle: 'RAG-led assistant',
 	assistantSubtitle:
-		'Farmer OS mode for global agri-food work: paperwork and DAFS/ISUN first, then legal risk, field practice, and economics — with cross-links between roles when you ask.',
+		'Indexed documents lead factual answers when configured (Doc Discovery + vectors); then DAFS/ISUN, legal, field, and economics — one coherent reply.',
 	assistantTriadHint:
 		'Choose a focus — the model still cross-links roles. "Team" balances all three in one answer.',
 	personaUnified: 'Team',

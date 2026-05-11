@@ -8,6 +8,7 @@ import { isChatLlmConfigured } from '../lib/llm-env';
 import { isMistralConfigured } from '../lib/mistral-env';
 import { isOllamaConfigured } from '../lib/ollama-env';
 import { handleChatPost } from '../lib/chat-handler';
+import { clientIpFromNodeRequest } from '../lib/client-ip';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
@@ -207,7 +208,7 @@ const server = http.createServer(async (req, res) => {
           send(res, 400, { error: 'Invalid JSON' });
           return;
         }
-        const result = await handleContactPost(body);
+        const result = await handleContactPost(body, { clientIp: clientIpFromNodeRequest(req) });
         if (result.ok) {
           send(res, 200, { ok: true, mailDelivery: result.mailDelivery });
           return;
@@ -222,7 +223,9 @@ const server = http.createServer(async (req, res) => {
           send(res, 400, { error: 'Invalid JSON' });
           return;
         }
-        const result = await handleRegisterInterestPost(body);
+        const result = await handleRegisterInterestPost(body, {
+          clientIp: clientIpFromNodeRequest(req),
+        });
         if (result.ok) {
           send(res, 200, {
             ok: true,

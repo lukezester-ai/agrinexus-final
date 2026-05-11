@@ -59,6 +59,7 @@ import type { FarmProductionFocus } from './lib/subsidy-calculator';
 import { FIELD_WATCH_OBLAST_PRESETS } from './lib/field-watch-oblast-presets';
 import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
 import { useSupabaseSession } from './hooks/use-supabase-session';
+import { LEAD_FORM_HP_FIELD } from './lib/form-bot-guard';
 
 function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 	return lang === 'bg' ? bg : en;
@@ -71,6 +72,11 @@ const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 const DEV_API_PORT_HINT =
 	String(import.meta.env.VITE_DEV_API_PORT ?? '').trim() || '8788';
 const COOKIE_CONSENT_KEY = 'agrinexus-cookie-consent';
+/** Set after successful interest signup when the user accepted non-essential cookies (prefill email on return). */
+const REGISTER_ACCOUNT_COOKIE = 'agrinexus_register_email';
+const REGISTER_ACCOUNT_LOCAL_KEY = 'agrinexus-register-email-saved';
+/** Same-tab session prefill when long-term cookie/localStorage is not used (no consent or rejected). */
+const REGISTER_ACCOUNT_SESSION_KEY = 'agrinexus-register-email-session';
 type CookieConsent = 'accepted' | 'rejected';
 
 /** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) — those crash the whole app with a blank screen. */
@@ -120,6 +126,58 @@ function safeSessionRemove(key: string): void {
 	} catch {
 		/* ignore */
 	}
+}
+
+function getBrowserCookie(name: string): string | null {
+	if (typeof document === 'undefined') return null;
+	try {
+		const segment = `; ${document.cookie}`.split(`; ${name}=`);
+		if (segment.length < 2) return null;
+		const raw = segment.pop()?.split(';').shift();
+		return raw ? decodeURIComponent(raw) : null;
+	} catch {
+		return null;
+	}
+}
+
+function setBrowserCookie(name: string, value: string, maxAgeSec: number): void {
+	if (typeof document === 'undefined') return;
+	try {
+		const secure =
+			typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+		document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAgeSec}; SameSite=Lax${secure}`;
+	} catch {
+		/* ignore */
+	}
+}
+
+function readRegisterAccountHint(): string | null {
+	const fromCookie = getBrowserCookie(REGISTER_ACCOUNT_COOKIE)?.trim();
+	if (fromCookie) return fromCookie;
+	const fromLocal = safeLocalGet(REGISTER_ACCOUNT_LOCAL_KEY)?.trim();
+	if (fromLocal) return fromLocal;
+	return safeSessionGet(REGISTER_ACCOUNT_SESSION_KEY)?.trim() || null;
+}
+
+function persistRegisterAccountHint(
+	emailTrim: string,
+	cookieConsent: CookieConsent | null
+): void {
+	if (!emailTrim) return;
+	if (cookieConsent === 'accepted') {
+		safeSessionRemove(REGISTER_ACCOUNT_SESSION_KEY);
+		const maxAge = 180 * 24 * 60 * 60;
+		setBrowserCookie(REGISTER_ACCOUNT_COOKIE, emailTrim, maxAge);
+		safeLocalSet(REGISTER_ACCOUNT_LOCAL_KEY, emailTrim);
+	} else {
+		safeSessionSet(REGISTER_ACCOUNT_SESSION_KEY, emailTrim);
+	}
+}
+
+function clearRegisterAccountHint(): void {
+	safeLocalRemove(REGISTER_ACCOUNT_LOCAL_KEY);
+	safeSessionRemove(REGISTER_ACCOUNT_SESSION_KEY);
+	setBrowserCookie(REGISTER_ACCOUNT_COOKIE, '', 0);
 }
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
@@ -651,6 +709,9 @@ export default function App() {
 		FIELD_WATCH_OBLAST_PRESETS.find((city) => city.id === selectedFieldCityId) ??
 		FIELD_WATCH_OBLAST_PRESETS[0];
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
+	const registerEmailHintHydratedRef = useRef(false);
+	const registerFormOpenedAtRef = useRef(Date.now());
+	const contactFormOpenedAtRef = useRef(Date.now());
 
 	const demoSessionEmail = useMemo(() => {
 		const e = safeLocalGet('agrinexus-demo-email');
@@ -673,6 +734,7 @@ export default function App() {
 	const [regEmail, setRegEmail] = useState('');
 	const [regPassword, setRegPassword] = useState('');
 	const [regPasswordConfirm, setRegPasswordConfirm] = useState('');
+	const [regHp, setRegHp] = useState('');
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
 
@@ -684,8 +746,10 @@ export default function App() {
 	const [contactEmail, setContactEmail] = useState('');
 	const [contactCompany, setContactCompany] = useState('');
 	const [contactBody, setContactBody] = useState('');
+	const [contactHp] = useState('');
 	const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [contactFeedback, setContactFeedback] = useState('');
+	const [leadFormAntiBotReady, setLeadFormAntiBotReady] = useState(false);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
 	/** Empty OK; if user types a name, require at least 2 characters (matches server normalization). */
@@ -695,6 +759,7 @@ export default function App() {
 	const canSubmitRegister =
 		isValidEmail(regEmail) &&
 		regNameOk &&
+		leadFormAntiBotReady &&
 		(!supabaseRegisterEnabled || (regPasswordOkForCloud && regPasswordsMatch));
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
 	const showRegisterNameError = regFullName.trim().length > 0 && !regNameOk;
@@ -710,6 +775,27 @@ export default function App() {
 		lang === 'bg'
 			? 'Моля, въведете валиден имейл адрес.'
 			: 'Please enter a valid email address.';
+
+	useEffect(() => {
+		contactFormOpenedAtRef.current = Date.now();
+		if (view !== 'register') {
+			registerEmailHintHydratedRef.current = false;
+			return;
+		}
+		registerFormOpenedAtRef.current = Date.now();
+		if (registerEmailHintHydratedRef.current) return;
+		registerEmailHintHydratedRef.current = true;
+		const hint = readRegisterAccountHint();
+		if (hint && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hint)) {
+			setRegEmail((prev) => (prev.trim().length > 0 ? prev : hint.trim()));
+		}
+	}, [view]);
+
+	useEffect(() => {
+		setLeadFormAntiBotReady(false);
+		const id = window.setTimeout(() => setLeadFormAntiBotReady(true), 2100);
+		return () => clearTimeout(id);
+	}, [view]);
 
 	const dealContextForAI = useMemo(() => {
 		const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
@@ -997,6 +1083,8 @@ export default function App() {
 					marketFocus: '',
 					subscribeAlerts: false,
 					locale: lang === 'bg' ? 'bg' : 'en',
+					hpCompanyWebsite: regHp,
+					formOpenedAt: registerFormOpenedAtRef.current,
 				}),
 			});
 			let data: {
@@ -1021,8 +1109,10 @@ export default function App() {
 				return;
 			}
 			setRegStatus('ok');
+			persistRegisterAccountHint(emailTrim, cookieConsent);
 			const supabaseClient = getSupabaseBrowserClient();
 			let cloudAuthMsg: string | null = null;
+			let supabaseSignupFailed = false;
 			if (supabaseClient) {
 				const redirect = `${window.location.origin}${window.location.pathname}`;
 				const display =
@@ -1056,6 +1146,7 @@ export default function App() {
 					} else {
 						cloudAuthMsg =
 							`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
+						supabaseSignupFailed = true;
 					}
 				} else if (signUpData.session) {
 					cloudAuthMsg = tr.registerCloudSignupOkSession;
@@ -1080,6 +1171,9 @@ export default function App() {
 			if (cloudAuthMsg) {
 				setRegMsg((prev) => (prev ? `${prev}\n${cloudAuthMsg}` : cloudAuthMsg));
 			}
+			if (supabaseSignupFailed) {
+				setRegStatus('err');
+			}
 			setRegPassword('');
 			setRegPasswordConfirm('');
 		} catch {
@@ -1090,6 +1184,15 @@ export default function App() {
 
 	const submitContact = async () => {
 		if (contactStatus === 'loading' || !contactEmail.trim() || !contactBody.trim()) return;
+		if (!leadFormAntiBotReady) {
+			setContactStatus('err');
+			setContactFeedback(
+				lang === 'bg'
+					? 'Моля, изчакайте секунда-две и опитайте отново.'
+					: 'Please wait a moment and try again.'
+			);
+			return;
+		}
 		if (!isValidEmail(contactEmail)) {
 			setContactStatus('err');
 			setContactFeedback(
@@ -1111,6 +1214,8 @@ export default function App() {
 					company: contactCompany,
 					message: contactBody,
 					locale: lang === 'bg' ? 'bg' : 'en',
+					hpCompanyWebsite: contactHp,
+					formOpenedAt: contactFormOpenedAtRef.current,
 				}),
 			});
 			let data: {
@@ -2768,9 +2873,28 @@ export default function App() {
 			)}
 
 			{view === 'register' && (
-				<section className="section">
+				<section className="section" style={{ position: 'relative' }}>
 					<h2>{tr.registerTitle}</h2>
 					<p className="muted">{tr.registerSubtitle}</p>
+					<div
+						aria-hidden="true"
+						style={{
+							position: 'absolute',
+							left: -9999,
+							width: 1,
+							height: 1,
+							overflow: 'hidden',
+						}}>
+						<input
+							id="agrinexus-reg-hp"
+							name={LEAD_FORM_HP_FIELD}
+							type="text"
+							tabIndex={-1}
+							autoComplete="off"
+							value={regHp}
+							onChange={(e) => setRegHp(e.target.value)}
+						/>
+					</div>
 					<div className="form-grid">
 						<input
 							placeholder={tr.fullNamePh}
@@ -3108,6 +3232,7 @@ export default function App() {
 								onClick={() => {
 									safeLocalRemove(COOKIE_CONSENT_KEY);
 									safeSessionRemove('agrinexus-visit-tracked');
+									clearRegisterAccountHint();
 									setCookieConsent(null);
 								}}>
 								{tr.cookieConsentManage}

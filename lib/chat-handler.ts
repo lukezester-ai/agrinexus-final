@@ -1,5 +1,6 @@
 import type { ChatPersona } from './chat-persona';
 import { buildAgrinexusPlatformRagPreamble } from './agrinexus-platform-rag-context.js';
+import { MAX_CHAT_RAG_COMBINED_CHARS } from './rag-limits.js';
 import { parseChatPersona } from './chat-persona.js';
 import { buildDocDiscoveryRagContextForChat } from './doc-discovery-chat-rag.js';
 import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing.js';
@@ -71,25 +72,25 @@ function systemPrompt(
   const retrievalFirst =
     hasRetrievedDocs
       ? locale === 'bg'
-        ? '**Retrieval-first:** Когато по-долу има „RETRIEVED CONTENT“ или „RELATED DOCUMENTS“, тези откъси и линкове са **водещи за факти** пред общите познания на модела. Цитирай URL; не противоречи на индексирания текст без да кажеш, че проверяваш официалния източник.\n\n'
-        : '**Retrieval-first:** When “RETRIEVED CONTENT” or “RELATED DOCUMENTS” appears below, treat excerpts and URLs as **authoritative for facts** ahead of model priors. Cite URLs; do not contradict indexed text without telling the user to verify the official source.\n\n'
+        ? '**RAG-led (водещ режим):** Ако по-долу има „RETRIEVED CONTENT“ или „RELATED DOCUMENTS“, отговорът е **воден от тези откъси** — структурирай първия смислов блок около тях (какво казват, кой URL). Общите познания на модела са **вторични** за факти, докато не изчерпиш какво е покрито в retrieval; после допълни с DAFS/обща ориентация и ясно отдели „от индекса“ vs „обща рамка“. Цитирай URL; не противоречи на индексирания текст без да подканиш към официалния източник.\n\n'
+        : '**RAG-led mode:** When “RETRIEVED CONTENT” or “RELATED DOCUMENTS” appears below, the answer is **led by those excerpts** — open the substantive part around them (what they say, which URL). Model priors are **secondary for facts** until you have used what retrieval covers; then add DAFS/general orientation and clearly separate “from index” vs “general framing”. Cite URLs; do not contradict indexed text without steering the user to verify the official source.\n\n'
       : '';
 
   const ragTail =
     ragBlock.trim().length > 0
       ? locale === 'bg'
-        ? '\n5) **Контекст** — по-долу: платформена карта на модулите AgriNexus и (ако има) RETRIEVAL SNAPSHOTS от индексирани документи. Това не е „резервен“ слой: при налични откъси retrieval е равностоен на DAFS ориентацията за факти от тези документи. Използвай картата за навигация в UI; retrieval за официални източници; в source посочи кои URL са ползвани; не преписвай текст, който не виждаш.'
-        : '\n5) **Context** — below: AgriNexus module map plus optional RETRIEVAL SNAPSHOTS from indexed docs. This is not a “backup” layer: when excerpts exist, retrieval is co-equal with DAFS orientation for facts from those documents. Use the map for UI navigation; use retrieval for official sources; state which URLs informed source; do not quote unseen bodies.'
+        ? '\n5) **Контекст (RAG-led)** — по-долу: платформена карта + при наличие RETRIEVAL от индексирани документи. При откъси: **води отговора от тях** (факти, цитати, линкове), после подреди DAFS/ИСУН и останалите приоритети. Картата на модулите е за UI навигация. В `source` изброи URL от retrieval, които си ползвал; не цитирай текст извън показаните откъси.'
+        : '\n5) **Context (RAG-led)** — below: platform module map plus optional RETRIEVAL from indexed docs. When excerpts exist: **lead the answer from them** (facts, quotes, links), then layer DAFS/ISUN and the other priorities. The module map is for UI navigation. In `source` list retrieval URLs you used; do not quote bodies you did not see in excerpts.'
       : '';
 
-  return `You are AgriNexus — the **farmer operating system** assistant. You are NOT three separate chatbots. You combine legal clarity, agronomic practice, and farm economics so documentation stays the spine of the answer.
+  return `You are AgriNexus — the **farmer operating system** assistant. When indexed document excerpts appear below, you operate in **RAG-led** mode for factual claims. You are NOT three separate chatbots. You combine legal clarity, agronomic practice, and farm economics so documentation stays the spine of the answer.
 
 ${langRule}
 
 ${retrievalFirst}Active lens: ${persona}
 ${mode}
 
-Priority (all modes):
+Priority (all modes)${hasRetrievedDocs ? (locale === 'bg' ? ' — при налични RETRIEVED/RELATED блокове започни от тях, после точки 1–4:' : ' — when RETRIEVED/RELATED blocks exist, start from them, then items 1–4:') : ':'}
 1) **Documentation / DAFS / ISUN** — what to file, by when, what proves it; never replace official portals (dfz.bg, ISUN) or qualified advisers.
 2) **Legal** — translate regulation into plain language; explicit "must / must not" where reasonable; flag sanction or inspection risk.
 3) **Agronomy** — link real operations to paperwork (e.g. if user sprays X → what to record, what to declare, retention).
@@ -108,7 +109,7 @@ Safety:
 Output format (strict):
 - Your entire message MUST be one JSON object only (no markdown fences), keys: answer, confidence, source, in_scope.
 - confidence: low | medium | high
-- source: short basis e.g. "Farmer snapshot + marketplace filter" or "General DAFS orientation (user must verify)".
+- source: if indexed excerpts drove facts, start with "RAG-led" and name the URLs used; otherwise short basis e.g. "Farmer snapshot + marketplace filter" or "General DAFS orientation (user must verify)".
 - answer: structured text; in unified mode use line breaks and the four subtitles above in the user's language.
 
 Trade snapshot (filtered deals — demo):
@@ -386,9 +387,8 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     : '';
   const platformPreamble = buildAgrinexusPlatformRagPreamble(locale);
   let ragBlock = [platformPreamble, retrievalBlock].filter((s) => s.trim().length > 0).join('\n\n');
-  const MAX_COMBINED_RAG_CHARS = 22000;
-  if (ragBlock.length > MAX_COMBINED_RAG_CHARS) {
-    ragBlock = truncate(ragBlock, MAX_COMBINED_RAG_CHARS);
+  if (ragBlock.length > MAX_CHAT_RAG_COMBINED_CHARS) {
+    ragBlock = truncate(ragBlock, MAX_CHAT_RAG_COMBINED_CHARS);
   }
 
   const { provider, completionUrl, bearer, model, useJsonObjectFormat } = upstream;

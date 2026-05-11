@@ -10,9 +10,12 @@ import {
   registerNotificationSubject,
   sendInboundNotification,
 } from './email.js';
+import { assertLeadFormAntiBot } from './form-bot-guard.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+[1-9]\d{7,14}$/;
+
+export type LeadHandlerCtx = { clientIp?: string | null };
 
 function normalizePhone(value: string): string {
   const digitsOnly = value.replace(/\D/g, '');
@@ -29,7 +32,8 @@ async function maybeAppendJsonl(record: Record<string, unknown>): Promise<void> 
 }
 
 export async function handleContactPost(
-  rawBody: unknown
+  rawBody: unknown,
+  ctx?: LeadHandlerCtx
 ): Promise<
   | { ok: true; mailDelivery: 'sent' | 'skipped' }
   | { ok: false; status: number; error: string; hint?: string }
@@ -38,6 +42,10 @@ export async function handleContactPost(
     return { ok: false, status: 400, error: 'Invalid JSON body' };
   }
   const b = rawBody as Record<string, unknown>;
+  const anti = assertLeadFormAntiBot(b, { clientIp: ctx?.clientIp ?? null });
+  if (!anti.ok) {
+    return { ok: false, status: anti.status, error: anti.error, hint: anti.hint };
+  }
   const email = typeof b.email === 'string' ? b.email.trim() : '';
   const message = typeof b.message === 'string' ? b.message.trim() : '';
   const name = typeof b.name === 'string' ? b.name.trim() : '';
@@ -77,7 +85,8 @@ export async function handleContactPost(
 }
 
 export async function handleRegisterInterestPost(
-  rawBody: unknown
+  rawBody: unknown,
+  ctx?: LeadHandlerCtx
 ): Promise<
   | { ok: true; preview?: string; mailDelivery: 'sent' | 'skipped' }
   | { ok: false; status: number; error: string; hint?: string }
@@ -86,6 +95,10 @@ export async function handleRegisterInterestPost(
     return { ok: false, status: 400, error: 'Invalid JSON body' };
   }
   const b = rawBody as Record<string, unknown>;
+  const anti = assertLeadFormAntiBot(b, { clientIp: ctx?.clientIp ?? null });
+  if (!anti.ok) {
+    return { ok: false, status: anti.status, error: anti.error, hint: anti.hint };
+  }
   const rawFullName = typeof b.fullName === 'string' ? b.fullName.trim() : '';
   const companyName = typeof b.companyName === 'string' ? b.companyName.trim() : '';
   const businessEmail = typeof b.businessEmail === 'string' ? b.businessEmail.trim() : '';

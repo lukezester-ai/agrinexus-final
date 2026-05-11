@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { clientIpFromVercelRequest } from '../lib/client-ip.js';
 import { handleRegisterInterestPost } from '../lib/leads-handler.js';
 import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
@@ -21,7 +22,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const result = await handleRegisterInterestPost(parsed);
+  const result = await handleRegisterInterestPost(parsed, {
+    clientIp: clientIpFromVercelRequest(req),
+  });
   if (result.ok) {
     res.status(200).json({ ok: true, preview: result.preview, mailDelivery: result.mailDelivery });
     return;
