@@ -51,7 +51,11 @@ export const STR_EN = {
 	fieldWatchPageSubtitle:
 		'Interactive field monitoring map with timelapse, Sentinel/NASA layers, and NDVI mode.',
 	fieldWatchOpenLegacy: 'Open in new tab',
-	fieldWatchAskAiOblast: 'Ask AI for this oblast',
+	fieldWatchCenterMapOnOblast: 'Center map on oblast',
+	fieldWatchMapToolbarHint:
+		'Changing the oblast moves the map. To search a town or address, use the search bar on the map itself. The AI action below opens the assistant — it does not search the map.',
+	fieldWatchAskAiOblast: 'Open AI assistant for this oblast',
+	fieldWatchAskAiOblastHint: 'Separate from map search — opens the chat with a prefilled prompt.',
 	fieldWatchMobileShort: 'Map',
 	navClients: 'Clients',
 	navWatchlist: 'Operations',

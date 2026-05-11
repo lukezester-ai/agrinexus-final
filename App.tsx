@@ -705,6 +705,7 @@ export default function App() {
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
 	);
 	const [selectedFieldCityId, setSelectedFieldCityId] = useState<string>('dobrich');
+	const [fieldWatchRecenterNonce, setFieldWatchRecenterNonce] = useState(0);
 	const selectedFieldCity =
 		FIELD_WATCH_OBLAST_PRESETS.find((city) => city.id === selectedFieldCityId) ??
 		FIELD_WATCH_OBLAST_PRESETS[0];
@@ -3142,6 +3143,42 @@ export default function App() {
 						</select>
 						<button
 							type="button"
+							className="btn btn-primary"
+							onClick={() => setFieldWatchRecenterNonce((n) => n + 1)}>
+							{tr.fieldWatchCenterMapOnOblast}
+						</button>
+					</div>
+					<p className="muted" style={{ margin: '0 0 12px', fontSize: '.82rem', lineHeight: 1.45 }}>
+						{tr.fieldWatchMapToolbarHint}
+					</p>
+					<div
+						style={{
+							border: '1px solid var(--line)',
+							borderRadius: 14,
+							overflow: 'hidden',
+							background: '#0b1120',
+							minHeight: isMobileViewport ? '62vh' : 'min(760px, 74vh)',
+						}}>
+						<FieldWatchLeaflet
+							lang={lang}
+							initialLat={selectedFieldCity.lat}
+							initialLon={selectedFieldCity.lon}
+							initialZoom={12}
+							recenterNonce={fieldWatchRecenterNonce}
+							onWeatherAnchor={() => setView('weather')}
+						/>
+					</div>
+					<div
+						className="contact-panel"
+						style={{
+							marginTop: 12,
+							display: 'flex',
+							flexWrap: 'wrap',
+							gap: 10,
+							alignItems: 'center',
+						}}>
+						<button
+							type="button"
 							className="btn btn-outline"
 							onClick={() => {
 								const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
@@ -3155,23 +3192,9 @@ export default function App() {
 							}}>
 							{tr.fieldWatchAskAiOblast}
 						</button>
-					</div>
-					<div
-						style={{
-							border: '1px solid var(--line)',
-							borderRadius: 14,
-							overflow: 'hidden',
-							background: '#0b1120',
-							minHeight: isMobileViewport ? '62vh' : 'min(760px, 74vh)',
-						}}>
-						<FieldWatchLeaflet
-							key={selectedFieldCityId}
-							lang={lang}
-							initialLat={selectedFieldCity.lat}
-							initialLon={selectedFieldCity.lon}
-							initialZoom={12}
-							onWeatherAnchor={() => setView('weather')}
-						/>
+						<span className="muted" style={{ fontSize: '.8rem', lineHeight: 1.4, maxWidth: 520 }}>
+							{tr.fieldWatchAskAiOblastHint}
+						</span>
 					</div>
 				</section>
 			)}

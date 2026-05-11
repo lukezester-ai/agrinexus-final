@@ -24,6 +24,8 @@ export type FieldWatchLeafletProps = {
 	initialLat: number;
 	initialLon: number;
 	initialZoom?: number;
+	/** Increment from parent to fly back to `initialLat`/`initialLon` (e.g. after user panned away). */
+	recenterNonce?: number;
 	onWeatherAnchor?: (lat: number, lon: number) => void;
 };
 
@@ -64,6 +66,7 @@ export function FieldWatchLeaflet({
 	initialLat,
 	initialLon,
 	initialZoom = 12,
+	recenterNonce = 0,
 	onWeatherAnchor,
 }: FieldWatchLeafletProps) {
 	const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -222,8 +225,8 @@ export function FieldWatchLeaflet({
 	useEffect(() => {
 		const map = mapRef.current;
 		if (!map) return;
-		map.setView([initialLat, initialLon], map.getZoom());
-	}, [initialLat, initialLon]);
+		map.setView([initialLat, initialLon], initialZoom);
+	}, [initialLat, initialLon, initialZoom, recenterNonce]);
 
 	const copyGeoJson = () => {
 		if (!polygonGeoJson) return;

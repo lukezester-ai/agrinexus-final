@@ -53,7 +53,11 @@ export const STR_BG = {
 	fieldWatchPageSubtitle:
 		'Интерактивна карта за наблюдение на полета с timelapse, слоеве Sentinel/NASA и режим NDVI.',
 	fieldWatchOpenLegacy: 'Отвори в нов раздел',
-	fieldWatchAskAiOblast: 'Попитай AI за тази област',
+	fieldWatchCenterMapOnOblast: 'Центрирай картата към областта',
+	fieldWatchMapToolbarHint:
+		'Смяната на областта премества картата. За населено място или адрес ползвайте лентата за търсене върху самата карта. Бутонът за AI по-долу отваря чата — той не търси в картата.',
+	fieldWatchAskAiOblast: 'Отвори AI помощник за тази област',
+	fieldWatchAskAiOblastHint: 'Отделно от търсенето на картата — отваря чат с готова подкана.',
 	fieldWatchMobileShort: 'Карта',
 	navClients: 'Клиенти',
 	navWatchlist: 'Operations',
