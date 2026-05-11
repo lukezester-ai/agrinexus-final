@@ -2345,7 +2345,8 @@ export default function App() {
 				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
 					<Leaf color="#a8d98a" size={24} aria-hidden />
 					<span className="brand-wordmark">
-						<span className="brand-nexus">SIMA</span>
+						<span className="brand-agri">Agri</span>
+						<span className="brand-nexus">Nexus</span>
 					</span>
 				</button>
 				<div className="nav-actions" ref={navFlyoutRef}>
@@ -2547,31 +2548,9 @@ export default function App() {
 				<section className="section hero landing-hero">
 					<div className="landing-hero-inner">
 						<h1 className="brand-wordmark">
-							<span className="brand-nexus">SIMA</span>
+							<span className="brand-agri">Agri</span>
+							<span className="brand-nexus">Nexus</span>
 						</h1>
-						<p
-							className="green-note"
-							style={{
-								margin: 'clamp(10px, 2vw, 18px) auto 0',
-								textAlign: 'center',
-								maxWidth: 'min(560px, 92vw)',
-								fontSize: 'clamp(0.9rem, 2.4vw, 1.05rem)',
-								lineHeight: 1.5,
-								fontWeight: 650,
-							}}>
-							{tr.taglineProducerBuyerBridge}
-						</p>
-						<p
-							className="muted"
-							style={{
-								margin: '8px auto 0',
-								textAlign: 'center',
-								maxWidth: 'min(520px, 92vw)',
-								fontSize: 'clamp(0.78rem, 2vw, 0.88rem)',
-								lineHeight: 1.45,
-							}}>
-							{tr.brandFoundationNote}
-						</p>
 					</div>
 				</section>
 			)}
@@ -3274,17 +3253,6 @@ export default function App() {
 
 			<footer className="site-footer">
 				<div className="site-footer-inner">
-					<p
-						className="muted"
-						style={{
-							margin: '0 0 14px',
-							textAlign: 'center',
-							width: '100%',
-							fontSize: '.82rem',
-							lineHeight: 1.45,
-						}}>
-						{tr.brandFoundationNote}
-					</p>
 					<div className="site-footer-links">
 						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
 							info@agrinexus.eu

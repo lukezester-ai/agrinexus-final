@@ -18,23 +18,6 @@ export const STR_EN = {
 	navSeasonCalendarShort: 'Season',
 	navWeather: 'Weather brief',
 	navWeatherShort: 'Weather',
-	navMarket: 'Vegetable preserves (market)',
-	navMarketShort: 'Market',
-	marketPageTitle: 'Vegetable preserves — factory gate board',
-	marketPageSubtitle:
-		'Illustrative EXW demo prices in BGN (ex VAT). Values are recalculated on each local calendar day using a deterministic simulation — not live factory quotes.',
-	marketAsOfLabel: 'Price board date',
-	marketDailyRefreshNote:
-		'Updates automatically after midnight (local time); if you keep this tab open, numbers refresh when the date changes.',
-	marketColCategory: 'Category',
-	marketColProduct: 'Product',
-	marketColPack: 'Packaging',
-	marketColPriceBgn: 'EXW (BGN)',
-	marketColPriceEur: '≈ EUR',
-	marketColUnit: 'Unit',
-	marketColNotes: 'Notes',
-	marketDemoDailyNote:
-		'Daily change is a bounded deterministic adjustment around the template list for UX only — wire a real pricing feed when you have one.',
 	weatherTitle: 'Weather brief & PDF report',
 	weatherSubtitle:
 		'Seven-day outlook by oblast centre (Open-Meteo). Export a one-page PDF to share with your team or advisor.',
@@ -77,19 +60,32 @@ export const STR_EN = {
 	navGroupMarkets: 'Statistics',
 	navGroupMarketsShort: 'Stats',
 	navMeteoPdf: 'Weather+PDF',
+	navMarket: 'Vegetable preserves (SIMA market)',
+	navMarketShort: 'SIMA market',
+	marketPageTitle: 'Vegetable preserves — SIMA factory gate board',
+	marketPageSubtitle:
+		'Illustrative EXW demo prices in BGN (ex VAT). Values are recalculated on each local calendar day using a deterministic simulation — not live factory quotes.',
+	marketAsOfLabel: 'Price board date',
+	marketDailyRefreshNote:
+		'Updates automatically after midnight (local time); if you keep this tab open, numbers refresh when the date changes.',
+	marketColCategory: 'Category',
+	marketColProduct: 'Product',
+	marketColPack: 'Packaging',
+	marketColPriceBgn: 'EXW (BGN)',
+	marketColPriceEur: '≈ EUR',
+	marketColUnit: 'Unit',
+	marketColNotes: 'Notes',
+	marketDemoDailyNote:
+		'Daily change is a bounded deterministic adjustment around the template list for UX only — wire a real pricing feed when you have one.',
 	navGroupFarm: 'Field & support',
 	navGroupFarmShort: 'Field',
 	skipToContent: 'Skip to content',
 	navPrimaryAria: 'Primary navigation',
 	mobileNavAria: 'Mobile menu',
-	brandHomeAria: 'SIMA — home',
+	brandHomeAria: 'AgriNexus — home',
 	langAria: 'Switch language',
-	taglineProducerBuyerBridge:
-		'SIMA sits between producer and buyer — a shared layer for price signals, compliance, and documents. You still close the trade directly with each other.',
-	brandFoundationNote:
-		'AgriNexus is the technology foundation — compliance spine, data, and AI runtime behind SIMA.',
 	heroSub:
-		'AgriNexus is the platform core; SIMA is the experience you use here — one agri-food workspace for compliance deadlines, crop analytics, import/export paperwork, weather and field operations, and food-security economics, with a domain-tuned AI assistant that blends legal, agronomic, and financial guidance. Figures shown in the app are illustrative unless otherwise agreed.',
+		'AgriNexus is a global agri-food workspace for compliance deadlines, crop analytics, import/export paperwork, weather and field operations, and food-security economics — together with a domain-tuned AI assistant that blends legal, agronomic, and financial guidance for your context. Figures shown in the app are illustrative unless otherwise agreed.',
 	portalMenaTitle: 'HALAL & compliance',
 	portalMenaSub: 'Export to UAE / KSA',
 	portalMarginTitle: 'Margin analysis',
@@ -114,7 +110,7 @@ export const STR_EN = {
 	landingGlassIntelLi5: 'Technical support: info@agrinexus.eu.',
 	landingGlassIntelCta: 'Open statistics & modules',
 	landingGlassFooterLead: 'Commercial inquiries or demos — reach us by email.',
-	landingGlassEmailAria: 'Send email to SIMA sales',
+	landingGlassEmailAria: 'Send email to AgriNexus sales',
 	portalFarmSubCommand: 'Your plan — deadlines & documents',
 	portalLogisticsSubFileUpload: 'Upload files',
 	navFileUploadShort: 'Upload',
@@ -137,10 +133,10 @@ export const STR_EN = {
 	assistantCollapseTools: 'Hide toolbar',
 	assistantExpandTools: 'Show toolbar',
 	assistantLegalFooter:
-		'SIMA is not liable for actions taken based on AI replies. Confirm real trades with your team.',
+		'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
 	chatThinking: 'Thinking…',
 	chatPromptsLabel: 'Quick prompts',
-	chatPromptsScrollHint: 'On a narrow screen, scroll inside the chat panel; on a larger screen, scroll the page',
+	chatPromptsScrollHint: 'More prompts — scroll this list',
 	assistantCertPdfSectionTitle: 'Bio certification — reference PDFs',
 	assistantCertPdfPickPersona: 'Pick Legal, Agronomy, or Finance above to see curated PDFs for that role.',
 	chatClear: 'Clear',
@@ -187,7 +183,7 @@ export const STR_EN = {
 	loginMagicSent: 'Check your email for the sign-in link.',
 	loginSignedInCloud: 'Signed in:',
 	loginSignOutCloud: 'Sign out (cloud)',
-	companyTitle: 'SIMA - Company Card',
+	companyTitle: 'AgriNexus - Company Card',
 	companySubtitle:
 		'A domain-tuned AI layer for global agri-food trade. Roadmap: exchange and reference price feeds, buyer–seller matching, predictive pricing, and alerts—beyond today’s demonstration experience.',
 	companyRegions: 'Regions: worldwide corridors (Europe, MENA, Americas, Asia & beyond)',
@@ -208,7 +204,7 @@ export const STR_EN = {
 	privacyP1:
 		'This site processes information you voluntarily submit via the contact form, interest registration, or direct team inquiries. We use it to respond and, where you opt in, for programme and trade alerts.',
 	privacyP2:
-		'Some features rely on browser-local storage (language, chat draft, operations hub tasks and notes, optional workspace pins). That data is not sent to SIMA until you submit a form.',
+		'Some features rely on browser-local storage (language, chat draft, operations hub tasks and notes, optional workspace pins). That data is not sent to AgriNexus until you submit a form.',
 	privacyP3:
 		'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
 	privacyP4: 'Questions about data: info@agrinexus.eu',
@@ -220,11 +216,11 @@ export const STR_EN = {
 	termsTitle: 'Terms of use',
 	termsBackHome: 'Back to home',
 	termsP1:
-		'SIMA content, including the AI assistant, is illustrative and for demonstration unless expressly agreed otherwise under contract.',
+		'AgriNexus content, including the AI assistant, is illustrative and for demonstration unless expressly agreed otherwise under contract.',
 	termsP2:
 		'Nothing here is legal, financial, or investment advice. Trade decisions remain your responsibility with independent verification.',
 	termsP3:
-		'SIMA and site operators are not liable for losses based on demo data or automated assistant replies.',
+		'AgriNexus and site operators are not liable for losses based on demo data or automated assistant replies.',
 	subsidyCalcTitle: 'Rough subsidy range (indicative)',
 	subsidyCalcSubtitle:
 		'Three fields — approximate BGN/year range for direct payments (simplified model, not official).',
@@ -393,7 +389,7 @@ export const STR_EN = {
 		'Volume heuristic: a lower next-year harvest vs the demo average nudges the illustrative price up (and vice versa), capped for stability.',
 	foodSecTitle: 'Food security — programme break-even',
 	foodSecSubtitle:
-		'Turn staple-tonne programmes into investor-visible narratives: start from presets (different commercial angles), stress-test price and yield shocks, scan heuristic „business angles“, and capture hypotheses — SIMA stays the showcase layer.',
+		'Turn staple-tonne programmes into investor-visible narratives: start from presets (different commercial angles), stress-test price and yield shocks, scan heuristic „business angles“, and capture hypotheses — AgriNexus stays the showcase layer.',
 	foodSecPresetsTitle: 'Starter scenarios (business angles)',
 	foodSecPresetUrbanStaple: 'Domestic staple basket',
 	foodSecPresetExportCorridor: 'Export surplus corridor',

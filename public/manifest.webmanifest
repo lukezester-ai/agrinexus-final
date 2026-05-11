@@ -1,6 +1,6 @@
 {
-	"name": "SIMA",
-	"short_name": "SIMA",
+	"name": "AgriNexus",
+	"short_name": "AgriNexus",
 	"description": "Agricultural trade and farmer compliance tools",
 	"start_url": ".",
 	"display": "standalone",

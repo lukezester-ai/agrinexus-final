@@ -34,11 +34,16 @@ export function VegetableConserveMarketView({ lang, tr }: Props) {
 			<div className="market-head">
 				<div>
 					<h2 style={{ margin: '0 0 6px' }}>{tr.marketPageTitle}</h2>
-					<p className="green-note" style={{ margin: '0 0 10px', maxWidth: 720, lineHeight: 1.5, fontWeight: 650 }}>
-						{tr.taglineProducerBuyerBridge}
-					</p>
-					<p className="muted" style={{ margin: '0 0 10px', maxWidth: 720, fontSize: '.85rem', lineHeight: 1.45 }}>
-						{tr.brandFoundationNote}
+					<p
+						style={{
+							margin: '0 0 10px',
+							maxWidth: 720,
+							lineHeight: 1.35,
+							fontWeight: 900,
+							color: '#f87171',
+							letterSpacing: '0.02em',
+						}}>
+						SIMA
 					</p>
 					<p className="muted" style={{ margin: 0, maxWidth: 720, lineHeight: 1.5 }}>
 						{tr.marketPageSubtitle}
