@@ -1827,9 +1827,13 @@ export default function App() {
           line-height: 1.5;
         }
         .section.assistant-route {
-          max-width: min(1400px, 96vw);
-          padding-left: max(12px, env(safe-area-inset-left, 0px));
-          padding-right: max(12px, env(safe-area-inset-right, 0px));
+          max-width: min(1400px, 100%);
+          width: 100%;
+          margin-left: auto;
+          margin-right: auto;
+          box-sizing: border-box;
+          padding-left: max(14px, env(safe-area-inset-left, 0px));
+          padding-right: max(14px, env(safe-area-inset-right, 0px));
         }
         .assistant-route-actions {
           display: flex;
@@ -1850,6 +1854,8 @@ export default function App() {
           flex-direction: column;
           max-height: none;
           min-height: 0;
+          width: 100%;
+          box-sizing: border-box;
           padding: 14px !important;
           overscroll-behavior-y: contain;
         }
@@ -1885,7 +1891,9 @@ export default function App() {
           flex-direction: column;
           gap: 10px;
           margin: 0;
-          padding: 8px 4px 8px 0;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 10px 8px;
         }
         /* По подразбиране: един скрол (страницата). На тесен екран (асистент) — компактен workbench с вътрешен скрол. */
         @media (max-width: 900px) {
@@ -1895,6 +1903,7 @@ export default function App() {
           body[data-assistant-route] .assistant-quick-prompts-scroll {
             max-height: 132px;
             overflow-y: auto;
+            padding-left: 6px;
             padding-right: 6px;
           }
           body[data-assistant-route] .assistant-msgs {
@@ -2210,6 +2219,10 @@ export default function App() {
             max-width: 100%;
           }
           .section { padding: 16px 10px 100px; }
+          .section.assistant-route {
+            padding-left: max(14px, env(safe-area-inset-left, 0px));
+            padding-right: max(14px, env(safe-area-inset-right, 0px));
+          }
           main#main-content .section:not(.landing-hero):not(.farm-dash-scope) {
             border-radius: 14px;
             margin-top: 8px;

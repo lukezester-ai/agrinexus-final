@@ -23,23 +23,23 @@ function truncate(s: string, max: number): string {
 function personaDirective(locale: ChatLocale, persona: ChatPersona): string {
   const u =
     locale === 'bg'
-      ? `Режим **unified**: един отговор с ясни подзаглавия «Документация», «Юрист», «Агроном», «Финанси» — трите роли работят заедно; първо документите и сроковете, после полето, после парите/пазара.`
-      : `Mode **unified**: one answer with clear subtitles Documentation, Legal, Agronomy, Finance — roles work together; documentation and deadlines first, then field practice, then money/markets.`;
+      ? `Режим unified: един отговор с кратки редове „Документация“, „Юрист“, „Агроном“, „Финанси“ (обикновени кавички) — ролите заедно; първо документи и срокове, после поле, после пари/пазар.`
+      : `Mode unified: one answer with short section labels "Documentation", "Legal", "Agronomy", "Finance" — roles together; documentation and deadlines first, then field, then money/markets.`;
 
   const l =
     locale === 'bg'
-      ? `Режим **lawyer**: водещо — норми, „трябва / не трябва“, санкции, срокове; в края 1–2 изречения какво да се впише в полето и какво значи за разходите.`
-      : `Mode **lawyer**: lead with rules, must/must-not, sanctions, deadlines; end with 1–2 sentences on field records and cost impact.`;
+      ? `Режим lawyer: водещо — норми, „трябва / не трябва“, санкции, срокове; в края 1–2 изречения какво да се впише в полето и какво значи за разходите.`
+      : `Mode lawyer: lead with rules, must/must-not, sanctions, deadlines; end with 1–2 sentences on field records and cost impact.`;
 
   const a =
     locale === 'bg'
-      ? `Режим **agronomist**: водещо — операции (пръскане, тор, семена) → какъв запис/декларация/доказателство се очаква в документацията; после кратък правен риск и икономически коментар.`
-      : `Mode **agronomist**: lead with operations (spray, fertiliser, seed) → required log/declaration/evidence; then brief legal risk and economics.`;
+      ? `Режим agronomist: водещо — операции (пръскане, тор, семена) → какъв запис/декларация/доказателство се очаква в документацията; после кратък правен риск и икономически коментар.`
+      : `Mode agronomist: lead with operations (spray, fertiliser, seed) → required log/declaration/evidence; then brief legal risk and economics.`;
 
   const f =
     locale === 'bg'
-      ? `Режим **finance**: водещо — субсидии, данъци, разходи, „струва ли си схемата“, пазар/логистика; но първи параграф напомня какво документално трябва да е наред за да се получат плащанията.`
-      : `Mode **finance**: lead on subsidies, taxes, costs, scheme ROI, market/logistics; first paragraph states documentation prerequisites for payments.`;
+      ? `Режим finance: водещо — субсидии, данъци, разходи, „струва ли си схемата“, пазар/логистика; но първи параграф напомня какво документално трябва да е наред за да се получат плащанията.`
+      : `Mode finance: lead on subsidies, taxes, costs, scheme ROI, market/logistics; first paragraph states documentation prerequisites for payments.`;
 
   if (persona === 'lawyer') return l;
   if (persona === 'agronomist') return a;
@@ -110,8 +110,8 @@ Safety:
 Output format (strict):
 - Your entire message MUST be one JSON object only (no markdown fences), keys: answer, confidence, source, in_scope.
 - confidence: low | medium | high
-- source: if indexed excerpts drove facts, start with "RAG-led" and name the URLs used; otherwise short basis e.g. "Farmer snapshot + marketplace filter" or "General DAFS orientation (user must verify)".
-- answer: structured text; in unified mode use line breaks and the four subtitles above in the user's language.
+- source: short internal note (URLs if RAG-led); not shown to the end user verbatim.
+- answer: plain readable text only — no markdown (no **, #, backticks), no guillemets « », no emoji or decorative bullets (• ▪ ◆). Use normal quotes and optional simple numbering 1. 2. when helpful. Keep sections compact for mobile.
 
 Trade snapshot (filtered deals — demo):
 ${deals}
@@ -253,6 +253,24 @@ function normalizeAnswerText(answer: string): string {
   return trimmed;
 }
 
+/** Премахва markdown/декоративни знаци от текста за чат (мобилен и четимост). */
+function sanitizeChatDisplayText(text: string): string {
+  let s = text.replace(/\r\n/g, '\n').trim();
+  // Markdown-ish
+  s = s.replace(/\*\*([^*]*)\*\*/g, '$1');
+  s = s.replace(/__([^_]+)__/g, '$1');
+  s = s.replace(/`+/g, '');
+  s = s.replace(/^#{1,6}\s+/gm, '');
+  s = s.replace(/^\s*[-*+]\s{2,}/gm, '- ');
+  // Typographic noise
+  s = s.replace(/[«»]/g, '"');
+  s = s.replace(/[▪●◆◇■□▸►✓✔✗★☆]/g, '');
+  s = s.replace(/\n-{3,}\n/g, '\n\n');
+  s = s.replace(/\*{2,}/g, '');
+  s = s.replace(/\n{4,}/g, '\n\n\n');
+  return s.trim();
+}
+
 function extractJsonishSection(raw: string, key: string): string {
   const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(`"${escapedKey}"\\s*:\\s*"([\\s\\S]*?)(?=",\\s*"[А-ЯA-Za-z_ ]+"\\s*:|"}\\s*}$)`);
@@ -305,17 +323,10 @@ function hasSensitiveDataLeak(text: string): boolean {
   return emailPattern.test(text) || keyPattern.test(text) || phonePattern.test(text);
 }
 
-function formatReply(locale: ChatLocale, envelope: ChatModelEnvelope): string {
-  const safeAnswer = truncate(normalizeAnswerText(envelope.answer), MAX_REPLY_CHARS);
-  const safeSource = truncate(envelope.source.trim(), 220);
-  if (locale === 'bg') {
-    return `${safeAnswer}\n\nНиво на увереност: ${envelope.confidence.toUpperCase()}\nИзточник: ${
-      safeSource || 'Текущия marketplace snapshot'
-    }`;
-  }
-  return `${safeAnswer}\n\nConfidence: ${envelope.confidence.toUpperCase()}\nSource: ${
-    safeSource || 'Current marketplace snapshot'
-  }`;
+function formatReply(_locale: ChatLocale, envelope: ChatModelEnvelope): string {
+	const body = sanitizeChatDisplayText(normalizeAnswerText(envelope.answer));
+	const safeAnswer = truncate(body, MAX_REPLY_CHARS);
+	return safeAnswer;
 }
 
 function isChatTurn(v: unknown): v is ChatTurn {
@@ -415,7 +426,7 @@ async function handleChatPostInner(rawBody: unknown): Promise<
     const body: Record<string, unknown> = {
       model,
       temperature: safeTemp,
-      max_tokens: 2600,
+      max_tokens: 1400,
       messages: chatMessages,
     };
     if (includeJsonFormat && useJsonObjectFormat) {
@@ -524,13 +535,13 @@ async function handleChatPostInner(rawBody: unknown): Promise<
   if (!envelope) {
     const fallbackAnswer = normalizeAnswerText(extractFallbackAnswer(rawReply));
     if (fallbackAnswer && !hasSensitiveDataLeak(fallbackAnswer)) {
-      const conciseFallback = truncate(fallbackAnswer, Math.min(MAX_REPLY_CHARS, 900));
+      const conciseFallback = truncate(sanitizeChatDisplayText(fallbackAnswer), Math.min(MAX_REPLY_CHARS, 900));
       return {
         ok: true,
         reply:
           locale === 'bg'
-            ? `${conciseFallback}\n\nЗабележка: Отговорът е автоматично форматиран. Потвърдете ключови изисквания в официален източник преди действие.`
-            : `${conciseFallback}\n\nNote: This answer was auto-formatted. Confirm critical requirements in official sources before acting.`,
+            ? `${conciseFallback}\n\nЗабележка: Потвърдете важни изисквания в официален източник преди действие.`
+            : `${conciseFallback}\n\nNote: Confirm important requirements with official sources before acting.`,
       };
     }
     return {

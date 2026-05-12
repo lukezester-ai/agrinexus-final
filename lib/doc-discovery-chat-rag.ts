@@ -4,8 +4,8 @@ import { searchDiscoveryEmbeddings, type VectorSearchRow } from './doc-discovery
 import { searchContentChunks, type ContentChunkRow } from './doc-discovery/content/search.js';
 import { MAX_DOC_DISCOVERY_RAG_CHARS } from './rag-limits.js';
 
-const TOP_K_META = 20;
-const TOP_K_CONTENT = 20;
+const TOP_K_META = 12;
+const TOP_K_CONTENT = 12;
 const MAX_SNIPPET_CHARS = 1000;
 const MIN_QUERY_CHARS = 2;
 const MAX_EMBED_QUERY_CHARS = 8000;
