@@ -22,7 +22,7 @@ import {
 	Mic,
 	Send,
 	Shield,
-	Store,
+	Sprout,
 	UserPlus,
 	X,
 } from 'lucide-react';
@@ -33,7 +33,6 @@ import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
-import { VegetableConserveMarketView } from './components/VegetableConserveMarketView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
 import { OperationsHubView } from './components/OperationsHubView';
 import { FieldWatchLeaflet } from './components/FieldWatchLeaflet';
@@ -225,11 +224,10 @@ type View =
 	| 'command'
 	| 'file-upload'
 	| 'field-watch'
-	| 'weather'
-	| 'market';
+	| 'weather';
 
 /** Crop statistics + trade docs ? legacy nav group label ?Markets?. */
-const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather', 'market']);
+const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather']);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
@@ -1410,6 +1408,9 @@ export default function App() {
           appearance: none;
           -webkit-appearance: none;
         }
+        a.nav-link {
+          text-decoration: none;
+        }
         .nav-link:hover:not(.active) {
           background: rgba(255, 255, 255, 0.06);
           opacity: 1;
@@ -1969,17 +1970,11 @@ export default function App() {
           }
         }
 
-        .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
         .ticker-wrap { margin-bottom: 12px; border: 1px solid #2a3d34; border-radius: 10px; background: #101914; overflow: hidden; }
         .ticker-track { display: flex; gap: 20px; width: max-content; padding: 10px 0; animation: scrollDeals 35s linear infinite; }
         .ticker-track:hover { animation-play-state: paused; }
         .ticker-item { white-space: nowrap; font-size: .86rem; color: #cbd5e1; }
         .ticker-item strong { color: var(--accent-text); margin-left: 8px; }
-        .market-flash-line {
-          margin: 0; flex: 1; min-width: 180px;
-          background: rgba(124, 205, 156, 0.06); border: 1px solid rgba(124, 205, 156, 0.22); border-radius: 10px;
-          padding: 11px 13px; color: #ccfbf1; font-size: .9rem;
-        }
         .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
         .terminal-metric { background: #101914; border: 1px solid #2a3d34; border-radius: 8px; padding: 8px 10px; }
         .terminal-metric strong { color: var(--accent-text); display: block; font-size: 1.05rem; }
@@ -2297,6 +2292,11 @@ export default function App() {
             opacity: 0.88;
             background: #0c1310;
           }
+          a.mobile-nav-btn {
+            text-decoration: none;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+          }
           .mobile-nav-btn svg {
             width: 15px;
             height: 15px;
@@ -2416,19 +2416,16 @@ export default function App() {
 									}}>
 									<FileText size={14} aria-hidden /> {tr.navTradeDocuments}
 								</button>
-								<button
-									type="button"
-									role="menuitem"
-									className={`nav-dropdown-item ${view === 'market' ? 'active' : ''}`}
-									onClick={() => {
-										setView('market');
-										setNavMenuOpen(null);
-									}}>
-									<Store size={14} aria-hidden /> {tr.navMarket}
-								</button>
 							</div>
 						)}
 					</div>
+					<a
+						className="nav-link nav-link-mobile-hide"
+						href="/fieldlot.html"
+						aria-label={tr.navFieldlotAria}>
+						<Sprout size={14} aria-hidden />
+						{tr.navFieldlot}
+					</a>
 					<div className="nav-dropdown nav-link-mobile-hide">
 						<button
 							type="button"
@@ -3114,8 +3111,6 @@ export default function App() {
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
 
-			{view === 'market' && <VegetableConserveMarketView lang={lang} tr={tr} />}
-
 			{view === 'crop-statistics' && (
 				<CropStatisticsBulgariaView
 					lang={lang}
@@ -3317,6 +3312,12 @@ export default function App() {
 						<span className="site-footer-sep" aria-hidden>
 							·
 						</span>
+						<a className="footer-link-btn" href="/fieldlot.html">
+							{tr.footerFieldlot}
+						</a>
+						<span className="site-footer-sep" aria-hidden>
+							·
+						</span>
 						<button type="button" className="footer-link-btn" onClick={() => setView('privacy')}>
 							{tr.footerPrivacy}
 						</button>
@@ -3383,6 +3384,14 @@ export default function App() {
 							<Leaf size={16} />
 							<MobileNavLabel text={tr.navHome} />
 						</button>
+						<a
+							className="mobile-nav-btn"
+							href="/fieldlot.html"
+							aria-label={tr.navFieldlotAria}
+							onClick={() => setMobileNavExpand(null)}>
+							<Sprout size={16} aria-hidden />
+							<MobileNavLabel text={tr.navFieldlot} hint={tr.navFieldlotAria} />
+						</a>
 						<button
 							type="button"
 							className={`mobile-nav-btn ${TRADING_VIEWS.has(view) ? 'active' : ''}`}
@@ -3488,17 +3497,6 @@ export default function App() {
 								}}>
 								<FileText size={16} aria-hidden />
 								<MobileNavLabel text={tr.navTradeDocumentsShort} hint={tr.navTradeDocuments} />
-							</button>
-							<button
-								type="button"
-								className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
-								aria-label={tr.navMarket}
-								onClick={() => {
-									setView('market');
-									setMobileNavExpand(null);
-								}}>
-								<Store size={16} aria-hidden />
-								<MobileNavLabel text={tr.navMarketShort} hint={tr.navMarket} />
 							</button>
 						</div>
 					)}

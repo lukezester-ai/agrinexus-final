@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="Fieldlot — агро оферти в България. Производители и купувачи. Самостоятелен проект." />
+	<title>Fieldlot — аграрни оферти в България</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;1,8..60,500&display=swap" rel="stylesheet" />
+	<style>
+		:root {
+			--bg-deep: #0a1410;
+			--bg-mid: #12261c;
+			--accent: #c9e86c;
+			--accent-hot: #e8ff7a;
+			--gold: #d4a853;
+			--glass: rgba(255, 255, 255, 0.06);
+			--glass-border: rgba(255, 255, 255, 0.12);
+			--text: #e8f0ea;
+			--muted: #8fa99a;
+			--shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+		}
+
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		html {
+			scroll-behavior: smooth;
+		}
+
+		body {
+			margin: 0;
+			font-family: 'Outfit', system-ui, sans-serif;
+			background: var(--bg-deep);
+			color: var(--text);
+			min-height: 100vh;
+			overflow-x: hidden;
+		}
+
+		/* Ambient orbs */
+		.ambient {
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 0;
+		}
+
+		.ambient::before {
+			content: '';
+			position: absolute;
+			width: 140%;
+			height: 70%;
+			top: -20%;
+			left: -20%;
+			background: radial-gradient(ellipse at 30% 20%, rgba(201, 232, 108, 0.18) 0%, transparent 55%),
+				radial-gradient(ellipse at 70% 60%, rgba(212, 168, 83, 0.12) 0%, transparent 50%);
+			animation: drift 18s ease-in-out infinite alternate;
+		}
+
+		.ambient::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: radial-gradient(circle at 85% 10%, rgba(34, 88, 62, 0.35) 0%, transparent 40%);
+		}
+
+		@keyframes drift {
+			from {
+				transform: translate(0, 0) scale(1);
+			}
+			to {
+				transform: translate(4%, 3%) scale(1.05);
+			}
+		}
+
+		.noise {
+			position: fixed;
+			inset: 0;
+			pointer-events: none;
+			z-index: 1;
+			opacity: 0.04;
+			background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+		}
+
+		.wrap {
+			position: relative;
+			z-index: 2;
+			max-width: 1120px;
+			margin: 0 auto;
+			padding: 1.25rem 1.5rem 4rem;
+		}
+
+		/* Nav */
+		.nav {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			padding: 0.5rem 0 2rem;
+		}
+
+		.brand {
+			display: flex;
+			align-items: center;
+			gap: 0.65rem;
+			text-decoration: none;
+			color: inherit;
+		}
+
+		.brand-mark {
+			width: 42px;
+			height: 42px;
+			border-radius: 12px;
+			background: linear-gradient(135deg, var(--accent) 0%, #7cb342 100%);
+			display: grid;
+			place-items: center;
+			box-shadow: 0 8px 32px rgba(201, 232, 108, 0.25);
+		}
+
+		.brand-mark svg {
+			width: 24px;
+			height: 24px;
+			color: #0a1410;
+		}
+
+		.brand-text {
+			font-weight: 800;
+			font-size: 1.35rem;
+			letter-spacing: -0.03em;
+		}
+
+		.brand-text span {
+			font-weight: 500;
+			color: var(--muted);
+			font-size: 0.75rem;
+			display: block;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			margin-top: 2px;
+		}
+
+		.nav-pill {
+			font-size: 0.8rem;
+			font-weight: 600;
+			color: var(--accent);
+			border: 1px solid var(--glass-border);
+			background: var(--glass);
+			backdrop-filter: blur(12px);
+			padding: 0.45rem 0.9rem;
+			border-radius: 999px;
+		}
+
+		/* Hero */
+		.hero {
+			text-align: center;
+			padding: 2rem 0 3.5rem;
+		}
+
+		.hero-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			font-size: 0.8rem;
+			font-weight: 600;
+			color: var(--gold);
+			border: 1px solid rgba(212, 168, 83, 0.35);
+			background: rgba(212, 168, 83, 0.08);
+			padding: 0.4rem 1rem;
+			border-radius: 999px;
+			margin-bottom: 1.5rem;
+		}
+
+		.hero-badge svg {
+			width: 16px;
+			height: 16px;
+		}
+
+		h1 {
+			font-family: 'Source Serif 4', Georgia, serif;
+			font-size: clamp(2.4rem, 6vw, 3.75rem);
+			font-weight: 500;
+			line-height: 1.08;
+			margin: 0 0 1rem;
+			letter-spacing: -0.02em;
+		}
+
+		h1 em {
+			font-style: italic;
+			background: linear-gradient(105deg, var(--accent-hot) 0%, var(--accent) 45%, var(--gold) 100%);
+			-webkit-background-clip: text;
+			background-clip: text;
+			color: transparent;
+		}
+
+		.hero-lead {
+			font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+			color: var(--muted);
+			max-width: 34rem;
+			margin: 0 auto 2rem;
+			line-height: 1.55;
+			font-weight: 400;
+		}
+
+		.cta-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.85rem;
+			justify-content: center;
+			margin-bottom: 2.5rem;
+		}
+
+		.btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5rem;
+			font-family: inherit;
+			font-size: 0.95rem;
+			font-weight: 600;
+			padding: 0.95rem 1.6rem;
+			border-radius: 14px;
+			border: none;
+			cursor: pointer;
+			text-decoration: none;
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.btn:active {
+			transform: scale(0.98);
+		}
+
+		.btn-primary {
+			background: linear-gradient(135deg, var(--accent-hot) 0%, #aed136 100%);
+			color: #0f1a12;
+			box-shadow: 0 12px 40px rgba(201, 232, 108, 0.35);
+		}
+
+		.btn-primary:hover {
+			box-shadow: 0 16px 48px rgba(201, 232, 108, 0.45);
+			transform: translateY(-1px);
+		}
+
+		.btn-ghost {
+			background: var(--glass);
+			color: var(--text);
+			border: 1px solid var(--glass-border);
+			backdrop-filter: blur(12px);
+		}
+
+		.btn-ghost:hover {
+			background: rgba(255, 255, 255, 0.1);
+			border-color: rgba(255, 255, 255, 0.2);
+		}
+
+		.trust-strip {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 1.25rem 2rem;
+			font-size: 0.85rem;
+			color: var(--muted);
+		}
+
+		.trust-strip strong {
+			color: var(--text);
+			font-weight: 600;
+		}
+
+		/* Cards grid */
+		.section-title {
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 0.18em;
+			color: var(--gold);
+			text-align: center;
+			margin: 4rem 0 0.75rem;
+			font-weight: 700;
+		}
+
+		h2 {
+			font-family: 'Source Serif 4', Georgia, serif;
+			font-size: clamp(1.65rem, 3.5vw, 2.1rem);
+			font-weight: 500;
+			text-align: center;
+			margin: 0 0 2.5rem;
+		}
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			gap: 1.25rem;
+		}
+
+		.card {
+			position: relative;
+			border-radius: 20px;
+			padding: 1.75rem 1.5rem;
+			background: linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+			border: 1px solid var(--glass-border);
+			backdrop-filter: blur(16px);
+			box-shadow: var(--shadow);
+			overflow: hidden;
+		}
+
+		.card::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 3px;
+			background: linear-gradient(90deg, var(--accent), var(--gold));
+			opacity: 0.85;
+		}
+
+		.card-icon {
+			width: 48px;
+			height: 48px;
+			border-radius: 14px;
+			background: rgba(201, 232, 108, 0.12);
+			display: grid;
+			place-items: center;
+			margin-bottom: 1rem;
+		}
+
+		.card-icon svg {
+			width: 26px;
+			height: 26px;
+			color: var(--accent);
+		}
+
+		.card h3 {
+			margin: 0 0 0.5rem;
+			font-size: 1.15rem;
+			font-weight: 700;
+		}
+
+		.card p {
+			margin: 0;
+			color: var(--muted);
+			font-size: 0.92rem;
+			line-height: 1.55;
+		}
+
+		/* Map teaser */
+		.map-band {
+			margin-top: 3.5rem;
+			border-radius: 24px;
+			padding: 2rem 1.5rem;
+			background: linear-gradient(135deg, rgba(18, 38, 28, 0.95) 0%, rgba(10, 20, 16, 0.98) 100%);
+			border: 1px solid var(--glass-border);
+			display: grid;
+			gap: 1.5rem;
+			align-items: center;
+		}
+
+		@media (min-width: 768px) {
+			.map-band {
+				grid-template-columns: 1fr 1fr;
+				padding: 2.25rem 2.5rem;
+			}
+		}
+
+		.map-band h3 {
+			margin: 0 0 0.5rem;
+			font-size: 1.35rem;
+			font-weight: 700;
+		}
+
+		.map-band p {
+			margin: 0;
+			color: var(--muted);
+			line-height: 1.55;
+			font-size: 0.95rem;
+		}
+
+		.map-visual {
+			position: relative;
+			height: 180px;
+			border-radius: 16px;
+			background: linear-gradient(145deg, #1a3328 0%, #0d1f16 100%);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			overflow: hidden;
+		}
+
+		.map-visual svg {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+		}
+
+		.map-visual-wrap {
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.45rem;
+		}
+
+		.map-visual-figcap {
+			margin: 0;
+			font-size: 0.72rem;
+			line-height: 1.45;
+			color: var(--muted);
+			text-align: center;
+			padding: 0 0.35rem;
+		}
+
+		/* Footer CTA */
+		.footer-cta {
+			margin-top: 3.5rem;
+			text-align: center;
+			padding: 2.5rem 1.5rem;
+			border-radius: 20px;
+			border: 1px dashed rgba(201, 232, 108, 0.25);
+			background: rgba(201, 232, 108, 0.04);
+		}
+
+		.footer-cta p {
+			margin: 0 0 1.25rem;
+			color: var(--muted);
+			max-width: 28rem;
+			margin-left: auto;
+			margin-right: auto;
+			line-height: 1.5;
+		}
+
+		footer {
+			text-align: center;
+			padding: 3rem 0 1rem;
+			font-size: 0.8rem;
+			color: var(--muted);
+		}
+
+		footer a {
+			color: var(--accent);
+			text-decoration: none;
+		}
+
+		footer .fl-legal {
+			max-width: 38rem;
+			margin: 1rem auto 0;
+			padding: 0.85rem 1rem;
+			font-size: 0.78rem;
+			line-height: 1.55;
+			color: var(--muted);
+			border: 1px solid var(--glass-border);
+			border-radius: 14px;
+			background: rgba(0, 0, 0, 0.2);
+		}
+
+		/* —— LLM чат: ясна „AI“ лента, не кръг като аватар —— */
+		.am-llm-launch {
+			position: fixed;
+			right: 1rem;
+			bottom: 1rem;
+			z-index: 9999;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.55rem 1.1rem 0.55rem 0.75rem;
+			min-height: 48px;
+			border-radius: 999px;
+			border: 2px solid rgba(201, 232, 108, 0.95);
+			cursor: pointer;
+			font-family: inherit;
+			font-size: 0.88rem;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+			color: #e8ff7a;
+			background: linear-gradient(165deg, rgba(12, 28, 20, 0.98) 0%, rgba(6, 12, 9, 0.99) 100%);
+			box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+			transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+		}
+
+		.am-llm-launch:hover {
+			transform: translateY(-2px);
+			border-color: var(--accent-hot);
+			box-shadow: 0 16px 48px rgba(201, 232, 108, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+		}
+
+		.am-llm-launch svg {
+			width: 22px;
+			height: 22px;
+			flex-shrink: 0;
+			color: var(--accent-hot);
+		}
+
+		.am-llm-launch-label {
+			line-height: 1.2;
+			text-align: left;
+		}
+
+		.am-llm-launch-label small {
+			display: block;
+			font-size: 0.65rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.1em;
+			color: var(--muted);
+			margin-top: 2px;
+		}
+
+		.am-llm-panel {
+			position: fixed;
+			right: 1rem;
+			bottom: 4.75rem;
+			z-index: 9998;
+			width: min(100vw - 2rem, 400px);
+			max-height: min(72vh, 520px);
+			display: flex;
+			flex-direction: column;
+			border-radius: 20px;
+			background: linear-gradient(165deg, rgba(22, 42, 32, 0.97) 0%, rgba(8, 14, 11, 0.98) 100%);
+			border: 1px solid var(--glass-border);
+			box-shadow: var(--shadow);
+			backdrop-filter: blur(20px);
+			overflow: hidden;
+			opacity: 0;
+			pointer-events: none;
+			transform: translateY(12px) scale(0.96);
+			transition: opacity 0.25s ease, transform 0.25s ease;
+		}
+
+		.am-llm-panel.am-open {
+			opacity: 1;
+			pointer-events: auto;
+			transform: translateY(0) scale(1);
+		}
+
+		.am-llm-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+			padding: 0.85rem 1rem;
+			border-bottom: 1px solid var(--glass-border);
+			background: rgba(201, 232, 108, 0.06);
+		}
+
+		.am-llm-head strong {
+			font-size: 0.95rem;
+			letter-spacing: -0.02em;
+		}
+
+		.am-llm-badge {
+			font-size: 0.65rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			padding: 0.2rem 0.45rem;
+			border-radius: 6px;
+			background: rgba(201, 232, 108, 0.2);
+			color: var(--accent-hot);
+		}
+
+		.am-llm-badge.am-off {
+			background: rgba(239, 68, 68, 0.15);
+			color: #fca5a5;
+		}
+
+		.am-llm-close {
+			border: none;
+			background: transparent;
+			color: var(--muted);
+			cursor: pointer;
+			padding: 0.25rem;
+			line-height: 1;
+			border-radius: 8px;
+		}
+
+		.am-llm-close:hover {
+			color: var(--text);
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		.am-llm-msgs {
+			flex: 1;
+			overflow-y: auto;
+			padding: 0.85rem 1rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.65rem;
+			min-height: 200px;
+			max-height: 340px;
+		}
+
+		.am-bubble {
+			max-width: 92%;
+			padding: 0.65rem 0.85rem;
+			border-radius: 14px;
+			font-size: 0.88rem;
+			line-height: 1.5;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		.am-bubble.ai {
+			align-self: flex-start;
+			background: rgba(255, 255, 255, 0.07);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			color: var(--text);
+		}
+
+		.am-bubble.user {
+			align-self: flex-end;
+			background: linear-gradient(135deg, rgba(201, 232, 108, 0.22) 0%, rgba(124, 179, 66, 0.15) 100%);
+			border: 1px solid rgba(201, 232, 108, 0.25);
+		}
+
+		.am-llm-foot {
+			padding: 0.65rem 0.85rem 0.85rem;
+			border-top: 1px solid var(--glass-border);
+			display: flex;
+			gap: 0.5rem;
+		}
+
+		.am-llm-foot textarea {
+			flex: 1;
+			resize: none;
+			min-height: 44px;
+			max-height: 120px;
+			border-radius: 12px;
+			border: 1px solid var(--glass-border);
+			background: rgba(0, 0, 0, 0.25);
+			color: var(--text);
+			font-family: inherit;
+			font-size: 0.88rem;
+			padding: 0.55rem 0.65rem;
+		}
+
+		.am-llm-foot textarea:focus {
+			outline: none;
+			border-color: rgba(201, 232, 108, 0.45);
+		}
+
+		.am-llm-send {
+			align-self: flex-end;
+			width: 44px;
+			height: 44px;
+			border-radius: 12px;
+			border: none;
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			background: var(--accent);
+			color: #0a1410;
+			flex-shrink: 0;
+		}
+
+		.am-llm-send:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+
+		.am-llm-hint {
+			font-size: 0.72rem;
+			color: var(--muted);
+			padding: 0 1rem 0.65rem;
+			line-height: 1.4;
+		}
+
+		.hero-llm-line {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.45rem;
+			margin-top: 0.35rem;
+			font-size: 0.82rem;
+			color: var(--gold);
+			font-weight: 600;
+		}
+
+		.hero-llm-line svg {
+			width: 16px;
+			height: 16px;
+			flex-shrink: 0;
+		}
+
+		/* —— Ранен достъп (register-interest) —— */
+		.agm-lead {
+			margin-top: 1.75rem;
+			text-align: left;
+			max-width: 26rem;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		.agm-lead label {
+			display: block;
+			font-size: 0.78rem;
+			font-weight: 600;
+			color: var(--muted);
+			margin-top: 0.75rem;
+			margin-bottom: 0.28rem;
+		}
+
+		.agm-lead label:first-of-type {
+			margin-top: 0;
+		}
+
+		.agm-lead input[type='email'],
+		.agm-lead input[type='text'],
+		.agm-lead input[type='tel'],
+		.agm-lead select,
+		.agm-lead textarea {
+			width: 100%;
+			border-radius: 12px;
+			border: 1px solid var(--glass-border);
+			background: rgba(0, 0, 0, 0.28);
+			color: var(--text);
+			font-family: inherit;
+			font-size: 0.9rem;
+			padding: 0.55rem 0.7rem;
+		}
+
+		.agm-lead textarea {
+			min-height: 72px;
+			resize: vertical;
+		}
+
+		.agm-lead input:focus,
+		.agm-lead select:focus,
+		.agm-lead textarea:focus {
+			outline: none;
+			border-color: rgba(201, 232, 108, 0.45);
+		}
+
+		.agm-hp {
+			position: absolute;
+			left: -9999px;
+			width: 1px;
+			height: 1px;
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.agm-lead-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.65rem;
+			align-items: center;
+			margin-top: 1rem;
+			justify-content: center;
+		}
+
+		.agm-lead-actions .btn {
+			margin: 0;
+		}
+
+		.agm-check {
+			display: flex;
+			align-items: flex-start;
+			gap: 0.5rem;
+			margin-top: 0.85rem;
+			font-size: 0.82rem;
+			color: var(--muted);
+		}
+
+		.agm-check input {
+			margin-top: 3px;
+			accent-color: var(--accent);
+		}
+
+		#agm-lead-status {
+			margin-top: 0.85rem;
+			font-size: 0.88rem;
+			min-height: 1.25rem;
+			text-align: center;
+		}
+
+		#agm-lead-status.ok {
+			color: var(--accent);
+		}
+
+		#agm-lead-status.err {
+			color: #fca5a5;
+		}
+	</style>
+</head>
+<body>
+	<div class="ambient" aria-hidden="true"></div>
+	<div class="noise" aria-hidden="true"></div>
+
+	<div class="wrap">
+		<header class="nav">
+			<a class="brand" href="/" aria-current="page">
+				<div class="brand-mark" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M12 3c-4 4-6 8-6 12a6 6 0 0 0 12 0c0-4-2-8-6-12Z" />
+						<path d="M12 11v10" />
+					</svg>
+				</div>
+				<div class="brand-text">
+					Fieldlot
+					<span>България</span>
+				</div>
+			</a>
+			<div class="nav-pill">Ранен достъп</div>
+		</header>
+
+		<section class="hero">
+			<div class="hero-badge">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+				</svg>
+				Само за България
+			</div>
+			<h1>Мястото, където <em>реколтата</em> среща купувача</h1>
+			<p class="hero-lead">
+				Fieldlot свързва производители и търговци на едно ясно място — оферти, запитвания и директен контакт.
+				Без сложни гаранции в началото: фокусът е скорост, прозрачност и доверие между хората от сектора.
+			</p>
+			<div class="cta-row">
+				<a class="btn btn-primary" href="#cta">Искам достъп</a>
+				<a class="btn btn-ghost" href="#how">Как работи</a>
+				<button type="button" class="btn btn-ghost" id="hero-ai-chat-btn">
+					AI водач (чат)
+				</button>
+			</div>
+			<div class="trust-strip">
+				<span><strong>Каталог</strong> оферти</span>
+				<span><strong>Запитвания</strong> в платформата</span>
+				<span><strong>Сделката</strong> остава между вас</span>
+			</div>
+			<p class="hero-llm-line" id="hero-llm-line" hidden>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+					<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+					<path d="M19 3v4" />
+					<path d="M21 5h-4" />
+				</svg>
+				<span id="hero-llm-text">AI водач — натисни „AI водач (чат)“ или „AI чат“ долу</span>
+			</p>
+		</section>
+
+		<p class="section-title" id="how">Защо Fieldlot</p>
+		<h2>Три стълба за старт без тежест</h2>
+
+		<div class="grid">
+			<article class="card">
+				<div class="card-icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="8" />
+						<path d="m21 21-4.3-4.3" />
+					</svg>
+				</div>
+				<h3>Видими оферти</h3>
+				<p>Продукт, количество, регион и условия на един екран — купувачът намира бързо това, което търси в цяла България.</p>
+			</article>
+			<article class="card">
+				<div class="card-icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+					</svg>
+				</div>
+				<h3>Директна връзка</h3>
+				<p>Запитвания и съобщения без посредник в сделката. Вие договаряте оглед, цена и логистика — както на полето.</p>
+			</article>
+			<article class="card">
+				<div class="card-icon" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+					</svg>
+				</div>
+				<h3>Ясна роля на платформата</h3>
+				<p>Fieldlot не държи пари и не е страна по договора в първата фаза — по-малко бариери за старт, повече фокус върху ликвидност.</p>
+			</article>
+		</div>
+
+		<div class="map-band">
+			<div>
+				<h3>От Добруджа до Родопите</h3>
+				<p>
+					Първата версия е изцяло ориентирана към <strong>българския пазар</strong> — език, региони и начин на работа,
+					които отговарят на местните вериги, изкупвачи и стопанства.
+				</p>
+			</div>
+			<figure class="map-visual-wrap">
+				<div class="map-visual">
+					<svg viewBox="0 0 360 160" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="map-illus-title">
+						<title id="map-illus-title">Схематична илюстрация: североизток (Добруджа) и юг (Родопи) в България — не е точна географска карта</title>
+						<defs>
+							<linearGradient id="mapBg" x1="0%" y1="0%" x2="100%" y2="100%">
+								<stop offset="0%" style="stop-color: #1e4d36" />
+								<stop offset="100%" style="stop-color: #0a1410" />
+							</linearGradient>
+						</defs>
+						<rect width="360" height="160" fill="url(#mapBg)" />
+						<text
+							x="180"
+							y="22"
+							text-anchor="middle"
+							fill="#8fa99a"
+							font-size="11"
+							font-family="Outfit, system-ui, sans-serif"
+							letter-spacing="0.06em">
+							СХЕМА · не е географска карта
+						</text>
+						<!-- Опростен силует на суша (символично), море вдясно -->
+						<path
+							d="M 28 78 L 52 48 L 118 38 L 238 34 L 318 52 L 332 88 L 308 124 L 212 138 L 98 132 L 36 108 Z"
+							fill="rgba(201,232,108,0.14)"
+							stroke="rgba(201,232,108,0.45)"
+							stroke-width="1.5" />
+						<path
+							d="M 318 52 L 345 58 L 352 95 L 338 118 L 312 124"
+							fill="rgba(100,160,220,0.12)"
+							stroke="rgba(120,180,230,0.35)"
+							stroke-width="1.2" />
+						<text
+							x="338"
+							y="92"
+							text-anchor="middle"
+							fill="rgba(180,210,240,0.55)"
+							font-size="9"
+							font-family="Outfit, system-ui, sans-serif"
+							transform="rotate(78 338 92)">
+							море
+						</text>
+						<text
+							x="180"
+							y="86"
+							text-anchor="middle"
+							fill="#e8f0ea"
+							font-size="20"
+							font-weight="700"
+							font-family="Outfit, system-ui, sans-serif">
+							България
+						</text>
+						<!-- Добруджа: североизток -->
+						<circle cx="258" cy="48" r="7" fill="#d4a853" stroke="#0a1410" stroke-width="1.5" />
+						<path d="M258 55 L258 68 L252 62 L258 55" fill="#d4a853" />
+						<text x="258" y="82" text-anchor="middle" fill="#d4a853" font-size="11" font-weight="600" font-family="Outfit, system-ui, sans-serif">
+							Добруджа
+						</text>
+						<!-- Родопи: юг -->
+						<circle cx="168" cy="118" r="7" fill="#c9e86c" stroke="#0a1410" stroke-width="1.5" />
+						<path d="M168 125 L168 138 L162 132 L168 125" fill="#c9e86c" />
+						<text x="168" y="152" text-anchor="middle" fill="#c9e86c" font-size="11" font-weight="600" font-family="Outfit, system-ui, sans-serif">
+							Родопи
+						</text>
+						<path
+							d="M 248 58 Q 200 72 175 108"
+							fill="none"
+							stroke="rgba(255,255,255,0.2)"
+							stroke-width="1.2"
+							stroke-dasharray="4 3" />
+					</svg>
+				</div>
+				<figcaption class="map-visual-figcap">
+					Илюстрация за национален обхват: <strong>Добруджа</strong> (североизток) и <strong>Родопите</strong> (юг). Формите са стилизирани, не са граници или мащаб от реална карта.
+				</figcaption>
+			</figure>
+		</div>
+
+		<div class="footer-cta" id="cta">
+			<p>
+				<strong style="color: var(--text)">Ранен достъп.</strong> Попълни формата — изпращаме към екипа по имейл (Resend), ако е настроен в <code>.env</code>, или записваме локално при <code>FIELDLOT_STORE_LEADS=1</code>.
+			</p>
+			<form id="agm-lead" class="agm-lead" autocomplete="on">
+				<label for="agm-fullname">Име и фамилия *</label>
+				<input id="agm-fullname" name="fullName" type="text" required minlength="2" maxlength="120" placeholder="Иван Иванов" />
+
+				<label for="agm-email">Имейл *</label>
+				<input id="agm-email" name="businessEmail" type="email" required maxlength="200" placeholder="you@company.bg" />
+
+				<label for="agm-company">Фирма / стопанство</label>
+				<input id="agm-company" name="companyName" type="text" maxlength="200" placeholder="По желание" />
+
+				<label for="agm-phone">Телефон (E.164)</label>
+				<input id="agm-phone" name="phone" type="tel" maxlength="20" placeholder="+359888123456 или празно" />
+
+				<label for="agm-role">Роля *</label>
+				<select id="agm-role" name="role" required>
+					<option value="Производител">Производител</option>
+					<option value="Купувач / търговец">Купувач / търговец</option>
+					<option value="Друго">Друго</option>
+				</select>
+
+				<label for="agm-note">Какво те интересува (кратко)</label>
+				<textarea id="agm-note" maxlength="800" placeholder="Продукти, регион, обем…"></textarea>
+
+				<label class="agm-check">
+					<input id="agm-alerts" type="checkbox" />
+					<span>Искам известия за Fieldlot (когато стартираме)</span>
+				</label>
+
+				<input class="agm-hp" type="text" id="agm-hp" name="hpCompanyWebsite" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+				<div class="agm-lead-actions">
+					<button type="submit" class="btn btn-primary" id="agm-submit" disabled>Изпрати заявка</button>
+					<a class="btn btn-ghost" href="mailto:hello@fieldlot.bg?subject=Fieldlot%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D0%B8%D1%82%D0%B2%D0%B0%D0%BD%D0%B5">Или имейл</a>
+				</div>
+			</form>
+			<p id="agm-lead-status" role="status" aria-live="polite"></p>
+		</div>
+
+		<footer>
+			<p>© Fieldlot · България · 2026</p>
+			<p class="fl-legal">
+				<strong>Fieldlot</strong> — самостоятелен лендинг и концепция. Общи запитвания:
+				<a href="mailto:hello@fieldlot.bg">hello@fieldlot.bg</a> (замени с реален домейн при пускане).
+			</p>
+			<p style="margin-top: 0.75rem; font-size: 0.78rem; max-width: 36rem; margin-left: auto; margin-right: auto">
+				<strong>AI водач:</strong> endpoint <code>/api/fieldlot-chat</code>. От папката <code>fieldlot-site</code> пусни
+				<code>npm run dev</code> (Vite + API) и задай <code>MISTRAL_API_KEY</code>, <code>OPENAI_API_KEY</code> или Ollama в <code>.env</code>.
+			</p>
+		</footer>
+	</div>
+
+	<!-- LLM: Fieldlot Guide — бутонът е „AI чат“, не аватар -->
+	<button type="button" class="am-llm-launch" id="am-llm-fab" aria-expanded="false" aria-controls="am-llm-panel" title="Отвори AI водача (Fieldlot Guide)">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+			<path d="M8 10h.01" />
+			<path d="M12 10h.01" />
+			<path d="M16 10h.01" />
+		</svg>
+		<span class="am-llm-launch-label">
+			AI чат
+			<small>Fieldlot Guide</small>
+		</span>
+	</button>
+	<div class="am-llm-panel" id="am-llm-panel" role="dialog" aria-label="Fieldlot Guide — AI чат" aria-modal="false">
+		<div class="am-llm-head">
+			<div>
+				<strong>Fieldlot Guide</strong>
+				<div style="font-size: 0.75rem; color: var(--muted); margin-top: 2px">LLM · само България · ориентация</div>
+			</div>
+			<span class="am-llm-badge am-off" id="am-llm-status">…</span>
+			<button type="button" class="am-llm-close" id="am-llm-close" aria-label="Затвори">&times;</button>
+		</div>
+		<div class="am-llm-msgs" id="am-llm-msgs" aria-live="polite"></div>
+		<p class="am-llm-hint">Отговорите са информативни, не правни или финансови съвети. Продуктът Fieldlot е в концепция.</p>
+		<div class="am-llm-foot">
+			<textarea id="am-llm-input" rows="2" maxlength="2000" placeholder="Напр.: Как да опиша оферта за царевица?"></textarea>
+			<button type="button" class="am-llm-send" id="am-llm-send" aria-label="Изпрати">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="m22 2-7 20-4-9-9-4Z" />
+					<path d="M22 2 11 13" />
+				</svg>
+			</button>
+		</div>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			try {
+				const API = '/api/fieldlot-chat';
+				const WELCOME =
+					'Здравей! Аз съм Fieldlot Guide — AI водач за концепцията Fieldlot (самостоятелен проект).\n\nМога да обясня как би работел каталог с оферти, какво да включиш в обява, как да подходиш като купувач, или да обсъдим доверие и комуникация извън платформата. За официални въпроси към екипа виж контакта във футъра.\n\nКакво те интересува първо?';
+
+				const heroLine = document.getElementById('hero-llm-line');
+				const heroText = document.getElementById('hero-llm-text');
+
+				const fab = document.getElementById('am-llm-fab');
+				const panel = document.getElementById('am-llm-panel');
+				const closeBtn = document.getElementById('am-llm-close');
+				const msgs = document.getElementById('am-llm-msgs');
+				const input = document.getElementById('am-llm-input');
+				const sendBtn = document.getElementById('am-llm-send');
+				const statusEl = document.getElementById('am-llm-status');
+				const heroAiBtn = document.getElementById('hero-ai-chat-btn');
+
+				if (!fab || !panel || !closeBtn || !msgs || !input || !sendBtn || !statusEl) {
+					console.warn('[Fieldlot] Липсват елементи за AI чата.');
+					return;
+				}
+
+				/** @type {{ role: string, content: string }[]} */
+				let history = [{ role: 'assistant', content: WELCOME }];
+				let llmOk = false;
+				let open = false;
+
+				function render() {
+					msgs.innerHTML = '';
+					for (const m of history) {
+						const div = document.createElement('div');
+						div.className = 'am-bubble ' + (m.role === 'user' ? 'user' : 'ai');
+						div.textContent = m.content;
+						msgs.appendChild(div);
+					}
+					msgs.scrollTop = msgs.scrollHeight;
+				}
+
+				function setOpen(v) {
+					open = v;
+					panel.classList.toggle('am-open', v);
+					fab.setAttribute('aria-expanded', v ? 'true' : 'false');
+				}
+
+				fab.addEventListener('click', function () {
+					setOpen(!open);
+				});
+				closeBtn.addEventListener('click', function () {
+					setOpen(false);
+				});
+				if (heroAiBtn) {
+					heroAiBtn.addEventListener('click', function () {
+						setOpen(true);
+					});
+				}
+
+				async function ping() {
+					try {
+						const r = await fetch(API, { method: 'GET' });
+						const j = await r.json();
+						llmOk = Boolean(j.llmConfigured);
+						statusEl.textContent = llmOk ? 'LLM ON' : 'няма ключ';
+						statusEl.classList.toggle('am-off', !llmOk);
+						if (heroLine && heroText) {
+							heroLine.hidden = false;
+							heroText.textContent = llmOk
+								? 'AI водач е активен — натисни „AI водач (чат)“ горе или „AI чат“ долу вдясно'
+								: 'LLM: задай API ключ в fieldlot-site/.env (виж README)';
+						}
+					} catch {
+						llmOk = false;
+						statusEl.textContent = 'офлайн';
+						statusEl.classList.add('am-off');
+						if (heroLine) heroLine.hidden = false;
+						if (heroText) {
+							heroText.textContent =
+								'Пусни npm run dev в папката fieldlot-site (Vite + API на FIELDLOT_API_PORT), за да работи /api';
+						}
+					}
+				}
+
+				async function send() {
+					const text = (input.value || '').trim();
+					if (!text || sendBtn.disabled) return;
+					if (!llmOk) {
+						history.push({
+							role: 'assistant',
+							content:
+								'За да работя, настрой LLM (Mistral, OpenAI или Ollama) в fieldlot-site/.env и пусни `npm run dev` там (Vite + API).',
+						});
+						render();
+						return;
+					}
+
+					history.push({ role: 'user', content: text });
+					input.value = '';
+					render();
+					sendBtn.disabled = true;
+
+					try {
+						const r = await fetch(API, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ messages: history }),
+						});
+						const raw = await r.text();
+						let j;
+						try {
+							j = JSON.parse(raw);
+						} catch {
+							throw new Error('Невалиден отговор от сървъра');
+						}
+						if (!r.ok) {
+							const err = (j && j.error) || raw || 'Грешка';
+							const hint = j && j.hint ? '\n\n' + j.hint : '';
+							history.push({ role: 'assistant', content: 'Неуспех: ' + err + hint });
+						} else if (j.reply) {
+							history.push({ role: 'assistant', content: j.reply });
+						} else {
+							history.push({ role: 'assistant', content: 'Празен отговор.' });
+						}
+					} catch (e) {
+						history.push({
+							role: 'assistant',
+							content: e instanceof Error ? e.message : 'Мрежова грешка.',
+						});
+					}
+					sendBtn.disabled = false;
+					render();
+				}
+
+				sendBtn.addEventListener('click', send);
+				input.addEventListener('keydown', function (ev) {
+					if (ev.key === 'Enter' && !ev.shiftKey) {
+						ev.preventDefault();
+						send();
+					}
+				});
+
+				render();
+				void ping();
+			} catch (e) {
+				console.error('[Fieldlot]', e);
+			}
+		});
+	</script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const form = document.getElementById('agm-lead');
+			const submit = document.getElementById('agm-submit');
+			const status = document.getElementById('agm-lead-status');
+			if (!form || !submit || !status) return;
+
+			const openedAt = Date.now();
+			const PHONE_OK = /^\+[1-9]\d{7,14}$/;
+
+			function enableSubmit() {
+				submit.disabled = false;
+				submit.textContent = 'Изпрати заявка';
+			}
+
+			const waitMs = Math.max(0, 2100 - (Date.now() - openedAt));
+			submit.textContent = 'Изчакай…';
+			setTimeout(enableSubmit, waitMs);
+
+			form.addEventListener('submit', async function (ev) {
+				ev.preventDefault();
+				status.textContent = '';
+				status.className = '';
+
+				if (Date.now() - openedAt < 2000) {
+					status.className = 'err';
+					status.textContent = 'Изчакай 2 секунди след зареждане на страницата и опитай пак.';
+					return;
+				}
+
+				const fullNameEl = document.getElementById('agm-fullname');
+				const emailEl = document.getElementById('agm-email');
+				const companyEl = document.getElementById('agm-company');
+				const phoneEl = document.getElementById('agm-phone');
+				const roleEl = document.getElementById('agm-role');
+				const noteEl = document.getElementById('agm-note');
+				const hpEl = document.getElementById('agm-hp');
+				const alertsEl = document.getElementById('agm-alerts');
+
+				if (!fullNameEl || !emailEl || !companyEl || !phoneEl || !roleEl || !noteEl || !hpEl || !alertsEl) {
+					status.className = 'err';
+					status.textContent = 'Грешка в страницата — презареди.';
+					return;
+				}
+
+				const fullName = fullNameEl.value.trim();
+				const businessEmail = emailEl.value.trim();
+				const companyName = companyEl.value.trim();
+				let phone = phoneEl.value.trim();
+				const role = roleEl.value;
+				const note = noteEl.value.trim();
+				const hp = hpEl.value;
+
+				if (fullName.length < 2) {
+					status.className = 'err';
+					status.textContent = 'Моля, поне 2 знака за име.';
+					return;
+				}
+				if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessEmail)) {
+					status.className = 'err';
+					status.textContent = 'Невалиден имейл.';
+					return;
+				}
+				if (phone) {
+					const digits = phone.replace(/\D/g, '');
+					if (digits.length >= 9) {
+						phone = '+' + digits;
+					}
+					if (!PHONE_OK.test(phone)) {
+						status.className = 'err';
+						status.textContent = 'Телефонът трябва да е във формат E.164, напр. +359888123456.';
+						return;
+					}
+				}
+
+				const marketFocus = '[Fieldlot] ' + role + (note ? ' · ' + note : '');
+
+				const body = {
+					fullName: fullName,
+					companyName: companyName,
+					businessEmail: businessEmail,
+					phone: phone || '',
+					marketFocus: marketFocus.slice(0, 1900),
+					subscribeAlerts: alertsEl.checked,
+					locale: 'bg',
+					hpCompanyWebsite: hp || '',
+					formOpenedAt: openedAt,
+				};
+
+				submit.disabled = true;
+				status.textContent = 'Изпращане…';
+
+				try {
+					const res = await fetch('/api/register-interest', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(body),
+					});
+					let data = {};
+					try {
+						data = await res.json();
+					} catch {
+						data = {};
+					}
+					if (!res.ok) {
+						status.className = 'err';
+						const hint = data.hint ? ' ' + String(data.hint) : '';
+						const err = String(data.error || 'Грешка');
+						const friendly =
+							err === 'Too fast'
+								? 'Твърде бързо — презареди страницата и изчакай 2 секунди.'
+								: err === 'Too many requests'
+									? 'Твърде много заявки. Опитай по-късно.'
+									: err === 'Session expired'
+										? 'Страницата е остаряла — презареди и попълни отново.'
+										: err === 'Valid business email required'
+											? 'Невалиден служебен имейл.'
+											: err === 'Valid phone required'
+												? 'Невалиден телефон — използвай +359… или остави празно.'
+												: err === 'Request could not be processed'
+													? 'Заявката не мина проверката — презареди страницата.'
+													: err;
+						status.textContent = friendly + hint;
+						submit.disabled = false;
+						return;
+					}
+					status.className = 'ok';
+					if (data.mailDelivery === 'sent') {
+						status.textContent =
+							'Готово — заявката е записана и изпратена към екипа по имейл. Провери и папка „Спам“.';
+					} else {
+						status.textContent =
+							'Заявката е приета. Имейлът може да е изключен (липсват RESEND_API_KEY, FIELDLOT_INBOX_EMAIL и RESEND_FROM в .env) — виж README в fieldlot-site.';
+					}
+					form.reset();
+					submit.disabled = false;
+				} catch {
+					status.className = 'err';
+					status.textContent =
+						'Мрежова грешка. Пусни npm run dev в fieldlot-site (Vite + API).';
+					submit.disabled = false;
+				}
+			});
+		});
+	</script>
+</body>
+</html>

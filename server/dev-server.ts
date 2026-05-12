@@ -8,6 +8,7 @@ import { isChatLlmConfigured } from '../lib/llm-env';
 import { isMistralConfigured } from '../lib/mistral-env';
 import { isOllamaConfigured } from '../lib/ollama-env';
 import { handleChatPost } from '../lib/chat-handler';
+import { handleFieldlotChatPost } from '../lib/fieldlot-llm-handler';
 import { clientIpFromNodeRequest } from '../lib/client-ip';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
@@ -109,6 +110,7 @@ const server = http.createServer(async (req, res) => {
           ok: true,
           routes: [
             { path: '/api/chat', methods: ['GET', 'POST'] },
+            { path: '/api/fieldlot-chat', methods: ['GET', 'POST'] },
             { path: '/api/market-quotes', methods: ['GET'] },
             { path: '/api/market-watch', methods: ['GET'] },
             { path: '/api/weather-forecast', methods: ['GET'] },
@@ -194,6 +196,30 @@ const server = http.createServer(async (req, res) => {
           return;
         }
         const result = await handleChatPost(body);
+        if (result.ok) {
+          send(res, 200, { reply: result.reply });
+          return;
+        }
+        send(res, result.status, { error: result.error, hint: result.hint });
+        return;
+      }
+
+      if (path === '/api/fieldlot-chat' && req.method === 'GET') {
+        send(res, 200, {
+          ok: true,
+          path: '/api/fieldlot-chat',
+          llmConfigured: isChatLlmConfigured(),
+        });
+        return;
+      }
+
+      if (path === '/api/fieldlot-chat' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleFieldlotChatPost(body);
         if (result.ok) {
           send(res, 200, { reply: result.reply });
           return;

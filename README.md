@@ -1,5 +1,7 @@
 # agrinexus-final
 
+**Fieldlot** (лендинг) в продукция с AgriNexus на един домейн: статична страница [`public/fieldlot.html`](public/fieldlot.html) и адреси **`/fieldlot`**, **`/fieldlot.html`**. За отделен локален работен пакет виж [`fieldlot-site/README.md`](fieldlot-site/README.md).
+
 ## RAG quickstart (Doc Discovery -> Chat)
 
 This project already supports Retrieval-Augmented Generation in `api/chat`.

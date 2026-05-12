@@ -1,0 +1,23 @@
+{
+	"name": "fieldlot-site",
+	"private": true,
+	"version": "1.0.0",
+	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"dev": "concurrently -k \"vite\" \"tsx watch server/dev-api.ts\"",
+		"build": "vite build",
+		"preview": "concurrently -k \"vite preview --port 5174 --strictPort\" \"tsx server/dev-api.ts\"",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.1",
+		"concurrently": "^9.1.2",
+		"dotenv": "^16.4.7",
+		"tsx": "^4.19.2",
+		"typescript": "^5.9.3",
+		"vite": "^7.1.12"
+	}
+}

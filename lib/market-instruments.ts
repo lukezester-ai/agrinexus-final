@@ -6,7 +6,7 @@ export type InstrumentMeta = {
 	unitEn: string;
 };
 
-/** Products matching marketplace catalog names in App.tsx */
+/** Products matching catalog-style names used in market-watch flows */
 export const PRODUCT_INSTRUMENT: Partial<Record<string, InstrumentMeta>> = {
 	'Wheat (Premium)': {
 		symbol: 'zw.f',

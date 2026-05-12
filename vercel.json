@@ -1,4 +1,8 @@
 {
+  "rewrites": [
+    { "source": "/fieldlot", "destination": "/fieldlot.html" },
+    { "source": "/fieldlot/", "destination": "/fieldlot.html" }
+  ],
   "buildCommand": "npm run build",
   "installCommand": "npm install --no-audit --no-fund",
   "outputDirectory": "dist",

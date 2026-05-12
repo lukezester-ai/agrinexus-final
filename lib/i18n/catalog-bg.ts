@@ -66,23 +66,8 @@ export const STR_BG = {
 	navGroupMarkets: 'Статистика',
 	navGroupMarketsShort: 'Стат.',
 	navMeteoPdf: 'Метео+PDF',
-	navMarket: 'Зеленчукови консерви (SIMA пазар)',
-	navMarketShort: 'SIMA пазар',
-	marketPageTitle: 'Зеленчукови консерви — SIMA заводски борд (EXW)',
-	marketPageSubtitle:
-		'Илюстративни демо цени EXW в лв. без ДДС. Стойностите се преизчисляват при смяна на локалната календарна дата чрез детерминирана симулация — не са живи котировки.',
-	marketAsOfLabel: 'Дата на таблото',
-	marketDailyRefreshNote:
-		'Обновява се автоматично след полунощ (локално време); ако разделът остане отворен, числата се освежават при смяна на датата.',
-	marketColCategory: 'Категория',
-	marketColProduct: 'Продукт',
-	marketColPack: 'Опаковка',
-	marketColPriceBgn: 'EXW (лв.)',
-	marketColPriceEur: '≈ EUR',
-	marketColUnit: 'Единица',
-	marketColNotes: 'Бележки',
-	marketDemoDailyNote:
-		'Дневната промяна е ограничена детерминирана корекция около шаблонния списък за UX — свържете реален ценови източник при нужда.',
+	navFieldlot: 'Fieldlot',
+	navFieldlotAria: 'Fieldlot — агро оферти България (лендинг страница)',
 	navGroupFarm: 'Поле и подкрепа',
 	navGroupFarmShort: 'Поле',
 	skipToContent: 'Към съдържанието',
@@ -206,6 +191,7 @@ export const STR_BG = {
 	clientCardLabel: 'Дигитална визитка',
 	footerPrivacy: 'Поверителност',
 	footerTerms: 'Условия',
+	footerFieldlot: 'Fieldlot (оферти BG)',
 	privacyTitle: 'Политика за поверителност',
 	privacyBackHome: 'Към началото',
 	privacyP1:

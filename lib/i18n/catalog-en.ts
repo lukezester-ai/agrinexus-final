@@ -64,23 +64,8 @@ export const STR_EN = {
 	navGroupMarkets: 'Statistics',
 	navGroupMarketsShort: 'Stats',
 	navMeteoPdf: 'Weather+PDF',
-	navMarket: 'Vegetable preserves (SIMA market)',
-	navMarketShort: 'SIMA market',
-	marketPageTitle: 'Vegetable preserves — SIMA factory gate board',
-	marketPageSubtitle:
-		'Illustrative EXW demo prices in BGN (ex VAT). Values are recalculated on each local calendar day using a deterministic simulation — not live factory quotes.',
-	marketAsOfLabel: 'Price board date',
-	marketDailyRefreshNote:
-		'Updates automatically after midnight (local time); if you keep this tab open, numbers refresh when the date changes.',
-	marketColCategory: 'Category',
-	marketColProduct: 'Product',
-	marketColPack: 'Packaging',
-	marketColPriceBgn: 'EXW (BGN)',
-	marketColPriceEur: '≈ EUR',
-	marketColUnit: 'Unit',
-	marketColNotes: 'Notes',
-	marketDemoDailyNote:
-		'Daily change is a bounded deterministic adjustment around the template list for UX only — wire a real pricing feed when you have one.',
+	navFieldlot: 'Fieldlot',
+	navFieldlotAria: 'Fieldlot — Bulgarian agri offers (opens landing page)',
 	navGroupFarm: 'Field & support',
 	navGroupFarmShort: 'Field',
 	skipToContent: 'Skip to content',
@@ -203,6 +188,7 @@ export const STR_EN = {
 	clientCardLabel: 'Digital business card',
 	footerPrivacy: 'Privacy',
 	footerTerms: 'Terms',
+	footerFieldlot: 'Fieldlot (BG offers)',
 	privacyTitle: 'Privacy policy',
 	privacyBackHome: 'Back to home',
 	privacyP1:

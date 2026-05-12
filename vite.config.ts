@@ -1,9 +1,38 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type PreviewServer, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const cwd = process.cwd();
+
+/** Кратък URL към `public/fieldlot.html` (лендинг под AgriNexus). */
+function fieldlotLandingRedirectMiddleware() {
+	return (
+		req: { method?: string; url?: string },
+		res: { statusCode: number; setHeader: (k: string, v: string) => void; end: () => void },
+		next: () => void,
+	) => {
+		const raw = req.url?.split('?')[0] ?? '';
+		const targets = new Set(['/fieldlot', '/fieldlot/']);
+		if (req.method === 'GET' && targets.has(raw)) {
+			res.statusCode = 302;
+			res.setHeader('Location', '/fieldlot.html');
+			res.end();
+			return;
+		}
+		next();
+	};
+}
+
+function attachFieldlotRedirectEarly(server: ViteDevServer | PreviewServer): void {
+	const handle = fieldlotLandingRedirectMiddleware();
+	if (Array.isArray(server.middlewares.stack)) {
+		server.middlewares.stack.unshift({ route: '', handle });
+	} else {
+		server.middlewares.use(handle);
+	}
+}
+
 // Синхрон с dev-server: да има DEV_API_PORT преди proxy/define (loadEnv понякога не хваща .env навреме на Windows).
 dotenv.config({ path: path.resolve(cwd, '.env') });
 dotenv.config({ path: path.resolve(cwd, '.env.local'), override: true });
@@ -22,7 +51,19 @@ export default defineConfig(({ mode }) => {
       /** За UI подсказки при офлайн API — синхрон с proxy към dev-server */
       'import.meta.env.VITE_DEV_API_PORT': JSON.stringify(String(apiPort)),
     },
-    plugins: [react()],
+    plugins: [
+      {
+        name: 'fieldlot-landing-redirect-early',
+        enforce: 'pre',
+        configureServer(server) {
+          return () => attachFieldlotRedirectEarly(server);
+        },
+        configurePreviewServer(server) {
+          return () => attachFieldlotRedirectEarly(server);
+        },
+      },
+      react(),
+    ],
     build: {
       /** App shell stays large (many routes in App.tsx); Chart.js alone tips default 500 kB warning */
       chunkSizeWarningLimit: 850,
