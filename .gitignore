@@ -5,5 +5,14 @@ dist
 data/visit-stats.json
 *.lnk
 
+# Не качвай локални секрети и артефакти
+key.json
+checkpoints/
+bin/
+condarc
+pipconfig
+gitconfig
+scripts/git/
+
 # Локални материали за инвеститорски разговори — само на този компютър, не в GitHub
 Инвеститор/

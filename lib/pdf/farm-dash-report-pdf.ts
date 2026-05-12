@@ -75,7 +75,7 @@ export async function buildFarmDashReportPdf(input: FarmDashReportPdfInput): Pro
 	const pdfDoc = await PDFDocument.create();
 	const font = await pdfDoc.embedFont(fontBytes, { subset: true });
 	let page = pdfDoc.addPage([595, 842]);
-	const { width, height } = page.getSize();
+	const { height } = page.getSize();
 	let y = height - 48;
 	const left = 48;
 	const lineGap = 13;

@@ -176,7 +176,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	let finalDynamicSources = [...(baseState.dynamicSources ?? [])];
 
-	let llmSourcesResult: DocDiscoveryJobResult['llmSources'] = {
+	const llmSourcesResult: DocDiscoveryJobResult['llmSources'] = {
 
 		enabled: process.env.DOC_DISCOVERY_LLM_SOURCES === '1',
 
@@ -188,7 +188,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	};
 
-	let nextHealth = normalizeSourceHealth(baseState.sourceHealth, sourceIds);
+	const nextHealth = normalizeSourceHealth(baseState.sourceHealth, sourceIds);
 
 	for (const id of sourceIds) {
 
@@ -220,7 +220,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	for (const src of sortedSources) {
 
-		let h = clearExpiredCooldown(nextHealth[src.id] ?? defaultSourceHealth(), nowMs);
+		const h = clearExpiredCooldown(nextHealth[src.id] ?? defaultSourceHealth(), nowMs);
 
 
 
@@ -644,7 +644,7 @@ export async function runDocDiscoveryJob(): Promise<DocDiscoveryJobResult> {
 
 	);
 
-	let nextSourcePriority = tuneSourcePriority(
+	const nextSourcePriority = tuneSourcePriority(
 
 		sourceIds,
 

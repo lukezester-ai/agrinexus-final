@@ -41,7 +41,6 @@ import { WeatherFarmView } from './components/WeatherFarmView';
 import {
 	cycleUiLang,
 	getUiStrings,
-	localeTagFor,
 	parseStoredLang,
 	speechRecognitionLang,
 	uiLangShortLabel,
@@ -68,9 +67,7 @@ function uiPickTwo(lang: UiLang, bg: string, en: string): string {
 /** When `VITE_MVP_MODE=1` in `.env`, hides Operations hub tab — core funnel only. Omit or leave unset for full navigation. */
 const MVP_MODE = import.meta.env.VITE_MVP_MODE === '1';
 
-/** Dev hint: Node `/api/chat` forwarding uses `DEV_API_PORT` in `.env` (Vite proxy). */
-const DEV_API_PORT_HINT =
-	String(import.meta.env.VITE_DEV_API_PORT ?? '').trim() || '8788';
+/** Dev: Node `/api/chat` uses `DEV_API_PORT` in `.env`; Vite exposes `VITE_DEV_API_PORT` for UI hints. */
 const COOKIE_CONSENT_KEY = 'agrinexus-cookie-consent';
 /** Set after successful interest signup when the user accepted non-essential cookies (prefill email on return). */
 const REGISTER_ACCOUNT_COOKIE = 'agrinexus_register_email';
@@ -440,11 +437,9 @@ async function apiChat(
 		const timeoutController = new AbortController();
 		const requestController = new AbortController();
 		let timeoutFired = false;
-		let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
 		const abortRequest = () => requestController.abort();
 		signal?.addEventListener('abort', abortRequest);
-		timeoutId = setTimeout(() => {
+		const timeoutId = setTimeout(() => {
 			timeoutFired = true;
 			requestController.abort();
 		}, timeoutMs);
@@ -514,7 +509,7 @@ async function apiChat(
 			}
 			await new Promise(resolve => setTimeout(resolve, 450));
 		} finally {
-			if (timeoutId) clearTimeout(timeoutId);
+			clearTimeout(timeoutId);
 			signal?.removeEventListener('abort', abortRequest);
 			timeoutController.abort();
 		}
@@ -682,7 +677,7 @@ export default function App() {
 		safeLocalSet(COOKIE_CONSENT_KEY, cookieConsent);
 	}, [cookieConsent]);
 
-	const [subsidyPrefillFocus, setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
+	const [subsidyPrefillFocus, _setSubsidyPrefillFocus] = useState<FarmProductionFocus | null>(null);
 	const [selectedClientId, setSelectedClientId] = useState(CLIENT_PROFILES[0].id);
 	const [isMobileViewport, setIsMobileViewport] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false
@@ -712,9 +707,9 @@ export default function App() {
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
 	const registerEmailHintHydratedRef = useRef(false);
 	const registerFormOpenedAtRef = useRef(Date.now());
-	const contactFormOpenedAtRef = useRef(Date.now());
 
 	const demoSessionEmail = useMemo(() => {
+		void sessionTick;
 		const e = safeLocalGet('agrinexus-demo-email');
 		return e?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) ? e.trim() : null;
 	}, [sessionTick]);
@@ -743,13 +738,6 @@ export default function App() {
 	const [loginPassword, setLoginPassword] = useState('');
 	const [loginMsg, setLoginMsg] = useState('');
 
-	const [contactName, setContactName] = useState('');
-	const [contactEmail, setContactEmail] = useState('');
-	const [contactCompany, setContactCompany] = useState('');
-	const [contactBody, setContactBody] = useState('');
-	const [contactHp] = useState('');
-	const [contactStatus, setContactStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
-	const [contactFeedback, setContactFeedback] = useState('');
 	const [leadFormAntiBotReady, setLeadFormAntiBotReady] = useState(false);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
@@ -771,14 +759,12 @@ export default function App() {
 		regPasswordConfirm.length > 0 &&
 		regPassword.length > 0 &&
 		!regPasswordsMatch;
-	const showContactEmailError = contactEmail.trim().length > 0 && !isValidEmail(contactEmail);
 	const invalidEmailText =
 		lang === 'bg'
 			? 'Моля, въведете валиден имейл адрес.'
 			: 'Please enter a valid email address.';
 
 	useEffect(() => {
-		contactFormOpenedAtRef.current = Date.now();
 		if (view !== 'register') {
 			registerEmailHintHydratedRef.current = false;
 			return;
@@ -1180,83 +1166,6 @@ export default function App() {
 		} catch {
 			setRegStatus('err');
 			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
-		}
-	};
-
-	const submitContact = async () => {
-		if (contactStatus === 'loading' || !contactEmail.trim() || !contactBody.trim()) return;
-		if (!leadFormAntiBotReady) {
-			setContactStatus('err');
-			setContactFeedback(
-				lang === 'bg'
-					? 'Моля, изчакайте секунда-две и опитайте отново.'
-					: 'Please wait a moment and try again.'
-			);
-			return;
-		}
-		if (!isValidEmail(contactEmail)) {
-			setContactStatus('err');
-			setContactFeedback(
-				lang === 'bg'
-					? 'Моля, въведете валиден имейл адрес.'
-					: 'Please enter a valid email address.'
-			);
-			return;
-		}
-		setContactStatus('loading');
-		setContactFeedback('');
-		try {
-			const res = await fetch('/api/contact', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: contactName,
-					email: contactEmail,
-					company: contactCompany,
-					message: contactBody,
-					locale: lang === 'bg' ? 'bg' : 'en',
-					hpCompanyWebsite: contactHp,
-					formOpenedAt: contactFormOpenedAtRef.current,
-				}),
-			});
-			let data: {
-				ok?: boolean;
-				error?: string;
-				hint?: string;
-				mailDelivery?: 'sent' | 'skipped';
-			} = {};
-			try {
-				data = (await res.json()) as typeof data;
-			} catch {
-				data = {};
-			}
-			if (!res.ok) {
-				setContactStatus('err');
-				setContactFeedback(
-					data.hint ||
-						data.error ||
-						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
-				);
-				return;
-			}
-			setContactStatus('ok');
-			if (data.mailDelivery === 'skipped') {
-				setContactFeedback(
-					lang === 'bg'
-						? 'Съобщението е прието, но имейл не е изпратен: задайте RESEND_API_KEY и MAIL_FROM на сървъра (напр. във Vercel).'
-						: 'Message received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. in Vercel).'
-				);
-			} else {
-				setContactFeedback(
-					lang === 'bg'
-						? 'Съобщението е изпратено към екипа ни — очаквайте отговор на посочения имейл.'
-						: 'Your message was sent to our team — expect a reply at the email you provided.'
-				);
-			}
-			setContactBody('');
-		} catch {
-			setContactStatus('err');
-			setContactFeedback(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
 		}
 	};
 
@@ -3236,7 +3145,7 @@ export default function App() {
 					<p className="muted" style={{ marginTop: 10, maxWidth: 640, lineHeight: 1.5 }}>
 						{tr.fileUploadPageHint}
 					</p>
-					<FileUploadPanel senderEmail={contactEmail} lang={lang} />
+					<FileUploadPanel senderEmail={identityEmailForAi ?? undefined} lang={lang} />
 				</section>
 			)}
 

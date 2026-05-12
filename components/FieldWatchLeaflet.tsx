@@ -147,9 +147,8 @@ export function FieldWatchLeaflet({
 		});
 		map.addControl(drawControl);
 
-		let ndviLayer: L.TileLayer.WMS | null = null;
 		if (ndviAvailable) {
-			ndviLayer = L.tileLayer.wms(wmsUrl, {
+			const ndviLayer = L.tileLayer.wms(wmsUrl, {
 				layers: wmsLayers,
 				format: 'image/png',
 				transparent: true,

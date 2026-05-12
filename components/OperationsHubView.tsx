@@ -194,8 +194,8 @@ function extractDecisionTasks(text: string): string[] {
 	return text
 		.split('\n')
 		.map(line => line.trim())
-		.filter(line => /^[-*•]\s+/.test(line) || /^\d+[\.\)]\s+/.test(line))
-		.map(line => line.replace(/^([-*•]\s+|\d+[\.\)]\s+)/, '').trim())
+		.filter(line => /^[-*•]\s+/.test(line) || /^\d+[.)]\s+/.test(line))
+		.map(line => line.replace(/^([-*•]\s+|\d+[.)]\s+)/, '').trim())
 		.filter(line => line.length >= 8)
 		.slice(0, 10);
 }
@@ -218,8 +218,7 @@ export function OperationsHubView(props: {
 	onNavigate: (view: OpsHubNavigate) => void;
 }) {
 	const { tr, lang, onNavigate } = props;
-	const pick = (bg: string, en: string) => (lang === 'bg' ? bg : en);
-	const slab = (bg: string, en: string) => (lang === 'bg' ? bg : en);
+	const pick = useCallback((bg: string, en: string) => (lang === 'bg' ? bg : en), [lang]);
 
 	const [page, setPage] = useState<FarmPage>('dashboard');
 	const [dash, setDash] = useState<FarmDashPersisted>(() => loadFarmDash());
@@ -352,7 +351,7 @@ export function OperationsHubView(props: {
 			.join(', ');
 		let w = '';
 		if (weatherSnap) {
-			w = slab(
+			w = pick(
 				`Текущо (Open-Meteo lat ${dash.weatherLat.toFixed(4)}, lon ${dash.weatherLon.toFixed(4)}): ${Math.round(weatherSnap.temp)}°C, ${weatherDesc(weatherSnap.code, lang)}, влажност ${weatherSnap.humidity}%, вятър ${Math.round(weatherSnap.wind)} км/ч.`,
 				`Current (Open-Meteo lat ${dash.weatherLat.toFixed(4)}, lon ${dash.weatherLon.toFixed(4)}): ${Math.round(weatherSnap.temp)}°C, ${weatherDesc(weatherSnap.code, lang)}, RH ${weatherSnap.humidity}%, wind ${Math.round(weatherSnap.wind)} km/h.`,
 			);
@@ -367,7 +366,7 @@ export function OperationsHubView(props: {
 						.map(f => f.id)
 						.join(', ')}\nAvg moisture (7d): ${(dash.moisture.reduce((s, x) => s + x, 0) / dash.moisture.length).toFixed(1)}% vs target ${dash.moistureTarget}%\n`;
 		return `${hdr}${w ? `${w}\n` : ''}`;
-	}, [lang, pageTitle, statusCounts, weatherSnap, dash]);
+	}, [lang, pageTitle, statusCounts, weatherSnap, dash, pick]);
 
 	const askRag = useCallback(async (userMessage: string): Promise<string> => {
 		const res = await fetch('/api/chat', {
@@ -726,8 +725,10 @@ export function OperationsHubView(props: {
 		};
 	}, [lang, dash.cropShares]);
 
-	const moistureLabels =
-		lang === 'bg' ? ['Пон', 'Вт', 'Ср', 'Чет', 'Пет', 'Сб', 'Нед'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+	const moistureLabels = useMemo(
+		() => (lang === 'bg' ? ['Пон', 'Вт', 'Ср', 'Чет', 'Пет', 'Сб', 'Нед'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']),
+		[lang],
+	);
 
 	const moistureData = useMemo(
 		() => ({

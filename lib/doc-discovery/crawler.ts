@@ -36,7 +36,7 @@ export function extractDocumentLinksFromHtml(html: string, baseUrl: string, maxL
 	const re = /href\s*=\s*["']([^"'>\s]+)["']/gi;
 	let m: RegExpExecArray | null;
 	while ((m = re.exec(html)) !== null) {
-		let href = m[1].trim();
+		const href = m[1].trim();
 		if (!href || href.startsWith('#') || href.toLowerCase().startsWith('javascript:')) continue;
 		let absolute: string;
 		try {
@@ -73,7 +73,7 @@ export function rankSecondaryHtmlPageUrls(html: string, baseUrl: string, maxPick
 	const re = /href\s*=\s*["']([^"'>\s]+)["']/gi;
 	let m: RegExpExecArray | null;
 	while ((m = re.exec(html)) !== null) {
-		let href = m[1].trim();
+		const href = m[1].trim();
 		if (!href || href.startsWith('#') || href.toLowerCase().startsWith('javascript:')) continue;
 		let absolute: string;
 		try {

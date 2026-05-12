@@ -127,7 +127,7 @@ topicHints optional — ids from input topics only. Fewer entries is fine if uns
 	let raw = await res.text();
 
 	if (!res.ok && upstream.provider === 'mistral' && upstream.useJsonObjectFormat && raw.trim()) {
-		let retry = false;
+		let retry: boolean;
 		try {
 			const errJson = JSON.parse(raw) as { error?: { message?: string } };
 			const msg = String(errJson?.error?.message ?? raw).toLowerCase();

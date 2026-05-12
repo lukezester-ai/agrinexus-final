@@ -42,7 +42,7 @@ async function pageWithHeader(
 	const fontBytes = await loadCyrillicFontBytes();
 	const font = await pdfDoc.embedFont(fontBytes, { subset: true });
 	const page = pdfDoc.addPage([595, 842]);
-	const { width, height } = page.getSize();
+	const { height } = page.getSize();
 	let y = height - 56;
 	page.drawText(title, { x: 48, y, size: 14, font, color: rgb(0.05, 0.15, 0.12) });
 	y -= 28;

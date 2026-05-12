@@ -447,7 +447,7 @@ async function handleChatPostInner(rawBody: unknown): Promise<
   let raw = await res.text();
 
   if (!res.ok && provider === 'mistral' && useJsonObjectFormat && raw.trim()) {
-    let retryWithoutJson = false;
+    let retryWithoutJson: boolean;
     try {
       const errJson = JSON.parse(raw) as { error?: { message?: string } };
       const msg = String(errJson?.error?.message ?? raw).toLowerCase();

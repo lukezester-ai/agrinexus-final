@@ -95,7 +95,7 @@ async function upstashPipeline(cmds: (string | number)[][]): Promise<unknown[]> 
 	});
 }
 
-function useUpstash(): boolean {
+function hasUpstashRedisEnv(): boolean {
 	return Boolean(process.env.UPSTASH_REDIS_REST_URL?.trim() && process.env.UPSTASH_REDIS_REST_TOKEN?.trim());
 }
 
@@ -105,7 +105,7 @@ export async function recordVisit(visitorId: string | null): Promise<{
 	uniqueVisitors: number;
 	storage: 'upstash' | 'file' | 'none';
 }> {
-	if (useUpstash()) {
+	if (hasUpstashRedisEnv()) {
 		const sid = `${SESSION_KEY_PREFIX}:sessions`;
 		const uniq = `${SESSION_KEY_PREFIX}:unique`;
 		const results = visitorId
@@ -152,7 +152,7 @@ export async function readVisitStats(): Promise<{
 	updatedAt: string | null;
 	storage: 'upstash' | 'file' | 'none';
 }> {
-	if (useUpstash()) {
+	if (hasUpstashRedisEnv()) {
 		const sid = `${SESSION_KEY_PREFIX}:sessions`;
 		const uniq = `${SESSION_KEY_PREFIX}:unique`;
 		const results = await upstashPipeline([

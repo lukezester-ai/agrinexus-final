@@ -202,7 +202,7 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 			out.push(tr.foodSecAngleThinBuffer);
 		}
 		return out;
-	}, [derived, fixedProgrammeEur, referencePriceEurPerT, tr, locale]);
+	}, [derived, fixedProgrammeEur, referencePriceEurPerT, tr, locale, yieldTPerHa]);
 
 	const marginPositive = derived.marginTotal >= 0;
 	const statusLine = marginPositive
