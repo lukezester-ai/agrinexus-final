@@ -8,7 +8,7 @@ export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {
 		return `=== AGRI NEXUS — ПЛАТФОРМЕН ОБХВАТ (вътрешна карта на процесите; не е правен съвет) ===
 Индексираното търсене (RAG) е **водещ слой за факти**, щом в prompt-а има откъси от документи по-долу: тогава отговорът тръгва от тях, а DAFS/официалните портали допълват рамката и проверката — не обратното.
 Модули и потоци:
-• Начало / AI помощник: чат през /api/chat с personas unified|lawyer|agronomist|finance; контекст от профил „Твоят план“, Field Watch якор и retrieval от индексирани документи (DAFS/износ и др.) когато е конфигурирано.
+• Начало / AI помощник: чат през /api/chat (по подразбиране unified; по заявка lawyer|agronomist|finance); десет бързи въпроса за млад фермер с опционален ragPromptId за по-точен retrieval; контекст от профил „Твоят план“, Field Watch якор и индексирани документи (ДФЗ/износ и др.) когато е конфигурирано.
 • Статистика: статистика на култури (БГ); документи внос/износ (БГ); Метео+PDF — прогноза Open-Meteo по областен център, PDF с метео и ръчни полета „финансов ефект“.
 • Поле и поддръжка: Field Watch — Leaflet карта (сателит/OSM), geosearch, очертаване на полигон, площ и GeoJSON; опционален NDVI WMS при VITE_SENTINEL_WMS_URL + VITE_SENTINEL_WMS_LAYERS; класически timelapse през /agrinexus-field-watch.html; калкулатор субсидии; сезонен календар с RAG за месечен план; команден център (оперативен план и рискове от профил).
 • Food Sec.: хранителна сигурност / break-even; качване на файлове към логистиката.
@@ -21,7 +21,7 @@ export function buildAgrinexusPlatformRagPreamble(locale: 'bg' | 'en'): string {
 	return `=== AGRI NEXUS — PLATFORM SCOPE (internal process map; not legal advice) ===
 Indexed retrieval (RAG) is the **leading factual layer** whenever document excerpts appear later in the prompt: the answer starts from them, and DAFS/official portals extend the frame and verification — not the other way around.
 Modules and flows:
-• Home / AI assistant: chat via /api/chat with personas unified|lawyer|agronomist|finance; context from “Your plan” profile, Field Watch anchor, and retrieval from indexed docs (DAFS, export, etc.) when configured.
+• Home / AI assistant: chat via /api/chat (default unified; optional lawyer|agronomist|finance); ten young-farmer quick prompts with optional ragPromptId for tighter retrieval; context from “Your plan” profile, Field Watch anchor, and indexed docs (DAFS, export, etc.) when configured.
 • Statistics: crop statistics (BG); trade/customs docs (BG); Weather+PDF — Open-Meteo by oblast centre, PDF export with manual “financial effect” notes.
 • Field & support: Field Watch — Leaflet (satellite/OSM), geosearch, polygon draw, area & GeoJSON; optional NDVI WMS via VITE_SENTINEL_WMS_URL + VITE_SENTINEL_WMS_LAYERS; legacy timelapse at /agrinexus-field-watch.html; subsidy calculator; season calendar with RAG month plan; command centre (operational plan and profile risks).
 • Food Sec.: food security / break-even; file upload for logistics.

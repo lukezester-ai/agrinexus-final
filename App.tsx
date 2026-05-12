@@ -55,6 +55,12 @@ import {
 import { buildFarmerContextForAi } from './lib/build-farmer-context-for-ai';
 import type { FarmProductionFocus } from './lib/subsidy-calculator';
 import { FIELD_WATCH_OBLAST_PRESETS } from './lib/field-watch-oblast-presets';
+import {
+	isValidOblastAnchorId,
+	OBLAST_ANCHOR_STORAGE_KEY,
+	readStoredOblastAnchorId,
+	writeStoredOblastAnchorId,
+} from './lib/oblast-anchor-storage';
 import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
 import { useSupabaseSession } from './hooks/use-supabase-session';
 import { LEAD_FORM_HP_FIELD } from './lib/form-bot-guard';
@@ -178,7 +184,7 @@ function clearRegisterAccountHint(): void {
 
 type ChatTurn = { role: 'user' | 'assistant'; content: string };
 
-type SendChatOpts = { text?: string; persona?: ChatPersona };
+type SendChatOpts = { text?: string; persona?: ChatPersona; ragPromptId?: string | null };
 
 /** Minimal typings — DOM lib does not always expose Web Speech API types. */
 type SpeechRecognitionResultEvt = {
@@ -338,6 +344,7 @@ async function apiChat(
 	signal: AbortSignal | undefined,
 	persona: ChatPersona,
 	farmerContext: string,
+	ragPromptId?: string | null,
 ): Promise<string> {
 	const normalizeAssistantReply = (raw: string): string => {
 		const stripFallbackMeta = (text: string): string => {
@@ -429,6 +436,7 @@ async function apiChat(
 		locale,
 		persona,
 		farmerContext,
+		...(ragPromptId ? { ragPromptId } : {}),
 	});
 
 	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -682,7 +690,6 @@ export default function App() {
 	);
 
 	const [chatMessages, setChatMessages] = useState<ChatTurn[]>([]);
-	const [chatPersona, setChatPersona] = useState<ChatPersona>('unified');
 	const [chatInput, setChatInput] = useState(
 		() => safeSessionGet('agrinexus-chat-draft') ?? ''
 	);
@@ -697,7 +704,10 @@ export default function App() {
 	const [assistantToolbarCollapsed, setAssistantToolbarCollapsed] = useState(() =>
 		typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false,
 	);
-	const [selectedFieldCityId, setSelectedFieldCityId] = useState<string>('dobrich');
+	const [selectedFieldCityId, setSelectedFieldCityId] = useState<string>(() => {
+		if (typeof window === 'undefined') return 'dobrich';
+		return readStoredOblastAnchorId() ?? 'dobrich';
+	});
 	const [fieldWatchRecenterNonce, setFieldWatchRecenterNonce] = useState(0);
 	const selectedFieldCity =
 		FIELD_WATCH_OBLAST_PRESETS.find((city) => city.id === selectedFieldCityId) ??
@@ -782,6 +792,27 @@ export default function App() {
 		return () => clearTimeout(id);
 	}, [view]);
 
+	useEffect(() => {
+		writeStoredOblastAnchorId(selectedFieldCityId);
+	}, [selectedFieldCityId]);
+
+	/** Друг таб промени `localStorage` — подравни областта без да ползваме събития от същия таб. */
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		const onStorage = (e: StorageEvent) => {
+			if (e.storageArea !== localStorage || e.key !== OBLAST_ANCHOR_STORAGE_KEY) return;
+			const raw = e.newValue?.trim() ?? '';
+			if (!raw) {
+				setSelectedFieldCityId((cur) => (cur === 'dobrich' ? cur : 'dobrich'));
+				return;
+			}
+			if (!isValidOblastAnchorId(raw)) return;
+			setSelectedFieldCityId((cur) => (cur === raw ? cur : raw));
+		};
+		window.addEventListener('storage', onStorage);
+		return () => window.removeEventListener('storage', onStorage);
+	}, []);
+
 	const dealContextForAI = useMemo(() => {
 		const cityLabel = lang === 'bg' ? selectedFieldCity.bg : selectedFieldCity.en;
 		return `[Field Watch: ${cityLabel}] Leaflet map with draw tools, optional NDVI WMS, weather PDF with manual financial notes. Prioritize agronomic signals and RAG.`;
@@ -811,7 +842,7 @@ export default function App() {
 
 	const sendChat = useCallback(async (opts?: SendChatOpts) => {
 		const trimmed = (opts?.text ?? chatInput).trim();
-		const personaForRequest = opts?.persona ?? chatPersona;
+		const personaForRequest: ChatPersona = opts?.persona ?? 'unified';
 		if (!trimmed || chatLoading) return;
 		chatAbortRef.current?.abort();
 		const controller = new AbortController();
@@ -835,6 +866,7 @@ export default function App() {
 				controller.signal,
 				personaForRequest,
 				farmerSnap,
+				opts?.ragPromptId ?? null,
 			);
 			setChatMessages(prev => [...prev, { role: 'assistant', content: reply }]);
 		} catch (e) {
@@ -866,14 +898,13 @@ export default function App() {
 			if (chatAbortRef.current === controller) chatAbortRef.current = null;
 			setChatLoading(false);
 		}
-	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang, chatPersona]);
+	}, [chatInput, chatLoading, chatMessages, dealContextForAI, lang]);
 
 	const runQuickPrompt = useCallback(
 		(item: AssistantQuickPromptItem) => {
 			if (chatLoading) return;
 			const text = quickPromptLabel(item, lang);
-			setChatPersona(item.persona);
-			void sendChat({ text, persona: item.persona });
+			void sendChat({ text, persona: 'unified', ragPromptId: item.id });
 		},
 		[chatLoading, lang, sendChat],
 	);
@@ -2287,6 +2318,8 @@ export default function App() {
             gap: 4px;
             transition: background .15s ease, border-color .15s ease, color .15s ease, opacity .12s ease;
             touch-action: manipulation;
+            overflow: hidden;
+            box-sizing: border-box;
           }
           .mobile-nav-btn:active {
             opacity: 0.88;
@@ -2302,17 +2335,15 @@ export default function App() {
             height: 15px;
           }
           .mobile-nav-label {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 1;
+            display: block;
             overflow: hidden;
             width: 100%;
             max-width: 100%;
             min-width: 0;
             line-height: 1.14;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-            hyphens: auto;
+            text-align: center;
+            white-space: nowrap;
+            text-overflow: ellipsis;
           }
           .mobile-nav-btn.active {
             border-color: var(--accent-border);
@@ -3106,7 +3137,13 @@ export default function App() {
 			)}
 
 			{view === 'weather' && (
-				<WeatherFarmView lang={lang} tr={tr} onOpenFieldWatch={() => setView('field-watch')} />
+				<WeatherFarmView
+					lang={lang}
+					tr={tr}
+					cityId={selectedFieldCityId}
+					onCityIdChange={setSelectedFieldCityId}
+					onOpenFieldWatch={() => setView('field-watch')}
+				/>
 			)}
 
 			{view === 'trade-documents' && <TradeDocumentsBulgariaView lang={lang} tr={tr} />}
@@ -3118,7 +3155,14 @@ export default function App() {
 					onOpenFoodSecurity={() => setView('food-security')}
 				/>
 			)}
-			{view === 'food-security' && <FoodSecurityBreakEvenView lang={lang} tr={tr} />}
+			{view === 'food-security' && (
+				<FoodSecurityBreakEvenView
+					lang={lang}
+					tr={tr}
+					syncOblastId={selectedFieldCityId}
+					onSyncOblastChange={setSelectedFieldCityId}
+				/>
+			)}
 
 			{view === 'file-upload' && (
 				<section className="section">
@@ -3437,7 +3481,7 @@ export default function App() {
 								onClick={() => setView('watchlist')}
 								aria-label={tr.navWatchlist}>
 								<Bookmark size={16} aria-hidden />
-								<MobileNavLabel text={tr.navWatchlist} />
+								<MobileNavLabel text={tr.navWatchlistShort} hint={tr.navWatchlist} />
 							</button>
 						)}
 						<button

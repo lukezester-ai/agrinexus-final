@@ -36,10 +36,12 @@ type Props = {
 	lang: UiLang;
 	tr: AppStrings;
 	onOpenFieldWatch?: () => void;
+	/** Споделена област с Field Watch и хранителна сигурност (localStorage в App). */
+	cityId: string;
+	onCityIdChange: (id: string) => void;
 };
 
-export function WeatherFarmView({ lang, tr, onOpenFieldWatch }: Props) {
-	const [cityId, setCityId] = useState('dobrich');
+export function WeatherFarmView({ lang, tr, onOpenFieldWatch, cityId, onCityIdChange }: Props) {
 	const preset = useMemo(
 		() => FIELD_WATCH_OBLAST_PRESETS.find(c => c.id === cityId) ?? FIELD_WATCH_OBLAST_PRESETS[0],
 		[cityId],
@@ -155,7 +157,7 @@ export function WeatherFarmView({ lang, tr, onOpenFieldWatch }: Props) {
 				className="contact-panel"
 				style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
 				<label style={{ fontSize: '.88rem' }}>{tr.weatherOblastLabel}</label>
-				<select value={cityId} onChange={e => setCityId(e.target.value)} style={{ minWidth: 220 }}>
+				<select value={cityId} onChange={e => onCityIdChange(e.target.value)} style={{ minWidth: 220 }}>
 					{FIELD_WATCH_OBLAST_PRESETS.map(c => (
 						<option key={c.id} value={c.id}>
 							{lang === 'bg' ? c.bg : c.en}

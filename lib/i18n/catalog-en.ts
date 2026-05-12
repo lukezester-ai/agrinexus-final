@@ -59,6 +59,7 @@ export const STR_EN = {
 	fieldWatchMobileShort: 'Map',
 	navClients: 'Clients',
 	navWatchlist: 'Operations',
+	navWatchlistShort: 'Ops',
 	navLogin: 'Sign In',
 	navGetStarted: 'Get Started',
 	navGroupMarkets: 'Statistics',
@@ -110,9 +111,9 @@ export const STR_EN = {
 	createAccount: 'Create your account',
 	assistantTitle: 'RAG-led assistant',
 	assistantSubtitle:
-		'Indexed documents lead factual answers when configured (Doc Discovery + vectors); then DAFS/ISUN, legal, field, and economics — one coherent reply.',
+		'With an index (Doc Discovery + vectors), answers ground on retrieved documents; below are ten practical questions for a young or beginning farmer — pick one or type your own.',
 	assistantTriadHint:
-		'Choose a focus — the model still cross-links roles. "Team" balances all three in one answer.',
+		'Quick prompts cover scheme entry, paperwork, risk, and market; the chat stays one RAG-led channel.',
 	personaUnified: 'Team',
 	personaLawyer: 'Legal',
 	personaAgronomist: 'Agronomy',
@@ -124,12 +125,13 @@ export const STR_EN = {
 	assistantLegalFooter:
 		'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
 	chatThinking: 'Thinking…',
-	chatPromptsLabel: 'Quick prompts',
-	chatPromptsScrollHint: 'More prompts — scroll this list',
+	chatPromptsLabel: '10 young-farmer questions',
+	chatPromptsScrollHint: 'Scroll the list — every prompt is meant for RAG-backed answers.',
 	assistantCertPdfSectionTitle: 'Bio certification — reference PDFs',
-	assistantCertPdfPickPersona: 'Pick Legal, Agronomy, or Finance above to see curated PDFs for that role.',
+	assistantCertPdfPickPersona:
+		'Reference PDFs are grouped by topic; use the RAG chat for questions specific to your case.',
 	chatClear: 'Clear',
-	chatPlaceholder: 'Ask about routes, margin, certifications…',
+	chatPlaceholder: 'Ask about schemes, paperwork, deadlines, risk, or markets…',
 	chatMicAria: 'Voice input',
 	chatMicStopAria: 'Stop recording',
 	mobileAssistantTab: 'AI',
@@ -423,7 +425,11 @@ export const STR_EN = {
 		'Fixed costs are programme-wide (coordination, reserves readiness, shared logistics envelopes). Variable costs apply per cultivated hectare.',
 	foodSecPopulation: 'Population covered (0 = use manual tonnes)',
 	foodSecPopulationHint:
-		'When population > 0, annual supply = population × kg/year per person; manual tonnes are ignored.',
+		'When population > 0, annual supply = population × kg/year per person; manual tonnes are ignored. Pick an oblast to pre-fill population, then edit the number if needed.',
+	foodSecOblastLabel: 'Bulgaria — administrative anchor',
+	foodSecOblastHint:
+		'Same 28 oblast / centre ids as Field Watch & weather — rounded permanent population (2021 census orientation, illustrative).',
+	foodSecOblastPlaceholder: '— choose area to set population —',
 	foodSecKgPerCapita: 'Staple basket per person (kg/year)',
 	foodSecManualTonnes: 'Annual supply target (t/year)',
 	foodSecYield: 'Average programme yield (t/ha)',

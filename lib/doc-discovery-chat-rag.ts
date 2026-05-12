@@ -1,12 +1,14 @@
+import type { AssistantRagRetrievalHints } from './assistant-rag-retrieval.js';
 import { discoveryEmbeddingsConfigured, embedTextsForDiscovery } from './ml/embeddings-discovery.js';
-import { searchDiscoveryEmbeddings } from './doc-discovery/vector-db.js';
-import { searchContentChunks } from './doc-discovery/content/search.js';
+import { searchDiscoveryEmbeddings, type VectorSearchRow } from './doc-discovery/vector-db.js';
+import { searchContentChunks, type ContentChunkRow } from './doc-discovery/content/search.js';
 import { MAX_DOC_DISCOVERY_RAG_CHARS } from './rag-limits.js';
 
 const TOP_K_META = 20;
 const TOP_K_CONTENT = 20;
 const MAX_SNIPPET_CHARS = 1000;
 const MIN_QUERY_CHARS = 2;
+const MAX_EMBED_QUERY_CHARS = 8000;
 
 function chatRagEnabled(): boolean {
 	const v = process.env.CHAT_DOC_DISCOVERY_RAG?.trim().toLowerCase();
@@ -26,19 +28,44 @@ function clipSnippet(text: string, maxChars: number): string {
 	return `${t.slice(0, maxChars - 1)}…`;
 }
 
+function preferTopics<T extends { similarity: number }>(
+	rows: T[],
+	topicIds: string[] | null | undefined,
+	getTopic: (r: T) => string | null,
+): T[] {
+	if (!topicIds?.length) return rows;
+	const set = new Set(topicIds);
+	return [...rows].sort((a, b) => {
+		const ta = getTopic(a);
+		const tb = getTopic(b);
+		const pa = ta && set.has(ta) ? 1 : 0;
+		const pb = tb && set.has(tb) ? 1 : 0;
+		if (pa !== pb) return pb - pa;
+		return b.similarity - a.similarity;
+	});
+}
+
 /**
  * Текст за system prompt: реални откъси (`doc_discovery_chunks`) + насочващи URL-и
  * (`doc_discovery_embeddings`). Ако content chunks таблицата е празна, отстъпва
  * към само-метаданни (старото поведение).
+ *
+ * @param hints Опционално от бърз въпрос (`ragPromptId`): удебелява embedding заявката и пренарежда по `topic_id`.
  */
 export async function buildDocDiscoveryRagContextForChat(
 	userQuery: string,
 	locale: 'bg' | 'en',
+	hints?: AssistantRagRetrievalHints | null,
 ): Promise<string> {
 	if (!chatRagEnabled()) return '';
-	const q = userQuery.trim().replace(/\s+/g, ' ');
-	if (q.length < MIN_QUERY_CHARS) return '';
+	const qBase = userQuery.trim().replace(/\s+/g, ' ');
+	if (qBase.length < MIN_QUERY_CHARS) return '';
 	if (!discoveryEmbeddingsConfigured()) return '';
+
+	const embedSource = hints?.embedAugment?.trim()
+		? `${qBase}\n\n--- retrieval focus ---\n${hints.embedAugment.trim()}`.replace(/\s+/g, ' ').trim()
+		: qBase;
+	const q = embedSource.slice(0, MAX_EMBED_QUERY_CHARS);
 
 	try {
 		const { vectors } = await embedTextsForDiscovery([q]);
@@ -50,8 +77,13 @@ export async function buildDocDiscoveryRagContextForChat(
 			searchDiscoveryEmbeddings(emb, TOP_K_META),
 		]);
 
-		const contentRows = contentRes.ok ? contentRes.rows : [];
-		const metaRows = metaRes.ok ? metaRes.rows : [];
+		let contentRows: ContentChunkRow[] = contentRes.ok ? contentRes.rows : [];
+		let metaRows: VectorSearchRow[] = metaRes.ok ? metaRes.rows : [];
+
+		if (hints?.topicIds?.length) {
+			contentRows = preferTopics(contentRows, hints.topicIds, r => r.topicId);
+			metaRows = preferTopics(metaRows, hints.topicIds, r => r.topic_id);
+		}
 
 		if (contentRows.length === 0 && metaRows.length === 0) return '';
 

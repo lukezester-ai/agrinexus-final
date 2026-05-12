@@ -14,8 +14,9 @@ for (const key of [
 config();
 
 const { buildDocDiscoveryRagContextForChat } = await import(
-  '../lib/doc-discovery-chat-rag.js'
+	'../lib/doc-discovery-chat-rag.js'
 );
+const { resolveAssistantRagRetrieval } = await import('../lib/assistant-rag-retrieval.js');
 
 function readArg(name: string, fallback = ''): string {
   const prefix = `--${name}=`;
@@ -30,7 +31,14 @@ async function main() {
     'Какви документи и срокове трябва да следя за субсидии при зърнопроизводство?';
   const locale = readArg('locale', 'bg') === 'en' ? 'en' : 'bg';
 
-  const rag = await buildDocDiscoveryRagContextForChat(query, locale);
+  const promptId = readArg('promptId', '');
+  const hints = promptId ? resolveAssistantRagRetrieval(promptId) : null;
+  if (promptId && !hints) {
+    console.error(`Unknown --promptId=${promptId}. Use one of the young-farmer quick prompt ids (e.g. yf-cap-entry).`);
+    process.exit(2);
+  }
+
+  const rag = await buildDocDiscoveryRagContextForChat(query, locale, hints);
   if (!rag.trim()) {
     console.log('RAG context is empty.');
     console.log('Check: CHAT_DOC_DISCOVERY_RAG, embedding provider keys, and indexed vectors.');

@@ -3,6 +3,7 @@ import { buildAgrinexusPlatformRagPreamble } from './agrinexus-platform-rag-cont
 import { MAX_CHAT_RAG_COMBINED_CHARS } from './rag-limits.js';
 import { parseChatPersona } from './chat-persona.js';
 import { buildDocDiscoveryRagContextForChat } from './doc-discovery-chat-rag.js';
+import { resolveAssistantRagRetrieval } from './assistant-rag-retrieval.js';
 import { chatProviderLabel, openAIMessageContentToString, resolveTextChatUpstream } from './llm-routing.js';
 
 export type ChatTurn = { role: 'user' | 'assistant'; content: string };
@@ -382,8 +383,9 @@ async function handleChatPostInner(rawBody: unknown): Promise<
   }
 
   const lastUserTurn = [...cleaned].reverse().find((m) => m.role === 'user');
+  const ragHints = resolveAssistantRagRetrieval(body.ragPromptId);
   const retrievalBlock = lastUserTurn
-    ? await buildDocDiscoveryRagContextForChat(lastUserTurn.content, locale)
+    ? await buildDocDiscoveryRagContextForChat(lastUserTurn.content, locale, ragHints)
     : '';
   const platformPreamble = buildAgrinexusPlatformRagPreamble(locale);
   let ragBlock = [platformPreamble, retrievalBlock].filter((s) => s.trim().length > 0).join('\n\n');

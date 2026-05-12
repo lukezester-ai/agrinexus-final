@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Shield } from 'lucide-react';
 import type { AppStrings, UiLang } from '../lib/i18n';
+import { BG_OBLAST_APPROX_POPULATION_2021 } from '../lib/bg-oblast-population-approx';
+import { FIELD_WATCH_OBLAST_PRESETS } from '../lib/field-watch-oblast-presets';
+import { isValidOblastAnchorId } from '../lib/oblast-anchor-storage';
 
 type Props = {
 	lang: UiLang;
 	tr: AppStrings;
+	/** Същата област като Field Watch / метео; записва се в localStorage от App. */
+	syncOblastId: string;
+	onSyncOblastChange: (id: string) => void;
 };
 
 type FoodSecPreset = 'custom' | 'urbanStaple' | 'exportCorridor' | 'bufferReserve';
@@ -89,11 +95,16 @@ const PRESETS: Record<Exclude<FoodSecPreset, 'custom'>, FoodSecInputs> = {
 	},
 };
 
-export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
-	const locale = lang === 'bg' ? 'bg-BG' : 'en-GB';
-	const [preset, setPreset] = useState<FoodSecPreset>('urbanStaple');
+function initialPopulationFromOblast(syncId: string): number {
+	const n = BG_OBLAST_APPROX_POPULATION_2021[syncId];
+	return typeof n === 'number' && n > 0 ? n : PRESETS.urbanStaple.population;
+}
 
-	const [population, setPopulation] = useState(PRESETS.urbanStaple.population);
+export function FoodSecurityBreakEvenView({ lang, tr, syncOblastId, onSyncOblastChange }: Props) {
+	const locale = lang === 'bg' ? 'bg-BG' : 'en-GB';
+	const [preset, setPreset] = useState<FoodSecPreset>('custom');
+
+	const [population, setPopulation] = useState(() => initialPopulationFromOblast(syncOblastId));
 	const [kgPerCapitaYear, setKgPerCapitaYear] = useState(PRESETS.urbanStaple.kgPerCapitaYear);
 	const [manualSupplyTonnes, setManualSupplyTonnes] = useState(PRESETS.urbanStaple.manualSupplyTonnes);
 	const [yieldTPerHa, setYieldTPerHa] = useState(PRESETS.urbanStaple.yieldTPerHa);
@@ -102,6 +113,24 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 	const [referencePriceEurPerT, setReferencePriceEurPerT] = useState(PRESETS.urbanStaple.referencePriceEurPerT);
 
 	const [hypothesis, setHypothesis] = useState('');
+
+	const [linkedOblastId, setLinkedOblastId] = useState<string | null>(() =>
+		isValidOblastAnchorId(syncOblastId) ? syncOblastId : null,
+	);
+
+	const oblastOptions = useMemo(
+		() => [...FIELD_WATCH_OBLAST_PRESETS].sort((a, b) => a.bg.localeCompare(b.bg, 'bg')),
+		[],
+	);
+
+	useEffect(() => {
+		if (process.env.NODE_ENV !== 'development') return;
+		for (const p of FIELD_WATCH_OBLAST_PRESETS) {
+			if (BG_OBLAST_APPROX_POPULATION_2021[p.id] == null) {
+				console.warn(`[FoodSecurity] Missing BG_OBLAST_APPROX_POPULATION_2021 for oblast id: ${p.id}`);
+			}
+		}
+	}, []);
 
 	useEffect(() => {
 		try {
@@ -122,6 +151,19 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 
 	const markCustom = () => setPreset('custom');
 
+	// Само при смяна на глобалната котва (Field Watch / метео / друга таб-навигация) — не при всяка промяна на населението от полето.
+	useEffect(() => {
+		if (!isValidOblastAnchorId(syncOblastId)) return;
+		if (population <= 0) return;
+		setLinkedOblastId(syncOblastId);
+		const n = BG_OBLAST_APPROX_POPULATION_2021[syncOblastId];
+		if (n != null) {
+			setPopulation(n);
+			setPreset('custom');
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when global oblast changes, not when user edits population
+	}, [syncOblastId]);
+
 	const applyPreset = (p: Exclude<FoodSecPreset, 'custom'>) => {
 		const s = PRESETS[p];
 		setPreset(p);
@@ -132,6 +174,7 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 		setVariableCostEurPerHa(s.variableCostEurPerHa);
 		setFixedProgrammeEur(s.fixedProgrammeEur);
 		setReferencePriceEurPerT(s.referencePriceEurPerT);
+		setLinkedOblastId(null);
 	};
 
 	const baseInputs: FoodSecInputs = useMemo(
@@ -261,6 +304,54 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 				<p className="muted" style={{ margin: '0 0 14px', fontSize: '.88rem', lineHeight: 1.5 }}>
 					{tr.foodSecInputsHint}
 				</p>
+				<label
+					className="muted"
+					style={{
+						display: 'grid',
+						gap: 6,
+						fontSize: '.86rem',
+						gridColumn: '1 / -1',
+						marginBottom: 4,
+					}}>
+					{tr.foodSecOblastLabel}
+					<select
+						value={
+							population > 0
+								? (linkedOblastId ??
+										(BG_OBLAST_APPROX_POPULATION_2021[syncOblastId] === population
+											? syncOblastId
+											: ''))
+								: ''
+						}
+						disabled={population <= 0}
+						style={
+							population <= 0
+								? { opacity: 0.55, width: '100%', maxWidth: 'min(100%, 520px)' }
+								: { width: '100%', maxWidth: 'min(100%, 520px)' }
+						}
+						onChange={e => {
+							const id = e.target.value;
+							if (!id) {
+								setLinkedOblastId(null);
+								return;
+							}
+							const n = BG_OBLAST_APPROX_POPULATION_2021[id];
+							if (n == null) return;
+							markCustom();
+							setPopulation(n);
+							setLinkedOblastId(id);
+							onSyncOblastChange(id);
+						}}>
+						<option value="">{tr.foodSecOblastPlaceholder}</option>
+						{oblastOptions.map(p => (
+							<option key={p.id} value={p.id}>
+								{lang === 'bg' ? p.bg : p.en} —{' '}
+								{(BG_OBLAST_APPROX_POPULATION_2021[p.id] ?? 0).toLocaleString(locale)}
+							</option>
+						))}
+					</select>
+					<span style={{ fontSize: '.78rem', opacity: 0.9 }}>{tr.foodSecOblastHint}</span>
+				</label>
 				<div
 					style={{
 						display: 'grid',
@@ -277,6 +368,7 @@ export function FoodSecurityBreakEvenView({ lang, tr }: Props) {
 							value={population}
 							onChange={e => {
 								markCustom();
+								setLinkedOblastId(null);
 								setPopulation(Math.max(0, Number(e.target.value) || 0));
 							}}
 						/>
