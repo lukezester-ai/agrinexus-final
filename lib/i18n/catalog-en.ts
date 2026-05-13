@@ -101,7 +101,7 @@ export const STR_EN = {
 	landingGlassIntelCta: 'Open statistics & modules',
 	landingGlassFooterLead: 'Commercial inquiries or demos — reach us by email.',
 	landingGlassEmailAria: 'Send email to AgriNexus sales',
-	portalFarmSubCommand: 'Your plan — deadlines & documents',
+	portalFarmSubCommand: 'Your plan — deadlines & PDF drafts',
 	portalLogisticsSubFileUpload: 'Upload files',
 	navFileUploadShort: 'Upload',
 	fileUploadPageTitle: 'Upload files',
@@ -279,11 +279,11 @@ export const STR_EN = {
 	seasonMo10: 'October',
 	seasonMo11: 'November',
 	seasonMo12: 'December',
-	commandPageTitle: 'Deadlines, missing papers, risks',
+	commandPageTitle: 'Your deadlines',
 	commandPageSub:
-		'One screen — from your profile. Dates follow public DAFS patterns; always confirm on the official portal.',
-	commandCompactTitle: 'Your deadlines & paperwork',
-	commandCompactSub: 'See what is due next, what is missing, and what can hurt you at inspection.',
+		'Key campaign dates (single application, late window, possible advances). Indicative only — confirm in ISUN and on dfz.bg.',
+	commandCompactTitle: 'Deadlines & PDF',
+	commandCompactSub: 'Next indicative DAFS dates; full view has draft PDF downloads.',
 	commandCompactCta: 'Full screen',
 	commandSectionDeadlines: 'By when',
 	commandSectionDocs: 'Missing document',
@@ -306,7 +306,9 @@ export const STR_EN = {
 	commandDownloadContract: 'Lease draft',
 	commandDownloadStatement: 'Statement draft',
 	commandPdfFootnote:
-		'These are working drafts with your data — not official DAFS forms. Submit via ISUN with a qualified signature.',
+		'These are working drafts — not official DAFS forms. Submit via ISUN with a qualified signature.',
+	commandPdfDataHint:
+		'Drafts use only non-sensitive fields saved in this browser (name, farm, region, area, checkboxes). National ID and bank details are not stored here.',
 	commandGovDataNote:
 		'Indicative deadlines (e.g. 15 May campaign window). Production must sync with dfz.bg / ISUN.',
 	commandGenerateError: 'Could not build PDF (network or font). Retry or check connection.',

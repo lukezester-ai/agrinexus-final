@@ -103,7 +103,7 @@ export const STR_BG = {
 	landingGlassIntelCta: 'Към статистика и модули',
 	landingGlassFooterLead: 'Търговски запитвания или демо — пишете ни на имейл.',
 	landingGlassEmailAria: 'Изпрати имейл към AgriNexus',
-	portalFarmSubCommand: 'Твоят план — срокове и документи',
+	portalFarmSubCommand: 'Твоят план — срокове и PDF чернови',
 	portalLogisticsSubFileUpload: 'Качване на файлове',
 	navFileUploadShort: 'Качване',
 	fileUploadPageTitle: 'Качване на файлове',
@@ -283,11 +283,11 @@ export const STR_BG = {
 	seasonMo10: 'Октомври',
 	seasonMo11: 'Ноември',
 	seasonMo12: 'Декември',
-	commandPageTitle: 'Срокове, липсващи документи, рискове',
+	commandPageTitle: 'Твоите срокове',
 	commandPageSub:
-		'Един екран според профила ти. Датите са ориентир по публични практики на ДФЗ — винаги потвърди в ИСУН и на dfz.bg.',
-	commandCompactTitle: 'Твоите срокове и документи',
-	commandCompactSub: 'Какво е до 15 май, какво липсва и къде има риск от санкция.',
+		'Ключови дати по кампанията (единно заявление, късно подаване, евентуални аванси). Ориентир — потвърди в ИСУН и на dfz.bg.',
+	commandCompactTitle: 'Срокове и PDF',
+	commandCompactSub: 'Следващи ориентировъчни дати на ДФЗ; целият екран съдържа и чернови PDF.',
 	commandCompactCta: 'Цял екран',
 	commandSectionDeadlines: 'До кога',
 	commandSectionDocs: 'Липсващ документ',
@@ -310,7 +310,9 @@ export const STR_BG = {
 	commandDownloadContract: 'Договор аренда — чернова',
 	commandDownloadStatement: 'Справка — чернова',
 	commandPdfFootnote:
-		'Това са работни чернови с твоите данни — не са официални бланки на ДФЗ. Подаване през ИСУН с КЕП.',
+		'Това са работни чернови — не са официални бланки на ДФЗ. Подаване през ИСУН с КЕП.',
+	commandPdfDataHint:
+		'Черновите ползват само несекретни полета, записани в този браузър (име, стопанство, регион, площ, отметки). ЕГН/ЕИК и банкови реквизити не се пазят тук.',
 	commandGovDataNote:
 		'Ориентировъчни срокове (напр. кампания до 15 май). Реална система: синхрон с dfz.bg / ИСУН.',
 	commandGenerateError: 'Неуспешно генериране на PDF (мрежа или шрифт). Опитай отново.',

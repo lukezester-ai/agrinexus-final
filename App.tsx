@@ -734,10 +734,7 @@ export default function App() {
 		[chatHealth, identityEmailForAi],
 	);
 
-	const [regFullName, setRegFullName] = useState('');
 	const [regEmail, setRegEmail] = useState('');
-	const [regPassword, setRegPassword] = useState('');
-	const [regPasswordConfirm, setRegPasswordConfirm] = useState('');
 	const [regHp, setRegHp] = useState('');
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
@@ -749,24 +746,8 @@ export default function App() {
 	const [leadFormAntiBotReady, setLeadFormAntiBotReady] = useState(false);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
-	/** Empty OK; if user types a name, require at least 2 characters (matches server normalization). */
-	const regNameOk = regFullName.trim().length === 0 || regFullName.trim().length >= 2;
-	const regPasswordOkForCloud = regPassword.length >= 6;
-	const regPasswordsMatch = regPassword === regPasswordConfirm;
-	const canSubmitRegister =
-		isValidEmail(regEmail) &&
-		regNameOk &&
-		leadFormAntiBotReady &&
-		(!supabaseRegisterEnabled || (regPasswordOkForCloud && regPasswordsMatch));
+	const canSubmitRegister = isValidEmail(regEmail) && leadFormAntiBotReady;
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
-	const showRegisterNameError = regFullName.trim().length > 0 && !regNameOk;
-	const showRegisterPasswordError =
-		supabaseRegisterEnabled && regPassword.length > 0 && !regPasswordOkForCloud;
-	const showRegisterPasswordMismatch =
-		supabaseRegisterEnabled &&
-		regPasswordConfirm.length > 0 &&
-		regPassword.length > 0 &&
-		!regPasswordsMatch;
 	const invalidEmailText =
 		lang === 'bg'
 			? 'Моля, въведете валиден имейл адрес.'
@@ -1061,15 +1042,6 @@ export default function App() {
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
-		if (!regNameOk) {
-			setRegStatus('err');
-			setRegMsg(
-				lang === 'bg'
-					? 'Ако посочите име, то трябва да е поне 2 знака (или оставете полето празно).'
-					: 'If you enter a display name, use at least 2 characters — or leave it blank.'
-			);
-			return;
-		}
 		if (!isValidEmail(regEmail)) {
 			setRegStatus('err');
 			setRegMsg(
@@ -1077,11 +1049,6 @@ export default function App() {
 					? 'Моля, въведете валиден имейл адрес.'
 					: 'Please enter a valid email address.'
 			);
-			return;
-		}
-		if (supabaseRegisterEnabled && !regPasswordsMatch) {
-			setRegStatus('err');
-			setRegMsg(lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.');
 			return;
 		}
 		setRegStatus('loading');
@@ -1092,7 +1059,7 @@ export default function App() {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					fullName: regFullName.trim(),
+					fullName: '',
 					companyName: '',
 					businessEmail: emailTrim,
 					phone: '',
@@ -1131,17 +1098,13 @@ export default function App() {
 			let supabaseSignupFailed = false;
 			if (supabaseClient) {
 				const redirect = `${window.location.origin}${window.location.pathname}`;
-				const display =
-					regFullName.trim().length >= 2 ? regFullName.trim() : emailTrim.split('@')[0] || '';
-				const { data: signUpData, error } = await supabaseClient.auth.signUp({
+				const display = emailTrim.split('@')[0] || '';
+				const { error } = await supabaseClient.auth.signInWithOtp({
 					email: emailTrim,
-					password: regPassword,
 					options: {
 						emailRedirectTo: redirect,
 						data: {
 							full_name: display,
-							// Keep legacy metadata keys to satisfy existing DB triggers/policies
-							// in Supabase projects that expect these fields on signup.
 							company_name: 'Not specified',
 							market_focus: 'Not specified',
 							phone: '',
@@ -1164,9 +1127,6 @@ export default function App() {
 							`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
 						supabaseSignupFailed = true;
 					}
-				} else if (signUpData.session) {
-					cloudAuthMsg = tr.registerCloudSignupOkSession;
-					setView('company');
 				} else {
 					cloudAuthMsg = tr.registerCloudSignupCheckEmail;
 				}
@@ -1190,8 +1150,6 @@ export default function App() {
 			if (supabaseSignupFailed) {
 				setRegStatus('err');
 			}
-			setRegPassword('');
-			setRegPasswordConfirm('');
 		} catch {
 			setRegStatus('err');
 			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
@@ -2848,25 +2806,6 @@ export default function App() {
 					</div>
 					<div className="form-grid">
 						<input
-							placeholder={tr.fullNamePh}
-							value={regFullName}
-							onChange={e => setRegFullName(e.target.value)}
-							autoComplete="name"
-						/>
-						{showRegisterNameError ? (
-							<p
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									color: '#f87171',
-									fontSize: '.84rem',
-								}}>
-								{lang === 'bg'
-									? 'Име е по избор; ако го попълните — поне 2 знака.'
-									: 'Name is optional; if you enter one — at least 2 characters.'}
-							</p>
-						) : null}
-						<input
 							type="email"
 							autoComplete="email"
 							placeholder={tr.businessEmailPh}
@@ -2885,55 +2824,17 @@ export default function App() {
 							</p>
 						)}
 						{supabaseRegisterEnabled ? (
-							<>
-								<input
-									placeholder={tr.passwordPh}
-									type="password"
-									autoComplete="new-password"
-									value={regPassword}
-									onChange={e => setRegPassword(e.target.value)}
-								/>
-								<input
-									placeholder={
-										lang === 'bg' ? 'Потвърди паролата' : 'Confirm password'
-									}
-									type="password"
-									autoComplete="new-password"
-									value={regPasswordConfirm}
-									onChange={e => setRegPasswordConfirm(e.target.value)}
-								/>
-								<p
-									className="muted"
-									style={{
-										gridColumn: '1 / -1',
-										margin: '-6px 0 0',
-										fontSize: '.82rem',
-									}}>
-									{tr.registerPasswordCloudHint}
-								</p>
-								{showRegisterPasswordError ? (
-									<p
-										style={{
-											gridColumn: '1 / -1',
-											margin: '-6px 0 0',
-											color: '#f87171',
-											fontSize: '.84rem',
-										}}>
-										{tr.registerPasswordTooShort}
-									</p>
-								) : null}
-								{showRegisterPasswordMismatch ? (
-									<p
-										style={{
-											gridColumn: '1 / -1',
-											margin: '-6px 0 0',
-											color: '#f87171',
-											fontSize: '.84rem',
-										}}>
-										{lang === 'bg' ? 'Паролите не съвпадат.' : 'Passwords do not match.'}
-									</p>
-								) : null}
-							</>
+							<p
+								className="muted"
+								style={{
+									gridColumn: '1 / -1',
+									margin: '0',
+									fontSize: '.82rem',
+								}}>
+								{lang === 'bg'
+									? 'Ще изпратим връзка за вход на този имейл (без парола в тази форма).'
+									: 'We will send a sign-in link to this email (no password on this form).'}
+							</p>
 						) : null}
 					</div>
 					<div

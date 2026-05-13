@@ -1,21 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CalendarClock, FileWarning, FileDown, Loader2 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { CalendarClock, FileDown, Loader2 } from 'lucide-react';
 import type { AppStrings } from '../lib/i18n';
 import type { UiLang } from '../lib/i18n';
 import {
 	formatDeadlineHeadline,
 	getActiveDeadlines,
-	getMissingDocuments,
-	getRiskFlags,
 	line,
 	type CommandDeadline,
 } from '../lib/command-center-data';
-import {
-	defaultFarmerProfile,
-	loadFarmerProfile,
-	saveFarmerProfile,
-	type FarmerLocalProfile,
-} from '../lib/farmer-profile-storage';
+import { profileForPdf } from '../lib/farmer-profile-storage';
 import {
 	buildApplicationSummaryPdf,
 	buildDeclarationPdf,
@@ -40,34 +33,18 @@ function lang2(l: UiLang): 'bg' | 'en' {
 
 export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 	const L = lang2(lang);
-	const [profile, setProfile] = useState<FarmerLocalProfile>(() =>
-		typeof localStorage !== 'undefined' ? loadFarmerProfile() : defaultFarmerProfile(),
-	);
 	const [pdfBusy, setPdfBusy] = useState<string | null>(null);
 	const [pdfErr, setPdfErr] = useState<string | null>(null);
 
-	useEffect(() => {
-		setProfile(loadFarmerProfile());
-	}, []);
-
-	useEffect(() => {
-		const t = window.setTimeout(() => saveFarmerProfile(profile), 350);
-		return () => window.clearTimeout(t);
-	}, [profile]);
-
 	const deadlines = useMemo(() => getActiveDeadlines(), []);
-	const missing = useMemo(() => getMissingDocuments(profile), [profile]);
-	const risks = useMemo(() => getRiskFlags(profile), [profile]);
-
 	const showDeadlines = compact ? deadlines.slice(0, 1) : deadlines;
-	const showMissing = compact ? missing.slice(0, 1) : missing;
-	const showRisks = compact ? risks.slice(0, 1) : risks;
 
 	const runPdf = useCallback(
 		async (kind: 'declaration' | 'application' | 'lease' | 'statement' | 'pack') => {
 			setPdfErr(null);
 			const key = kind;
 			setPdfBusy(key);
+			const profile = profileForPdf();
 			try {
 				let bytes: Uint8Array;
 				let name: string;
@@ -94,12 +71,8 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 				setPdfBusy(null);
 			}
 		},
-		[profile, tr.commandGenerateError],
+		[tr.commandGenerateError],
 	);
-
-	const update = (patch: Partial<FarmerLocalProfile>) => {
-		setProfile(p => ({ ...p, ...patch }));
-	};
 
 	return (
 		<div
@@ -160,160 +133,9 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 					</ul>
 				</section>
 
-				<section>
-					<h3
-						style={{
-							margin: '0 0 10px',
-							fontSize: '.8rem',
-							letterSpacing: '0.06em',
-							textTransform: 'uppercase',
-							color: '#7dd3fc',
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-						}}>
-						<FileWarning size={16} aria-hidden />
-						{tr.commandSectionDocs}
-					</h3>
-					{showMissing.length === 0 ? (
-						<p className="muted" style={{ margin: 0, fontSize: '.88rem' }}>
-							{tr.commandNoMissingDocs}
-						</p>
-					) : (
-						<ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
-							{showMissing.map(m => (
-								<li key={m.id} style={{ marginBottom: 10, fontSize: '.9rem' }}>
-									<strong>{line(L, m.label)}</strong>
-									<div className="muted" style={{ marginTop: 4, fontSize: '.82rem' }}>
-										{line(L, m.hint)}
-									</div>
-								</li>
-							))}
-						</ul>
-					)}
-				</section>
-
-				<section>
-					<h3
-						style={{
-							margin: '0 0 10px',
-							fontSize: '.8rem',
-							letterSpacing: '0.06em',
-							textTransform: 'uppercase',
-							color: '#94a3b8',
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-						}}>
-						<AlertTriangle size={16} aria-hidden />
-						{tr.commandSectionRisks}
-					</h3>
-					<ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc' }}>
-						{showRisks.map(r => (
-							<li key={r.id} style={{ marginBottom: 10, fontSize: '.9rem' }}>
-								<span
-									style={{
-										fontSize: '.72rem',
-										fontWeight: 700,
-										marginRight: 8,
-										color: r.severity === 'high' ? '#f87171' : '#94a3b8',
-									}}>
-									{r.severity === 'high' ? tr.commandSeverityHigh : tr.commandSeverityMed}
-								</span>
-								{line(L, r.label)}
-							</li>
-						))}
-					</ul>
-				</section>
-
 				{!compact && (
 					<>
 						<DfzOfficialPdfPack tr={tr} compact />
-
-						<section>
-							<h3
-								style={{
-									margin: '0 0 12px',
-									fontSize: '.8rem',
-									letterSpacing: '0.06em',
-									textTransform: 'uppercase',
-									color: '#5eead4',
-								}}>
-								{tr.commandSectionProfile}
-							</h3>
-							<div
-								className="form-grid"
-								style={{
-									display: 'grid',
-									gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-									gap: 10,
-								}}>
-								<input
-									placeholder={tr.commandFullName}
-									value={profile.fullName}
-									onChange={e => update({ fullName: e.target.value })}
-								/>
-								<input
-									placeholder={tr.commandUin}
-									value={profile.uin}
-									onChange={e => update({ uin: e.target.value })}
-								/>
-								<input
-									placeholder={tr.commandFarmName}
-									value={profile.farmName}
-									onChange={e => update({ farmName: e.target.value })}
-								/>
-								<input
-									placeholder={tr.commandRegion}
-									value={profile.region}
-									onChange={e => update({ region: e.target.value })}
-								/>
-								<input
-									placeholder={tr.commandDecares}
-									value={profile.decares}
-									onChange={e => update({ decares: e.target.value })}
-								/>
-								<input
-									placeholder={tr.commandIban}
-									value={profile.iban}
-									onChange={e => update({ iban: e.target.value })}
-								/>
-							</div>
-							<div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-								<label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-									<input
-										type="checkbox"
-										checked={profile.hasLandRightsDoc}
-										onChange={e => update({ hasLandRightsDoc: e.target.checked })}
-									/>
-									<span style={{ fontSize: '.88rem' }}>{tr.commandLandCheck}</span>
-								</label>
-								<label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-									<input
-										type="checkbox"
-										checked={profile.hasBankAccountVerified}
-										onChange={e => update({ hasBankAccountVerified: e.target.checked })}
-									/>
-									<span style={{ fontSize: '.88rem' }}>{tr.commandBankCheck}</span>
-								</label>
-								<label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-									<input
-										type="checkbox"
-										checked={profile.declaresOrganic}
-										onChange={e => update({ declaresOrganic: e.target.checked })}
-									/>
-									<span style={{ fontSize: '.88rem' }}>{tr.commandOrganicDeclared}</span>
-								</label>
-								<label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
-									<input
-										type="checkbox"
-										checked={profile.hasOrganicCertificate}
-										onChange={e => update({ hasOrganicCertificate: e.target.checked })}
-									/>
-									<span style={{ fontSize: '.88rem' }}>{tr.commandOrganicCert}</span>
-								</label>
-							</div>
-						</section>
 
 						<section>
 							<h3
@@ -328,6 +150,9 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 							</h3>
 							<p className="muted" style={{ fontSize: '.82rem', marginTop: 0 }}>
 								{tr.commandPdfFootnote}
+							</p>
+							<p className="muted" style={{ fontSize: '.78rem', marginTop: 8 }}>
+								{tr.commandPdfDataHint}
 							</p>
 							{pdfErr ? (
 								<p style={{ color: '#f87171', fontSize: '.86rem', margin: '8px 0' }}>{pdfErr}</p>
