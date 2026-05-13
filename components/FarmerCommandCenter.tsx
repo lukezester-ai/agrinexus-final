@@ -45,26 +45,40 @@ export function FarmerCommandCenter({ lang, tr, compact, onExpand }: Props) {
 			const key = kind;
 			setPdfBusy(key);
 			const profile = profileForPdf();
-			try {
-				let bytes: Uint8Array;
-				let name: string;
+			const buildOnce = async (): Promise<{ bytes: Uint8Array; name: string }> => {
 				if (kind === 'declaration') {
-					bytes = await buildDeclarationPdf(profile);
-					name = 'sima-deklaratsiya-chernova.pdf';
-				} else if (kind === 'application') {
-					bytes = await buildApplicationSummaryPdf(profile);
-					name = 'sima-zayavlenie-obobshtenie.pdf';
-				} else if (kind === 'lease') {
-					bytes = await buildLeaseContractDraftPdf(profile);
-					name = 'sima-dogovor-arenda-chernova.pdf';
-				} else if (kind === 'statement') {
-					bytes = await buildStatementPdf(profile);
-					name = 'sima-spravka.pdf';
-				} else {
-					bytes = await buildDocumentPackPdf(profile);
-					name = 'sima-paket-dokumenti.pdf';
+					return { bytes: await buildDeclarationPdf(profile), name: 'sima-deklaratsiya-chernova.pdf' };
 				}
-				downloadPdfBytes(bytes, name);
+				if (kind === 'application') {
+					return {
+						bytes: await buildApplicationSummaryPdf(profile),
+						name: 'sima-zayavlenie-obobshtenie.pdf',
+					};
+				}
+				if (kind === 'lease') {
+					return {
+						bytes: await buildLeaseContractDraftPdf(profile),
+						name: 'sima-dogovor-arenda-chernova.pdf',
+					};
+				}
+				if (kind === 'statement') {
+					return { bytes: await buildStatementPdf(profile), name: 'sima-spravka.pdf' };
+				}
+				return { bytes: await buildDocumentPackPdf(profile), name: 'sima-paket-dokumenti.pdf' };
+			};
+			try {
+				let lastErr: unknown;
+				for (let attempt = 0; attempt < 2; attempt += 1) {
+					try {
+						const { bytes, name } = await buildOnce();
+						downloadPdfBytes(bytes, name);
+						return;
+					} catch (e) {
+						lastErr = e;
+						if (attempt === 0) await new Promise<void>(r => window.setTimeout(r, 600));
+					}
+				}
+				throw lastErr;
 			} catch {
 				setPdfErr(tr.commandGenerateError);
 			} finally {
