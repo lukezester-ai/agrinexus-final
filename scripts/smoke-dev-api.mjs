@@ -130,7 +130,36 @@ async function main() {
 			throw new Error(`POST /api/contact отговор: ${contact.text}`);
 		}
 
-		console.log("smoke-dev-api: OK (/, /api, POST /api/contact).");
+		const flList = await httpJson(port, "/api/fieldlot-listings", { method: "GET" });
+		if (!flList.ok || flList.json?.ok !== true || !Array.isArray(flList.json?.listings)) {
+			throw new Error(`GET /api/fieldlot-listings: ${flList.text?.slice(0, 240)}`);
+		}
+
+		if (flList.json.storage === "local") {
+			const openedFl = Date.now() - 5000;
+			const fieldlotPost = JSON.stringify({
+				hpCompanyWebsite: "",
+				formOpenedAt: openedFl,
+				fullName: "Smoke Fieldlot",
+				businessEmail: "smoke-fieldlot@example.com",
+				companyName: "",
+				phone: "",
+				role: "Производител",
+				listingTitle: "CI smoke Fieldlot",
+				listingBody: "CI smoke listing description at least ten characters.",
+				subscribeAlerts: false,
+			});
+			const flPost = await httpJson(port, "/api/fieldlot-listings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: fieldlotPost,
+			});
+			if (!flPost.ok || flPost.json?.ok !== true) {
+				throw new Error(`POST /api/fieldlot-listings ${flPost.status}: ${flPost.text?.slice(0, 400)}`);
+			}
+		}
+
+		console.log("smoke-dev-api: OK (/, /api, POST /api/contact, GET /api/fieldlot-listings).");
 	} finally {
 		kill();
 		await new Promise((r) => setTimeout(r, 500));

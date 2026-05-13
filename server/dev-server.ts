@@ -11,6 +11,10 @@ import { handleChatPost } from '../lib/chat-handler';
 import { handleFieldlotChatPost } from '../lib/fieldlot-llm-handler';
 import { clientIpFromNodeRequest } from '../lib/client-ip';
 import { handleContactPost, handleFileMetaPost, handleRegisterInterestPost } from '../lib/leads-handler';
+import {
+	handleFieldlotListingsGet,
+	handleFieldlotListingsPost,
+} from '../lib/fieldlot-listings-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
 import { handleMarketWatchGet } from '../lib/market-watch-api';
@@ -116,6 +120,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/weather-forecast', methods: ['GET'] },
             { path: '/api/contact', methods: ['POST'] },
             { path: '/api/register-interest', methods: ['POST'] },
+            { path: '/api/fieldlot-listings', methods: ['GET', 'POST'] },
             { path: '/api/upload-sign', methods: ['POST'] },
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
@@ -256,6 +261,37 @@ const server = http.createServer(async (req, res) => {
           send(res, 200, {
             ok: true,
             preview: result.preview,
+            mailDelivery: result.mailDelivery,
+          });
+          return;
+        }
+        send(res, result.status, { ok: false, error: result.error, hint: result.hint });
+        return;
+      }
+
+      if (path === '/api/fieldlot-listings' && req.method === 'GET') {
+        const r = await handleFieldlotListingsGet();
+        if (!r.ok) {
+          send(res, r.status, { ok: false, error: r.error });
+          return;
+        }
+        send(res, 200, { ok: true, listings: r.listings, storage: r.storage });
+        return;
+      }
+
+      if (path === '/api/fieldlot-listings' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleFieldlotListingsPost(body, {
+          clientIp: clientIpFromNodeRequest(req),
+        });
+        if (result.ok) {
+          send(res, 200, {
+            ok: true,
+            listing: result.listing,
             mailDelivery: result.mailDelivery,
           });
           return;

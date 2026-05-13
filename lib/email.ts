@@ -289,3 +289,61 @@ export function registerNotificationSubject(displayLabel: string, locale: MailLo
   const t = registerStrings[locale];
   return `${t.subjectPrefix} · ${displayLabel}`;
 }
+
+export type FieldlotListingEmailInput = {
+  id: string;
+  created_at: string;
+  role: string;
+  title: string;
+  body: string;
+  full_name: string;
+  company_name: string;
+  business_email: string;
+  phone: string;
+  subscribe_alerts: boolean;
+};
+
+export function fieldlotListingNotificationSubject(title: string): string {
+  const short = title.length > 80 ? `${title.slice(0, 77)}…` : title;
+  return `[Fieldlot] Нова обява · ${short}`;
+}
+
+export function buildFieldlotListingEmailHtml(input: FieldlotListingEmailInput): string {
+  const yn = input.subscribe_alerts ? 'да' : 'не';
+  return `
+    <h2>Fieldlot — нова публикувана обява</h2>
+    <p><strong>ID:</strong> ${escapeHtml(input.id)}</p>
+    <p><strong>Дата:</strong> ${escapeHtml(input.created_at)}</p>
+    <p><strong>Роля:</strong> ${escapeHtml(input.role)}</p>
+    <p><strong>Заглавие:</strong> ${escapeHtml(input.title)}</p>
+    <hr />
+    <pre style="white-space:pre-wrap;font-family:system-ui,sans-serif">${escapeHtml(input.body)}</pre>
+    <hr />
+    <p><strong>Име:</strong> ${escapeHtml(input.full_name)}</p>
+    <p><strong>Фирма/стопанство:</strong> ${escapeHtml(input.company_name || '—')}</p>
+    <p><strong>Имейл:</strong> ${escapeHtml(input.business_email)}</p>
+    <p><strong>Телефон:</strong> ${escapeHtml(input.phone || '—')}</p>
+    <p><strong>Известия Fieldlot:</strong> ${escapeHtml(yn)}</p>
+  `.trim();
+}
+
+export function buildFieldlotListingEmailText(input: FieldlotListingEmailInput): string {
+  const yn = input.subscribe_alerts ? 'да' : 'не';
+  return [
+    'Fieldlot — нова публикувана обява',
+    '',
+    `ID: ${input.id}`,
+    `Дата: ${input.created_at}`,
+    `Роля: ${input.role}`,
+    `Заглавие: ${input.title}`,
+    '',
+    'Описание:',
+    input.body,
+    '',
+    `Име: ${input.full_name}`,
+    `Фирма: ${input.company_name || '—'}`,
+    `Имейл: ${input.business_email}`,
+    `Телефон: ${input.phone || '—'}`,
+    `Известия: ${yn}`,
+  ].join('\n');
+}
