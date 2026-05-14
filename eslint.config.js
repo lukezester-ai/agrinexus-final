@@ -6,7 +6,15 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
 	{
-		ignores: ['dist/**', 'node_modules/**', 'bin/**', 'checkpoints/**', 'scripts/**/*.mjs'],
+		ignores: [
+			'dist/**',
+			'node_modules/**',
+			'bin/**',
+			'checkpoints/**',
+			'scripts/**/*.mjs',
+			'playwright-report/**',
+			'test-results/**',
+		],
 	},
 	js.configs.recommended,
 	{

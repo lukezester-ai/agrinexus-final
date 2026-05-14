@@ -20,3 +20,9 @@ jobs:
 
       - name: Typecheck, lint, Cloudflare scan, build, dev API smoke
         run: npm test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e

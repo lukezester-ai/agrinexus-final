@@ -14,12 +14,14 @@
   "include": [
     "*.tsx",
     "*.ts",
+    "playwright.config.ts",
     "components/**/*.tsx",
     "hooks/**/*.ts",
     "lib/**/*.ts",
     "api/**/*.ts",
     "server/**/*.ts",
-    "scripts/**/*.ts"
+    "scripts/**/*.ts",
+    "e2e/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -16,3 +16,7 @@ scripts/git/
 
 # Локални материали за инвеститорски разговори — само на този компютър, не в GitHub
 Инвеститор/
+
+# Playwright
+playwright-report/
+test-results/
