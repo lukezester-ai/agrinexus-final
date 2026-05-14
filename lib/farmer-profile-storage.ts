@@ -58,7 +58,7 @@ export function saveFarmerProfile(p: FarmerLocalProfile): void {
 	}
 }
 
-/** Данни за PDF — същото като локалния профил (без отделни чувствителни полета). */
+/** Обединен изглед на локалния команден профил (за бъдещи експорти / проверки). */
 export function profileForPdf(): FarmerLocalProfile {
 	if (typeof window === 'undefined') return defaultFarmerProfile();
 	return loadFarmerProfile();
