@@ -648,6 +648,22 @@ export default function App() {
 			setView('landing');
 		}
 	}, [view]);
+
+	/** Fieldlot (и др.) лендинги: `/?from=fieldlot` → регистрация; `&mode=login` → вход. Почиства query от адресната лента. */
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		const u = new URL(window.location.href);
+		const from = u.searchParams.get('from')?.trim().toLowerCase();
+		if (from !== 'fieldlot') return;
+		const mode = u.searchParams.get('mode')?.trim().toLowerCase();
+		setView(mode === 'login' ? 'login' : 'register');
+		u.searchParams.delete('from');
+		u.searchParams.delete('mode');
+		const q = u.searchParams.toString();
+		const next = u.pathname + (q ? `?${q}` : '') + u.hash;
+		window.history.replaceState(null, '', next);
+	}, []);
+
 	const [lang, setLang] = useState<UiLang>(() => parseStoredLang(safeLocalGet('agrinexus-lang')));
 	const [cookieConsent, setCookieConsent] = useState<CookieConsent | null>(() => {
 		const stored = safeLocalGet(COOKIE_CONSENT_KEY);

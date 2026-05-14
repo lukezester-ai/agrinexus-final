@@ -846,6 +846,25 @@
 		.fl-market-cta .btn {
 			margin: 0;
 		}
+
+		.fl-cta-bridge {
+			margin: 0 auto 1.25rem;
+			max-width: 32rem;
+			text-align: center;
+			font-size: 0.86rem;
+			line-height: 1.5;
+			color: var(--muted);
+		}
+
+		.fl-cta-bridge a {
+			color: var(--accent);
+			font-weight: 600;
+			text-decoration: none;
+		}
+
+		.fl-cta-bridge a:hover {
+			text-decoration: underline;
+		}
 	</style>
 </head>
 <body>
@@ -882,7 +901,7 @@
 				Без сложни гаранции в началото: фокусът е скорост, прозрачност и доверие между хората от сектора.
 			</p>
 			<div class="cta-row">
-				<a class="btn btn-primary" href="#cta">Искам достъп</a>
+				<a class="btn btn-primary" href="/?from=fieldlot" title="Регистрация или вход в AgriNexus">Искам достъп в AgriNexus</a>
 				<a class="btn btn-ghost" href="#how">Как работи</a>
 				<button type="button" class="btn btn-ghost" id="hero-ai-chat-btn">
 					AI водач (чат)
@@ -1083,12 +1102,20 @@
 				Това е пътна карта, не календар на пускане. Конкретните модули и цени се решават с пазара и правната рамка.
 			</p>
 			<div class="fl-market-cta">
-				<a class="btn btn-primary" href="#cta">Записване като производител или купувач</a>
-				<a class="btn btn-ghost" href="/">Към AgriNexus</a>
+				<a class="btn btn-primary" href="/?from=fieldlot">Записване в AgriNexus (производител или купувач)</a>
+				<a class="btn btn-ghost" href="/">Към началото</a>
+				<a class="btn btn-ghost" href="/?from=fieldlot&amp;mode=login">Вход</a>
 			</div>
 		</section>
 
 		<div class="footer-cta" id="cta">
+			<p class="fl-cta-bridge">
+				<strong style="color: var(--text)">Пълната платформа е в AgriNexus</strong> — регистрация и инструменти.
+				<a href="/?from=fieldlot">Започни оттук</a>
+				или
+				<a href="/?from=fieldlot&amp;mode=login">вход</a>.
+				По-долу: кратка заявка за <strong>ранен достъп</strong> (лид към екипа).
+			</p>
 			<p>
 				<strong style="color: var(--text)">Ранен достъп.</strong> Попълни формата — изпращаме към екипа по имейл (Resend), ако е настроен в <code>.env</code>, или записваме локално при <code>FIELDLOT_STORE_LEADS=1</code>.
 			</p>
