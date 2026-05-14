@@ -779,6 +779,73 @@
 		#agm-lead-status.err {
 			color: #fca5a5;
 		}
+
+		/* —— AgriNexus Marketplace (визия) —— */
+		.fl-market-eco {
+			margin-top: 2.75rem;
+		}
+
+		.fl-market-eco > .section-title {
+			margin-top: 0;
+		}
+
+		.fl-market-eco > h2 {
+			margin-bottom: 1rem;
+		}
+
+		.fl-market-lead {
+			margin: 0 auto 1.75rem;
+			max-width: 40rem;
+			text-align: center;
+			color: var(--muted);
+			font-size: 0.95rem;
+			line-height: 1.6;
+		}
+
+		.fl-market-lead strong {
+			color: var(--text);
+			font-weight: 600;
+		}
+
+		.fl-market-phases {
+			margin: 1.75rem auto 0;
+			max-width: 38rem;
+			text-align: center;
+			font-size: 0.84rem;
+			line-height: 1.55;
+			color: var(--muted);
+			padding: 1rem 1.1rem;
+			border-radius: 14px;
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			background: rgba(0, 0, 0, 0.18);
+		}
+
+		.fl-market-phases strong {
+			color: var(--gold);
+			font-weight: 700;
+		}
+
+		.fl-market-note {
+			margin: 1rem auto 0;
+			max-width: 36rem;
+			text-align: center;
+			font-size: 0.76rem;
+			line-height: 1.45;
+			color: var(--muted);
+			opacity: 0.92;
+		}
+
+		.fl-market-cta {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 0.75rem;
+			margin-top: 1.5rem;
+		}
+
+		.fl-market-cta .btn {
+			margin: 0;
+		}
 	</style>
 </head>
 <body>
@@ -955,6 +1022,71 @@
 				</figcaption>
 			</figure>
 		</div>
+
+		<section class="fl-market-eco" id="marketplace" aria-labelledby="fl-market-heading">
+			<p class="section-title">AgriNexus Marketplace</p>
+			<h2 id="fl-market-heading">Първи слой днес, екосистема утре</h2>
+			<p class="fl-market-lead">
+				Fieldlot е входът за <strong>ликвидност на реколтата</strong> в България — видими оферти и директен контакт.
+				AgriNexus надгражда с контекст от полето: когато данните и обявите се срещнат, купувачът не купува „неизвестно количество“, а по-ясно описана позиция — стъпка по стъпка, без да обещаваме всичко още от ден нулеви.
+			</p>
+			<div class="grid">
+				<article class="card">
+					<div class="card-icon" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="m22 7-8.5 8.5-5-5L2 17" />
+							<polyline points="16,7 22,7 22,13" />
+						</svg>
+					</div>
+					<h3>Фермер → купувач</h3>
+					<p>
+						Реколта и условия на едно място; търговци и преработватели подават интерес в рамките на платформата.
+						Днес фокусът е свързването — по-късно могат да се добавят прогнози, верификация и (ако има смисъл) транзакции през системата.
+					</p>
+				</article>
+				<article class="card">
+					<div class="card-icon" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+							<polyline points="3.27,6.96 12,12.01 20.73,6.96" />
+							<line x1="12" y1="22.08" x2="12" y2="12" />
+						</svg>
+					</div>
+					<h3>Доставчик → фермер</h3>
+					<p>
+						Торове, семена, препарати — каталог и препоръки в момент, в който оперативните данни подсказват нужда (напр. хранене, фенофаза).
+						По-ефективно от студена реклама: офертата идва, когато стопанството вече търси решение.
+					</p>
+				</article>
+				<article class="card">
+					<div class="card-icon" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<circle cx="18" cy="5" r="3" />
+							<circle cx="6" cy="12" r="3" />
+							<circle cx="18" cy="19" r="3" />
+							<path d="M8.59 13.51 15.42 17.49" />
+							<path d="M15.41 6.51 8.59 10.49" />
+						</svg>
+					</div>
+					<h3>Фермер → фермер</h3>
+					<p>
+						Споделяне на техника и прозорци за наем — особено когато платформата познава сезоните и жътвата в региона и може да подреди съседни нужди без да трупа празен простой на машините.
+					</p>
+				</article>
+			</div>
+			<p class="fl-market-phases">
+				<strong>Фаза 1</strong> — свързване и ясни оферти (като днес: сделката остава между вас).
+				<strong>Фаза 2</strong> — плащания и репутация в платформата, където регулациите го позволяват.
+				<strong>Фаза 3</strong> — логистика, финансиране и застраховане като надстройки към същата екосистема.
+			</p>
+			<p class="fl-market-note">
+				Това е пътна карта, не календар на пускане. Конкретните модули и цени се решават с пазара и правната рамка.
+			</p>
+			<div class="fl-market-cta">
+				<a class="btn btn-primary" href="#cta">Записване като производител или купувач</a>
+				<a class="btn btn-ghost" href="/">Към AgriNexus</a>
+			</div>
+		</section>
 
 		<div class="footer-cta" id="cta">
 			<p>
