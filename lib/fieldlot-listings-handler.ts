@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { assertLeadFormAntiBot } from './form-bot-guard.js';
 import type { LeadHandlerCtx } from './leads-handler.js';
 import { getSupabaseServiceClient } from './infra/supabase-service.js';
+import { resolveUserFromAccessToken } from './supabase-resolve-access-token.js';
 import {
 	buildFieldlotListingEmailHtml,
 	buildFieldlotListingEmailText,
@@ -24,6 +25,14 @@ export type FieldlotListingPublic = {
 	company_name: string;
 	business_email: string;
 	phone: string;
+};
+
+/** Ред в .local JSONL — може да съдържа user_id за одит; GET не го връща към клиента. */
+type FieldlotListingStoredRow = FieldlotListingPublic & { user_id?: string | null };
+
+export type FieldlotListingsPostCtx = LeadHandlerCtx & {
+	/** Access token от `Authorization: Bearer …` (без префикса Bearer). */
+	authorizationAccessToken?: string | null;
 };
 
 function normalizePhone(value: string): string {
@@ -48,7 +57,7 @@ function localListingsPath(): string {
 	return join(process.cwd(), '.local', 'fieldlot-listings.jsonl');
 }
 
-async function appendLocalListing(row: FieldlotListingPublic): Promise<void> {
+async function appendLocalListing(row: FieldlotListingStoredRow): Promise<void> {
 	const dir = join(process.cwd(), '.local');
 	await mkdir(dir, { recursive: true });
 	await appendFile(localListingsPath(), JSON.stringify(row) + '\n', 'utf8');
@@ -62,7 +71,9 @@ async function readLocalListings(limit: number): Promise<FieldlotListingPublic[]
 			const t = line.trim();
 			if (!t) continue;
 			try {
-				rows.push(JSON.parse(t) as FieldlotListingPublic);
+				const parsed = JSON.parse(t) as FieldlotListingStoredRow;
+				const { user_id: _uid, ...pub } = parsed;
+				rows.push(pub);
 			} catch {
 				/* skip bad line */
 			}
@@ -114,7 +125,7 @@ export async function handleFieldlotListingsGet(): Promise<
 
 export async function handleFieldlotListingsPost(
 	rawBody: unknown,
-	ctx?: LeadHandlerCtx
+	ctx?: FieldlotListingsPostCtx
 ): Promise<
 	| { ok: true; listing: Pick<FieldlotListingPublic, 'id' | 'created_at'>; mailDelivery: 'sent' | 'skipped' }
 	| { ok: false; status: number; error: string; hint?: string }
@@ -161,6 +172,20 @@ export async function handleFieldlotListingsPost(
 		return { ok: false, status: 400, error: 'Listing description must be 10–8000 characters' };
 	}
 
+	const auth = await resolveUserFromAccessToken(ctx?.authorizationAccessToken ?? null);
+	if (!auth.ok) {
+		return { ok: false, status: auth.status, error: auth.error, hint: auth.hint };
+	}
+	const viewer = auth.user;
+	if (viewer.email && businessEmail.toLowerCase() !== viewer.email.toLowerCase()) {
+		return {
+			ok: false,
+			status: 403,
+			error: 'Имейлът в формата трябва да съвпада с акаунта, с който си влязъл.',
+			hint: 'Промени полето „Имейл“ или влез с друг акаунт (същият Supabase акаунт като в AgriNexus).',
+		};
+	}
+
 	const row: Omit<FieldlotListingPublic, 'id' | 'created_at'> = {
 		role,
 		title,
@@ -187,15 +212,21 @@ export async function handleFieldlotListingsPost(
 				business_email: row.business_email,
 				phone: row.phone,
 				subscribe_alerts: subscribeAlerts,
+				user_id: viewer.userId,
 			})
 			.select('id, created_at')
 			.single();
 		if (error) {
+			const msg = (error.message || '').toLowerCase();
+			const missingUserIdCol =
+				msg.includes('user_id') && (msg.includes('column') || msg.includes('schema cache'));
 			return {
 				ok: false,
 				status: 500,
 				error: error.message,
-				hint: 'Run supabase-fieldlot-listings.sql in Supabase if the table is missing.',
+				hint: missingUserIdCol
+					? 'Добави колона user_id: изпълни отново supabase-fieldlot-listings.sql (ALTER TABLE … user_id).'
+					: 'Run supabase-fieldlot-listings.sql in Supabase if the table is missing.',
 			};
 		}
 		if (!data?.id || !data.created_at) {
@@ -210,6 +241,7 @@ export async function handleFieldlotListingsPost(
 			id,
 			created_at,
 			...row,
+			user_id: viewer.userId,
 		});
 	} else {
 		return {
@@ -224,8 +256,20 @@ export async function handleFieldlotListingsPost(
 
 	const mail = await sendInboundNotification({
 		subject: fieldlotListingNotificationSubject(title),
-		html: buildFieldlotListingEmailHtml({ id, created_at, ...row, subscribe_alerts: subscribeAlerts }),
-		text: buildFieldlotListingEmailText({ id, created_at, ...row, subscribe_alerts: subscribeAlerts }),
+		html: buildFieldlotListingEmailHtml({
+			id,
+			created_at,
+			...row,
+			subscribe_alerts: subscribeAlerts,
+			user_id: viewer.userId,
+		}),
+		text: buildFieldlotListingEmailText({
+			id,
+			created_at,
+			...row,
+			subscribe_alerts: subscribeAlerts,
+			user_id: viewer.userId,
+		}),
 		replyTo: businessEmail,
 	});
 

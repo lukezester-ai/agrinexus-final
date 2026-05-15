@@ -53,4 +53,14 @@ export default tseslint.config(
 			'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 		},
 	},
+	{
+		files: ['public/**/*.mjs'],
+		languageOptions: {
+			ecmaVersion: 2022,
+			sourceType: 'module',
+			globals: {
+				...globals.browser,
+			},
+		},
+	},
 );

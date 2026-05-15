@@ -200,9 +200,26 @@
 			font-size: clamp(1.05rem, 2.2vw, 1.25rem);
 			color: var(--muted);
 			max-width: 34rem;
-			margin: 0 auto 2rem;
+			margin: 0 auto 1.25rem;
 			line-height: 1.55;
 			font-weight: 400;
+		}
+
+		.hero-account-note {
+			max-width: 34rem;
+			margin: 0 auto 1.75rem;
+			padding: 0.7rem 1rem;
+			font-size: 0.88rem;
+			line-height: 1.5;
+			color: var(--text);
+			text-align: center;
+			background: rgba(201, 232, 108, 0.06);
+			border: 1px solid rgba(201, 232, 108, 0.2);
+			border-radius: 12px;
+		}
+
+		.hero-account-note strong {
+			color: var(--accent);
 		}
 
 		.cta-row {
@@ -900,8 +917,11 @@
 				Fieldlot свързва производители и търговци на едно ясно място — оферти, запитвания и директен контакт.
 				Без сложни гаранции в началото: фокусът е скорост, прозрачност и доверие между хората от сектора.
 			</p>
+			<p class="hero-account-note">
+				<strong>Един акаунт за AgriNexus и Fieldlot.</strong> Регистрацията и входът са през приложението (Supabase Auth) — няма втора регистрация само за Fieldlot. Същият профил ползваш за модулите в AgriNexus и за публикуване на обяви на тази страница.
+			</p>
 			<div class="cta-row">
-				<a class="btn btn-primary" href="/?from=fieldlot" title="Регистрация или вход в AgriNexus">Искам достъп в AgriNexus</a>
+				<a class="btn btn-primary" href="/?from=fieldlot" title="Един акаунт: регистрация или вход в AgriNexus (ползва се и за Fieldlot)">Искам достъп в AgriNexus</a>
 				<a class="btn btn-ghost" href="#how">Как работи</a>
 				<button type="button" class="btn btn-ghost" id="hero-ai-chat-btn">
 					AI водач (чат)

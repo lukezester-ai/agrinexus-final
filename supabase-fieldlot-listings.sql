@@ -17,6 +17,13 @@ create table if not exists public.fieldlot_listings (
 create index if not exists fieldlot_listings_created_at_idx
   on public.fieldlot_listings (created_at desc);
 
+-- Връзка към Supabase Auth (същият акаунт като в AgriNexus).
+alter table public.fieldlot_listings
+  add column if not exists user_id uuid references auth.users (id) on delete set null;
+
+create index if not exists fieldlot_listings_user_id_idx
+  on public.fieldlot_listings (user_id);
+
 alter table public.fieldlot_listings enable row level security;
 
 -- Блокира директен достъп през PostgREST с anon key; запис/четене само от backend (service role).

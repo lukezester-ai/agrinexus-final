@@ -229,9 +229,26 @@
 			font-size: clamp(1.05rem, 2.2vw, 1.25rem);
 			color: var(--muted);
 			max-width: 34rem;
-			margin: 0 auto 2rem;
+			margin: 0 auto 1.25rem;
 			line-height: 1.55;
 			font-weight: 400;
+		}
+
+		.hero-account-note {
+			max-width: 34rem;
+			margin: 0 auto 1.75rem;
+			padding: 0.7rem 1rem;
+			font-size: 0.88rem;
+			line-height: 1.5;
+			color: var(--text);
+			text-align: center;
+			background: rgba(201, 232, 108, 0.06);
+			border: 1px solid rgba(201, 232, 108, 0.2);
+			border-radius: 12px;
+		}
+
+		.hero-account-note strong {
+			color: var(--accent);
 		}
 
 		.cta-row {
@@ -809,6 +826,29 @@
 			color: #fca5a5;
 		}
 
+		.fl-session-banner {
+			margin: 0 0 0.85rem;
+			padding: 0.65rem 0.9rem;
+			border-radius: 8px;
+			font-size: 0.88rem;
+			line-height: 1.4;
+			background: rgba(201, 232, 108, 0.06);
+			border: 1px solid rgba(201, 232, 108, 0.22);
+			text-align: center;
+		}
+
+		.fl-session-banner.warn {
+			background: rgba(251, 191, 36, 0.07);
+			border-color: rgba(251, 191, 36, 0.32);
+			color: #fde68a;
+		}
+
+		.fl-session-banner.ok {
+			background: rgba(34, 197, 94, 0.07);
+			border-color: rgba(34, 197, 94, 0.26);
+			color: #bbf7d0;
+		}
+
 		/* —— AgriNexus Marketplace (визия) —— */
 		.fl-market-eco {
 			margin-top: 2.75rem;
@@ -1041,8 +1081,11 @@
 				Fieldlot свързва производители и търговци на едно ясно място — оферти, запитвания и директен контакт.
 				Без сложни гаранции в началото: фокусът е скорост, прозрачност и доверие между хората от сектора.
 			</p>
+			<p class="hero-account-note">
+				<strong>Един акаунт за AgriNexus и Fieldlot.</strong> Регистрацията и входът са през приложението (Supabase Auth) — няма втора регистрация само за Fieldlot. Същият профил ползваш за модулите в AgriNexus и за публикуване на обяви на тази страница.
+			</p>
 			<div class="cta-row">
-				<a class="btn btn-primary" href="/?from=fieldlot" title="Регистрация или вход в AgriNexus">Искам достъп в AgriNexus</a>
+				<a class="btn btn-primary" href="/?from=fieldlot" title="Един акаунт: регистрация или вход в AgriNexus (ползва се и за Fieldlot)">Искам достъп в AgriNexus</a>
 				<a class="btn btn-ghost" href="#how">Как работи</a>
 				<button type="button" class="btn btn-ghost" id="hero-ai-chat-btn">
 					AI водач (чат)
@@ -1252,7 +1295,8 @@
 		<section class="fl-listings" id="fieldlot-listings" aria-labelledby="fieldlot-listings-h">
 			<h2 id="fieldlot-listings-h">Публикувани обяви</h2>
 			<p class="fl-listings-sub">
-				Обявите се показват веднага след успешно изпращане на формата. В production са в Supabase; локално без ключ — в
+				Обявите се показват след успешно изпращане на формата. <strong>Публикуване изисква вход</strong> със същия
+				AgriNexus акаунт (Supabase Auth). В production са в Supabase; локално без ключ — в
 				<code>.local/fieldlot-listings.jsonl</code>.
 			</p>
 			<ul class="fl-listings-ul" id="fieldlot-listings-ul"></ul>
@@ -1265,11 +1309,16 @@
 				<a href="/?from=fieldlot">Започни оттук</a>
 				или
 				<a href="/?from=fieldlot&amp;mode=login">вход</a>.
-				По-долу: бърза <strong>публична обява</strong> без акаунт (каталог на тази страница).
+				По-долу: <strong>публична обява в каталога</strong> — с един акаунт с AgriNexus и Fieldlot.
 			</p>
 			<p>
-				<strong style="color: var(--text)">Публикувай обява.</strong> Попълни полетата — обявата се записва автоматично и се появява в списъка по-горе. Екипът получава копие по имейл, ако са зададени
+				<strong style="color: var(--text)">Публикувай обява.</strong> Влез от
+				<a href="/?from=fieldlot&amp;mode=login">тук</a>
+				(същият имейл като в приложението), попълни полетата — обявата се записва към твоя акаунт и се появява в списъка по-горе. Екипът получава копие по имейл, ако са зададени
 				<code>RESEND_API_KEY</code> и <code>MAIL_FROM</code> в коренния <code>.env</code>.
+			</p>
+			<p id="fl-session-banner" class="fl-session-banner warn" role="status" aria-live="polite">
+				Проверка на сесия…
 			</p>
 			<form id="agm-lead" class="agm-lead" autocomplete="on">
 				<label for="agm-fullname">Име и фамилия *</label>
@@ -1509,267 +1558,6 @@
 		});
 	</script>
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			const LISTINGS_API = '/api/fieldlot-listings';
-			const form = document.getElementById('agm-lead');
-			const submit = document.getElementById('agm-submit');
-			const status = document.getElementById('agm-lead-status');
-			const listUl = document.getElementById('fieldlot-listings-ul');
-			const listEmpty = document.getElementById('fieldlot-listings-empty');
-			if (!form || !submit || !status || !listUl || !listEmpty) return;
-
-			const openedAt = Date.now();
-			const PHONE_OK = /^\+[1-9]\d{7,14}$/;
-
-			function enableSubmit() {
-				submit.disabled = false;
-				submit.textContent = 'Публикувай обявата';
-			}
-
-			const waitMs = Math.max(0, 2100 - (Date.now() - openedAt));
-			submit.textContent = 'Изчакай…';
-			setTimeout(enableSubmit, waitMs);
-
-			function fmtWhen(iso) {
-				try {
-					const d = new Date(iso);
-					return d.toLocaleString('bg-BG', { dateStyle: 'short', timeStyle: 'short' });
-				} catch {
-					return iso;
-				}
-			}
-
-			async function refreshListings() {
-				listEmpty.hidden = false;
-				listEmpty.textContent = 'Зареждане…';
-				try {
-					const res = await fetch(LISTINGS_API, { method: 'GET' });
-					const data = await res.json().catch(function () {
-						return {};
-					});
-					const rows = Array.isArray(data.listings) ? data.listings : [];
-					listUl.innerHTML = '';
-					if (rows.length === 0) {
-						listEmpty.hidden = false;
-						listEmpty.textContent =
-							data.storage === 'none'
-								? 'Няма конфигурирано хранилище за обяви (на Vercel задай Supabase — виж supabase-fieldlot-listings.sql).'
-								: 'Все още няма обяви — бъди първият с формата по-долу.';
-						return;
-					}
-					listEmpty.hidden = true;
-					for (var i = 0; i < rows.length; i++) {
-						var L = rows[i];
-						var li = document.createElement('li');
-						li.className = 'fl-listing-card';
-						var header = document.createElement('header');
-						var h3 = document.createElement('h3');
-						h3.textContent = L.title || '—';
-						var meta = document.createElement('span');
-						meta.className = 'fl-listing-meta';
-						meta.textContent = fmtWhen(L.created_at);
-						header.appendChild(h3);
-						header.appendChild(meta);
-						var roleSpan = document.createElement('span');
-						roleSpan.className = 'fl-listing-role';
-						roleSpan.textContent = L.role || '—';
-						var pBody = document.createElement('p');
-						pBody.className = 'fl-listing-body';
-						pBody.textContent = L.body || '';
-						var contact = document.createElement('div');
-						contact.className = 'fl-listing-contact';
-						var namePart = document.createElement('span');
-						namePart.textContent = L.full_name || '';
-						contact.appendChild(namePart);
-						var co = (L.company_name || '').trim();
-						if (co) {
-							contact.appendChild(document.createTextNode(' · '));
-							var coSpan = document.createElement('span');
-							coSpan.textContent = co;
-							contact.appendChild(coSpan);
-						}
-						contact.appendChild(document.createTextNode(' · '));
-						var mailA = document.createElement('a');
-						mailA.href =
-							'mailto:' + String(L.business_email || '').replace(/^mailto:/i, '');
-						mailA.textContent = L.business_email || '';
-						contact.appendChild(mailA);
-						var phone = (L.phone || '').trim();
-						if (phone) {
-							contact.appendChild(document.createTextNode(' · '));
-							var phSpan = document.createElement('span');
-							phSpan.textContent = phone;
-							contact.appendChild(phSpan);
-						}
-						li.appendChild(header);
-						li.appendChild(roleSpan);
-						li.appendChild(pBody);
-						li.appendChild(contact);
-						listUl.appendChild(li);
-					}
-				} catch {
-					listEmpty.hidden = false;
-					listEmpty.textContent = 'Неуспешно зареждане на обявите — провери дали API работи (npm run dev от корена).';
-				}
-			}
-
-			void refreshListings();
-
-			form.addEventListener('submit', async function (ev) {
-				ev.preventDefault();
-				status.textContent = '';
-				status.className = '';
-
-				if (Date.now() - openedAt < 2000) {
-					status.className = 'err';
-					status.textContent = 'Изчакай 2 секунди след зареждане на страницата и опитай пак.';
-					return;
-				}
-
-				const fullNameEl = document.getElementById('agm-fullname');
-				const emailEl = document.getElementById('agm-email');
-				const companyEl = document.getElementById('agm-company');
-				const phoneEl = document.getElementById('agm-phone');
-				const roleEl = document.getElementById('agm-role');
-				const titleEl = document.getElementById('agm-title');
-				const bodyEl = document.getElementById('agm-body');
-				const hpEl = document.getElementById('agm-hp');
-				const alertsEl = document.getElementById('agm-alerts');
-
-				if (
-					!fullNameEl ||
-					!emailEl ||
-					!companyEl ||
-					!phoneEl ||
-					!roleEl ||
-					!titleEl ||
-					!bodyEl ||
-					!hpEl ||
-					!alertsEl
-				) {
-					status.className = 'err';
-					status.textContent = 'Грешка в страницата — презареди.';
-					return;
-				}
-
-				const fullName = fullNameEl.value.trim();
-				const businessEmail = emailEl.value.trim();
-				const companyName = companyEl.value.trim();
-				let phone = phoneEl.value.trim();
-				const role = roleEl.value;
-				const listingTitle = titleEl.value.trim();
-				const listingBody = bodyEl.value.trim();
-				const hp = hpEl.value;
-
-				if (fullName.length < 2) {
-					status.className = 'err';
-					status.textContent = 'Моля, поне 2 знака за име.';
-					return;
-				}
-				if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessEmail)) {
-					status.className = 'err';
-					status.textContent = 'Невалиден имейл.';
-					return;
-				}
-				if (listingTitle.length < 3) {
-					status.className = 'err';
-					status.textContent = 'Заглавието трябва да е поне 3 знака.';
-					return;
-				}
-				if (listingBody.length < 10) {
-					status.className = 'err';
-					status.textContent = 'Описанието трябва да е поне 10 знака.';
-					return;
-				}
-				if (phone) {
-					const digits = phone.replace(/\D/g, '');
-					if (digits.length >= 9) {
-						phone = '+' + digits;
-					}
-					if (!PHONE_OK.test(phone)) {
-						status.className = 'err';
-						status.textContent = 'Телефонът трябва да е във формат E.164, напр. +359888123456.';
-						return;
-					}
-				}
-
-				const body = {
-					fullName: fullName,
-					companyName: companyName,
-					businessEmail: businessEmail,
-					phone: phone || '',
-					role: role,
-					listingTitle: listingTitle,
-					listingBody: listingBody,
-					subscribeAlerts: alertsEl.checked,
-					locale: 'bg',
-					hpCompanyWebsite: hp || '',
-					formOpenedAt: openedAt,
-				};
-
-				submit.disabled = true;
-				status.textContent = 'Публикуване…';
-
-				try {
-					const res = await fetch(LISTINGS_API, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify(body),
-					});
-					let data = {};
-					try {
-						data = await res.json();
-					} catch {
-						data = {};
-					}
-					if (!res.ok) {
-						status.className = 'err';
-						const hint = data.hint ? ' ' + String(data.hint) : '';
-						const err = String(data.error || 'Грешка');
-						const friendly =
-							err === 'Too fast'
-								? 'Твърде бързо — презареди страницата и изчакай 2 секунди.'
-								: err === 'Too many requests'
-									? 'Твърде много заявки. Опитай по-късно.'
-									: err === 'Session expired'
-										? 'Страницата е остаряла — презареди и попълни отново.'
-										: err === 'Valid business email required'
-											? 'Невалиден имейл.'
-											: err === 'Valid phone required'
-												? 'Невалиден телефон — използвай +359… или остави празно.'
-												: err === 'Request could not be processed'
-													? 'Заявката не мина проверката — презареди страницата.'
-													: err === 'Listing storage is not configured'
-														? 'Сървърът не може да записва обяви: задай SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY и изпълни supabase-fieldlot-listings.sql (на Vercel). Локално без Supabase обявите се пишат в .local автоматично.'
-														: err === 'Listing title must be 3–200 characters'
-															? 'Заглавието: между 3 и 200 знака.'
-															: err === 'Listing description must be 10–8000 characters'
-																? 'Описанието: между 10 и 8000 знака.'
-																: err;
-						status.textContent = friendly + hint;
-						submit.disabled = false;
-						return;
-					}
-					status.className = 'ok';
-					var parts = ['Обявата е публикувана в списъка по-горе.'];
-					if (data.mailDelivery === 'sent') {
-						parts.push('Екипът е уведомен по имейл.');
-					} else {
-						parts.push('Имейл към екипа не е изпратен (липсват RESEND_API_KEY / MAIL_FROM) — обявата пак е записана.');
-					}
-					status.textContent = parts.join(' ');
-					form.reset();
-					submit.disabled = false;
-					void refreshListings();
-				} catch {
-					status.className = 'err';
-					status.textContent =
-						'Мрежова грешка. Пусни npm run dev от корена (Vite + API на DEV_API_PORT).';
-					submit.disabled = false;
-				}
-			});
-		});
-	</script>
+	<script type="module" src="/fieldlot-listings-form.mjs"></script>
 </body>
 </html>

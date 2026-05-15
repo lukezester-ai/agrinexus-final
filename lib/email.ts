@@ -291,16 +291,18 @@ export function registerNotificationSubject(displayLabel: string, locale: MailLo
 }
 
 export type FieldlotListingEmailInput = {
-  id: string;
-  created_at: string;
-  role: string;
-  title: string;
-  body: string;
-  full_name: string;
-  company_name: string;
-  business_email: string;
-  phone: string;
-  subscribe_alerts: boolean;
+	id: string;
+	created_at: string;
+	role: string;
+	title: string;
+	body: string;
+	full_name: string;
+	company_name: string;
+	business_email: string;
+	phone: string;
+	subscribe_alerts: boolean;
+	/** Supabase `auth.users.id` — за поддръжка/одит */
+	user_id?: string | null;
 };
 
 export function fieldlotListingNotificationSubject(title: string): string {
@@ -309,11 +311,13 @@ export function fieldlotListingNotificationSubject(title: string): string {
 }
 
 export function buildFieldlotListingEmailHtml(input: FieldlotListingEmailInput): string {
-  const yn = input.subscribe_alerts ? 'да' : 'не';
-  return `
+	const yn = input.subscribe_alerts ? 'да' : 'не';
+	const uid = input.user_id ? escapeHtml(input.user_id) : '—';
+	return `
     <h2>Fieldlot — нова публикувана обява</h2>
     <p><strong>ID:</strong> ${escapeHtml(input.id)}</p>
     <p><strong>Дата:</strong> ${escapeHtml(input.created_at)}</p>
+    <p><strong>Акаунт (user_id):</strong> ${uid}</p>
     <p><strong>Роля:</strong> ${escapeHtml(input.role)}</p>
     <p><strong>Заглавие:</strong> ${escapeHtml(input.title)}</p>
     <hr />
@@ -328,13 +332,14 @@ export function buildFieldlotListingEmailHtml(input: FieldlotListingEmailInput):
 }
 
 export function buildFieldlotListingEmailText(input: FieldlotListingEmailInput): string {
-  const yn = input.subscribe_alerts ? 'да' : 'не';
-  return [
-    'Fieldlot — нова публикувана обява',
-    '',
-    `ID: ${input.id}`,
-    `Дата: ${input.created_at}`,
-    `Роля: ${input.role}`,
+	const yn = input.subscribe_alerts ? 'да' : 'не';
+	return [
+		'Fieldlot — нова публикувана обява',
+		'',
+		`ID: ${input.id}`,
+		`Дата: ${input.created_at}`,
+		`Акаунт (user_id): ${input.user_id || '—'}`,
+		`Роля: ${input.role}`,
     `Заглавие: ${input.title}`,
     '',
     'Описание:',

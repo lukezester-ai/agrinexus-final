@@ -15,6 +15,8 @@ import {
 	handleFieldlotListingsGet,
 	handleFieldlotListingsPost,
 } from '../lib/fieldlot-listings-handler';
+import { accessTokenFromAuthorizationHeader } from '../lib/access-token-from-authorization';
+import { handlePublicSupabaseConfigGet } from '../lib/public-supabase-config-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
 import { handleMarketWatchGet } from '../lib/market-watch-api';
@@ -121,6 +123,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/contact', methods: ['POST'] },
             { path: '/api/register-interest', methods: ['POST'] },
             { path: '/api/fieldlot-listings', methods: ['GET', 'POST'] },
+            { path: '/api/public-supabase-config', methods: ['GET'] },
             { path: '/api/upload-sign', methods: ['POST'] },
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
@@ -269,6 +272,20 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      if (path === '/api/public-supabase-config' && req.method === 'GET') {
+        const r = handlePublicSupabaseConfigGet();
+        if (!r.ok) {
+          send(res, r.status, { ok: false, error: r.error });
+          return;
+        }
+        send(res, 200, {
+          ok: true,
+          supabaseUrl: r.supabaseUrl,
+          supabaseAnonKey: r.supabaseAnonKey,
+        });
+        return;
+      }
+
       if (path === '/api/fieldlot-listings' && req.method === 'GET') {
         const r = await handleFieldlotListingsGet();
         if (!r.ok) {
@@ -285,8 +302,11 @@ const server = http.createServer(async (req, res) => {
           send(res, 400, { error: 'Invalid JSON' });
           return;
         }
+        const authHeader =
+          typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
         const result = await handleFieldlotListingsPost(body, {
           clientIp: clientIpFromNodeRequest(req),
+          authorizationAccessToken: accessTokenFromAuthorizationHeader(authHeader),
         });
         if (result.ok) {
           send(res, 200, {

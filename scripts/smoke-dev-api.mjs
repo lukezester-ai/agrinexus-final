@@ -154,8 +154,10 @@ async function main() {
 				headers: { "Content-Type": "application/json" },
 				body: fieldlotPost,
 			});
-			if (!flPost.ok || flPost.json?.ok !== true) {
-				throw new Error(`POST /api/fieldlot-listings ${flPost.status}: ${flPost.text?.slice(0, 400)}`);
+			if (flPost.ok && flPost.json?.ok === true) {
+				throw new Error(
+					"POST /api/fieldlot-listings without Authorization must not succeed (listings require login).",
+				);
 			}
 		}
 

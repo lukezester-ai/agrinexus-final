@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { accessTokenFromAuthorizationHeader } from '../lib/access-token-from-authorization.js';
 import { clientIpFromVercelRequest } from '../lib/client-ip.js';
 import { handleFieldlotListingsGet, handleFieldlotListingsPost } from '../lib/fieldlot-listings-handler.js';
 import { vercelJsonBody } from '../lib/vercel-json-body.js';
@@ -27,8 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 			res.status(400).json({ ok: false, error: 'Invalid JSON body' });
 			return;
 		}
+		const authHeader =
+			typeof req.headers.authorization === 'string' ? req.headers.authorization : undefined;
 		const result = await handleFieldlotListingsPost(parsed, {
 			clientIp: clientIpFromVercelRequest(req),
+			authorizationAccessToken: accessTokenFromAuthorizationHeader(authHeader),
 		});
 		if (!result.ok) {
 			res.status(result.status).json({ ok: false, error: result.error, hint: result.hint });
