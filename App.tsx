@@ -30,7 +30,6 @@ import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
-import { CloudAuthPanel } from './components/CloudAuthPanel';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
 import { CropStatisticsBulgariaView } from './components/CropStatisticsBulgariaView';
 import { FoodSecurityBreakEvenView } from './components/FoodSecurityBreakEvenView';
@@ -62,9 +61,11 @@ import {
 	writeStoredOblastAnchorId,
 } from './lib/oblast-anchor-storage';
 import {
-	authMagicLinkErrorMessage,
-	requestAuthMagicLink,
-} from './lib/auth-magic-link-client';
+	applyAuthSession,
+	authCredentialsErrorMessage,
+	requestAuthSignin,
+	requestAuthSignup,
+} from './lib/auth-credentials-client';
 import { useSupabaseSession } from './hooks/use-supabase-session';
 import { LEAD_FORM_HP_FIELD } from './lib/form-bot-guard';
 
@@ -579,7 +580,7 @@ function MobileNavLabel({ text, hint: _hint }: { text: string; hint?: string }) 
 }
 
 export default function App() {
-	const { user: supabaseUser } = useSupabaseSession();
+	const { user: supabaseUser, loading: authLoading, signOut } = useSupabaseSession();
 	const [view, setView] = useState<View>('landing');
 	const [navMenuOpen, setNavMenuOpen] = useState<'markets' | 'farm' | 'logistics' | null>(null);
 	const [mobileNavExpand, setMobileNavExpand] = useState<'markets' | 'farm' | 'logistics' | null>(
@@ -717,7 +718,6 @@ export default function App() {
 	const chatAbortRef = useRef<AbortController | null>(null);
 	const chatEndRef = useRef<HTMLDivElement | null>(null);
 	const chatTextareaRef = useRef<HTMLTextAreaElement | null>(null);
-	const [sessionTick, setSessionTick] = useState(0);
 	const [voiceListening, setVoiceListening] = useState(false);
 	const [assistantNotice, setAssistantNotice] = useState<string | null>(null);
 	const [assistantToolbarCollapsed, setAssistantToolbarCollapsed] = useState(() =>
@@ -734,18 +734,12 @@ export default function App() {
 	const speechRef = useRef<SpeechRecognitionInstance | null>(null);
 	const registerEmailHintHydratedRef = useRef(false);
 	const registerFormOpenedAtRef = useRef(Date.now());
+	const loginFormOpenedAtRef = useRef(Date.now());
 
-	const demoSessionEmail = useMemo(() => {
-		void sessionTick;
-		const e = safeLocalGet('agrinexus-demo-email');
-		return e?.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()) ? e.trim() : null;
-	}, [sessionTick]);
-	const cloudAccountEmail = useMemo(() => {
+	const identityEmailForAi = useMemo(() => {
 		const e = supabaseUser?.email?.trim() ?? '';
 		return e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
 	}, [supabaseUser?.email]);
-	/** Email identity for unlocking mic when LLM health is idle (demo localStorage or Supabase session). */
-	const identityEmailForAi = demoSessionEmail ?? cloudAccountEmail;
 	const [chatHealth, setChatHealth] = useState<'idle' | 'ready' | 'no_key' | 'offline'>('idle');
 	/** Mic unlock policy: LLM ready on server or signed-in/demo identity (see toggleVoiceInput). */
 	const mediaAiUnlocked = useMemo(
@@ -754,19 +748,24 @@ export default function App() {
 	);
 
 	const [regEmail, setRegEmail] = useState('');
+	const [regPassword, setRegPassword] = useState('');
+	const [regPasswordConfirm, setRegPasswordConfirm] = useState('');
 	const [regHp, setRegHp] = useState('');
 	const [regStatus, setRegStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
 	const [regMsg, setRegMsg] = useState('');
 
 	const [loginEmail, setLoginEmail] = useState('');
 	const [loginPassword, setLoginPassword] = useState('');
+	const [loginHp, setLoginHp] = useState('');
+	const [loginStatus, setLoginStatus] = useState<'idle' | 'loading' | 'err'>('idle');
 	const [loginMsg, setLoginMsg] = useState('');
 
-	const [leadFormAntiBotReady, setLeadFormAntiBotReady] = useState(false);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-	/** Регистрация изпраща magic link през /api/auth-magic-link (сървърни ключове). */
-	const supabaseRegisterEnabled = true;
-	const canSubmitRegister = isValidEmail(regEmail) && leadFormAntiBotReady;
+	const regPasswordOk = regPassword.length >= 6;
+	const regPasswordsMatch = regPassword === regPasswordConfirm;
+	const canSubmitRegister =
+		isValidEmail(regEmail) && regPasswordOk && regPasswordsMatch && regPasswordConfirm.length > 0;
+	const canSubmitLogin = isValidEmail(loginEmail) && loginPassword.length >= 6;
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
 	const invalidEmailText =
 		lang === 'bg'
@@ -788,9 +787,7 @@ export default function App() {
 	}, [view]);
 
 	useEffect(() => {
-		setLeadFormAntiBotReady(false);
-		const id = window.setTimeout(() => setLeadFormAntiBotReady(true), 2100);
-		return () => clearTimeout(id);
+		if (view === 'login') loginFormOpenedAtRef.current = Date.now();
 	}, [view]);
 
 	useEffect(() => {
@@ -921,8 +918,8 @@ export default function App() {
 		if (!mediaAiUnlocked) {
 			setAssistantNotice(
 				lang === 'bg'
-					? 'Микрофонът се отключва при конфигуриран LLM на сървъра, след регистрация и вход с облачен акаунт или след демо вход с имейл.'
-					: 'Microphone unlocks when a server LLM is configured, after you register and sign in with your cloud account, or after demo sign-in with email.'
+					? 'Микрофонът се отключва при LLM на сървъра или след регистрация и вход.'
+					: 'Microphone unlocks when a server LLM is configured, or after you register and sign in.'
 			);
 			return;
 		}
@@ -978,14 +975,6 @@ export default function App() {
 			);
 		}
 	}, [mediaAiUnlocked, voiceListening, lang]);
-
-	useEffect(() => {
-		const onStorage = (ev: StorageEvent) => {
-			if (ev.key === 'agrinexus-demo-email') setSessionTick(t => t + 1);
-		};
-		window.addEventListener('storage', onStorage);
-		return () => window.removeEventListener('storage', onStorage);
-	}, []);
 
 	useEffect(() => {
 		if (!assistantNotice) return;
@@ -1062,102 +1051,91 @@ export default function App() {
 
 	const submitRegister = async () => {
 		if (!canSubmitRegister || regStatus === 'loading') return;
-		if (!isValidEmail(regEmail)) {
-			setRegStatus('err');
-			setRegMsg(
-				lang === 'bg'
-					? 'Моля, въведете валиден имейл адрес.'
-					: 'Please enter a valid email address.'
-			);
-			return;
-		}
+		const locale = lang === 'bg' ? 'bg' : 'en';
 		setRegStatus('loading');
 		setRegMsg('');
 		try {
 			const emailTrim = regEmail.trim();
-			const res = await fetch('/api/register-interest', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					fullName: '',
-					companyName: '',
-					businessEmail: emailTrim,
-					phone: '',
-					marketFocus: '',
-					subscribeAlerts: false,
-					locale: lang === 'bg' ? 'bg' : 'en',
-					hpCompanyWebsite: regHp,
-					formOpenedAt: registerFormOpenedAtRef.current,
-				}),
+			const result = await requestAuthSignup({
+				email: emailTrim,
+				password: regPassword,
+				hpCompanyWebsite: regHp,
+				formOpenedAt: registerFormOpenedAtRef.current,
 			});
-			let data: {
-				ok?: boolean;
-				error?: string;
-				hint?: string;
-				preview?: string;
-				mailDelivery?: 'sent' | 'skipped';
-			} = {};
-			try {
-				data = (await res.json()) as typeof data;
-			} catch {
-				data = {};
-			}
-			if (!res.ok) {
+			if (!result.ok) {
 				setRegStatus('err');
 				setRegMsg(
-					data.hint ||
-						data.error ||
-						(lang === 'bg' ? 'Неуспешно изпращане' : 'Failed to submit')
+					result.body.hint ||
+						authCredentialsErrorMessage(result.body.code, locale)
 				);
 				return;
 			}
 			persistRegisterAccountHint(emailTrim, cookieConsent);
-			const magic = await requestAuthMagicLink({
-				email: emailTrim,
-				redirectTo: `${window.location.origin}${window.location.pathname}`,
-				hpCompanyWebsite: regHp,
-				formOpenedAt: registerFormOpenedAtRef.current,
-			});
-			if (!magic.ok) {
-				setRegStatus('err');
-				setRegMsg(
-					authMagicLinkErrorMessage(magic.body.code, lang === 'bg' ? 'bg' : 'en')
-				);
+			if (result.needsEmailConfirmation) {
+				setRegStatus('ok');
+				setRegMsg(tr.registerConfirmEmail);
+				setLoginEmail(emailTrim);
 				return;
 			}
+			if (result.session) {
+				const sessionOk = await applyAuthSession(result.session);
+				if (!sessionOk) {
+					setRegStatus('err');
+					setRegMsg(
+						locale === 'bg'
+							? 'Акаунтът е създаден, но входът не успя. Влезте от „Вход“.'
+							: 'Account created but sign-in failed. Use Sign in.'
+					);
+					setLoginEmail(emailTrim);
+					return;
+				}
+			}
 			setRegStatus('ok');
-			setRegMsg(
-				lang === 'bg'
-					? 'Провери имейла си — изпратихме връзка за вход.'
-					: 'Check your email — we sent you a sign-in link.'
-			);
+			setRegMsg(tr.registerSignupOk);
+			setView('company');
 		} catch {
 			setRegStatus('err');
 			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
 		}
 	};
 
-	const handleDemoSignIn = () => {
+	const submitLogin = async () => {
+		if (!canSubmitLogin || loginStatus === 'loading') return;
+		const locale = lang === 'bg' ? 'bg' : 'en';
+		setLoginStatus('loading');
 		setLoginMsg('');
-		if (!isValidEmail(loginEmail)) {
-			setLoginMsg(
-				lang === 'bg'
-					? 'Въведете валиден имейл, за да продължите към демо средата.'
-					: 'Enter a valid email to continue to the demo workspace.'
-			);
-			return;
+		try {
+			const result = await requestAuthSignin({
+				email: loginEmail.trim(),
+				password: loginPassword,
+				hpCompanyWebsite: loginHp,
+				formOpenedAt: loginFormOpenedAtRef.current,
+			});
+			if (!result.ok) {
+				setLoginStatus('err');
+				setLoginMsg(
+					result.body.hint ||
+						authCredentialsErrorMessage(result.body.code, locale)
+				);
+				return;
+			}
+			if (!result.session) {
+				setLoginStatus('err');
+				setLoginMsg(authCredentialsErrorMessage('auth_error', locale));
+				return;
+			}
+			const sessionOk = await applyAuthSession(result.session);
+			if (!sessionOk) {
+				setLoginStatus('err');
+				setLoginMsg(authCredentialsErrorMessage('auth_not_configured', locale));
+				return;
+			}
+			setLoginStatus('idle');
+			setView('company');
+		} catch {
+			setLoginStatus('err');
+			setLoginMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
 		}
-		if (loginPassword.trim().length < 4) {
-			setLoginMsg(
-				lang === 'bg'
-					? 'За демо въведете поне 4 знака в полето за парола (не се изпращат към сървър).'
-					: 'For demo, enter at least 4 characters in the password field (not sent to any server).'
-			);
-			return;
-		}
-		safeLocalSet('agrinexus-demo-email', loginEmail.trim());
-		setSessionTick(t => t + 1);
-		setView('company');
 	};
 
 	const tr = useMemo(() => getUiStrings(lang), [lang]);
@@ -2804,17 +2782,49 @@ export default function App() {
 								{invalidEmailText}
 							</p>
 						)}
-						{supabaseRegisterEnabled ? (
+						<input
+							type="password"
+							autoComplete="new-password"
+							placeholder={tr.passwordPh}
+							value={regPassword}
+							onChange={e => setRegPassword(e.target.value)}
+						/>
+						<input
+							type="password"
+							autoComplete="new-password"
+							placeholder={tr.passwordConfirmPh}
+							value={regPasswordConfirm}
+							onChange={e => setRegPasswordConfirm(e.target.value)}
+						/>
+						<p
+							className="muted"
+							style={{
+								gridColumn: '1 / -1',
+								margin: '-6px 0 0',
+								fontSize: '.82rem',
+							}}>
+							{tr.registerPasswordHint}
+						</p>
+						{regPassword.length > 0 && !regPasswordOk ? (
 							<p
-								className="muted"
 								style={{
 									gridColumn: '1 / -1',
-									margin: '0',
-									fontSize: '.82rem',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
 								}}>
-								{lang === 'bg'
-									? 'Ще изпратим връзка за вход на този имейл (без парола в тази форма).'
-									: 'We will send a sign-in link to this email (no password on this form).'}
+								{tr.registerPasswordTooShort}
+							</p>
+						) : null}
+						{regPasswordConfirm.length > 0 && !regPasswordsMatch ? (
+							<p
+								style={{
+									gridColumn: '1 / -1',
+									margin: '-6px 0 0',
+									color: '#f87171',
+									fontSize: '.84rem',
+								}}>
+								{tr.registerPasswordMismatch}
 							</p>
 						) : null}
 					</div>
@@ -2848,72 +2858,122 @@ export default function App() {
 			)}
 
 			{view === 'login' && (
-				<section className="section">
+				<section className="section" style={{ position: 'relative' }}>
 					<h2>{tr.loginTitle}</h2>
 					<p className="muted">{tr.loginSubtitle}</p>
-					<div className="form-grid">
-						<input
-							type="email"
-							autoComplete="email"
-							placeholder={tr.loginEmailPh}
-							value={loginEmail}
-							onChange={e => {
-								setLoginEmail(e.target.value);
-								if (loginMsg) setLoginMsg('');
-							}}
-						/>
-						{loginEmail.trim().length > 0 && !isValidEmail(loginEmail) ? (
-							<p
-								style={{
-									gridColumn: '1 / -1',
-									margin: '-6px 0 0',
-									color: '#f87171',
-									fontSize: '.84rem',
-								}}>
-								{invalidEmailText}
-							</p>
-						) : null}
-						<input
-							type="password"
-							autoComplete="current-password"
-							placeholder={tr.loginPasswordPh}
-							value={loginPassword}
-							onChange={e => {
-								setLoginPassword(e.target.value);
-								if (loginMsg) setLoginMsg('');
-							}}
-						/>
-						<p
-							className="muted"
-							style={{
-								gridColumn: '1 / -1',
-								margin: '-6px 0 0',
-								fontSize: '.82rem',
-							}}>
-							{tr.loginPasswordDemoHint}
+					{authLoading ? (
+						<p className="muted" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+							<Loader2 size={18} className="spin" aria-hidden /> {tr.loginLoading}
 						</p>
-					</div>
-					<div
-						style={{
-							marginTop: 12,
-							display: 'flex',
-							gap: 8,
-							flexWrap: 'wrap',
-							alignItems: 'center',
-						}}>
-						<button type="button" className="btn btn-primary" onClick={handleDemoSignIn}>
-							{tr.loginContinueDemo}
-						</button>
-						<button type="button" className="btn btn-outline" onClick={() => setView('register')}>
-							{tr.loginNoAccount}
-						</button>
-						{loginMsg ? (
-							<span className="muted" style={{ width: '100%', fontSize: '.9rem' }}>
-								{loginMsg}
-							</span>
-						) : null}
-					</div>
-					<CloudAuthPanel tr={tr} lang={lang === 'bg' ? 'bg' : 'en'} />
+					) : supabaseUser?.email ? (
+						<div>
+							<p style={{ margin: '8px 0 0' }}>
+								{tr.loginSignedIn} <strong>{supabaseUser.email}</strong>
+							</p>
+							<div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+								<button type="button" className="btn btn-primary" onClick={() => setView('company')}>
+									{lang === 'bg' ? 'Към приложението' : 'Go to app'}
+								</button>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => void signOut()}>
+									{tr.loginSignOut}
+								</button>
+							</div>
+						</div>
+					) : (
+						<>
+							<div
+								aria-hidden="true"
+								style={{
+									position: 'absolute',
+									left: -9999,
+									width: 1,
+									height: 1,
+									overflow: 'hidden',
+								}}>
+								<input
+									name={LEAD_FORM_HP_FIELD}
+									type="text"
+									tabIndex={-1}
+									autoComplete="off"
+									value={loginHp}
+									onChange={e => setLoginHp(e.target.value)}
+								/>
+							</div>
+							<div className="form-grid">
+								<input
+									type="email"
+									autoComplete="email"
+									placeholder={tr.loginEmailPh}
+									value={loginEmail}
+									onChange={e => {
+										setLoginEmail(e.target.value);
+										if (loginMsg) setLoginMsg('');
+									}}
+								/>
+								{loginEmail.trim().length > 0 && !isValidEmail(loginEmail) ? (
+									<p
+										style={{
+											gridColumn: '1 / -1',
+											margin: '-6px 0 0',
+											color: '#f87171',
+											fontSize: '.84rem',
+										}}>
+										{invalidEmailText}
+									</p>
+								) : null}
+								<input
+									type="password"
+									autoComplete="current-password"
+									placeholder={tr.loginPasswordPh}
+									value={loginPassword}
+									onChange={e => {
+										setLoginPassword(e.target.value);
+										if (loginMsg) setLoginMsg('');
+									}}
+									onKeyDown={e => {
+										if (e.key === 'Enter') void submitLogin();
+									}}
+								/>
+								<p
+									className="muted"
+									style={{
+										gridColumn: '1 / -1',
+										margin: '-6px 0 0',
+										fontSize: '.82rem',
+									}}>
+									{tr.loginPasswordHint}
+								</p>
+							</div>
+							<div
+								style={{
+									marginTop: 12,
+									display: 'flex',
+									gap: 8,
+									flexWrap: 'wrap',
+									alignItems: 'center',
+								}}>
+								<button
+									type="button"
+									className="btn btn-primary"
+									disabled={loginStatus === 'loading' || !canSubmitLogin}
+									onClick={() => void submitLogin()}>
+									{loginStatus === 'loading' ? <Loader2 size={18} className="spin" aria-hidden /> : null}{' '}
+									{tr.loginSubmit}
+								</button>
+								<button type="button" className="btn btn-outline" onClick={() => setView('register')}>
+									{tr.loginNoAccount}
+								</button>
+								{loginMsg ? (
+									<span className="muted" style={{ width: '100%', fontSize: '.9rem' }}>
+										{loginMsg}
+									</span>
+								) : null}
+							</div>
+						</>
+					)}
 				</section>
 			)}
 

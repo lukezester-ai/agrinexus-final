@@ -17,6 +17,7 @@ import {
 } from '../lib/fieldlot-listings-handler';
 import { accessTokenFromAuthorizationHeader } from '../lib/access-token-from-authorization';
 import { handleAuthMagicLinkPost } from '../lib/auth-magic-link-handler';
+import { handleAuthSigninPost, handleAuthSignupPost } from '../lib/auth-credentials-handler';
 import { handlePublicSupabaseConfigGet } from '../lib/public-supabase-config-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
@@ -126,6 +127,8 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/fieldlot-listings', methods: ['GET', 'POST'] },
             { path: '/api/public-supabase-config', methods: ['GET'] },
             { path: '/api/auth-magic-link', methods: ['POST'] },
+            { path: '/api/auth-signup', methods: ['POST'] },
+            { path: '/api/auth-signin', methods: ['POST'] },
             { path: '/api/upload-sign', methods: ['POST'] },
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
@@ -307,6 +310,54 @@ const server = http.createServer(async (req, res) => {
           hint: result.hint,
           code: result.code,
         });
+        return;
+      }
+
+      if (path === '/api/auth-signup' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleAuthSignupPost(body, {
+          clientIp: clientIpFromNodeRequest(req),
+        });
+        if (!result.ok) {
+          send(res, result.status, {
+            ok: false,
+            error: result.error,
+            hint: result.hint,
+            code: result.code,
+          });
+          return;
+        }
+        if ('needsEmailConfirmation' in result) {
+          send(res, 200, { ok: true, needsEmailConfirmation: true });
+          return;
+        }
+        send(res, 200, { ok: true, session: result.session });
+        return;
+      }
+
+      if (path === '/api/auth-signin' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleAuthSigninPost(body, {
+          clientIp: clientIpFromNodeRequest(req),
+        });
+        if (!result.ok) {
+          send(res, result.status, {
+            ok: false,
+            error: result.error,
+            hint: result.hint,
+            code: result.code,
+          });
+          return;
+        }
+        send(res, 200, { ok: true, session: result.session });
         return;
       }
 
