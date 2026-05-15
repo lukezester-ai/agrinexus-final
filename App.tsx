@@ -30,6 +30,13 @@ import {
 import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
 import { CropProfitabilityView } from './components/CropProfitabilityView';
+import { FarmDemoDashboard } from './components/FarmDemoDashboard';
+import {
+	DEMO_FARM_USER_STORAGE_KEY,
+	findDemoFarmUser,
+	type DemoFarmUser,
+	DEMO_FARM_USERS,
+} from './lib/demo-farm-users';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
@@ -136,6 +143,26 @@ function safeSessionRemove(key: string): void {
 	}
 }
 
+function readStoredDemoFarmUser(): DemoFarmUser | null {
+	const raw = safeLocalGet(DEMO_FARM_USER_STORAGE_KEY);
+	if (!raw) return null;
+	try {
+		const u = JSON.parse(raw) as Partial<DemoFarmUser>;
+		if (u?.email && u?.name && u?.farm) {
+			return {
+				email: u.email,
+				password: '',
+				name: u.name,
+				farm: u.farm,
+				hectares: typeof u.hectares === 'number' ? u.hectares : 0,
+			};
+		}
+	} catch {
+		/* ignore */
+	}
+	return null;
+}
+
 function getBrowserCookie(name: string): string | null {
 	if (typeof document === 'undefined') return null;
 	try {
@@ -235,6 +262,7 @@ type View =
 	| 'crop-profitability'
 	| 'food-security'
 	| 'command'
+	| 'farm-demo'
 	| 'file-upload'
 	| 'field-watch'
 	| 'weather';
@@ -246,7 +274,13 @@ const TRADING_VIEWS = new Set<View>([
 	'trade-documents',
 	'weather',
 ]);
-const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
+const FARM_VIEWS = new Set<View>([
+	'command',
+	'farm-demo',
+	'subsidy-calculator',
+	'season-calendar',
+	'field-watch',
+]);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
 type ClientProfile = {
@@ -772,6 +806,27 @@ export default function App() {
 	const [loginHp, setLoginHp] = useState('');
 	const [loginStatus, setLoginStatus] = useState<'idle' | 'loading' | 'err'>('idle');
 	const [loginMsg, setLoginMsg] = useState('');
+	const [demoFarmUser, setDemoFarmUser] = useState<DemoFarmUser | null>(() =>
+		readStoredDemoFarmUser()
+	);
+
+	const enterDemoFarm = useCallback((user: DemoFarmUser) => {
+		const stored = {
+			email: user.email,
+			name: user.name,
+			farm: user.farm,
+			hectares: user.hectares,
+		};
+		safeLocalSet(DEMO_FARM_USER_STORAGE_KEY, JSON.stringify(stored));
+		setDemoFarmUser({ ...user, password: '' });
+		setView('farm-demo');
+	}, []);
+
+	const exitDemoFarm = useCallback(() => {
+		safeLocalRemove(DEMO_FARM_USER_STORAGE_KEY);
+		setDemoFarmUser(null);
+		setView('login');
+	}, []);
 
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 	const regPasswordOk = regPassword.length >= 6;
@@ -1117,6 +1172,11 @@ export default function App() {
 
 	const submitLogin = async () => {
 		if (!canSubmitLogin || loginStatus === 'loading') return;
+		const demo = findDemoFarmUser(loginEmail.trim(), loginPassword);
+		if (demo) {
+			enterDemoFarm(demo);
+			return;
+		}
 		const locale = lang === 'bg' ? 'bg' : 'en';
 		setLoginStatus('loading');
 		setLoginMsg('');
@@ -1159,6 +1219,9 @@ export default function App() {
 
 	const tr = useMemo(() => getUiStrings(lang), [lang]);
 
+	if (view === 'farm-demo' && demoFarmUser) {
+		return <FarmDemoDashboard user={demoFarmUser} onLogout={exitDemoFarm} />;
+	}
 
 	return (
 		<div className="app">
@@ -2471,6 +2534,17 @@ export default function App() {
 									}}>
 									<ClipboardList size={14} aria-hidden /> {tr.navCommand}
 								</button>
+								<button
+									type="button"
+									role="menuitem"
+									className={`nav-dropdown-item ${view === 'farm-demo' ? 'active' : ''}`}
+									onClick={() => {
+										enterDemoFarm(demoFarmUser ?? DEMO_FARM_USERS[0]);
+										setNavMenuOpen(null);
+									}}>
+									<Sprout size={14} aria-hidden />{' '}
+									{lang === 'bg' ? 'Демо табло' : 'Demo dashboard'}
+								</button>
 							</div>
 						)}
 					</div>
@@ -3000,6 +3074,25 @@ export default function App() {
 										{loginMsg}
 									</span>
 								) : null}
+							</div>
+							<div
+								className="contact-panel"
+								style={{ marginTop: 20, maxWidth: 480, borderColor: 'rgba(124,205,156,0.35)' }}>
+								<p className="muted" style={{ margin: '0 0 10px', fontSize: '.88rem' }}>
+									{lang === 'bg'
+										? 'Демо без Supabase — веднага в таблото:'
+										: 'Demo without Supabase — instant dashboard:'}
+								</p>
+								<p style={{ margin: '0 0 12px', fontSize: '.82rem', color: 'var(--text-muted)' }}>
+									<code style={{ fontFamily: 'monospace' }}>fermer@demo.bg</code> /{' '}
+									<code style={{ fontFamily: 'monospace' }}>agri2025</code>
+								</p>
+								<button
+									type="button"
+									className="btn btn-outline"
+									onClick={() => enterDemoFarm(DEMO_FARM_USERS[0])}>
+									{lang === 'bg' ? 'Демо вход (Иван)' : 'Demo sign-in (Ivan)'}
+								</button>
 							</div>
 						</>
 					)}
