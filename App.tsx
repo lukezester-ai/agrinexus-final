@@ -1136,7 +1136,7 @@ export default function App() {
 					authCredentialsErrorMessage(
 						result.body.code,
 						locale,
-						result.body.hint || result.body.error
+						result.body.error
 					)
 				);
 				return;
@@ -1193,7 +1193,7 @@ export default function App() {
 					authCredentialsErrorMessage(
 						result.body.code,
 						locale,
-						result.body.hint || result.body.error
+						result.body.error
 					)
 				);
 				return;

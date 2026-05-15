@@ -67,6 +67,11 @@ export function authCredentialsErrorMessage(
 				: 'Invalid server response. Try the main domain or again later.';
 		case 'auth_error':
 			if (detail) {
+				if (/email rate limit|over_email_send|over_request_rate/i.test(detail)) {
+					return bg
+						? 'Достигнат е лимитът за имейли от Supabase. Изчакайте ~1 час или използвайте „Вход“, ако вече имате акаунт. В Supabase → Authentication можете да изключите потвърждение по имейл.'
+						: 'Supabase email limit reached. Wait ~1 hour or use Sign in if you already have an account. In Supabase → Authentication you can disable email confirmation.';
+				}
 				if (/rate limit|too many/i.test(detail)) {
 					return bg
 						? 'Твърде много опити — изчакай малко и опитай отново.'
@@ -75,7 +80,6 @@ export function authCredentialsErrorMessage(
 				if (/invalid email|email.*invalid/i.test(detail)) {
 					return bg ? 'Имейлът не е приет от системата.' : 'Email was rejected by the auth service.';
 				}
-				return detail;
 			}
 			return bg ? 'Регистрацията не успя. Опитайте отново.' : 'Registration failed. Try again.';
 		default:
@@ -116,7 +120,12 @@ async function postAuth(
 		body = { ok: false, code: 'invalid_response', error: 'Could not parse response' };
 	}
 	if (!res.ok || !body.ok) {
-		if (res.status === 429 && !body.code) body.code = 'too_fast';
+		const errText = (body.error ?? '').toLowerCase();
+		if (/email rate limit|over_email_send|over_request_rate/.test(errText)) {
+			body.code = 'email_rate_limit';
+		} else if (res.status === 429 && !body.code) {
+			body.code = 'too_fast';
+		}
 		return { ok: false, status: res.status, body };
 	}
 	return {
