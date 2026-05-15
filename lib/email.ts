@@ -25,7 +25,7 @@ function inboxTo(): string {
     process.env.MAIL_TO?.trim() ||
     process.env.CONTACT_TO_EMAIL?.trim() ||
     process.env.AGRI_INBOX_EMAIL?.trim() ||
-    'info@agrinexus.eu'
+    'info@agrinexus.eu.com'
   );
 }
 
