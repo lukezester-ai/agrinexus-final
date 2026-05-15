@@ -1,23 +1,26 @@
 export const fields = [
 	{
-		id: 'north',
+		id: 1,
 		name: 'Поле Север',
 		crop: 'Пшеница',
 		hectares: 120,
-		moisture: 42,
+		moisture: 68,
+		status: 'добро',
 	},
 	{
-		id: 'south',
+		id: 2,
 		name: 'Поле Юг',
 		crop: 'Царевица',
 		hectares: 95,
-		moisture: 38,
+		moisture: 35,
+		status: 'критично',
 	},
 	{
-		id: 'east',
+		id: 3,
 		name: 'Поле Изток',
 		crop: 'Слънчоглед',
-		hectares: 125,
-		moisture: 35,
+		hectares: 80,
+		moisture: 72,
+		status: 'добро',
 	},
 ];

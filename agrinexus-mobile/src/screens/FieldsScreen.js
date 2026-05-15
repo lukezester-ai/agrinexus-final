@@ -1,20 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { ScrollView, Text, StyleSheet, View } from 'react-native';
 import { fields } from '../data/fields';
-import { colors, radii, spacing } from '../styles/theme';
 
 export default function FieldsScreen() {
 	return (
-		<ScrollView style={styles.container} contentContainerStyle={styles.content}>
-			<Text style={styles.title}>Полета</Text>
+		<ScrollView style={styles.container}>
+			<Text style={styles.title}>Моите полета</Text>
 
-			{fields.map((f) => (
-				<View key={f.id} style={styles.card}>
-					<Text style={styles.field}>{f.name}</Text>
-					<Text style={styles.meta}>
-						{f.crop} · {f.hectares} ха
-					</Text>
-					<Text style={styles.moisture}>Влажност: {f.moisture}%</Text>
+			{fields.map((field) => (
+				<View key={field.id} style={styles.card}>
+					<Text style={styles.name}>{field.name}</Text>
+					<Text style={styles.info}>{field.crop}</Text>
+					<Text style={styles.info}>{field.hectares} ха</Text>
+					<Text style={styles.info}>Влажност: {field.moisture}% · {field.status}</Text>
 				</View>
 			))}
 		</ScrollView>
@@ -24,38 +22,30 @@ export default function FieldsScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.bg,
-	},
-	content: {
-		padding: spacing.screen,
-		paddingBottom: 32,
+		backgroundColor: '#f5f4f0',
+		padding: 18,
 	},
 	title: {
-		fontSize: 30,
-		fontWeight: '700',
-		marginBottom: 20,
-		color: colors.text,
+		fontSize: 32,
+		fontWeight: '800',
+		marginBottom: 22,
+		color: '#1a1916',
 	},
 	card: {
-		backgroundColor: colors.surface,
-		borderRadius: radii.cardSm,
+		backgroundColor: '#fff',
+		borderRadius: 18,
 		padding: 20,
 		marginBottom: 14,
 	},
-	field: {
-		fontSize: 18,
+	name: {
+		fontSize: 20,
 		fontWeight: '700',
 		marginBottom: 8,
-		color: colors.text,
+		color: '#1a1916',
 	},
-	meta: {
-		fontSize: 14,
-		color: colors.muted,
-		marginBottom: 8,
-	},
-	moisture: {
-		fontSize: 16,
-		color: colors.accent,
-		fontWeight: '600',
+	info: {
+		fontSize: 15,
+		color: '#555',
+		marginBottom: 5,
 	},
 });

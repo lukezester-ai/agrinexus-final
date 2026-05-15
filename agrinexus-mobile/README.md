@@ -1,6 +1,4 @@
-# AgriNexus Mobile (Expo)
-
-React Native + Expo starter — табло, полета, настройки. Споделя Supabase с уеб приложението (`agrinexus-final-main`).
+# AgriNexus Mobile (Expo) — ready to run
 
 ## Старт
 
@@ -10,24 +8,18 @@ npm install
 npx expo start
 ```
 
-Сканирайте QR с [Expo Go](https://expo.dev/go).
-
-## Supabase (по избор)
-
-```bash
-cp .env.example .env
-```
-
-Попълнете `EXPO_PUBLIC_SUPABASE_URL` и `EXPO_PUBLIC_SUPABASE_ANON_KEY` (legacy anon JWT `eyJ…`).
+Сканирайте QR с **Expo Go** на телефона.
 
 ## Структура
 
-- `src/screens/` — Dashboard, Fields, Settings, Login (stub)
-- `src/components/` — StatCard, AlertCard, WeatherCard
-- `src/data/` — демо данни (MVP)
-- `src/services/supabase.js` — клиент
+```
+src/
+ ├── screens/     Dashboard, Fields, Settings
+ └── data/        fields.js (демо)
+```
 
-## Следващи стъпки
+Опционално: `src/services/supabase.js` + `.env` за бъдещ login (същият Supabase като уеб).
 
-- Supabase login (същият API като `/api/auth-signin` на уеб)
-- Weather API, карта, push, AI
+## Следващи upgrade-и
+
+Login · Supabase DB · Weather API · AI · GPS карта · Push · Satellite

@@ -1,36 +1,48 @@
 import React from 'react';
-import { Text, StyleSheet, ScrollView } from 'react-native';
-import StatCard from '../components/StatCard';
-import AlertCard from '../components/AlertCard';
-import WeatherCard from '../components/WeatherCard';
-import { alerts } from '../data/alerts';
+import { ScrollView, Text, StyleSheet, View } from 'react-native';
 import { fields } from '../data/fields';
-import { weather } from '../data/weather';
-import { colors, spacing } from '../styles/theme';
 
 const totalHa = fields.reduce((sum, f) => sum + f.hectares, 0);
+const critical = fields.find((f) => f.status === 'критично');
 
 export default function DashboardScreen() {
 	return (
-		<ScrollView style={styles.container} contentContainerStyle={styles.content}>
+		<ScrollView style={styles.container}>
 			<Text style={styles.title}>Табло</Text>
 
-			<StatCard label="Общо площ" value={`${totalHa} ха`} />
-			<StatCard label="Активни полета" value={String(fields.length)} />
+			<View style={styles.summaryCard}>
+				<Text style={styles.summaryLabel}>Общо площ</Text>
+				<Text style={styles.summaryValue}>{totalHa} ха</Text>
+				<Text style={styles.summaryMeta}>{fields.length} активни полета</Text>
+			</View>
 
-			<WeatherCard {...weather} />
-
-			{alerts.map((a) => (
-				<AlertCard key={a.id} message={a.message} />
-			))}
+			{critical ? (
+				<View style={styles.alertCard}>
+					<Text style={styles.alertTitle}>Критична влажност</Text>
+					<Text style={styles.alertText}>
+						{critical.name} — {critical.moisture}% влажност ({critical.status}). Препоръка:
+						проверка на напояване в следващите 24 часа.
+					</Text>
+				</View>
+			) : null}
 
 			<Text style={styles.section}>Полета</Text>
-			{fields.map((f) => (
-				<StatCard
-					key={f.id}
-					label={`${f.name} · ${f.crop}`}
-					value={`${f.moisture}%`}
-				/>
+
+			{fields.map((field) => (
+				<View key={field.id} style={styles.fieldCard}>
+					<Text style={styles.fieldName}>{field.name}</Text>
+					<Text style={styles.fieldCrop}>
+						{field.crop} · {field.hectares} ха
+					</Text>
+					<Text style={styles.fieldInfo}>Статус: {field.status}</Text>
+					<Text
+						style={[
+							styles.moisture,
+							field.status === 'критично' && styles.moistureCritical,
+						]}>
+						Влажност: {field.moisture}%
+					</Text>
+				</View>
 			))}
 		</ScrollView>
 	);
@@ -39,23 +51,86 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.bg,
-	},
-	content: {
-		padding: spacing.screen,
-		paddingBottom: 32,
+		backgroundColor: '#f5f4f0',
+		padding: 18,
 	},
 	title: {
 		fontSize: 32,
 		fontWeight: '700',
 		marginBottom: 20,
-		color: colors.text,
+		color: '#1a1916',
+	},
+	summaryCard: {
+		backgroundColor: '#fff',
+		borderRadius: 18,
+		padding: 20,
+		marginBottom: 20,
+	},
+	summaryLabel: {
+		fontSize: 14,
+		color: '#666',
+		marginBottom: 8,
+	},
+	summaryValue: {
+		fontSize: 42,
+		fontWeight: '700',
+		color: '#1a7a52',
+	},
+	summaryMeta: {
+		marginTop: 8,
+		fontSize: 15,
+		color: '#444',
+	},
+	alertCard: {
+		backgroundColor: '#fff1f2',
+		padding: 18,
+		borderRadius: 18,
+		marginBottom: 20,
+	},
+	alertTitle: {
+		fontSize: 16,
+		fontWeight: '700',
+		color: '#be123c',
+		marginBottom: 10,
+	},
+	alertText: {
+		fontSize: 15,
+		lineHeight: 22,
+		color: '#1a1916',
 	},
 	section: {
-		fontSize: 22,
+		fontSize: 24,
 		fontWeight: '700',
-		marginBottom: 12,
+		marginBottom: 14,
+		color: '#1a1916',
+	},
+	fieldCard: {
+		backgroundColor: '#fff',
+		borderRadius: 20,
+		padding: 18,
+		marginBottom: 14,
+	},
+	fieldName: {
+		fontSize: 20,
+		fontWeight: '700',
+	},
+	fieldCrop: {
 		marginTop: 10,
-		color: colors.text,
+		color: '#666',
+		fontSize: 15,
+	},
+	fieldInfo: {
+		marginTop: 5,
+		color: '#444',
+		fontSize: 15,
+	},
+	moisture: {
+		marginTop: 12,
+		fontSize: 16,
+		fontWeight: '700',
+		color: '#1a7a52',
+	},
+	moistureCritical: {
+		color: '#be123c',
 	},
 });

@@ -1,64 +1,44 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { isSupabaseConfigured } from '../services/supabase';
-import { colors, radii, spacing } from '../styles/theme';
+import { View, Text, StyleSheet } from 'react-native';
 
 export default function SettingsScreen() {
 	return (
-		<ScrollView style={styles.container} contentContainerStyle={styles.content}>
+		<View style={styles.container}>
 			<Text style={styles.title}>Настройки</Text>
 
 			<View style={styles.card}>
 				<Text style={styles.label}>План</Text>
-				<Text style={styles.value}>Starter €149</Text>
+				<Text style={styles.value}>Starter Plan</Text>
 			</View>
-
-			<View style={styles.card}>
-				<Text style={styles.label}>Облак (Supabase)</Text>
-				<Text style={styles.value}>{isSupabaseConfigured ? 'Свързан' : 'Демо (без .env)'}</Text>
-			</View>
-
-			<View style={styles.card}>
-				<Text style={styles.label}>Уеб приложение</Text>
-				<Text style={styles.hint}>agrinexus.eu.com — същият акаунт след login upgrade</Text>
-			</View>
-		</ScrollView>
+		</View>
 	);
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.bg,
-	},
-	content: {
-		padding: spacing.screen,
+		backgroundColor: '#f5f4f0',
+		padding: 18,
 	},
 	title: {
-		fontSize: 30,
-		fontWeight: '700',
+		fontSize: 32,
+		fontWeight: '800',
 		marginBottom: 20,
-		color: colors.text,
+		color: '#1a1916',
 	},
 	card: {
-		backgroundColor: colors.surface,
-		borderRadius: radii.cardSm,
+		backgroundColor: '#fff',
+		borderRadius: 18,
 		padding: 20,
-		marginBottom: 14,
 	},
 	label: {
 		fontSize: 14,
-		color: colors.muted,
-		marginBottom: 8,
+		color: '#666',
+		marginBottom: 10,
 	},
 	value: {
 		fontSize: 22,
 		fontWeight: '700',
-		color: colors.accent,
-	},
-	hint: {
-		fontSize: 14,
-		color: colors.muted,
-		lineHeight: 20,
+		color: '#1a7a52',
 	},
 });
