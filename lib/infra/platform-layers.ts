@@ -3,6 +3,7 @@
  */
 
 import { isChatLlmConfigured } from '../llm-env.js';
+import { isSupabaseAuthConfigured, isSupabaseServerConfigured } from '../supabase-env.js';
 
 export type AgriPlatformLayers = {
 	/** HTTP API (Vercel Functions / dev-server) */
@@ -21,13 +22,6 @@ export type AgriPlatformLayers = {
 	supabaseClientEnv: boolean;
 };
 
-export function readSupabaseServerConfigured(): boolean {
-	const url = process.env.SUPABASE_URL?.trim();
-	const secret =
-		process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.SUPABASE_ANON_KEY?.trim();
-	return Boolean(url && secret);
-}
-
 export function getAgriPlatformLayers(): AgriPlatformLayers {
 	return {
 		liveApi: true,
@@ -42,10 +36,9 @@ export function getAgriPlatformLayers(): AgriPlatformLayers {
 				process.env.S3_ACCESS_KEY_ID?.trim() &&
 				process.env.S3_SECRET_ACCESS_KEY?.trim(),
 		),
-		supabaseServer: readSupabaseServerConfigured(),
+		supabaseServer: isSupabaseServerConfigured(),
 		documentGeneration: true,
-		// Браузърът чете VITE_ при билд; тук само бележка за CI — реалната стойност е в клиента
-		supabaseClientEnv: Boolean(process.env.VITE_SUPABASE_URL?.trim() && process.env.VITE_SUPABASE_ANON_KEY?.trim()),
+		supabaseClientEnv: isSupabaseAuthConfigured(),
 	};
 }
 

@@ -1,16 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { readSupabaseAnonOrPublishableKey, readSupabaseProjectUrl } from './supabase-env.js';
+import {
+	createSupabaseServerAuthClient,
+	readSupabaseKeyForJwtVerify,
+	readSupabaseProjectUrl,
+} from './supabase-env.js';
 
 export type ResolvedAuthUser = { userId: string; email: string | null };
-
-/** Anon, publishable или service key — само за `auth.getUser(jwt)` на сървъра. */
-function readSupabaseKeyForJwtVerify(): string {
-	return (
-		process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-		readSupabaseAnonOrPublishableKey() ||
-		''
-	);
-}
 
 export async function resolveUserFromAccessToken(
 	accessToken: string | null | undefined
@@ -37,9 +31,7 @@ export async function resolveUserFromAccessToken(
 			hint: 'Задай SUPABASE_URL и SUPABASE_ANON_KEY или SUPABASE_SERVICE_ROLE_KEY.',
 		};
 	}
-	const supabase = createClient(url, key, {
-		auth: { persistSession: false, autoRefreshToken: false },
-	});
+	const supabase = createSupabaseServerAuthClient(url, key);
 	const { data, error } = await supabase.auth.getUser(trimmed);
 	if (error || !data.user) {
 		return {

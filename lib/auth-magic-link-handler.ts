@@ -1,7 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
 import { assertLeadFormAntiBot } from './form-bot-guard.js';
 import type { LeadHandlerCtx } from './leads-handler.js';
-import { readSupabaseAnonOrPublishableKey, readSupabaseProjectUrl } from './supabase-env.js';
+import {
+	createSupabaseServerAuthClient,
+	readSupabaseAnonOrPublishableKey,
+	readSupabaseProjectUrl,
+} from './supabase-env.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -71,9 +74,7 @@ export async function handleAuthMagicLinkPost(
 		};
 	}
 
-	const supabase = createClient(url, key, {
-		auth: { persistSession: false, autoRefreshToken: false },
-	});
+	const supabase = createSupabaseServerAuthClient(url, key);
 
 	const display = fullName || email.split('@')[0] || '';
 	const { error } = await supabase.auth.signInWithOtp({

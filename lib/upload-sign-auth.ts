@@ -1,6 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
 import { timingSafeEqual } from 'node:crypto';
 import { isDeployProductionLike } from './deploy-env.js';
+import {
+	createSupabaseServerAuthClient,
+	readSupabaseAnonOrPublishableKey,
+	readSupabaseProjectUrl,
+} from './supabase-env.js';
 
 function bearerToken(authHeader: string | undefined): string | null {
 	if (!authHeader || typeof authHeader !== 'string') return null;
@@ -20,12 +24,10 @@ function timingSafeSecretMatch(expected: string, received: string): boolean {
 }
 
 async function verifySupabaseAccessToken(accessToken: string): Promise<boolean> {
-	const url = process.env.SUPABASE_URL?.trim();
-	const anon = process.env.SUPABASE_ANON_KEY?.trim();
+	const url = readSupabaseProjectUrl();
+	const anon = readSupabaseAnonOrPublishableKey();
 	if (!url || !anon) return false;
-	const sb = createClient(url, anon, {
-		auth: { persistSession: false, autoRefreshToken: false },
-	});
+	const sb = createSupabaseServerAuthClient(url, anon);
 	const {
 		data: { user },
 		error,
