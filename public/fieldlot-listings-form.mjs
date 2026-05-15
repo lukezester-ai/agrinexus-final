@@ -16,25 +16,8 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 	let supabaseClient = null;
 	let sessionUserEmail = null;
 
-	function hasDemoOnlySession() {
-		try {
-			return !!localStorage.getItem('agrinexus-demo-email');
-		} catch {
-			return false;
-		}
-	}
-
-	function noSupabaseSessionHint() {
-		if (hasDemoOnlySession()) {
-			return (
-				'Ползваш демо вход в AgriNexus — той не създава облачен Supabase акаунт. ' +
-				'За обяви влез с magic link или парола: /?from=fieldlot&mode=login (не през демо).'
-			);
-		}
-		return (
-			'Няма активна Supabase сесия на тази страница. Влез в AgriNexus (/?from=fieldlot&mode=login), ' +
-			'после се върни на този раздел или презареди страницата (ако вече си влязъл в друг таб).'
-		);
+	function loginReminder() {
+		return 'Влез в AgriNexus и се върни тук — или презареди страницата.';
 	}
 
 	function enableSubmit() {
@@ -51,19 +34,18 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 		sessionBanner.classList.remove('warn', 'ok');
 		if (!supabaseClient) {
 			sessionBanner.classList.add('warn');
-			sessionBanner.textContent =
-				'Липсва публична Supabase конфигурация от сървъра. Задай VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY (или SUPABASE_ANON_KEY) за API средата — виж .env.example.';
+			sessionBanner.textContent = 'Не можем да потвърдим профила ти сега. Опитай по-късно.';
 			return;
 		}
 		if (!accessToken) {
 			sessionBanner.classList.add('warn');
-			sessionBanner.textContent = noSupabaseSessionHint();
+			sessionBanner.textContent = loginReminder();
 			return;
 		}
 		sessionBanner.classList.add('ok');
-		sessionBanner.textContent =
-			'Влязъл си в AgriNexus. Полето „Имейл“ по-долу трябва да съвпада с този акаунт.' +
-			(sessionUserEmail ? ' Текущ имейл: ' + sessionUserEmail + '.' : '');
+		sessionBanner.textContent = sessionUserEmail
+			? 'Готов за публикуване · ' + sessionUserEmail
+			: 'Готов за публикуване.';
 	}
 
 	async function syncSessionFromSupabase() {
@@ -97,10 +79,7 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 			listUl.innerHTML = '';
 			if (rows.length === 0) {
 				listEmpty.hidden = false;
-				listEmpty.textContent =
-					data.storage === 'none'
-						? 'Няма конфигурирано хранилище за обяви (на Vercel задай Supabase — виж supabase-fieldlot-listings.sql).'
-						: 'Все още няма обяви — бъди първият с формата по-долу.';
+				listEmpty.textContent = 'Няма обяви засега.';
 				return;
 			}
 			listEmpty.hidden = true;
@@ -154,8 +133,7 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 			}
 		} catch {
 			listEmpty.hidden = false;
-			listEmpty.textContent =
-				'Неуспешно зареждане на обявите — провери дали API работи (npm run dev от корена).';
+			listEmpty.textContent = 'Неуспешно зареждане. Презареди страницата.';
 		}
 	}
 
@@ -202,8 +180,7 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 		if (sessionBanner) {
 			sessionBanner.classList.remove('ok');
 			sessionBanner.classList.add('warn');
-			sessionBanner.textContent =
-				'Неуспешно зареждане на входа (мрежа или CDN). Опитай презареждане или провери дали /api/public-supabase-config отговаря.';
+			sessionBanner.textContent = 'Опитай презареждане.';
 		}
 	}
 
@@ -224,9 +201,7 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 
 		if (!accessToken) {
 			status.className = 'err';
-			status.textContent = supabaseClient
-				? noSupabaseSessionHint()
-				: 'Липсва конфигурация за вход — виж съобщението в жълтата лента по-горе.';
+			status.textContent = supabaseClient ? loginReminder() : 'Опитай по-късно.';
 			return;
 		}
 
@@ -331,50 +306,39 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 			}
 			if (!res.ok) {
 				status.className = 'err';
-				const hint = data.hint ? ' ' + String(data.hint) : '';
-				const err = String(data.error || 'Грешка');
+				const err = String(data.error || '');
 				const friendly =
 					err === 'Too fast'
-						? 'Твърде бързо — презареди страницата и изчакай 2 секунди.'
+						? 'Твърде бързо — изчакай малко.'
 						: err === 'Too many requests'
-							? 'Твърде много заявки. Опитай по-късно.'
+							? 'Твърде много опити. Опитай по-късно.'
 							: err === 'Session expired'
-								? 'Страницата е остаряла — презареди и попълни отново.'
+								? 'Презареди страницата и попълни отново.'
 								: err === 'Valid business email required'
 									? 'Невалиден имейл.'
 									: err === 'Valid phone required'
-										? 'Невалиден телефон — използвай +359… или остави празно.'
+										? 'Невалиден телефон (+359…) или остави празно.'
 										: err === 'Request could not be processed'
-											? 'Заявката не мина проверката — презареди страницата.'
+											? 'Презареди страницата и опитай пак.'
 											: err === 'Listing storage is not configured'
-												? 'Сървърът не може да записва обяви: задай SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY и изпълни supabase-fieldlot-listings.sql (на Vercel). Локално без Supabase обявите се пишат в .local автоматично.'
+												? 'Не можем да запазим обявата в момента. Опитай по-късно.'
 												: err === 'Listing title must be 3–200 characters'
 													? 'Заглавието: между 3 и 200 знака.'
 													: err === 'Listing description must be 10–8000 characters'
 														? 'Описанието: между 10 и 8000 знака.'
-														: err === 'Изисква се вход'
-															? 'Трябва да си влязъл в AgriNexus. Влез и презареди страницата.'
-															: err === 'Невалидна или изтекла сесия'
-																? 'Сесията е изтекла — влез отново и презареди.'
-																: err === 'Сървърът не може да провери сесията'
-																	? 'Сървърът не може да провери сесията (липсват ключове за Supabase на API).'
-																	: err === 'Имейлът в формата трябва да съвпада с акаунта, с който си влязъл.'
-																		? 'Имейлът в формата трябва да е същият като при входа в AgriNexus.'
-																		: err;
-				status.textContent = friendly + hint;
+														: err === 'Изисква се вход' || err === 'Невалидна или изтекла сесия'
+															? loginReminder()
+															: err === 'Сървърът не може да провери сесията'
+																? 'Опитай по-късно.'
+																: err === 'Имейлът в формата трябва да съвпада с акаунта, с който си влязъл.'
+																	? 'Използвай същия имейл като в AgriNexus.'
+																	: 'Неуспех. Презареди и опитай пак.';
+				status.textContent = friendly;
 				submit.disabled = false;
 				return;
 			}
 			status.className = 'ok';
-			const parts = ['Обявата е публикувана в списъка по-горе.'];
-			if (data.mailDelivery === 'sent') {
-				parts.push('Екипът е уведомен по имейл.');
-			} else {
-				parts.push(
-					'Имейл към екипа не е изпратен (липсват RESEND_API_KEY / MAIL_FROM) — обявата пак е записана.',
-				);
-			}
-			status.textContent = parts.join(' ');
+			status.textContent = 'Обявата е публикувана.';
 			form.reset();
 			if (supabaseClient) {
 				const { data: s2 } = await supabaseClient.auth.getSession();
@@ -385,8 +349,7 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 			void refreshListings();
 		} catch {
 			status.className = 'err';
-			status.textContent =
-				'Мрежова грешка. Пусни npm run dev от корена (Vite + API на DEV_API_PORT).';
+			status.textContent = 'Мрежова грешка. Презареди и опитай пак.';
 			submit.disabled = false;
 		}
 	});
