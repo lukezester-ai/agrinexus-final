@@ -97,7 +97,7 @@ export function SubsidyCalculatorView({
 			input.decares,
 			result.totalLowBgn,
 			result.totalHighBgn,
-			siteUrl || 'https://agrinexus.eu',
+			siteUrl || 'https://agrinexus.eu.com',
 			lang,
 		);
 		try {

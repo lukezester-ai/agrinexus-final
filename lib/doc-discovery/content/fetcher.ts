@@ -77,7 +77,7 @@ async function fetchRemote(
 			redirect: 'follow',
 			headers: {
 				'User-Agent':
-					'SIMAContentIndexer/1.0 (public agro/legal docs; +https://agrinexus.eu)',
+					'SIMAContentIndexer/1.0 (public agro/legal docs; +https://agrinexus.eu.com)',
 				Accept: 'application/pdf,text/html;q=0.9,*/*;q=0.6',
 			},
 		});

@@ -16,7 +16,7 @@ export async function fetchHtmlPage(url: string, timeoutMs: number): Promise<str
 			signal: ctrl.signal,
 			redirect: 'follow',
 			headers: {
-				'User-Agent': 'SIMADocDiscovery/1.0 (public indexes; +https://agrinexus.eu)',
+				'User-Agent': 'SIMADocDiscovery/1.0 (public indexes; +https://agrinexus.eu.com)',
 				Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
 			},
 		});
