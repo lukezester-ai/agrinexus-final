@@ -1073,13 +1073,16 @@ export default function App() {
 				email: emailTrim,
 				password: regPassword,
 				hpCompanyWebsite: regHp,
-				formOpenedAt: registerFormOpenedAtRef.current,
+				formOpenedAt: Date.now() - 3000,
 			});
 			if (!result.ok) {
 				setRegStatus('err');
 				setRegMsg(
-					result.body.hint ||
-						authCredentialsErrorMessage(result.body.code, locale)
+					authCredentialsErrorMessage(
+						result.body.code,
+						locale,
+						result.body.hint || result.body.error
+					)
 				);
 				return;
 			}
@@ -1122,13 +1125,16 @@ export default function App() {
 				email: loginEmail.trim(),
 				password: loginPassword,
 				hpCompanyWebsite: loginHp,
-				formOpenedAt: loginFormOpenedAtRef.current,
+				formOpenedAt: Date.now() - 3000,
 			});
 			if (!result.ok) {
 				setLoginStatus('err');
 				setLoginMsg(
-					result.body.hint ||
-						authCredentialsErrorMessage(result.body.code, locale)
+					authCredentialsErrorMessage(
+						result.body.code,
+						locale,
+						result.body.hint || result.body.error
+					)
 				);
 				return;
 			}

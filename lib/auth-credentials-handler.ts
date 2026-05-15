@@ -67,6 +67,14 @@ function mapSupabaseAuthError(message: string): AuthFail {
 			code: 'already_registered',
 		};
 	}
+	if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('over_email_send')) {
+		return {
+			ok: false,
+			status: 429,
+			error: message || 'Too many requests',
+			code: 'auth_error',
+		};
+	}
 	if (
 		msg.includes('invalid login') ||
 		msg.includes('invalid credentials') ||
