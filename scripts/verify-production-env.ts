@@ -28,6 +28,7 @@ function mergeDotEnvWithoutBom(): void {
 			'VITE_SUPABASE_URL',
 			'VITE_SUPABASE_ANON_KEY',
 			'SUPABASE_URL',
+			'SUPABASE_ANON_KEY',
 			'SUPABASE_SERVICE_ROLE_KEY',
 		]) {
 			const v = parsed[key];
@@ -59,6 +60,7 @@ const llm = isChatLlmConfigured();
 const viteUrl = trim(process.env.VITE_SUPABASE_URL);
 const viteAnon = trim(process.env.VITE_SUPABASE_ANON_KEY);
 const svcUrl = trim(process.env.SUPABASE_URL);
+const svcAnon = trim(process.env.SUPABASE_ANON_KEY);
 const svcKey = trim(process.env.SUPABASE_SERVICE_ROLE_KEY);
 const siteUrl = trim(process.env.VITE_SITE_URL);
 
@@ -72,6 +74,9 @@ console.log(`  VITE_SITE_URL (canonical links): ${t(Boolean(siteUrl))}`);
 
 if (!viteUrl || !viteAnon) {
 	console.warn('  (hint) Without VITE_SUPABASE_* the signed-in / cloud sync paths stay disabled in the client bundle.');
+}
+if (!svcUrl || !svcAnon) {
+	console.warn('  (hint) Without SUPABASE_URL + SUPABASE_ANON_KEY registration/login API will return 503.');
 }
 if (!svcUrl || !svcKey) {
 	console.warn('  (hint) Without SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY server routes that need admin client may fail.');

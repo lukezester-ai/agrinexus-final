@@ -67,7 +67,20 @@ function mapSupabaseAuthError(message: string): AuthFail {
 			code: 'already_registered',
 		};
 	}
-	if (msg.includes('rate limit') || msg.includes('too many') || msg.includes('over_email_send')) {
+	if (
+		msg.includes('email rate limit') ||
+		msg.includes('over_email_send') ||
+		msg.includes('over_request_rate')
+	) {
+		return {
+			ok: false,
+			status: 429,
+			error: message || 'Email rate limit exceeded',
+			code: 'email_rate_limit',
+			hint: 'Supabase limits confirmation emails. Wait ~1 hour, try Sign in if you already registered, or disable email confirmation in Supabase Auth settings.',
+		};
+	}
+	if (msg.includes('rate limit') || msg.includes('too many')) {
 		return {
 			ok: false,
 			status: 429,

@@ -49,6 +49,10 @@ export function authCredentialsErrorMessage(
 			return bg
 				? 'Грешка в настройките на сървъра. Опитайте по-късно.'
 				: 'Server configuration error. Try again later.';
+		case 'email_rate_limit':
+			return bg
+				? 'Достигнат е лимитът за имейли от Supabase (потвърждение). Изчакайте ~1 час, опитайте „Вход“ ако вече сте регистрирани, или изключете потвърждение по имейл в Supabase → Authentication.'
+				: 'Supabase email limit reached (confirmations). Wait ~1 hour, try Sign in if already registered, or turn off email confirmation in Supabase → Authentication.';
 		case 'too_fast':
 			return bg
 				? 'Твърде бързо — изчакай 2–3 секунди и опитай отново.'

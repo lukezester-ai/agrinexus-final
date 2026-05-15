@@ -1128,7 +1128,7 @@ export default function App() {
 				email: emailTrim,
 				password: regPassword,
 				hpCompanyWebsite: regHp,
-				formOpenedAt: Date.now() - 3000,
+				formOpenedAt: registerFormOpenedAtRef.current,
 			});
 			if (!result.ok) {
 				setRegStatus('err');
@@ -1185,7 +1185,7 @@ export default function App() {
 				email: loginEmail.trim(),
 				password: loginPassword,
 				hpCompanyWebsite: loginHp,
-				formOpenedAt: Date.now() - 3000,
+				formOpenedAt: loginFormOpenedAtRef.current,
 			});
 			if (!result.ok) {
 				setLoginStatus('err');

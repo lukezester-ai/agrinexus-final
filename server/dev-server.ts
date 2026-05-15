@@ -18,6 +18,7 @@ import {
 import { accessTokenFromAuthorizationHeader } from '../lib/access-token-from-authorization';
 import { handleAuthMagicLinkPost } from '../lib/auth-magic-link-handler';
 import { handleAuthSigninPost, handleAuthSignupPost } from '../lib/auth-credentials-handler';
+import { handleAuthStatusGet } from '../lib/auth-status-handler';
 import { handlePublicSupabaseConfigGet } from '../lib/public-supabase-config-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
@@ -126,6 +127,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/register-interest', methods: ['POST'] },
             { path: '/api/fieldlot-listings', methods: ['GET', 'POST'] },
             { path: '/api/public-supabase-config', methods: ['GET'] },
+            { path: '/api/auth-status', methods: ['GET'] },
             { path: '/api/auth-magic-link', methods: ['POST'] },
             { path: '/api/auth-signup', methods: ['POST'] },
             { path: '/api/auth-signin', methods: ['POST'] },
@@ -288,6 +290,11 @@ const server = http.createServer(async (req, res) => {
           supabaseUrl: r.supabaseUrl,
           supabaseAnonKey: r.supabaseAnonKey,
         });
+        return;
+      }
+
+      if (path === '/api/auth-status' && req.method === 'GET') {
+        send(res, 200, handleAuthStatusGet());
         return;
       }
 
