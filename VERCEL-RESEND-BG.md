@@ -11,7 +11,7 @@
    - `SIMA <noreply@agrinexus.eu.com>`
    - или само `noreply@agrinexus.eu.com` ако приема вашият формат в Resend.
 
-5. **`MAIL_TO`** (или `CONTACT_TO_EMAIL`) — към кой пощенски ящик да пристигат контактът и регистрациите (напр. `info@agrinexus.eu.com`). Стойността може да е същият имейл като пощата, която реално отваряте.
+5. **`MAIL_TO`** (или `CONTACT_TO_EMAIL`) — към кой пощенски ящик да пристигат контактът и регистрациите (напр. `info@agrinexus.eu`). Стойността може да е същият имейл като пощата, която реално отваряте.
 
 Без `RESEND_API_KEY` **и** валиден `MAIL_FROM`, приложението приема формите, но **няма да изпраща имейл** — в UI ще видите съобщение за конфигурация на сървъра.
 
@@ -22,7 +22,7 @@
 ```env
 RESEND_API_KEY=re_...
 MAIL_FROM=SIMA <noreply@вашият-домейн.com>
-MAIL_TO=info@agrinexus.eu.com
+MAIL_TO=info@agrinexus.eu
 OPENAI_API_KEY=sk-...
 ```
 

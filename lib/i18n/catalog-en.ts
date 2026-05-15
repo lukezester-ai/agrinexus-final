@@ -99,7 +99,7 @@ export const STR_EN = {
 		'Bulgaria crop statistics and weather-linked analytics.',
 	landingGlassIntelLi3: 'Subsidy calculator, season calendar and BG trade documents.',
 	landingGlassIntelLi4: 'Operations hub and file upload.',
-	landingGlassIntelLi5: 'Technical support: info@agrinexus.eu.com.',
+	landingGlassIntelLi5: 'Technical support: info@agrinexus.eu.',
 	landingGlassIntelCta: 'Open statistics & modules',
 	landingGlassFooterLead: 'Commercial inquiries or demos — reach us by email.',
 	landingGlassEmailAria: 'Send email to AgriNexus sales',
@@ -188,7 +188,7 @@ export const STR_EN = {
 		'Some features rely on browser-local storage (language, chat draft, operations hub tasks and notes, optional workspace pins). That data is not sent to AgriNexus until you submit a form.',
 	privacyP3:
 		'When email delivery is configured (e.g. SMTP/Resend), messages are routed per project settings. We do not sell personal data to third parties.',
-	privacyP4: 'Questions about data: info@agrinexus.eu.com',
+	privacyP4: 'Questions about data: info@agrinexus.eu',
 	cookieConsentText:
 		'We use essential browser storage for core features and optional visit analytics to improve the product. You can accept or reject analytics cookies.',
 	cookieConsentAccept: 'Accept',

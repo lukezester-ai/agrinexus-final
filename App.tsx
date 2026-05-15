@@ -3327,7 +3327,7 @@ export default function App() {
 								alignItems: 'center',
 								gap: 8,
 							}}>
-							<Mail size={16} color="#7ccd9c" /> info@agrinexus.eu.com
+							<Mail size={16} color="#7ccd9c" /> info@agrinexus.eu
 						</p>
 					</div>
 				</section>
@@ -3430,8 +3430,8 @@ export default function App() {
 			<footer className="site-footer">
 				<div className="site-footer-inner">
 					<div className="site-footer-links">
-						<a className="footer-link-btn" href="mailto:info@agrinexus.eu.com">
-							info@agrinexus.eu.com
+						<a className="footer-link-btn" href="mailto:info@agrinexus.eu">
+							info@agrinexus.eu
 						</a>
 						<span className="site-footer-sep" aria-hidden>
 							·

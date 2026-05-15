@@ -44,8 +44,8 @@ export function authMagicLinkErrorMessage(
 	}
 	if (code === 'invalid_api_key' || code === 'auth_not_configured') {
 		return lang === 'bg'
-			? 'Входът временно не е наличен. Опитай по-късно или пиши на info@agrinexus.eu.com.'
-			: 'Sign-in is temporarily unavailable. Try again later or email info@agrinexus.eu.com.';
+			? 'Входът временно не е наличен. Опитай по-късно или пиши на info@agrinexus.eu.'
+			: 'Sign-in is temporarily unavailable. Try again later or email info@agrinexus.eu.';
 	}
 	return lang === 'bg'
 		? 'Неуспешно изпращане на връзката. Опитай пак след малко.'
