@@ -22,12 +22,14 @@ import {
 	Mic,
 	Send,
 	Shield,
+	TrendingUp,
 	Sprout,
 	UserPlus,
 	X,
 } from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
 import { SubsidyCalculatorView } from './components/SubsidyCalculatorView';
+import { CropProfitabilityView } from './components/CropProfitabilityView';
 import { SeasonCalendarView } from './components/SeasonCalendarView';
 import { FarmerCommandCenter } from './components/FarmerCommandCenter';
 import { TradeDocumentsBulgariaView } from './components/TradeDocumentsBulgariaView';
@@ -230,6 +232,7 @@ type View =
 	| 'season-calendar'
 	| 'trade-documents'
 	| 'crop-statistics'
+	| 'crop-profitability'
 	| 'food-security'
 	| 'command'
 	| 'file-upload'
@@ -237,7 +240,12 @@ type View =
 	| 'weather';
 
 /** Crop statistics + trade docs ? legacy nav group label ?Markets?. */
-const TRADING_VIEWS = new Set<View>(['crop-statistics', 'trade-documents', 'weather']);
+const TRADING_VIEWS = new Set<View>([
+	'crop-statistics',
+	'crop-profitability',
+	'trade-documents',
+	'weather',
+]);
 const FARM_VIEWS = new Set<View>(['command', 'subsidy-calculator', 'season-calendar', 'field-watch']);
 const LOGISTICS_VIEWS = new Set<View>(['food-security', 'file-upload']);
 
@@ -653,14 +661,19 @@ export default function App() {
 		}
 	}, [view]);
 
-	/** Fieldlot (и др.) лендинги: `/?from=fieldlot` → регистрация; `&mode=login` → вход. Почиства query от адресната лента. */
+	/** Deep links: `?view=crop-profitability`; Fieldlot: `?from=fieldlot` (+ optional `mode=login`). */
 	useEffect(() => {
 		if (typeof window === 'undefined') return;
 		const u = new URL(window.location.href);
+		const viewParam = u.searchParams.get('view')?.trim().toLowerCase();
 		const from = u.searchParams.get('from')?.trim().toLowerCase();
-		if (from !== 'fieldlot') return;
 		const mode = u.searchParams.get('mode')?.trim().toLowerCase();
-		setView(mode === 'login' ? 'login' : 'register');
+		if (viewParam === 'crop-profitability') {
+			setView('crop-profitability');
+		} else if (from === 'fieldlot') {
+			setView(mode === 'login' ? 'login' : 'register');
+		}
+		u.searchParams.delete('view');
 		u.searchParams.delete('from');
 		u.searchParams.delete('mode');
 		const q = u.searchParams.toString();
@@ -2370,6 +2383,16 @@ export default function App() {
 								<button
 									type="button"
 									role="menuitem"
+									className={`nav-dropdown-item ${view === 'crop-profitability' ? 'active' : ''}`}
+									onClick={() => {
+										setView('crop-profitability');
+										setNavMenuOpen(null);
+									}}>
+									<TrendingUp size={14} aria-hidden /> {tr.navCropProfit}
+								</button>
+								<button
+									type="button"
+									role="menuitem"
 									className={`nav-dropdown-item ${view === 'trade-documents' ? 'active' : ''}`}
 									onClick={() => {
 										setView('trade-documents');
@@ -3110,6 +3133,9 @@ export default function App() {
 					onOpenFoodSecurity={() => setView('food-security')}
 				/>
 			)}
+
+			{view === 'crop-profitability' && <CropProfitabilityView lang={lang} tr={tr} />}
+
 			{view === 'food-security' && (
 				<FoodSecurityBreakEvenView
 					lang={lang}
@@ -3485,6 +3511,17 @@ export default function App() {
 								}}>
 								<BarChart3 size={16} aria-hidden />
 								<MobileNavLabel text={tr.navCropStatisticsShort} hint={tr.navCropStatistics} />
+							</button>
+							<button
+								type="button"
+								className={`mobile-nav-btn ${view === 'crop-profitability' ? 'active' : ''}`}
+								aria-label={tr.navCropProfit}
+								onClick={() => {
+									setView('crop-profitability');
+									setMobileNavExpand(null);
+								}}>
+								<TrendingUp size={16} aria-hidden />
+								<MobileNavLabel text={tr.navCropProfitShort} hint={tr.navCropProfit} />
 							</button>
 							<button
 								type="button"
