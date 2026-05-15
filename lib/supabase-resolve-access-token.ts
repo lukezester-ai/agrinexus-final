@@ -1,21 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { readSupabaseAnonOrPublishableKey, readSupabaseProjectUrl } from './supabase-env.js';
 
 export type ResolvedAuthUser = { userId: string; email: string | null };
 
-function readSupabaseUrl(): string {
-	return (
-		process.env.SUPABASE_URL?.trim() ||
-		process.env.VITE_SUPABASE_URL?.trim() ||
-		''
-	);
-}
-
-/** Anon или service key — само за `auth.getUser(jwt)` на сървъра, не се изпраща към клиента. */
+/** Anon, publishable или service key — само за `auth.getUser(jwt)` на сървъра. */
 function readSupabaseKeyForJwtVerify(): string {
 	return (
 		process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
-		process.env.SUPABASE_ANON_KEY?.trim() ||
-		process.env.VITE_SUPABASE_ANON_KEY?.trim() ||
+		readSupabaseAnonOrPublishableKey() ||
 		''
 	);
 }
@@ -35,7 +27,7 @@ export async function resolveUserFromAccessToken(
 			hint: 'Отвори /?from=fieldlot&mode=login — същият акаунт като в AgriNexus.',
 		};
 	}
-	const url = readSupabaseUrl();
+	const url = readSupabaseProjectUrl();
 	const key = readSupabaseKeyForJwtVerify();
 	if (!url || !key) {
 		return {

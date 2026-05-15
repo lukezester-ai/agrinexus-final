@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useSupabaseSession } from '../hooks/use-supabase-session';
-import { getSupabaseBrowserClient } from '../lib/infra/supabase-browser';
+import {
+	authMagicLinkErrorMessage,
+	requestAuthMagicLink,
+} from '../lib/auth-magic-link-client';
+import { ensureSupabaseBrowserClient } from '../lib/infra/supabase-browser';
 import type { AppStrings } from '../lib/i18n';
 
-type Props = { tr: AppStrings };
+type Props = { tr: AppStrings; lang?: 'bg' | 'en' };
 
-export function CloudAuthPanel({ tr }: Props) {
+export function CloudAuthPanel({ tr, lang = 'bg' }: Props) {
 	const { user, loading, signOut, clientConfigured } = useSupabaseSession();
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -20,14 +24,6 @@ export function CloudAuthPanel({ tr }: Props) {
 					<Loader2 size={16} className="spin" aria-hidden /> {tr.loginCloudLoading}
 				</p>
 			</div>
-		);
-	}
-
-	if (!clientConfigured) {
-		return (
-			<p className="muted" style={{ marginTop: 16, fontSize: '.86rem', lineHeight: 1.5 }}>
-				{tr.loginCloudDisabled}
-			</p>
 		);
 	}
 
@@ -49,22 +45,22 @@ export function CloudAuthPanel({ tr }: Props) {
 		);
 	}
 
-	const client = getSupabaseBrowserClient();
-	if (!client) return null;
-
 	const sendLink = async () => {
 		const e = email.trim();
 		if (!e) return;
 		setBusy(true);
 		setMsg(null);
-		const redirect = `${window.location.origin}${window.location.pathname}`;
-		const { error } = await client.auth.signInWithOtp({
+		const magic = await requestAuthMagicLink({
 			email: e,
-			options: { emailRedirectTo: redirect },
+			redirectTo: `${window.location.origin}${window.location.pathname}`,
+			formOpenedAt: Date.now() - 3000,
 		});
 		setBusy(false);
-		if (error) setMsg(error.message);
-		else setMsg(tr.loginMagicSent);
+		if (!magic.ok) {
+			setMsg(authMagicLinkErrorMessage(magic.body.code, lang));
+			return;
+		}
+		setMsg(tr.loginMagicSent);
 	};
 
 	const signInWithPassword = async () => {
@@ -72,6 +68,12 @@ export function CloudAuthPanel({ tr }: Props) {
 		if (!e || password.length < 6) return;
 		setBusy(true);
 		setMsg(null);
+		const client = await ensureSupabaseBrowserClient();
+		if (!client) {
+			setBusy(false);
+			setMsg(authMagicLinkErrorMessage('auth_not_configured', lang));
+			return;
+		}
 		const { error } = await client.auth.signInWithPassword({ email: e, password });
 		setBusy(false);
 		if (error) setMsg(tr.loginCloudPasswordWrong);
@@ -95,32 +97,42 @@ export function CloudAuthPanel({ tr }: Props) {
 						if (msg) setMsg(null);
 					}}
 				/>
-				<input
-					type="password"
-					autoComplete="current-password"
-					placeholder={tr.loginPasswordPh}
-					value={password}
-					onChange={e => {
-						setPassword(e.target.value);
-						if (msg) setMsg(null);
-					}}
-				/>
-				<p
-					className="muted"
-					style={{ gridColumn: '1 / -1', margin: '-6px 0 0', fontSize: '.82rem' }}>
-					{tr.loginCloudPasswordHint}
-				</p>
+				{clientConfigured ? (
+					<>
+						<input
+							type="password"
+							autoComplete="current-password"
+							placeholder={tr.loginPasswordPh}
+							value={password}
+							onChange={e => {
+								setPassword(e.target.value);
+								if (msg) setMsg(null);
+							}}
+						/>
+						<p
+							className="muted"
+							style={{ gridColumn: '1 / -1', margin: '-6px 0 0', fontSize: '.82rem' }}>
+							{tr.loginCloudPasswordHint}
+						</p>
+					</>
+				) : null}
 			</div>
 			<div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+				{clientConfigured ? (
+					<button
+						type="button"
+						className="btn btn-primary"
+						disabled={busy || !email.trim() || password.length < 6}
+						onClick={() => void signInWithPassword()}>
+						{busy ? <Loader2 size={16} className="spin" aria-hidden /> : null}
+						{tr.loginCloudSignInPassword}
+					</button>
+				) : null}
 				<button
 					type="button"
-					className="btn btn-primary"
-					disabled={busy || !email.trim() || password.length < 6}
-					onClick={() => void signInWithPassword()}>
-					{busy ? <Loader2 size={16} className="spin" aria-hidden /> : null}
-					{tr.loginCloudSignInPassword}
-				</button>
-				<button type="button" className="btn btn-outline" disabled={busy || !email.trim()} onClick={() => void sendLink()}>
+					className="btn btn-outline"
+					disabled={busy || !email.trim()}
+					onClick={() => void sendLink()}>
 					{tr.loginMagicLink}
 				</button>
 			</div>

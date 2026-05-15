@@ -16,6 +16,7 @@ import {
 	handleFieldlotListingsPost,
 } from '../lib/fieldlot-listings-handler';
 import { accessTokenFromAuthorizationHeader } from '../lib/access-token-from-authorization';
+import { handleAuthMagicLinkPost } from '../lib/auth-magic-link-handler';
 import { handlePublicSupabaseConfigGet } from '../lib/public-supabase-config-handler';
 import { handleUploadSignPost } from '../lib/upload-sign';
 import { handleMarketQuotesGet } from '../lib/market-quotes-handler';
@@ -124,6 +125,7 @@ const server = http.createServer(async (req, res) => {
             { path: '/api/register-interest', methods: ['POST'] },
             { path: '/api/fieldlot-listings', methods: ['GET', 'POST'] },
             { path: '/api/public-supabase-config', methods: ['GET'] },
+            { path: '/api/auth-magic-link', methods: ['POST'] },
             { path: '/api/upload-sign', methods: ['POST'] },
             { path: '/api/file-meta', methods: ['POST'] },
             { path: '/api/visit', methods: ['GET', 'POST'] },
@@ -282,6 +284,28 @@ const server = http.createServer(async (req, res) => {
           ok: true,
           supabaseUrl: r.supabaseUrl,
           supabaseAnonKey: r.supabaseAnonKey,
+        });
+        return;
+      }
+
+      if (path === '/api/auth-magic-link' && req.method === 'POST') {
+        const body = await readJson(req);
+        if (body === null) {
+          send(res, 400, { error: 'Invalid JSON' });
+          return;
+        }
+        const result = await handleAuthMagicLinkPost(body, {
+          clientIp: clientIpFromNodeRequest(req),
+        });
+        if (result.ok) {
+          send(res, 200, { ok: true });
+          return;
+        }
+        send(res, result.status, {
+          ok: false,
+          error: result.error,
+          hint: result.hint,
+          code: result.code,
         });
         return;
       }

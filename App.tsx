@@ -61,7 +61,10 @@ import {
 	readStoredOblastAnchorId,
 	writeStoredOblastAnchorId,
 } from './lib/oblast-anchor-storage';
-import { getSupabaseBrowserClient } from './lib/infra/supabase-browser';
+import {
+	authMagicLinkErrorMessage,
+	requestAuthMagicLink,
+} from './lib/auth-magic-link-client';
 import { useSupabaseSession } from './hooks/use-supabase-session';
 import { LEAD_FORM_HP_FIELD } from './lib/form-bot-guard';
 
@@ -761,7 +764,8 @@ export default function App() {
 
 	const [leadFormAntiBotReady, setLeadFormAntiBotReady] = useState(false);
 	const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-	const supabaseRegisterEnabled = useMemo(() => getSupabaseBrowserClient() !== null, []);
+	/** Регистрация изпраща magic link през /api/auth-magic-link (сървърни ключове). */
+	const supabaseRegisterEnabled = true;
 	const canSubmitRegister = isValidEmail(regEmail) && leadFormAntiBotReady;
 	const showRegisterEmailError = regEmail.trim().length > 0 && !isValidEmail(regEmail);
 	const invalidEmailText =
@@ -1107,65 +1111,26 @@ export default function App() {
 				);
 				return;
 			}
-			setRegStatus('ok');
 			persistRegisterAccountHint(emailTrim, cookieConsent);
-			const supabaseClient = getSupabaseBrowserClient();
-			let cloudAuthMsg: string | null = null;
-			let supabaseSignupFailed = false;
-			if (supabaseClient) {
-				const redirect = `${window.location.origin}${window.location.pathname}`;
-				const display = emailTrim.split('@')[0] || '';
-				const { error } = await supabaseClient.auth.signInWithOtp({
-					email: emailTrim,
-					options: {
-						emailRedirectTo: redirect,
-						data: {
-							full_name: display,
-							company_name: 'Not specified',
-							market_focus: 'Not specified',
-							phone: '',
-						},
-					},
-				});
-				if (error) {
-					const msg = (error.message || '').toLowerCase();
-					if (
-						msg.includes('already') ||
-						msg.includes('registered') ||
-						msg.includes('exists')
-					) {
-						cloudAuthMsg =
-							lang === 'bg'
-								? 'Този имейл вече е регистриран. Влезте в профила си.'
-								: 'This email is already registered. Please sign in.';
-					} else {
-						cloudAuthMsg =
-							`${tr.registerCloudSignupFailedLeadSaved} ${error.message}`.trim();
-						supabaseSignupFailed = true;
-					}
-				} else {
-					cloudAuthMsg = tr.registerCloudSignupCheckEmail;
-				}
-			}
-			if (data.mailDelivery === 'skipped') {
-				setRegMsg(
-					lang === 'bg'
-						? 'Заявката е приета, но имейл не е изпратен: задайте RESEND_API_KEY и MAIL_FROM на сървъра (напр. във Vercel Environment Variables).'
-						: 'Request received, but no email was sent: set RESEND_API_KEY and MAIL_FROM on the server (e.g. Vercel Environment Variables).'
-				);
-			} else {
-				setRegMsg(
-					lang === 'bg'
-						? 'Заявката е изпратена към екипа ни — очаквайте потвърждение на посочения имейл.'
-						: 'Your request was sent to our team — please expect a confirmation at the email you provided.'
-				);
-			}
-			if (cloudAuthMsg) {
-				setRegMsg((prev) => (prev ? `${prev}\n${cloudAuthMsg}` : cloudAuthMsg));
-			}
-			if (supabaseSignupFailed) {
+			const magic = await requestAuthMagicLink({
+				email: emailTrim,
+				redirectTo: `${window.location.origin}${window.location.pathname}`,
+				hpCompanyWebsite: regHp,
+				formOpenedAt: registerFormOpenedAtRef.current,
+			});
+			if (!magic.ok) {
 				setRegStatus('err');
+				setRegMsg(
+					authMagicLinkErrorMessage(magic.body.code, lang === 'bg' ? 'bg' : 'en')
+				);
+				return;
 			}
+			setRegStatus('ok');
+			setRegMsg(
+				lang === 'bg'
+					? 'Провери имейла си — изпратихме връзка за вход.'
+					: 'Check your email — we sent you a sign-in link.'
+			);
 		} catch {
 			setRegStatus('err');
 			setRegMsg(lang === 'bg' ? 'Мрежова грешка.' : 'Network error.');
@@ -2948,7 +2913,7 @@ export default function App() {
 							</span>
 						) : null}
 					</div>
-					<CloudAuthPanel tr={tr} />
+					<CloudAuthPanel tr={tr} lang={lang === 'bg' ? 'bg' : 'en'} />
 				</section>
 			)}
 

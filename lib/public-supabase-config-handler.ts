@@ -1,16 +1,10 @@
+import { readSupabaseAnonOrPublishableKey, readSupabaseProjectUrl } from './supabase-env.js';
+
 export function handlePublicSupabaseConfigGet():
 	| { ok: true; supabaseUrl: string; supabaseAnonKey: string }
 	| { ok: false; status: number; error: string } {
-	const supabaseUrl = (
-		process.env.VITE_SUPABASE_URL?.trim() ||
-		process.env.SUPABASE_URL?.trim() ||
-		''
-	);
-	const supabaseAnonKey = (
-		process.env.VITE_SUPABASE_ANON_KEY?.trim() ||
-		process.env.SUPABASE_ANON_KEY?.trim() ||
-		''
-	);
+	const supabaseUrl = readSupabaseProjectUrl();
+	const supabaseAnonKey = readSupabaseAnonOrPublishableKey();
 	if (!supabaseUrl || !supabaseAnonKey) {
 		return {
 			ok: false,
