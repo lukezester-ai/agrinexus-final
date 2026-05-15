@@ -16,6 +16,27 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 	let supabaseClient = null;
 	let sessionUserEmail = null;
 
+	function hasDemoOnlySession() {
+		try {
+			return !!localStorage.getItem('agrinexus-demo-email');
+		} catch {
+			return false;
+		}
+	}
+
+	function noSupabaseSessionHint() {
+		if (hasDemoOnlySession()) {
+			return (
+				'Ползваш демо вход в AgriNexus — той не създава облачен Supabase акаунт. ' +
+				'За обяви влез с magic link или парола: /?from=fieldlot&mode=login (не през демо).'
+			);
+		}
+		return (
+			'Няма активна Supabase сесия на тази страница. Влез в AgriNexus (/?from=fieldlot&mode=login), ' +
+			'после се върни на този раздел или презареди страницата (ако вече си влязъл в друг таб).'
+		);
+	}
+
 	function enableSubmit() {
 		submit.disabled = false;
 		submit.textContent = 'Публикувай обявата';
@@ -36,14 +57,23 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 		}
 		if (!accessToken) {
 			sessionBanner.classList.add('warn');
-			sessionBanner.textContent =
-				'За публикуване влез с AgriNexus акаунт: бутон „Вход“ по-горе или /?from=fieldlot&mode=login — след това презареди тази страница (същият браузър).';
+			sessionBanner.textContent = noSupabaseSessionHint();
 			return;
 		}
 		sessionBanner.classList.add('ok');
 		sessionBanner.textContent =
 			'Влязъл си в AgriNexus. Полето „Имейл“ по-долу трябва да съвпада с този акаунт.' +
 			(sessionUserEmail ? ' Текущ имейл: ' + sessionUserEmail + '.' : '');
+	}
+
+	async function syncSessionFromSupabase() {
+		if (!supabaseClient) return;
+		const { data } = await supabaseClient.auth.getSession();
+		accessToken = data.session?.access_token ?? null;
+		sessionUserEmail = data.session?.user?.email ?? null;
+		const emailEl = document.getElementById('agm-email');
+		if (sessionUserEmail && emailEl) emailEl.value = sessionUserEmail;
+		renderSession();
 	}
 
 	function fmtWhen(iso) {
@@ -139,22 +169,31 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 		if (!cfgRes.ok || !cfg.ok || !cfg.supabaseUrl || !cfg.supabaseAnonKey) {
 			renderSession();
 		} else {
+			const supabaseUrl = String(cfg.supabaseUrl).trim();
+			const supabaseAnonKey = String(cfg.supabaseAnonKey).trim();
 			const mod = await import('https://esm.sh/@supabase/supabase-js@2.105.1');
 			const { createClient } = mod;
-			supabaseClient = createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-				auth: { persistSession: true, storage: localStorage, autoRefreshToken: true },
+			supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+				auth: {
+					persistSession: true,
+					storage: localStorage,
+					autoRefreshToken: true,
+					detectSessionInUrl: true,
+				},
 			});
-			const { data: s0 } = await supabaseClient.auth.getSession();
-			accessToken = s0.session?.access_token ?? null;
-			sessionUserEmail = s0.session?.user?.email ?? null;
-			const emailEl0 = document.getElementById('agm-email');
-			if (sessionUserEmail && emailEl0) emailEl0.value = sessionUserEmail;
+			await syncSessionFromSupabase();
 			supabaseClient.auth.onAuthStateChange((_event, session) => {
 				accessToken = session?.access_token ?? null;
 				sessionUserEmail = session?.user?.email ?? null;
 				const emailEl = document.getElementById('agm-email');
 				if (sessionUserEmail && emailEl) emailEl.value = sessionUserEmail;
 				renderSession();
+			});
+			document.addEventListener('visibilitychange', function () {
+				if (document.visibilityState === 'visible') void syncSessionFromSupabase();
+			});
+			window.addEventListener('focus', function () {
+				void syncSessionFromSupabase();
 			});
 			renderSession();
 		}
@@ -179,10 +218,15 @@ const PUBLIC_CFG = '/api/public-supabase-config';
 			return;
 		}
 
+		if (supabaseClient) {
+			await syncSessionFromSupabase();
+		}
+
 		if (!accessToken) {
 			status.className = 'err';
-			status.textContent =
-				'Няма активна сесия. Влез от AgriNexus (/?from=fieldlot&mode=login) и презареди тази страница.';
+			status.textContent = supabaseClient
+				? noSupabaseSessionHint()
+				: 'Липсва конфигурация за вход — виж съобщението в жълтата лента по-горе.';
 			return;
 		}
 
