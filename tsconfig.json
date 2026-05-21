@@ -11,6 +11,6 @@
     "noEmit": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["*.tsx", "*.ts", "lib/**/*.ts", "api/**/*.ts", "server/**/*.ts"],
+  "include": ["*.tsx", "*.ts", "components/**/*.tsx", "pages/**/*.tsx", "lib/**/*.ts", "api/**/*.ts", "server/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

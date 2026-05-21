@@ -1,5 +1,4 @@
-import React, { ReactElement } from 'react';
-import { useLocation, NavLink } from 'react-router-dom';
+import { ReactElement } from 'react';
 
 interface IMenuItem {
 	label: string;
@@ -7,35 +6,26 @@ interface IMenuItem {
 }
 
 export const Navbar = (): ReactElement => {
-	const { pathname } = useLocation();
-
 	const menuItems: IMenuItem[] = [
 		{ label: 'Home', path: '/' },
-		{ label: 'About', path: '/about' },
+		{ label: 'Marketplace', path: '#market' },
 	];
 
 	return (
-		<nav className="navbar bg-body-tertiary">
-			<div className="container-fluid px-3">
-				<NavLink className={'navbar-brand'} to="/">
-					React v19 TSX Starter
-				</NavLink>
+		<nav className="navbar" aria-label="Secondary navigation">
+			<a className="navbar-brand" href="/">
+				AgriNexus
+			</a>
 
-				<ul className="navbar-nav ms-auto flex-row gap-3">
-					{menuItems.map(menuItem => (
-						<li key={menuItem.path} className="nav-item">
-							<NavLink
-								className={[
-									menuItem.path === pathname ? 'active' : '',
-									' nav-link',
-								].join(' ')}
-								to={menuItem.path}>
-								{menuItem.label}
-							</NavLink>
-						</li>
-					))}
-				</ul>
-			</div>
+			<ul className="navbar-nav">
+				{menuItems.map(menuItem => (
+					<li key={menuItem.path} className="nav-item">
+						<a className="nav-link" href={menuItem.path}>
+							{menuItem.label}
+						</a>
+					</li>
+				))}
+			</ul>
 		</nav>
 	);
 };

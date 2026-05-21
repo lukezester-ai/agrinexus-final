@@ -1,20 +1,40 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from 'lucide-react';
 import FileUploadPanel from './FileUploadPanel';
-import { PRODUCT_INSTRUMENT } from './lib/market-instruments';
+import { AppNavigation } from './components/AppNavigation';
+import { MobileNavigation } from './components/MobileNavigation';
+import './styles/app.css';
+import {
+	getDecisionBySignals,
+	getVolatility,
+	mergeLiveIntoDeals,
+	safeLocalGet,
+	safeLocalSet,
+	safeSessionGet,
+	safeSessionRemove,
+	safeSessionSet,
+} from './lib/appHelpers';
+import type {
+	ChatTurn,
+	ClientProfile,
+	DealCategoryFilter,
+	DealRow,
+	Lang,
+	MarketQuotesApi,
+	SearchableDeal,
+	View,
+	WatchlistPanel,
+} from './lib/appTypes';
 const {
 	Leaf,
 	Search,
 	Lock,
-	Bookmark,
 	RefreshCw,
 	CreditCard,
 	Bell,
 	Brain,
 	LineChart,
 	Mail,
-	UserPlus,
-	LogIn,
 	Building2,
 	Globe2,
 	Loader2,
@@ -94,182 +114,6 @@ const AI_FEATURES = [
 		text: 'Email and Telegram-ready notifications for high-margin opportunities.',
 	},
 ];
-
-function getDecisionByProfit(profit: number) {
-	if (profit >= 21) return 'BUY';
-	if (profit >= 13) return 'HOLD';
-	return 'AVOID';
-}
-
-function getDecisionBySignals(input: {
-	profit: number;
-	volatility: 'LOW' | 'MED' | 'HIGH';
-	category: DealRow['category'];
-}): string {
-	let score = input.profit;
-	if (input.category === 'Grains') score -= 1;
-	if (input.volatility === 'HIGH') score -= 2;
-	else if (input.volatility === 'MED') score -= 1;
-	return getDecisionByProfit(score);
-}
-
-function getVolatility(current: number, previous: number): 'LOW' | 'MED' | 'HIGH' {
-	const delta = Math.abs(current - previous);
-	if (delta >= 5) return 'HIGH';
-	if (delta >= 3) return 'MED';
-	return 'LOW';
-}
-
-type MarketQuotesApi =
-	| { ok: true; mode: 'demo'; quotes: []; fetchedAt: string; source: null }
-	| {
-			ok: true;
-			mode: 'live';
-			quotes: Array<{ symbol: string; open: number; close: number; date: string; time: string }>;
-			fetchedAt: string;
-			source: 'stooq_delayed';
-	  }
-	| { ok: false; mode: 'error'; quotes: []; fetchedAt: string; source: null; error: string };
-
-/** Avoid uncaught exceptions when storage is blocked (private mode, enterprise policy) — those crash the whole app with a blank screen. */
-function safeLocalGet(key: string): string | null {
-	try {
-		return localStorage.getItem(key);
-	} catch {
-		return null;
-	}
-}
-
-function safeLocalSet(key: string, value: string): void {
-	try {
-		localStorage.setItem(key, value);
-	} catch {
-		/* ignore */
-	}
-}
-
-function safeSessionGet(key: string): string | null {
-	try {
-		return sessionStorage.getItem(key);
-	} catch {
-		return null;
-	}
-}
-
-function safeSessionSet(key: string, value: string): void {
-	try {
-		sessionStorage.setItem(key, value);
-	} catch {
-		/* ignore */
-	}
-}
-
-function safeSessionRemove(key: string): void {
-	try {
-		sessionStorage.removeItem(key);
-	} catch {
-		/* ignore */
-	}
-}
-
-type ChatTurn = { role: 'user' | 'assistant'; content: string };
-
-type DealRow = {
-	id: number;
-	product: string;
-	category: 'Grains' | 'Oilseeds' | 'Pulses' | 'Processed Foods';
-	packaging: string;
-	certification: string;
-	qualitySpec: string;
-	availableVolume: string;
-	incoterm: string;
-	deliveryWindow: string;
-	from: string;
-	to: string;
-	flag: string;
-	profit: number;
-	margin: number;
-	price: string;
-	prevPrice: string;
-	isMENA: boolean;
-	decision: string;
-	prevProfit: number;
-	volatility: 'LOW' | 'MED' | 'HIGH';
-	/** Present when marketplace merges delayed futures references. */
-	priceSource?: 'synthetic' | 'futures_delayed';
-	referenceSymbol?: string;
-};
-type DealCategoryFilter = 'all' | DealRow['category'];
-type SearchableDeal = DealRow & { searchText: string };
-type WatchlistPanel = 'saved' | 'cabinet';
-
-type Lang = 'bg' | 'en';
-
-function mergeLiveIntoDeals(
-	deals: DealRow[],
-	quotes: Array<{ symbol: string; open: number; close: number }>,
-	lang: Lang,
-): DealRow[] {
-	const bySym = new Map(quotes.map(q => [q.symbol.toLowerCase(), q]));
-	return deals.map(deal => {
-		const inst = PRODUCT_INSTRUMENT[deal.product];
-		if (!inst) {
-			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
-		}
-		const q = bySym.get(inst.symbol.toLowerCase());
-		if (!q) {
-			return { ...deal, priceSource: 'synthetic' as const, referenceSymbol: undefined };
-		}
-		const unit = lang === 'bg' ? inst.unitBg : inst.unitEn;
-		const pct = q.open !== 0 ? ((q.close - q.open) / q.open) * 100 : 0;
-		const profit = Math.min(34, Math.max(6, Math.round(16 + pct * 1.8)));
-		const prevProfit = Math.min(34, Math.max(6, Math.round(16 + (pct - 0.35) * 1.8)));
-		const volatility: DealRow['volatility'] =
-			Math.abs(pct) >= 2 ? 'HIGH' : Math.abs(pct) >= 0.85 ? 'MED' : 'LOW';
-		const decimals = inst.symbol === 'zr.f' ? 3 : 2;
-		const price = `${q.close.toFixed(decimals)} ${unit}`;
-		const prevPrice = `${q.open.toFixed(decimals)} ${unit}`;
-		return {
-			...deal,
-			price,
-			prevPrice,
-			profit,
-			prevProfit,
-			margin: Math.max(5, profit - 4),
-			volatility,
-			decision: getDecisionBySignals({ profit, volatility, category: deal.category }),
-			priceSource: 'futures_delayed' as const,
-			referenceSymbol: inst.symbol,
-		};
-	});
-}
-
-type View =
-	| 'landing'
-	| 'market'
-	| 'assistant'
-	| 'pricing'
-	| 'register'
-	| 'login'
-	| 'company'
-	| 'clients'
-	| 'watchlist';
-
-type ClientProfile = {
-	id: string;
-	company: string;
-	contactPerson: string;
-	role: string;
-	email: string;
-	phone: string;
-	region: string;
-	focus: string;
-	certifications: string[];
-	preferredIncoterms: string[];
-	monthlyVolume: string;
-	creditStatus: 'Approved' | 'Pending' | 'Review';
-	notes: string;
-};
 
 const PRODUCT_BG_ALIASES: Record<string, string[]> = {
 	'Wheat (Premium)': ['пшеница', 'премиум пшеница', 'зърно'],
@@ -398,6 +242,7 @@ const CLIENT_PROFILE_BG_COPY: Record<
 			'Чувствителен към маржа. Предпочита разделени договори със седмичен ценови преглед.',
 	},
 };
+
 
 function PricingCard({
 	title,
@@ -640,234 +485,235 @@ export default function App() {
 
 	const demoDeals = useMemo(() => {
 		const products = [
-			{
-				name: 'Wheat (Premium)',
-				category: 'Grains' as const,
-				pack: 'Bulk (Silo)',
-				cert: 'SGS, Phytosanitary',
-				qualityOptions: ['Protein 12.5%', 'Protein 11.5%', 'Moisture ≤ 13.5%'],
-			},
-			{
-				name: 'Corn',
-				category: 'Grains' as const,
-				pack: 'Bulk',
-				cert: 'SGS, Phytosanitary',
-				qualityOptions: ['Moisture ≤ 14%', 'Broken Kernels ≤ 5%', 'Aflatoxin tested'],
-			},
-			{
-				name: 'Barley',
-				category: 'Grains' as const,
-				pack: 'Bulk',
-				cert: 'Phytosanitary, SGS',
-				qualityOptions: ['Test Weight 65+ kg/hl', 'Moisture ≤ 13.5%', 'Foreign Matter ≤ 2%'],
-			},
-			{
-				name: 'Sunflower Seed',
-				category: 'Oilseeds' as const,
-				pack: 'Bulk',
-				cert: 'SGS, HACCP',
-				qualityOptions: ['Oil Content 44%+', 'Moisture ≤ 9%', 'Impurities ≤ 2%'],
-			},
-			{
-				name: 'Rapeseed',
-				category: 'Oilseeds' as const,
-				pack: 'Bulk',
-				cert: 'SGS',
-				qualityOptions: ['Oil Content 40%+', 'Moisture ≤ 8%', 'Erucic Acid compliant'],
-			},
-			{
-				name: 'Chickpeas',
-				category: 'Pulses' as const,
-				pack: '25kg PP Bags',
-				cert: 'HALAL, Export',
-				qualityOptions: ['8-9 mm caliber', 'Moisture ≤ 12%', 'Cleaned / sorted'],
-			},
-			{
-				name: 'Lentils',
-				category: 'Pulses' as const,
-				pack: '25kg PP Bags',
-				cert: 'HALAL, Export',
-				qualityOptions: ['Size 4-6 mm', 'Foreign Matter ≤ 0.5%', 'Moisture ≤ 13%'],
-			},
-			{
-				name: 'Tomato Paste',
-				category: 'Processed Foods' as const,
-				pack: '70g Sachet / 24pcs',
-				cert: 'HALAL, Saber',
-				qualityOptions: ['Brix 28-30%', 'No additives', 'Aseptic line'],
-			},
-			{
-				name: 'Peeled Tomatoes',
-				category: 'Processed Foods' as const,
-				pack: '400g Tin Can',
-				cert: 'HALAL, ISO',
-				qualityOptions: ['Whole peeled grade A', 'Drained Weight compliant', 'EU origin'],
-			},
-			{
-				name: 'Sunflower Oil',
-				category: 'Processed Foods' as const,
-				pack: '1L / 5L PET',
-				cert: 'ISO 22000, HACCP',
-				qualityOptions: ['Refined, deodorized', 'FFA ≤ 0.1%', 'Peroxide compliant'],
-			},
-		];
+					{
+						name: 'Wheat (Premium)',
+						category: 'Grains' as const,
+						pack: 'Bulk (Silo)',
+						cert: 'SGS, Phytosanitary',
+						qualityOptions: ['Protein 12.5%', 'Protein 11.5%', 'Moisture ≤ 13.5%'],
+					},
+					{
+						name: 'Corn',
+						category: 'Grains' as const,
+						pack: 'Bulk',
+						cert: 'SGS, Phytosanitary',
+						qualityOptions: ['Moisture ≤ 14%', 'Broken Kernels ≤ 5%', 'Aflatoxin tested'],
+					},
+					{
+						name: 'Barley',
+						category: 'Grains' as const,
+						pack: 'Bulk',
+						cert: 'Phytosanitary, SGS',
+						qualityOptions: ['Test Weight 65+ kg/hl', 'Moisture ≤ 13.5%', 'Foreign Matter ≤ 2%'],
+					},
+					{
+						name: 'Sunflower Seed',
+						category: 'Oilseeds' as const,
+						pack: 'Bulk',
+						cert: 'SGS, HACCP',
+						qualityOptions: ['Oil Content 44%+', 'Moisture ≤ 9%', 'Impurities ≤ 2%'],
+					},
+					{
+						name: 'Rapeseed',
+						category: 'Oilseeds' as const,
+						pack: 'Bulk',
+						cert: 'SGS',
+						qualityOptions: ['Oil Content 40%+', 'Moisture ≤ 8%', 'Erucic Acid compliant'],
+					},
+					{
+						name: 'Chickpeas',
+						category: 'Pulses' as const,
+						pack: '25kg PP Bags',
+						cert: 'HALAL, Export',
+						qualityOptions: ['8-9 mm caliber', 'Moisture ≤ 12%', 'Cleaned / sorted'],
+					},
+					{
+						name: 'Lentils',
+						category: 'Pulses' as const,
+						pack: '25kg PP Bags',
+						cert: 'HALAL, Export',
+						qualityOptions: ['Size 4-6 mm', 'Foreign Matter ≤ 0.5%', 'Moisture ≤ 13%'],
+					},
+					{
+						name: 'Tomato Paste',
+						category: 'Processed Foods' as const,
+						pack: '70g Sachet / 24pcs',
+						cert: 'HALAL, Saber',
+						qualityOptions: ['Brix 28-30%', 'No additives', 'Aseptic line'],
+					},
+					{
+						name: 'Peeled Tomatoes',
+						category: 'Processed Foods' as const,
+						pack: '400g Tin Can',
+						cert: 'HALAL, ISO',
+						qualityOptions: ['Whole peeled grade A', 'Drained Weight compliant', 'EU origin'],
+					},
+					{
+						name: 'Sunflower Oil',
+						category: 'Processed Foods' as const,
+						pack: '1L / 5L PET',
+						cert: 'ISO 22000, HACCP',
+						qualityOptions: ['Refined, deodorized', 'FFA ≤ 0.1%', 'Peroxide compliant'],
+					},
+				];
 		const incoterms = ['FOB', 'CIF', 'DAP', 'FCA'];
 		const deliveryWindows = ['7-14 days', '15-30 days', '30-45 days'];
 
 		const sourceCountries = [
-			'Bulgaria',
-			'Romania',
-			'Greece',
-			'Turkey',
-			'Serbia',
-			'Poland',
-			'Ukraine',
-			'Spain',
-			'Hungary',
-			'France',
-			'Italy',
-			'Netherlands',
-		];
+					'Bulgaria',
+					'Romania',
+					'Greece',
+					'Turkey',
+					'Serbia',
+					'Poland',
+					'Ukraine',
+					'Spain',
+					'Hungary',
+					'France',
+					'Italy',
+					'Netherlands',
+				];
 
 		const importMarkets = [
-			{
-				to: 'Cairo, Egypt',
-				cur: 'EGP',
-				mult: 56,
-				flag: '🇪🇬',
-				region: 'MENA',
-				demandBoost: 1.2,
-			},
-			{
-				to: 'Alexandria, Egypt',
-				cur: 'EGP',
-				mult: 56,
-				flag: '🇪🇬',
-				region: 'MENA',
-				demandBoost: 1.15,
-			},
-			{ to: 'Dubai, UAE', cur: 'AED', mult: 4, flag: '🇦🇪', region: 'MENA', demandBoost: 1.1 },
-			{
-				to: 'Abu Dhabi, UAE',
-				cur: 'AED',
-				mult: 4,
-				flag: '🇦🇪',
-				region: 'MENA',
-				demandBoost: 1.05,
-			},
-			{
-				to: 'Riyadh, KSA',
-				cur: 'SAR',
-				mult: 4.1,
-				flag: '🇸🇦',
-				region: 'MENA',
-				demandBoost: 1.1,
-			},
-			{
-				to: 'Jeddah, KSA',
-				cur: 'SAR',
-				mult: 4.1,
-				flag: '🇸🇦',
-				region: 'MENA',
-				demandBoost: 1.08,
-			},
-			{
-				to: 'Doha, Qatar',
-				cur: 'QAR',
-				mult: 4,
-				flag: '🇶🇦',
-				region: 'MENA',
-				demandBoost: 1.07,
-			},
-			{
-				to: 'Kuwait City, Kuwait',
-				cur: 'KWD',
-				mult: 0.31,
-				flag: '🇰🇼',
-				region: 'MENA',
-				demandBoost: 1.08,
-			},
-			{
-				to: 'Amman, Jordan',
-				cur: 'JOD',
-				mult: 0.71,
-				flag: '🇯🇴',
-				region: 'MENA',
-				demandBoost: 1.04,
-			},
-			{
-				to: 'Casablanca, Morocco',
-				cur: 'MAD',
-				mult: 10.7,
-				flag: '🇲🇦',
-				region: 'MENA',
-				demandBoost: 1.02,
-			},
-			{
-				to: 'Berlin, Germany',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇩🇪',
-				region: 'EU',
-				demandBoost: 0.96,
-			},
-			{
-				to: 'Milan, Italy',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇮🇹',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-			{
-				to: 'Paris, France',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇫🇷',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-			{
-				to: 'Madrid, Spain',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇪🇸',
-				region: 'EU',
-				demandBoost: 0.94,
-			},
-			{
-				to: 'Amsterdam, Netherlands',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇳🇱',
-				region: 'EU',
-				demandBoost: 0.93,
-			},
-			{
-				to: 'Warsaw, Poland',
-				cur: 'PLN',
-				mult: 4.3,
-				flag: '🇵🇱',
-				region: 'EU',
-				demandBoost: 0.96,
-			},
-			{
-				to: 'Athens, Greece',
-				cur: 'EUR',
-				mult: 1,
-				flag: '🇬🇷',
-				region: 'EU',
-				demandBoost: 0.94,
-			},
-			{
-				to: 'Bucharest, Romania',
-				cur: 'RON',
-				mult: 5,
-				flag: '🇷🇴',
-				region: 'EU',
-				demandBoost: 0.95,
-			},
-		];
+					{
+						to: 'Cairo, Egypt',
+						cur: 'EGP',
+						mult: 56,
+						flag: '🇪🇬',
+						region: 'MENA',
+						demandBoost: 1.2,
+					},
+					{
+						to: 'Alexandria, Egypt',
+						cur: 'EGP',
+						mult: 56,
+						flag: '🇪🇬',
+						region: 'MENA',
+						demandBoost: 1.15,
+					},
+					{ to: 'Dubai, UAE', cur: 'AED', mult: 4, flag: '🇦🇪', region: 'MENA', demandBoost: 1.1 },
+					{
+						to: 'Abu Dhabi, UAE',
+						cur: 'AED',
+						mult: 4,
+						flag: '🇦🇪',
+						region: 'MENA',
+						demandBoost: 1.05,
+					},
+					{
+						to: 'Riyadh, KSA',
+						cur: 'SAR',
+						mult: 4.1,
+						flag: '🇸🇦',
+						region: 'MENA',
+						demandBoost: 1.1,
+					},
+					{
+						to: 'Jeddah, KSA',
+						cur: 'SAR',
+						mult: 4.1,
+						flag: '🇸🇦',
+						region: 'MENA',
+						demandBoost: 1.08,
+					},
+					{
+						to: 'Doha, Qatar',
+						cur: 'QAR',
+						mult: 4,
+						flag: '🇶🇦',
+						region: 'MENA',
+						demandBoost: 1.07,
+					},
+					{
+						to: 'Kuwait City, Kuwait',
+						cur: 'KWD',
+						mult: 0.31,
+						flag: '🇰🇼',
+						region: 'MENA',
+						demandBoost: 1.08,
+					},
+					{
+						to: 'Amman, Jordan',
+						cur: 'JOD',
+						mult: 0.71,
+						flag: '🇯🇴',
+						region: 'MENA',
+						demandBoost: 1.04,
+					},
+					{
+						to: 'Casablanca, Morocco',
+						cur: 'MAD',
+						mult: 10.7,
+						flag: '🇲🇦',
+						region: 'MENA',
+						demandBoost: 1.02,
+					},
+					{
+						to: 'Berlin, Germany',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇩🇪',
+						region: 'EU',
+						demandBoost: 0.96,
+					},
+					{
+						to: 'Milan, Italy',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇮🇹',
+						region: 'EU',
+						demandBoost: 0.95,
+					},
+					{
+						to: 'Paris, France',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇫🇷',
+						region: 'EU',
+						demandBoost: 0.95,
+					},
+					{
+						to: 'Madrid, Spain',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇪🇸',
+						region: 'EU',
+						demandBoost: 0.94,
+					},
+					{
+						to: 'Amsterdam, Netherlands',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇳🇱',
+						region: 'EU',
+						demandBoost: 0.93,
+					},
+					{
+						to: 'Warsaw, Poland',
+						cur: 'PLN',
+						mult: 4.3,
+						flag: '🇵🇱',
+						region: 'EU',
+						demandBoost: 0.96,
+					},
+					{
+						to: 'Athens, Greece',
+						cur: 'EUR',
+						mult: 1,
+						flag: '🇬🇷',
+						region: 'EU',
+						demandBoost: 0.94,
+					},
+					{
+						to: 'Bucharest, Romania',
+						cur: 'RON',
+						mult: 5,
+						flag: '🇷🇴',
+						region: 'EU',
+						demandBoost: 0.95,
+					},
+				];
+
 
 		const seededRand = (seed: number) => {
 			const x = Math.sin(seed) * 10000;
@@ -1348,6 +1194,7 @@ export default function App() {
 				navHome: 'Начало',
 				navMarket: 'Пазар',
 				navAssistant: 'AI помощник',
+				navAutomation: 'Автоматизация',
 				navPricing: 'Абонаменти',
 				navClients: 'Клиенти',
 				navWatchlist: 'Списък',
@@ -1428,6 +1275,24 @@ export default function App() {
 				assistantBack: 'Към Пазара',
 				assistantLegalFooter:
 					'AgriNexus не поема отговорност за действия въз основа на AI отговори. За реални сделки потърсете потвърждение от вашия екип.',
+				automationTitle: 'Автоматизация на бизнеса',
+				automationSubtitle:
+					'Свързваме пазара, клиентските досиета, AI оценките и търговските известия в един работен поток за по-малко ръчна работа и по-бърза реакция.',
+				automationLeadTitle: 'Какво се автоматизира',
+				automationLeadBody:
+					'AgriNexus може да поеме повтаряемите стъпки около запитвания, проверка на марж, приоритизация на клиенти и подготовка на следващо действие.',
+				automationStep1: 'Входящо запитване',
+				automationStep1Body: 'Клиент, продукт, пазар и обем се записват като структурирана заявка.',
+				automationStep2: 'AI оценка',
+				automationStep2Body: 'Системата сравнява маршрут, марж, волатилност, сертификати и риск.',
+				automationStep3: 'Търговско действие',
+				automationStep3Body: 'Екипът получава приоритет, известие и готов контекст за оферта или follow-up.',
+				automationOpsTitle: 'Оперативни процеси',
+				automationOps1: 'Автоматични известия при сделки над зададен праг на марж.',
+				automationOps2: 'Клиентски кабинет със запазени сделки, активност и последно действие.',
+				automationOps3: 'AI помощник, който работи върху текущите филтри и избраните пазари.',
+				automationOps4: 'Подготовка за интеграции с CRM, имейл и реални борсови/vendor потоци.',
+				automationCta: 'Виж търговския кабинет',
 				chatThinking: 'Мисля…',
 				chatPromptsLabel: 'Бързи подкани',
 				chatClear: 'Изчисти',
@@ -1525,6 +1390,7 @@ export default function App() {
 			navHome: 'Home',
 			navMarket: 'Marketplace',
 			navAssistant: 'AI assistant',
+			navAutomation: 'Automation',
 			navPricing: 'Pricing',
 			navClients: 'Clients',
 			navWatchlist: 'Watchlist',
@@ -1605,6 +1471,24 @@ export default function App() {
 			assistantBack: 'Back to marketplace',
 			assistantLegalFooter:
 				'AgriNexus is not liable for actions taken based on AI replies. Confirm real trades with your team.',
+			automationTitle: 'Business automation',
+			automationSubtitle:
+				'Connect marketplace signals, client dossiers, AI scoring and trade alerts into one operating workflow with less manual coordination and faster response.',
+			automationLeadTitle: 'What gets automated',
+			automationLeadBody:
+				'AgriNexus can carry the repeatable steps around inquiries, margin checks, client prioritization and the next commercial action.',
+			automationStep1: 'Incoming inquiry',
+			automationStep1Body: 'Client, product, market and volume are captured as structured deal context.',
+			automationStep2: 'AI scoring',
+			automationStep2Body: 'The system compares route, margin, volatility, certifications and risk.',
+			automationStep3: 'Trade action',
+			automationStep3Body: 'The team gets priority, alerting and prepared context for an offer or follow-up.',
+			automationOpsTitle: 'Operating workflows',
+			automationOps1: 'Automatic alerts when deals pass a margin threshold.',
+			automationOps2: 'Trading cabinet with saved deals, activity and last action.',
+			automationOps3: 'AI assistant grounded in the current filters and selected markets.',
+			automationOps4: 'Ready path toward CRM, email, exchange and vendor-feed integrations.',
+			automationCta: 'Open trading cabinet',
 			chatThinking: 'Thinking…',
 			chatPromptsLabel: 'Quick prompts',
 			chatClear: 'Clear',
@@ -1767,546 +1651,56 @@ export default function App() {
 
 	return (
 		<div className="app">
-			<style>{`
-        :root {
-          --bg: #0b1221;
-          --panel: #161f32;
-          --panel-2: #0f172a;
-          --border: #1e293b;
-          --text-muted: #94a3b8;
-          --green: #22c55e;
-          --gold: #d6a23a;
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: var(--bg); color: white; }
-        .app { min-height: 100vh; background: var(--bg); color: #fff; }
-
-        .skip-link {
-          position: absolute;
-          left: -9999px;
-          top: 0;
-          z-index: 300;
-          padding: 10px 14px;
-          border-radius: 10px;
-          background: #14532d;
-          color: #ecfdf5;
-          font-weight: 700;
-          font-size: .9rem;
-          text-decoration: none;
-          border: 2px solid rgba(255, 255, 255, 0.35);
-        }
-        .skip-link:focus,
-        .skip-link:focus-visible {
-          left: 12px;
-          top: 12px;
-          outline: none;
-        }
-
-        @keyframes scrollDeals {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-
-        .nav {
-          display: flex; justify-content: space-between; align-items: center; gap: 12px;
-          padding: 14px 18px; background: var(--panel-2); border-bottom: 1px solid var(--border);
-          position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
-        }
-        .brand {
-          display: flex; align-items: center; gap: 10px; font-weight: 900; cursor: pointer;
-          border: none;
-          margin: 0;
-          padding: 0;
-          font: inherit;
-          color: inherit;
-          background: transparent;
-          border-radius: 10px;
-        }
-        .brand-wordmark { letter-spacing: .01em; }
-        .brand-agri { color: #e2e8f0; }
-        .brand-nexus { color: var(--green); }
-        .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .nav-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: #fff;
-          opacity: 0.92;
-          padding: 8px 10px;
-          border-radius: 8px;
-          cursor: pointer;
-          border: 1px solid transparent;
-        }
-        button.nav-link {
-          margin: 0;
-          font: inherit;
-          text-align: inherit;
-          background: transparent;
-          appearance: none;
-          -webkit-appearance: none;
-        }
-        .nav-link:hover:not(.active) {
-          background: rgba(255, 255, 255, 0.06);
-          opacity: 1;
-        }
-        .nav-link.active {
-          color: var(--green);
-          opacity: 1;
-          background: rgba(34, 197, 94, 0.12);
-          border-color: rgba(34, 197, 94, 0.35);
-        }
-        .nav-link.active svg { color: var(--green); }
-
-        .btn {
-          border: none; border-radius: 12px; cursor: pointer; font-weight: 700;
-          display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
-          font-family: inherit;
-        }
-        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-        .btn-primary { background: var(--green); color: white; }
-        .btn-light { background: white; color: #0f172a; }
-        .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); }
-
-        .section { max-width: 1220px; margin: 0 auto; padding: 24px 14px 36px; }
-        .hero { text-align: center; padding-top: 42px; }
-        .hero h1 { font-size: clamp(2.1rem, 8vw, 4.6rem); margin: 0 0 12px; }
-        .hero p { color: var(--text-muted); max-width: 860px; margin: 0 auto 20px; }
-
-        .ai-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
-        .ai-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: left; }
-        .ai-card h4 { margin: 10px 0 6px; }
-        .ai-card p { margin: 0; color: var(--text-muted); font-size: .9rem; }
-
-        .preview-mask {
-          overflow: hidden;
-          mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
-        }
-        .deals-track { display: flex; gap: 16px; width: max-content; animation: scrollDeals 24s linear infinite; }
-        .deals-track:hover { animation-play-state: paused; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-        .deal-card, .pricing-card {
-          background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 14px; position: relative;
-        }
-        .deal-card.top { border: 2px solid var(--green); }
-        .demo-pill {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          z-index: 2;
-          font-size: .65rem;
-          font-weight: 800;
-          padding: 4px 8px;
-          border-radius: 999px;
-          background: rgba(245, 158, 11, 0.18);
-          border: 1px solid rgba(245, 158, 11, 0.45);
-          color: #fcd34d;
-          letter-spacing: .05em;
-          text-transform: uppercase;
-        }
-        .demo-banner {
-          background: rgba(245, 158, 11, 0.07);
-          border: 1px solid rgba(245, 158, 11, 0.32);
-          border-radius: 12px;
-          padding: 11px 14px;
-          margin-bottom: 14px;
-          color: #fef3c7;
-          font-size: .88rem;
-          line-height: 1.5;
-        }
-        .assistant-msgs {
-          max-height: min(52vh, 480px);
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin: 12px 0;
-          padding-right: 4px;
-        }
-        .assistant-bubble {
-          max-width: 100%;
-          padding: 10px 12px;
-          border-radius: 12px;
-          font-size: .9rem;
-          line-height: 1.45;
-        }
-        .assistant-bubble.user {
-          align-self: flex-end;
-          background: rgba(34, 197, 94, 0.15);
-          border: 1px solid rgba(34, 197, 94, 0.35);
-        }
-        .assistant-bubble.assistant {
-          align-self: flex-start;
-          background: #0f172a;
-          border: 1px solid #334155;
-        }
-        .assistant-input-row {
-          display: flex;
-          gap: 8px;
-          align-items: flex-end;
-          margin-top: 8px;
-        }
-        .assistant-input-row textarea {
-          flex: 1;
-          resize: none;
-          min-height: 48px;
-          max-height: 160px;
-          padding: 10px;
-          border-radius: 10px;
-          border: 1px solid #334155;
-          background: #0b1221;
-          color: #fff;
-          font-family: inherit;
-        }
-
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
-        .pricing-card { text-align: center; padding: 14px; }
-        .pricing-card.popular { border: 2px solid var(--green); }
-        .pricing-value-panel {
-          background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(11, 18, 33, 0.92));
-          border: 1px solid rgba(34, 197, 94, 0.35);
-        }
-        .pricing-message-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-top: 14px;
-        }
-        .pricing-value-title {
-          margin: 0;
-          font-size: clamp(1.1rem, 2.3vw, 1.5rem);
-          line-height: 1.25;
-          letter-spacing: .01em;
-          color: #dcfce7;
-          text-wrap: balance;
-        }
-        .pricing-value-body {
-          margin-top: 10px;
-          color: #d1fae5;
-          font-size: .95rem;
-          line-height: 1.55;
-          max-width: 72ch;
-        }
-        .pricing-bottom-grid {
-          display: grid;
-          grid-template-columns: 1.35fr 1fr;
-          gap: 12px;
-        }
-        .pricing-brand-panel {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(34, 197, 94, 0.12));
-        }
-        .pricing-brand-head {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          font-size: clamp(1.2rem, 2.4vw, 1.9rem);
-          font-weight: 900;
-          color: #dcfce7;
-          margin: 0;
-        }
-        .pricing-brand-motto {
-          margin: 10px 0 0;
-          color: #bbf7d0;
-          line-height: 1.55;
-          font-size: .95rem;
-          max-width: 58ch;
-        }
-        .badge {
-          position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-          background: var(--green); padding: 5px 10px; border-radius: 999px; font-size: .73rem; font-weight: 800;
-        }
-        .pricing-value { font-size: 1.7rem; font-weight: 900; margin: 8px 0; }
-
-        .market-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
-        .ticker-wrap { margin-bottom: 12px; border: 1px solid #1f2937; border-radius: 10px; background: #0b1221; overflow: hidden; }
-        .ticker-track { display: flex; gap: 20px; width: max-content; padding: 10px 0; animation: scrollDeals 35s linear infinite; }
-        .ticker-track:hover { animation-play-state: paused; }
-        .ticker-item { white-space: nowrap; font-size: .86rem; color: #d1fae5; }
-        .ticker-item strong { color: #22c55e; margin-left: 8px; }
-        .market-flash-line {
-          margin: 0; flex: 1; min-width: 180px;
-          background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 10px;
-          padding: 11px 13px; color: #bbf7d0; font-size: .9rem;
-        }
-        .terminal-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 10px 0 14px; }
-        .terminal-metric { background: #0b1221; border: 1px solid #1f2937; border-radius: 8px; padding: 8px 10px; }
-        .terminal-metric strong { color: #86efac; display: block; font-size: 1.05rem; }
-        .terminal-metric span { color: #94a3b8; font-size: .76rem; }
-        .deal-actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .deal-chip-btn {
-          border: 1px solid #334155; background: #0f172a; color: #cbd5e1; border-radius: 999px;
-          padding: 5px 10px; font-size: .74rem; cursor: pointer;
-        }
-        .deal-chip-btn.active { border-color: #22c55e; color: #86efac; }
-        .live-dot {
-          width: 8px; height: 8px; background: #22c55e; border-radius: 999px; display: inline-block; margin-right: 6px;
-          animation: pulseDot 1.6s infinite;
-        }
-        @keyframes pulseDot {
-          0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); }
-          100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-        }
-        .pulse-toolbar {
-          display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
-        }
-        .search-wrap { position: relative; width: min(100%, 480px); flex: 1; }
-        .search-wrap input {
-          width: 100%; padding: 12px 12px 12px 42px; border-radius: 12px; outline: none;
-          background: #1e293b; color: #fff; border: 1px solid #334155;
-        }
-        .search-icon { position: absolute; left: 13px; top: 11px; color: #64748b; }
-
-        .locked-overlay {
-          position: absolute; inset: 0; border-radius: 16px;
-          background: rgba(11, 18, 33, 0.56); display: flex; flex-direction: column;
-          align-items: center; justify-content: center; gap: 8px;
-        }
-
-        .muted { color: var(--text-muted); }
-        .green-note { color: var(--green); font-weight: 700; }
-        .contact-panel {
-          background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-top: 16px;
-        }
-
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .form-grid input, .form-grid select, .form-grid textarea {
-          width: 100%; padding: 11px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #fff;
-          font-family: inherit;
-        }
-        .search-wrap input:focus-visible,
-        .form-grid input:focus-visible,
-        .form-grid select:focus-visible,
-        .form-grid textarea:focus-visible,
-        .assistant-input-row textarea:focus-visible {
-          outline: 2px solid rgba(134, 239, 172, 0.95);
-          outline-offset: 2px;
-          border-color: rgba(134, 239, 172, 0.45);
-        }
-
-        .btn-mini {
-          background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 8px;
-          padding: 5px 9px; cursor: pointer; font-size: .76rem;
-        }
-        .chat-actions {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .clients-layout { display: grid; grid-template-columns: 340px 1fr; gap: 14px; }
-        .client-list { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
-        .client-list-item {
-          width: 100%; text-align: left; border: 1px solid transparent; background: #0f172a; color: #fff;
-          padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer;
-        }
-        .client-list-item.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.08); }
-        .client-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-        .client-meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
-        .meta-kv { background: #0f172a; border: 1px solid #1f2937; border-radius: 10px; padding: 10px; }
-        .status-pill {
-          display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: .74rem; font-weight: 700;
-          background: rgba(34, 197, 94, 0.13); color: #4ade80;
-        }
-        .btn:focus-visible,
-        .btn-mini:focus-visible,
-        .brand:focus-visible,
-        .nav-link:focus-visible,
-        .deal-chip-btn:focus-visible,
-        .client-list-item:focus-visible,
-        .mobile-nav-btn:focus-visible {
-          outline: 2px solid rgba(134, 239, 172, 0.95);
-          outline-offset: 2px;
-        }
-        .mobile-nav { display: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spin { animation: spin 0.85s linear infinite; display: inline-block; }
-
-        @media (max-width: 700px) {
-          .form-grid { grid-template-columns: 1fr; }
-          .grid, .pricing-grid { grid-template-columns: 1fr; }
-          .clients-layout, .client-meta-grid { grid-template-columns: 1fr; }
-          .terminal-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-
-        @media (max-width: 900px) {
-          .section { padding: 16px 10px 110px; }
-          .nav { padding: 10px 12px; }
-          .nav-actions { gap: 6px; }
-          .nav-link { padding: 7px 8px; font-size: .86rem; }
-          .nav-link-mobile-hide { display: none !important; }
-          .btn { padding: 10px 12px; border-radius: 10px; }
-          .deal-card, .pricing-card, .ai-card, .contact-panel, .client-card { padding: 12px; border-radius: 12px; }
-          .deal-card h3, .pricing-card h3 { font-size: 1rem; }
-          .muted { font-size: .9rem; }
-
-          .pricing-grid {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            scroll-snap-type: x mandatory;
-            padding-bottom: 6px;
-          }
-          .pricing-grid::-webkit-scrollbar { height: 6px; }
-          .pricing-grid::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
-          .pricing-grid .pricing-card {
-            min-width: 228px;
-            flex: 0 0 auto;
-            scroll-snap-align: center;
-          }
-          .pricing-value-title { font-size: 1.08rem; }
-          .pricing-value-body { font-size: .88rem; }
-          .pricing-message-grid { grid-template-columns: 1fr; }
-          .pricing-bottom-grid { grid-template-columns: 1fr; }
-          .pricing-brand-motto { font-size: .88rem; }
-
-          .mobile-nav {
-            position: fixed;
-            left: 10px;
-            right: 10px;
-            bottom: 10px;
-            z-index: 160;
-            background: rgba(15, 23, 42, 0.98);
-            border: 1px solid #334155;
-            border-radius: 14px;
-            padding: 8px;
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 4px;
-            backdrop-filter: blur(6px);
-          }
-          .mobile-nav-btn {
-            border: 1px solid transparent;
-            background: #0b1221;
-            color: #cbd5e1;
-            border-radius: 10px;
-            padding: 8px 4px;
-            min-height: 48px;
-            font-size: .65rem;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 4px;
-            transition: transform .08s ease, background .2s ease, border-color .2s ease, color .2s ease;
-          }
-        .mobile-nav-btn:active {
-          transform: scale(0.97);
-        }
-        .mobile-nav-btn svg {
-          width: 15px;
-          height: 15px;
-          }
-          .mobile-nav-btn.active {
-            border-color: rgba(34, 197, 94, 0.45);
-            color: #86efac;
-            background: rgba(34, 197, 94, 0.08);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .deals-track,
-          .ticker-track {
-            animation: none !important;
-          }
-          .live-dot {
-            animation: none !important;
-          }
-          .spin {
-            animation: none !important;
-          }
-          .mobile-nav-btn {
-            transition: none;
-          }
-        }
-      `}</style>
 
 			<a href="#main-content" className="skip-link">
 				{tr.skipToContent}
 			</a>
-			<nav className="nav" aria-label={tr.navPrimaryAria}>
-				<button type="button" className="brand" onClick={() => setView('landing')} aria-label={tr.brandHomeAria}>
-					<Leaf color="var(--green)" size={24} aria-hidden />
-					<span className="brand-wordmark">
-						<span className="brand-agri">Agri</span>
-						<span className="brand-nexus">Nexus</span>
-					</span>
-				</button>
-				<div className="nav-actions">
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'landing' ? 'active' : ''}`}
-						onClick={() => setView('landing')}>
-						{tr.navHome}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'market' ? 'active' : ''}`}
-						onClick={() => setView('market')}>
-						{tr.navMarket}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'assistant' ? 'active' : ''}`}
-						onClick={() => setView('assistant')}>
-						<Brain size={14} aria-hidden /> {tr.navAssistant}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'pricing' ? 'active' : ''}`}
-						onClick={() => setView('pricing')}>
-						{tr.navPricing}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'clients' ? 'active' : ''}`}
-						onClick={() => setView('clients')}>
-						{tr.navClients}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'watchlist' ? 'active' : ''}`}
-						onClick={() => setView('watchlist')}>
-						{tr.navWatchlist}
-					</button>
-					<button
-						type="button"
-						className={`nav-link nav-link-mobile-hide ${view === 'login' ? 'active' : ''}`}
-						onClick={() => setView('login')}>
-						<LogIn size={14} aria-hidden /> {tr.navLogin}
-					</button>
-					<button
-						type="button"
-						className="btn-mini"
-						aria-label={tr.langAria}
-						onClick={() => setLang(x => (x === 'bg' ? 'en' : 'bg'))}>
-						<Globe2 size={14} aria-hidden /> {lang === 'bg' ? 'EN' : 'BG'}
-					</button>
-					<button type="button" className="btn btn-primary" onClick={() => setView('register')}>
-						<UserPlus size={14} aria-hidden /> {tr.navGetStarted}
-					</button>
-				</div>
-			</nav>
+			<AppNavigation
+				labels={tr}
+				lang={lang}
+				view={view}
+				onLanguageToggle={() => setLang(x => (x === 'bg' ? 'en' : 'bg'))}
+				onViewChange={setView}
+			/>
 
-			<main id="main-content" tabIndex={-1}>
+			<main id="main-content" className="app-main" tabIndex={-1}>
 			{view === 'landing' && (
 				<section className="section hero">
-					<h1 className="brand-wordmark">
-						<span className="brand-agri">Agri</span>
-						<span className="brand-nexus">Nexus</span>
-					</h1>
-					<p>{tr.heroSub}</p>
-					<button className="btn btn-primary" onClick={() => setView('register')}>
-						{tr.createAccount}
-					</button>
+					<div className="hero-dashboard">
+						<div className="hero-copy">
+							<p className="section-kicker">{tr.marketPulse}</p>
+							<h1 className="brand-wordmark">
+								<span className="brand-agri">Agri</span>
+								<span className="brand-nexus">Nexus</span>
+							</h1>
+							<p>{tr.heroSub}</p>
+							<div className="hero-actions">
+								<button className="btn btn-primary" onClick={() => setView('register')}>
+									{tr.createAccount}
+								</button>
+								<button type="button" className="btn btn-outline" onClick={() => setView('automation')}>
+									<RefreshCw size={16} aria-hidden /> {tr.navAutomation}
+								</button>
+							</div>
+						</div>
+						<div className="hero-metrics" aria-label={tr.marketPulse}>
+							<div className="metric-tile">
+								<span>{tr.activeOpps}</span>
+								<strong>{filteredDeals.length}</strong>
+								<small>{tr.livePreview}</small>
+							</div>
+							<div className="metric-tile">
+								<span>{tr.grainInsightBuy}</span>
+								<strong>{grainInsights.buyCount}</strong>
+								<small>{tr.decision}</small>
+							</div>
+							<div className="metric-tile">
+								<span>{tr.cabinetAlertsCount}</span>
+								<strong>{alertsEnabledIds.length}</strong>
+								<small>{tr.alertThreshold}: {alertThreshold}%</small>
+							</div>
+						</div>
+					</div>
 
 					<div className="ai-grid">
 						{landingAiCards.map(f => {
@@ -2321,19 +1715,11 @@ export default function App() {
 						})}
 					</div>
 
-					<div style={{ marginTop: 24 }}>
-						<p
-							style={{
-								color: '#22c55e',
-								letterSpacing: 2,
-								fontSize: '.75rem',
-								fontWeight: 700,
-								textTransform: 'uppercase',
-								marginBottom: 6,
-							}}>
+					<div className="hero-preview-title">
+						<p className="section-kicker">
 							{tr.livePreview}
 						</p>
-						<h2 style={{ margin: '6px 0' }}>{tr.activeOpps}</h2>
+						<h2>{tr.activeOpps}</h2>
 						<p className="muted" style={{ marginTop: 0 }}>
 							{tr.liveDealsHint}
 						</p>
@@ -2874,6 +2260,54 @@ export default function App() {
 				</section>
 			)}
 
+			{view === 'automation' && (
+				<section className="section">
+					<div className="automation-hero">
+						<div>
+							<p className="section-kicker">{tr.navAutomation}</p>
+							<h2>{tr.automationTitle}</h2>
+							<p className="muted">{tr.automationSubtitle}</p>
+						</div>
+						<button type="button" className="btn btn-primary" onClick={() => setView('watchlist')}>
+							<RefreshCw size={18} aria-hidden /> {tr.automationCta}
+						</button>
+					</div>
+
+					<div className="automation-layout">
+						<div className="contact-panel automation-lead">
+							<h3>{tr.automationLeadTitle}</h3>
+							<p className="muted">{tr.automationLeadBody}</p>
+							<div className="automation-flow">
+								<div className="automation-step">
+									<span>01</span>
+									<strong>{tr.automationStep1}</strong>
+									<p>{tr.automationStep1Body}</p>
+								</div>
+								<div className="automation-step">
+									<span>02</span>
+									<strong>{tr.automationStep2}</strong>
+									<p>{tr.automationStep2Body}</p>
+								</div>
+								<div className="automation-step">
+									<span>03</span>
+									<strong>{tr.automationStep3}</strong>
+									<p>{tr.automationStep3Body}</p>
+								</div>
+							</div>
+						</div>
+						<div className="contact-panel automation-ops">
+							<h3>{tr.automationOpsTitle}</h3>
+							<ul>
+								<li>{tr.automationOps1}</li>
+								<li>{tr.automationOps2}</li>
+								<li>{tr.automationOps3}</li>
+								<li>{tr.automationOps4}</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+			)}
+
 			{view === 'watchlist' && (
 				<section className="section">
 					<h2 style={{ marginTop: 0 }}>{tr.watchlistTitle}</h2>
@@ -3406,46 +2840,7 @@ export default function App() {
 			)}
 			</main>
 
-			{isMobileViewport && (
-				<div className="mobile-nav" role="navigation" aria-label={tr.mobileNavAria}>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'landing' ? 'active' : ''}`}
-						onClick={() => setView('landing')}>
-						<Leaf size={16} />
-						{tr.navHome}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'market' ? 'active' : ''}`}
-						onClick={() => setView('market')}>
-						<Search size={16} />
-						{tr.navMarket}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'assistant' ? 'active' : ''}`}
-						onClick={() => setView('assistant')}
-						aria-label={tr.navAssistant}>
-						<Brain size={16} aria-hidden />
-						{tr.mobileAssistantTab}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'pricing' ? 'active' : ''}`}
-						onClick={() => setView('pricing')}>
-						<CreditCard size={16} />
-						{tr.navPricing}
-					</button>
-					<button
-						type="button"
-						className={`mobile-nav-btn ${view === 'watchlist' ? 'active' : ''}`}
-						onClick={() => setView('watchlist')}>
-						<Bookmark size={16} aria-hidden />
-						{tr.navWatchlist}
-					</button>
-				</div>
-			)}
+			{isMobileViewport && <MobileNavigation labels={tr} view={view} onViewChange={setView} />}
 		</div>
 	);
 }
