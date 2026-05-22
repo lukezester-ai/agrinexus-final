@@ -658,21 +658,19 @@
                     <span class="metric-title">Wheat (MATIF Sep)</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 </div>
-                <div class="metric-value">€246.50</div>
-                <div class="metric-change change-positive">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
-                    +2.4% (€5.80)
+                <div class="metric-value" id="wheat-price">Loading...</div>
+                <div class="metric-change" id="wheat-change">
+                    Syncing...
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-header">
-                    <span class="metric-title">Avg Soil Moisture</span>
+                    <span class="metric-title">Corn (CBOT)</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
                 </div>
-                <div class="metric-value">38%</div>
-                <div class="metric-change change-warning">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-                    -4% vs yesterday
+                <div class="metric-value" id="corn-price">Loading...</div>
+                <div class="metric-change" id="corn-change">
+                    Syncing...
                 </div>
             </div>
             <div class="metric-card">
@@ -826,5 +824,6 @@
         // Protect the route
         document.addEventListener('DOMContentLoaded', protectRoute);
     </script>
+    <script src="/scripts/live-data.js"></script>
 </body>
 </html>

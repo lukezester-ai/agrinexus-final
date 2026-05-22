@@ -17,7 +17,8 @@
 		"@upstash/redis": "^1.38.0",
 		"@vercel/node": "^5.5.28",
 		"dotenv": "^17.4.2",
-		"marked": "^18.0.4"
+		"marked": "^18.0.4",
+		"yahoo-finance2": "^3.14.1"
 	},
 	"devDependencies": {
 		"tsx": "^4.19.3",
