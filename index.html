@@ -1,1386 +1,890 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Furrow — Global Agricultural Market Intelligence</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Serif (body): Source Serif 4. Sans (UI): IBM Plex Sans. -->
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<style>
-:root {
-  /* Color palette — FT/WSJ inspired */
-  --ink: #1a1a1a;          /* primary text */
-  --ink-mid: #6b6760;      /* meta, secondary */
-  --ink-light: #a8a39a;    /* tertiary, dates */
-  --gold: #b97f15;         /* accent, links */
-  --gold-deep: #8a5e10;    /* link hover */
-  --gold-pale: #f0e6cd;    /* subtle background */
-  --paper: #faf7f0;        /* warm cream */
-  --paper-white: #ffffff;  /* pure white */
-  --line: #d8d2c4;         /* hairline borders */
-  --line-strong: #1a1a1a;  /* emphasized rule */
-  --red: #b8412c;          /* "down" indicator */
-  --green: #4a7c3a;        /* "up" indicator (only used for prices) */
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-
-body {
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 17px;
-  line-height: 1.55;
-  color: var(--ink);
-  background: var(--paper);
-  font-feature-settings: "kern", "liga", "calt";
-}
-
-/* === Top utility bar === */
-
-.utility-bar {
-  background: var(--ink);
-  color: var(--paper);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  padding: 8px 0;
-}
-
-.utility-bar .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.utility-bar .left {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-}
-
-.utility-date {
-  text-transform: uppercase;
-  color: var(--ink-light);
-}
-
-.utility-bar .right {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.utility-bar a {
-  color: var(--paper);
-  text-decoration: none;
-  text-transform: uppercase;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-
-.utility-bar a:hover { color: var(--gold); }
-
-.lang-switch {
-  display: inline-flex;
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.lang-switch a {
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.lang-switch a.active {
-  background: var(--paper);
-  color: var(--ink);
-}
-
-/* === Masthead === */
-
-.masthead {
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
-  padding: 28px 0 24px;
-}
-
-.masthead-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  text-align: center;
-}
-
-.brand-name {
-  font-family: "Source Serif 4", Georgia, serif;
-  font-size: 56px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  line-height: 1;
-  display: inline-block;
-  position: relative;
-}
-
-.brand-name::before,
-.brand-name::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 60px;
-  height: 1px;
-  background: var(--ink);
-}
-
-.brand-name::before { left: -84px; }
-.brand-name::after { right: -84px; }
-
-.tagline {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  margin-top: 12px;
-}
-
-/* === Main navigation === */
-
-.nav {
-  background: var(--paper);
-  border-bottom: 2px solid var(--ink);
-  font-family: "IBM Plex Sans", sans-serif;
-}
-
-.nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  justify-content: center;
-  gap: 36px;
-}
-
-.nav a {
-  display: block;
-  padding: 14px 0;
-  color: var(--ink);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  position: relative;
-  transition: color 0.15s;
-}
-
-.nav a:hover { color: var(--gold-deep); }
-
-.nav a.has-sub::after {
-  content: "›";
-  margin-left: 6px;
-  color: var(--ink-light);
-  font-weight: 400;
-  display: inline-block;
-  transform: rotate(90deg);
-  font-size: 11px;
-}
-
-.sponsor-strip {
-  background: var(--paper-white);
-  border-bottom: 1px solid var(--line);
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 12px;
-}
-.sponsor-strip-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 10px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.sponsor-strip-label {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-mid);
-  font-weight: 600;
-  font-size: 10px;
-}
-.sponsor-strip-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.sponsor-strip-logo {
-  padding: 4px 12px;
-  background: var(--gold-pale);
-  border-radius: 4px;
-  color: var(--ink-mid);
-  font-size: 11px;
-}
-.sponsor-strip-btn {
-  background: none;
-  border: 1px solid var(--ink);
-  padding: 6px 14px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-  color: var(--ink);
-}
-.sponsor-strip-btn:hover { background: var(--ink); color: var(--paper); }
-.sponsors-block {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 48px 24px;
-  margin: 48px 0 0;
-  text-align: center;
-  font-family: "IBM Plex Sans", sans-serif;
-}
-.sponsors-block h2 { font-family: "Source Serif 4", serif; font-size: 28px; margin-bottom: 12px; }
-.sponsors-block .contact-sponsor {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 12px 28px;
-  background: var(--gold);
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-/* === Ticker === */
-
-.ticker {
-  background: var(--paper-white);
-  border-bottom: 1px solid var(--line);
-  font-family: "IBM Plex Mono", "Courier New", monospace;
-  font-size: 12px;
-  padding: 10px 0;
-  overflow: hidden;
-  position: relative;
-}
-
-.ticker-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  gap: 36px;
-}
-
-.ticker-label {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  white-space: nowrap;
-}
-
-.ticker-stream {
-  display: flex;
-  gap: 32px;
-  flex: 1;
-  overflow: hidden;
-}
-
-.ticker-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.ticker-symbol {
-  font-weight: 600;
-  color: var(--ink);
-  letter-spacing: 0.02em;
-}
-
-.ticker-price {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-
-.ticker-change.up { color: var(--green); }
-.ticker-change.down { color: var(--red); }
-.ticker-change.flat { color: var(--ink-light); }
-
-/* === Main grid === */
-
-.main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
-
-.lead-grid {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 48px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 900px) {
-  .lead-grid { grid-template-columns: 1fr; gap: 32px; }
-}
-
-/* === Lead story === */
-
-.lead {
-  border-right: 1px solid var(--line);
-  padding-right: 48px;
-}
-
-@media (max-width: 900px) {
-  .lead { border-right: none; padding-right: 0; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
-}
-
-.lead-eyebrow {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-  margin-bottom: 12px;
-}
-
-.lead h1 {
-  font-family: "Source Serif 4", serif;
-  font-size: 42px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  margin-bottom: 16px;
-}
-
-.lead h1 a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.lead h1 a:hover { color: var(--gold-deep); }
-
-.lead-deck {
-  font-family: "Source Serif 4", serif;
-  font-size: 20px;
-  line-height: 1.45;
-  color: var(--ink-mid);
-  margin-bottom: 20px;
-  font-weight: 400;
-}
-
-.lead-meta {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 12px;
-  color: var(--ink-light);
-  margin-bottom: 24px;
-}
-
-.lead-meta .author {
-  color: var(--ink);
-  font-weight: 500;
-}
-
-.lead-meta .dot { color: var(--line); }
-
-.lead-body {
-  font-size: 18px;
-  line-height: 1.65;
-  color: var(--ink);
-  column-count: 1;
-  max-width: 640px;
-}
-
-.lead-body p {
-  margin-bottom: 16px;
-}
-
-.lead-body p:first-child::first-letter {
-  font-family: "Source Serif 4", serif;
-  font-size: 60px;
-  font-weight: 700;
-  float: left;
-  line-height: 0.85;
-  margin: 6px 8px 0 0;
-  color: var(--gold);
-}
-
-.lead-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  color: var(--gold-deep);
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-bottom: 1px solid var(--gold);
-  padding-bottom: 2px;
-  transition: all 0.15s;
-}
-
-.lead-cta:hover { color: var(--ink); border-color: var(--ink); }
-
-/* === Sidebar — TLDR and key data === */
-
-.sidebar {
-  font-family: "Source Serif 4", serif;
-}
-
-.sidebar-block {
-  margin-bottom: 32px;
-}
-
-.sidebar-block:last-child { margin-bottom: 0; }
-
-.sidebar-label {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--ink);
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--ink);
-  margin-bottom: 14px;
-}
-
-.tldr-list {
-  list-style: none;
-}
-
-.tldr-list li {
-  font-size: 15px;
-  line-height: 1.5;
-  padding: 10px 0 12px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  position: relative;
-  padding-left: 22px;
-}
-
-.tldr-list li::before {
-  content: "→";
-  position: absolute;
-  left: 0;
-  top: 10px;
-  color: var(--gold);
-  font-family: "IBM Plex Sans", sans-serif;
-  font-weight: 600;
-}
-
-.tldr-list li:last-child { border-bottom: none; }
-
-.tldr-list li strong {
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.key-data {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border-top: 1px solid var(--line);
-}
-
-.key-data-cell {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.key-data-cell:nth-child(odd) {
-  border-right: 1px solid var(--line);
-  padding-right: 14px;
-}
-
-.key-data-cell:nth-child(even) {
-  padding-left: 14px;
-}
-
-.key-data-label {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-mid);
-  margin-bottom: 4px;
-}
-
-.key-data-value {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.key-data-change {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.key-data-change.up { color: var(--green); }
-.key-data-change.down { color: var(--red); }
-
-/* === Section header === */
-
-.section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 24px 0 16px;
-  border-bottom: 2px solid var(--ink);
-  margin: 24px 0 28px;
-}
-
-.section-head h2 {
-  font-family: "Source Serif 4", serif;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-.section-head .more {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-  text-decoration: none;
-}
-
-.section-head .more:hover { color: var(--ink); }
-
-/* === Article list (3-column row of stories) === */
-
-.story-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 32px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 900px) {
-  .story-row { grid-template-columns: 1fr; }
-}
-
-.story {
-  padding-right: 32px;
-  border-right: 1px solid var(--line);
-}
-
-.story:last-child {
-  border-right: none;
-  padding-right: 0;
-}
-
-@media (max-width: 900px) {
-  .story { border-right: none; padding-right: 0; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
-  .story:last-child { border-bottom: none; padding-bottom: 0; }
-}
-
-.story-cat {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-  margin-bottom: 10px;
-}
-
-.story h3 {
-  font-family: "Source Serif 4", serif;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  margin-bottom: 10px;
-  color: var(--ink);
-}
-
-.story h3 a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.story h3 a:hover { color: var(--gold-deep); }
-
-.story-summary {
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--ink-mid);
-  margin-bottom: 12px;
-}
-
-.story-meta {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  color: var(--ink-light);
-  display: flex;
-  gap: 8px;
-}
-
-.story-meta .dot { color: var(--line); }
-
-/* === Latest analyses list === */
-
-.latest-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 48px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 900px) {
-  .latest-grid { grid-template-columns: 1fr; gap: 0; }
-}
-
-.latest-item {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.latest-time {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
-  color: var(--ink-light);
-  padding-top: 3px;
-}
-
-.latest-content h4 {
-  font-family: "Source Serif 4", serif;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1.3;
-  margin-bottom: 4px;
-}
-
-.latest-content h4 a {
-  color: var(--ink);
-  text-decoration: none;
-}
-
-.latest-content h4 a:hover { color: var(--gold-deep); }
-
-.latest-content .cat {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-}
-
-/* === Two-column block — Regions / Categories === */
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 900px) {
-  .two-col { grid-template-columns: 1fr; gap: 32px; }
-}
-
-.col-block .col-title {
-  font-family: "Source Serif 4", serif;
-  font-size: 22px;
-  font-weight: 700;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.col-block ul {
-  list-style: none;
-}
-
-.col-block li {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  font-family: "Source Serif 4", serif;
-  font-size: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.col-block li:last-child { border-bottom: none; }
-
-.col-block li a {
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.col-block li a:hover { color: var(--gold-deep); }
-
-.col-block li .count {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 12px;
-  color: var(--ink-light);
-}
-
-/* === Subscribe block (single, restrained, no popup) === */
-
-.subscribe {
-  background: var(--paper-white);
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--ink);
-  padding: 40px 48px;
-  text-align: center;
-  margin: 60px 0 40px;
-}
-
-.subscribe-label {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-  margin-bottom: 12px;
-}
-
-.subscribe h3 {
-  font-family: "Source Serif 4", serif;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 8px;
-  color: var(--ink);
-}
-
-.subscribe p {
-  font-size: 16px;
-  color: var(--ink-mid);
-  margin-bottom: 20px;
-  max-width: 520px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.subscribe-form {
-  display: inline-flex;
-  gap: 0;
-  max-width: 480px;
-  width: 100%;
-  flex-wrap: wrap;
-}
-
-.subscribe-form--stacked {
-  flex-direction: column;
-  align-items: stretch;
-  max-width: 420px;
-}
-
-.subscribe-form--stacked input,
-.subscribe-form--stacked select {
-  width: 100%;
-  border-right: 1px solid var(--ink);
-  margin-bottom: 8px;
-}
-
-.subscribe-form--stacked button {
-  width: 100%;
-}
-
-.subscribe-form input {
-  flex: 1;
-  padding: 12px 16px;
-  font-family: "Source Serif 4", serif;
-  font-size: 15px;
-  border: 1px solid var(--ink);
-  background: var(--paper-white);
-  color: var(--ink);
-  border-right: none;
-}
-
-.subscribe-form input:focus {
-  outline: none;
-  background: var(--paper);
-}
-
-.subscribe-form button {
-  padding: 12px 24px;
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--ink);
-  color: var(--paper);
-  border: 1px solid var(--ink);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.subscribe-form button:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
-
-.subscribe-note {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  color: var(--ink-light);
-  margin-top: 14px;
-}
-
-/* === Footer === */
-
-.footer {
-  background: var(--paper-white);
-  border-top: 1px solid var(--ink);
-  padding: 40px 0 32px;
-  margin-top: 40px;
-}
-
-.footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.footer-top {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 48px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 24px;
-}
-
-@media (max-width: 700px) {
-  .footer-top { grid-template-columns: 1fr 1fr; }
-}
-
-.footer-brand .brand-name-sm {
-  font-family: "Source Serif 4", serif;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-.footer-brand p {
-  font-family: "Source Serif 4", serif;
-  font-size: 14px;
-  color: var(--ink-mid);
-  margin-top: 8px;
-  max-width: 320px;
-  line-height: 1.5;
-}
-
-.footer-col h5 {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink);
-  margin-bottom: 12px;
-}
-
-.footer-col ul { list-style: none; }
-
-.footer-col li {
-  margin-bottom: 6px;
-}
-
-.footer-col a {
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 13px;
-  color: var(--ink-mid);
-  text-decoration: none;
-}
-
-.footer-col a:hover { color: var(--gold-deep); }
-
-.footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: 11px;
-  color: var(--ink-light);
-}
-
-.footer-bottom a {
-  color: var(--ink-light);
-  text-decoration: none;
-}
-
-.footer-bottom a:hover { color: var(--ink); }
-
-#form-status { margin-top: 12px; font-family: "IBM Plex Sans", sans-serif; font-size: 12px; }
-#form-status .success-message { color: var(--green); }
-#form-status .error-message { color: var(--red); }
-
-/* === Subtle responsive cleanup === */
-
-@media (max-width: 700px) {
-  .brand-name::before, .brand-name::after { display: none; }
-  .brand-name { font-size: 42px; }
-  .lead h1 { font-size: 32px; }
-  .nav-inner { gap: 16px; flex-wrap: wrap; justify-content: center; padding: 0 16px; }
-  .nav a { font-size: 11px; padding: 10px 4px; }
-  .subscribe { padding: 32px 24px; margin: 40px 0 32px; }
-  .ticker-stream { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .ticker-stream::-webkit-scrollbar { display: none; }
-  .main { padding: 24px 16px 40px; }
-}
-
-@media (max-width: 480px) {
-  .utility-bar .container { flex-direction: column; gap: 10px; padding: 12px; }
-  .utility-bar .left { text-align: center; justify-content: center; }
-  .utility-bar .right { justify-content: center; flex-wrap: wrap; }
-  .footer-top { grid-template-columns: 1fr; gap: 32px; }
-  .sponsors-block { padding: 32px 16px; margin-top: 32px; }
-  .lead-grid, .two-col { gap: 24px; margin-bottom: 32px; }
-  .story-row { margin-bottom: 32px; gap: 24px; }
-  .section-head { flex-direction: column; gap: 8px; align-items: flex-start; }
-}
-
-/* Print-friendly fallback */
-@media print {
-  body { background: white; color: black; }
-  .nav, .utility-bar, .ticker, .subscribe { display: none; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f6f1;
+            --surface: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --border: rgba(0, 0, 0, 0.08);
+            
+            /* The 5 families */
+            --green: #2d5a27;       /* Crop Lifecycle */
+            --moss: #6b8e23;        /* Monitoring */
+            --gold: #d4af37;        /* Operations */
+            --terracotta: #cc4e36;  /* Business */
+            --charcoal: #2f4f4f;    /* Meta */
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            
+            --transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVIGATION (Mock) */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 120px 0 60px;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* STATS STRIP */
+        .stats-strip {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 80px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* LIVE AGENT MESH */
+        .mesh-container {
+            position: relative;
+            height: 600px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 120px;
+        }
+
+        .mesh-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(47, 79, 79, 0.05) 0%, transparent 60%);
+        }
+
+        .orchestrator {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: var(--charcoal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(47, 79, 79, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .orchestrator::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border: 1px solid rgba(47, 79, 79, 0.2);
+            border-radius: 50%;
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .orbit {
+            position: absolute;
+            border: 1px dashed rgba(0,0,0,0.1);
+            border-radius: 50%;
+            animation: rotate 60s linear infinite;
+        }
+
+        .orbit-1 { width: 300px; height: 300px; }
+        .orbit-2 { width: 450px; height: 450px; animation-direction: reverse; animation-duration: 80s; }
+        .orbit-3 { width: 600px; height: 600px; animation-duration: 100s; }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .satellite-agent {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: white;
+            font-weight: 600;
+            top: 0; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .sat-green { background: var(--green); }
+        .sat-moss { background: var(--moss); }
+        .sat-gold { background: var(--gold); }
+        .sat-terra { background: var(--terracotta); }
+        .sat-char { background: var(--charcoal); }
+
+        /* THEMED SECTIONS */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .section-num {
+            font-size: 24px;
+            color: var(--text-muted);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        /* AGENT CARD */
+        .agent-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .agent-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .agent-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.04);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .agent-alias {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .agent-desc {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .autonomy-level {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .pips {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            opacity: 0.2;
+        }
+
+        .pip.active {
+            opacity: 1;
+        }
+
+        .level-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        /* LADDER SECTION */
+        .ladder-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            margin-bottom: 120px;
+            border: 1px solid var(--border);
+        }
+
+        .ladder-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .ladder-header h2 {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .ladder-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .ladder-step {
+            padding: 24px;
+            background: rgba(0,0,0,0.02);
+            border-radius: var(--radius-md);
+            border-top: 3px solid;
+        }
+
+        .ladder-step h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .ladder-step p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* FINAL CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 40px;
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface);
+        }
+
+        /* Family colors for agent cards */
+        .family-green .agent-icon { background: var(--green); }
+        .family-green .pip.active { background: var(--green); }
+        
+        .family-moss .agent-icon { background: var(--moss); }
+        .family-moss .pip.active { background: var(--moss); }
+        
+        .family-gold .agent-icon { background: var(--gold); }
+        .family-gold .pip.active { background: var(--gold); }
+        
+        .family-terra .agent-icon { background: var(--terracotta); }
+        .family-terra .pip.active { background: var(--terracotta); }
+        
+        .family-char .agent-icon { background: var(--charcoal); }
+        .family-char .pip.active { background: var(--charcoal); }
+
+    </style>
 </head>
 <body>
 
-<!-- Top utility bar -->
-<div class="utility-bar">
-  <div class="container">
-    <div class="left">
-      <span class="utility-date">Sunday, May 18, 2026</span>
-      <span class="utility-date" style="opacity:0.6">London 14:32 GMT</span>
-    </div>
-    <div class="right">
-      <div class="lang-switch">
-        <a href="#" data-lang="en" class="active">EN</a>
-        <a href="#" data-lang="ru">RU</a>
-      </div>
-      <a href="#subscribe" data-i18n="nav.signin">Sign in</a>
-      <a href="#subscribe" style="color:var(--gold);" data-i18n="nav.subscribe">Subscribe</a>
-    </div>
-  </div>
-</div>
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+            <div class="logo">
+                <div class="logo-dot"></div>
+                AgriNexus
+            </div>
+            <div style="font-size: 14px; color: var(--text-muted);">Platform / Agents</div>
+        </nav>
 
-<!-- Masthead -->
-<header class="masthead">
-  <div class="masthead-inner">
-    <div class="brand-name">FURROW</div>
-    <div class="tagline" data-i18n="hero.tagline">Global Agricultural Market Intelligence</div>
-  </div>
-</header>
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Eighteen specialists.<br>One thinking farm.</h1>
+            <p>AgriNexus isn't a single AI. It's a coordinated team of expert agents, each with a specific domain, working together to manage your operation.</p>
+        </section>
 
-<!-- Sponsor strip -->
-<div class="sponsor-strip">
-  <div class="sponsor-strip-inner">
-    <span class="sponsor-strip-label" data-i18n="sponsor.label">✨ Sponsor opportunity</span>
-    <div class="sponsor-strip-actions">
-      <span class="sponsor-strip-logo" data-i18n="sponsor.placeholder">Your logo here</span>
-      <button type="button" class="sponsor-strip-btn" id="sponsorBtn" data-i18n="sponsor.cta">Become a sponsor →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Main navigation -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="#" class="has-sub" data-i18n="nav.markets">Markets</a>
-    <a href="#" class="has-sub" data-i18n="nav.regions">Regions</a>
-    <a href="#" data-i18n="nav.analysis">Analysis</a>
-    <a href="#" data-i18n="nav.data">Data</a>
-    <a href="#" data-i18n="nav.reports">Reports</a>
-    <a href="#" data-i18n="nav.about">About</a>
-  </div>
-</nav>
-
-<!-- Live ticker -->
-<div class="ticker">
-  <div class="ticker-inner">
-    <span class="ticker-label" data-i18n="ticker.live">Live</span>
-    <div class="ticker-stream">
-      <span class="ticker-item">
-        <span class="ticker-symbol">WHEAT</span>
-        <span class="ticker-price">$245.50</span>
-        <span class="ticker-change up">+1.20%</span>
-      </span>
-      <span class="ticker-item">
-        <span class="ticker-symbol">CORN</span>
-        <span class="ticker-price">$182.75</span>
-        <span class="ticker-change down">−0.45%</span>
-      </span>
-      <span class="ticker-item">
-        <span class="ticker-symbol">SOYBEANS</span>
-        <span class="ticker-price">$435.20</span>
-        <span class="ticker-change up">+0.85%</span>
-      </span>
-      <span class="ticker-item">
-        <span class="ticker-symbol">SUNFLOWER</span>
-        <span class="ticker-price">$528.00</span>
-        <span class="ticker-change up">+2.10%</span>
-      </span>
-      <span class="ticker-item">
-        <span class="ticker-symbol">RAPESEED</span>
-        <span class="ticker-price">$487.50</span>
-        <span class="ticker-change flat">+0.00%</span>
-      </span>
-      <span class="ticker-item">
-        <span class="ticker-symbol">PALM OIL</span>
-        <span class="ticker-price">$945.80</span>
-        <span class="ticker-change down">−1.05%</span>
-      </span>
-    </div>
-  </div>
-</div>
-
-<!-- Main content -->
-<main class="main">
-
-  <!-- Lead grid: featured story + sidebar -->
-  <section class="lead-grid">
-    <article class="lead">
-      <div class="lead-eyebrow" data-i18n="home.lead.eyebrow">Daily Brief · Grains</div>
-      <h1>
-        <a href="/tomato-harvest-2026" data-i18n="home.lead.title">Tomato Harvest 2026: Europe Recovers, Iran Exits</a>
-      </h1>
-      <p class="lead-deck" data-i18n="home.lead.deck">Moscow's revised export levy lifts CBOT wheat futures 4.2% in a week; Argentine drought and weak Russian harvest reinforce a bullish short-term outlook for European mills.</p>
-      <div class="lead-meta">
-        <span class="author" data-i18n="home.lead.author">By Furrow Markets Desk</span>
-        <span class="dot">·</span>
-        <span data-i18n="home.lead.readtime">6 min read</span>
-        <span class="dot">·</span>
-        <span data-i18n="home.lead.date">May 18, 2026 · 12:45 GMT</span>
-      </div>
-      <div class="lead-body">
-        <p data-i18n="home.lead.p1">Wheat prices broke through a six-month resistance level on Friday...</p>
-        <p data-i18n="home.lead.p2">European mills, already operating with thin inventory cover...</p>
-      </div>
-      <a href="/tomato-harvest-2026" class="lead-cta" data-i18n="home.lead.cta">Continue reading →</a>
-    </article>
-
-    <aside class="sidebar">
-      <div class="sidebar-block">
-        <div class="sidebar-label" data-i18n="home.brief.label">In Brief</div>
-        <ul class="tldr-list">
-          <li data-i18n-html="home.brief.1"><strong>Wheat</strong> closes at six-month high amid Russian export friction</li>
-          <li data-i18n-html="home.brief.2"><strong>Argentine drought</strong> threatens 2026 corn yields; CONAB cuts forecast 3%</li>
-          <li data-i18n-html="home.brief.3"><strong>EU rapeseed</strong> imports fall 12% YoY on weaker Ukrainian flows</li>
-          <li data-i18n-html="home.brief.4"><strong>Brazil</strong> begins early soybean export season; logistics tight</li>
-          <li data-i18n-html="home.brief.5"><strong>Palm oil</strong> retreats from monthly high on Malaysian inventory data</li>
-        </ul>
-      </div>
-
-      <div class="sidebar-block">
-        <div class="sidebar-label" data-i18n="home.numbers.label">Key Numbers Today</div>
-        <div class="key-data">
-          <div class="key-data-cell">
-            <div class="key-data-label" data-i18n="home.numbers.wheat">CBOT Wheat</div>
-            <div class="key-data-value">245.50</div>
-            <div class="key-data-change up">+1.20%</div>
-          </div>
-          <div class="key-data-cell">
-            <div class="key-data-label" data-i18n="home.numbers.corn">CBOT Corn</div>
-            <div class="key-data-value">182.75</div>
-            <div class="key-data-change down">−0.45%</div>
-          </div>
-          <div class="key-data-cell">
-            <div class="key-data-label" data-i18n="home.numbers.soy">Soybeans</div>
-            <div class="key-data-value">435.20</div>
-            <div class="key-data-change up">+0.85%</div>
-          </div>
-          <div class="key-data-cell">
-            <div class="key-data-label" data-i18n="home.numbers.baltic">Baltic Dry</div>
-            <div class="key-data-value">1,847</div>
-            <div class="key-data-change up">+2.34%</div>
-          </div>
+        <!-- STATS -->
+        <div class="stats-strip">
+            <div class="stat-item">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Specialist Agents</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Autonomy Levels</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~340</div>
+                <div class="stat-label">Decisions / Day</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Auditable Logs</div>
+            </div>
         </div>
-      </div>
-    </aside>
-  </section>
 
-  <!-- Three-column story row -->
-  <div class="section-head">
-    <h2 data-i18n="home.today.title">Today's Analysis</h2>
-    <a href="/archive" class="more" data-i18n="home.today.more">All analyses →</a>
-  </div>
+        <!-- MESH VISUALIZATION -->
+        <div class="mesh-container">
+            <div class="mesh-bg"></div>
+            
+            <div class="orbit orbit-3">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(0deg) translateY(-300px) rotate(0deg);">PLN</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(72deg) translateY(-300px) rotate(-72deg);">SAT</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(144deg) translateY(-300px) rotate(-144deg);">FLT</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(216deg) translateY(-300px) rotate(-216deg);">MKT</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(288deg) translateY(-300px) rotate(-288deg);">LRN</div>
+            </div>
 
-  <section class="story-row">
-    <article class="story">
-      <div class="story-cat" data-i18n="home.s1.cat">North America · Trade</div>
-      <h3><a href="/us-canada-wheat-trade-war-en" data-i18n="home.s1.title">The U.S. vs. Canada in May 2026: Trade War and a Wheat Earthquake</a></h3>
-      <p class="story-summary" data-i18n="home.s1.sum">
-        Trade War, Political Realignment, and a Wheat Earthquake — With Europe Caught in the Middle.
-      </p>
-      <div class="story-meta" data-i18n="home.s1.meta">Furrow Desk · 15 min · 19 May 2026</div>
-    </article>
+            <div class="orbit orbit-2">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(45deg) translateY(-225px) rotate(-45deg);">SED</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(135deg) translateY(-225px) rotate(-135deg);">DIS</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(225deg) translateY(-225px) rotate(-225px);">LAB</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(315deg) translateY(-225px) rotate(-315deg);">NWS</div>
+            </div>
 
-    <article class="story">
-      <div class="story-cat" data-i18n="home.s2.cat">MENA · Nile Basin</div>
-      <h3><a href="/egypt-fields-desert-oasis-2026" data-i18n="home.s2.title">Egypt's Fields: The Desert Oasis That Feeds 108 Million People</a></h3>
-      <p class="story-summary" data-i18n="home.s2.sum">
-        Nile dependence, wheat imports vs citrus exports, GERD water stress, and the 2026 energy shock — geography and trade in one desk read.
-      </p>
-      <div class="story-meta" data-i18n="home.s2.meta">Furrow Desk · 12 min · 19 May 2026</div>
-    </article>
+            <div class="orbit orbit-1">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(30deg) translateY(-150px) rotate(-30deg);">IRR</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(120deg) translateY(-150px) rotate(-120deg);">WED</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(210deg) translateY(-150px) rotate(-210deg);">FIN</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(300deg) translateY(-150px) rotate(-300deg);">CNV</div>
+            </div>
 
-    <article class="story">
-      <div class="story-cat" data-i18n="home.s3.cat">Europe · Analysis</div>
-      <h3><a href="/france-agriculture-analysis-en" data-i18n="home.s3.title">France and Its Farmers: How Paris Supports Its Land</a></h3>
-      <p class="story-summary" data-i18n="home.s3.sum">
-        What more Paris can do, and the war with Spain and Italy inside the European House.
-      </p>
-      <div class="story-meta" data-i18n="home.s3.meta">Furrow Desk · 14 min · 19 May 2026</div>
-    </article>
-  </section>
-
-  <!-- Latest analyses (chronological list) -->
-  <div class="section-head">
-    <h2 data-i18n="home.latest.title">Latest</h2>
-    <a href="/archive" class="more" data-i18n="home.latest.more">Full archive →</a>
-  </div>
-
-  <section class="latest-grid">
-    <div>
-      <div class="latest-item">
-        <div class="latest-time">16:00</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l1.cat">Global · Analysis</div>
-          <h4><a href="/global-corn-producers-analysis-en" data-i18n="home.l1.title">The Global Corn Map in May 2026: Who Produces, Who Exports, and Why the Price Just Moved</a></h4>
+            <div class="orchestrator">ORC</div>
         </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">13:50</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l2.cat">Softs · Brazil</div>
-          <h4><a href="article/sample.html" data-i18n="home.l2.title">Arabica futures retreat on Brazilian harvest progress, hedge unwinding</a></h4>
+
+        <!-- SECTIONS -->
+
+        <!-- 01: Crop Lifecycle -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Crop Lifecycle</h2>
         </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">12:15</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l3.cat">Fertilizer · Global</div>
-          <h4><a href="article/sample.html" data-i18n="home.l3.title">Urea prices stabilize after a volatile week; Indian tender awaited</a></h4>
+        <div class="agents-grid">
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">PLN</div>
+                    <div class="agent-code">PLN</div>
+                </div>
+                <div class="agent-name">Planning</div>
+                <div class="agent-alias">The Architect</div>
+                <div class="agent-desc">Designs rotation plans and yield targets based on historical field data.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">SED</div>
+                    <div class="agent-code">SED</div>
+                </div>
+                <div class="agent-name">Seeding</div>
+                <div class="agent-alias">The Planter</div>
+                <div class="agent-desc">Calculates optimal seed depth and density per square meter.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">IRR</div>
+                    <div class="agent-code">IRR</div>
+                </div>
+                <div class="agent-name">Irrigation</div>
+                <div class="agent-alias">The Hydrologist</div>
+                <div class="agent-desc">Manages water pivots and drip lines based on hyper-local moisture sensors.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">NUT</div>
+                    <div class="agent-code">NUT</div>
+                </div>
+                <div class="agent-name">Nutrition</div>
+                <div class="agent-alias">The Chemist</div>
+                <div class="agent-desc">Prescribes variable-rate fertilizer application to maximize yield vs cost.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">11:40</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l4.cat">Grains · Kazakhstan</div>
-          <h4><a href="article/sample.html" data-i18n="home.l4.title">Kazakh wheat exports to China rise 28% YoY in April</a></h4>
+
+        <!-- 02: Monitoring & Detection -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Monitoring & Detection</h2>
         </div>
-      </div>
+        <div class="agents-grid">
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">SAT</div>
+                    <div class="agent-code">SAT</div>
+                </div>
+                <div class="agent-name">Satellite</div>
+                <div class="agent-alias">The Eye</div>
+                <div class="agent-desc">Ingests Sentinel-2 and Planet imagery to track NDVI and crop vigor.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">DIS</div>
+                    <div class="agent-code">DIS</div>
+                </div>
+                <div class="agent-name">Disease</div>
+                <div class="agent-alias">The Pathologist</div>
+                <div class="agent-desc">Detects early signs of septoria, rust, and blight before they spread.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L1 ADVISOR</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WED</div>
+                    <div class="agent-code">WED</div>
+                </div>
+                <div class="agent-name">Weed Scout</div>
+                <div class="agent-alias">The Spotter</div>
+                <div class="agent-desc">Identifies invasive species using drone imagery and field camera data.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WTH</div>
+                    <div class="agent-code">WTH</div>
+                </div>
+                <div class="agent-name">Weather Sentry</div>
+                <div class="agent-alias">The Meteorologist</div>
+                <div class="agent-desc">Predicts micro-climate shifts and issues frost or hail alerts.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: Operations -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Operations</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">FLT</div>
+                    <div class="agent-code">FLT</div>
+                </div>
+                <div class="agent-name">Fleet</div>
+                <div class="agent-alias">The Dispatcher</div>
+                <div class="agent-desc">Routes tractors and combines to minimize idle time and fuel burn.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">LAB</div>
+                    <div class="agent-code">LAB</div>
+                </div>
+                <div class="agent-name">Labor</div>
+                <div class="agent-alias">The Foreman</div>
+                <div class="agent-desc">Assigns daily tasks to human crew based on priority and location.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">INV</div>
+                    <div class="agent-code">INV</div>
+                </div>
+                <div class="agent-name">Inventory</div>
+                <div class="agent-alias">The Quartermaster</div>
+                <div class="agent-desc">Tracks silos, fuel tanks, and seed stock, alerting before depletion.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 04: Business & Compliance -->
+        <div class="section-header">
+            <span class="section-num">04</span>
+            <h2 class="section-title">Business & Compliance</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">MKT</div>
+                    <div class="agent-code">MKT</div>
+                </div>
+                <div class="agent-name">Market</div>
+                <div class="agent-alias">The Trader</div>
+                <div class="agent-desc">Analyzes futures exchanges to recommend the exact day to sell your harvest.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">NWS</div>
+                    <div class="agent-code">NWS</div>
+                </div>
+                <div class="agent-name">News</div>
+                <div class="agent-alias">The Analyst</div>
+                <div class="agent-desc">Scans global geopolitical news for supply chain disruptions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CMP</div>
+                    <div class="agent-code">CMP</div>
+                </div>
+                <div class="agent-name">Compliance</div>
+                <div class="agent-alias">The Auditor</div>
+                <div class="agent-desc">Automatically fills CAP subsidy forms and ensures regulatory adherence.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CRB</div>
+                    <div class="agent-code">CRB</div>
+                </div>
+                <div class="agent-name">Carbon</div>
+                <div class="agent-alias">The Ecologist</div>
+                <div class="agent-desc">Calculates sequestered carbon for credit trading on green markets.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">FIN</div>
+                    <div class="agent-code">FIN</div>
+                </div>
+                <div class="agent-name">Finance</div>
+                <div class="agent-alias">The CFO</div>
+                <div class="agent-desc">Manages cash flow, invoice tracking, and ROI analysis per field.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 05: Meta Layer -->
+        <div class="section-header">
+            <span class="section-num">05</span>
+            <h2 class="section-title">Meta Layer</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">ORC</div>
+                    <div class="agent-code">ORC</div>
+                </div>
+                <div class="agent-name">Orchestrator</div>
+                <div class="agent-alias">The Conductor</div>
+                <div class="agent-desc">Synthesizes data from all 17 agents to resolve conflicts and finalize decisions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">CNV</div>
+                    <div class="agent-code">CNV</div>
+                </div>
+                <div class="agent-name">Conversation</div>
+                <div class="agent-alias">The Interface</div>
+                <div class="agent-desc">Translates complex system decisions into simple, human-readable text and voice.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">LRN</div>
+                    <div class="agent-code">LRN</div>
+                </div>
+                <div class="agent-name">Learning</div>
+                <div class="agent-alias">The Scholar</div>
+                <div class="agent-desc">Updates local models based on the outcomes of your specific farm's past actions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTONOMY LADDER -->
+        <div class="ladder-section">
+            <div class="ladder-header">
+                <h2>You control the autonomy.</h2>
+                <p style="color: var(--text-muted);">Set boundaries for every agent. Dial it up as trust builds.</p>
+            </div>
+            <div class="ladder-grid">
+                <div class="ladder-step" style="border-color: var(--green);">
+                    <h3>L1 · Advisor</h3>
+                    <p>Agent analyzes data and suggests actions. You must manually execute every step.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--moss);">
+                    <h3>L2 · Co-pilot</h3>
+                    <p>Agent drafts the complete action plan. Requires one click from you to approve and deploy.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--gold);">
+                    <h3>L3 · Auto-pilot</h3>
+                    <p>Agent executes routine actions automatically, but alerts you for high-risk decisions.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--terracotta);">
+                    <h3>L4 · Autonomous</h3>
+                    <p>Agent runs the entire domain independently. All actions are logged for periodic review.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>See your agents work on your farm.</h2>
+            <div class="btn-group">
+                <a href="#" class="btn btn-primary">Start free trial</a>
+                <a href="#" class="btn btn-outline">Read the documentation</a>
+            </div>
+        </div>
+
     </div>
-    <div>
-      <div class="latest-item">
-        <div class="latest-time">10:50</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l5.cat">Livestock · US</div>
-          <h4><a href="article/sample.html" data-i18n="home.l5.title">US cattle inventory at 73-year low; ranchers cautious on rebuilding</a></h4>
-        </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">09:30</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l6.cat">Shipping · Black Sea</div>
-          <h4><a href="article/sample.html" data-i18n="home.l6.title">Bosphorus transit times normalize; insurance premiums hold elevated</a></h4>
-        </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">08:00</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l7.cat">Special Report · Premium</div>
-          <h4><a href="article/sample.html" data-i18n="home.l7.title">Monthly Outlook: Grains and oilseeds positioning for Northern Hemisphere harvest</a></h4>
-        </div>
-      </div>
-      <div class="latest-item">
-        <div class="latest-time">07:15</div>
-        <div class="latest-content">
-          <div class="cat" data-i18n="home.l8.cat">Policy · EU</div>
-          <h4><a href="article/sample.html" data-i18n="home.l8.title">CAP 2027 reform proposal: implications for grain producers in EU East</a></h4>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Markets and Regions -->
-  <div class="two-col">
-    <div class="col-block">
-      <div class="col-title" data-i18n="home.col.market">By Market</div>
-      <ul>
-        <li><a href="#" data-i18n="home.m1">Grains — Wheat, Corn, Barley, Oats</a><span class="count">142 <span data-i18n="home.count.articles">articles</span></span></li>
-        <li><a href="#" data-i18n="home.m2">Oilseeds — Soy, Rapeseed, Sunflower</a><span class="count">98</span></li>
-        <li><a href="#" data-i18n="home.m3">Livestock — Cattle, Hogs, Poultry</a><span class="count">76</span></li>
-        <li><a href="#" data-i18n="home.m4">Dairy — Milk, Butter, Cheese, Powder</a><span class="count">54</span></li>
-        <li><a href="#" data-i18n="home.m5">Softs — Coffee, Sugar, Cocoa, Cotton</a><span class="count">88</span></li>
-        <li><a href="#" data-i18n="home.m6">Fertilizer & Inputs</a><span class="count">62</span></li>
-      </ul>
-    </div>
-    <div class="col-block">
-      <div class="col-title" data-i18n="home.col.region">By Region</div>
-      <ul>
-        <li><a href="#" data-i18n="home.r1">Black Sea — Russia, Ukraine, Kazakhstan</a><span class="count">183</span></li>
-        <li><a href="#" data-i18n="home.r2">European Union</a><span class="count">156</span></li>
-        <li><a href="#" data-i18n="home.r3">North America — US & Canada</a><span class="count">204</span></li>
-        <li><a href="#" data-i18n="home.r4">South America — Brazil & Argentina</a><span class="count">147</span></li>
-        <li><a href="#" data-i18n="home.r5">Asia — China, India, Southeast Asia</a><span class="count">112</span></li>
-        <li><a href="#" data-i18n="home.r6">Middle East & North Africa</a><span class="count">68</span></li>
-      </ul>
-    </div>
-  </div>
-
-  <section class="sponsors-block" id="sponsors">
-    <h2 data-i18n="sponsors.title">For sponsors</h2>
-    <p data-i18n="sponsors.lead">Reach agricultural professionals daily — launch 2026</p>
-    <a href="/sponsor#contact" class="contact-sponsor" data-i18n="sponsors.contact">Contact sales →</a>
-  </section>
-
-  <!-- Subscribe block — restrained, no popup -->
-  <section class="subscribe" id="subscribe">
-    <div class="subscribe-label" data-i18n="sub.label">The Daily Brief</div>
-    <h3 data-i18n="sub.title">One email. Every weekday. Six minutes.</h3>
-    <p data-i18n="sub.body">
-      What moved global agricultural markets, why it matters, and what to watch tomorrow.
-      Read by analysts, traders, and farm operators in 40+ countries.
-    </p>
-    <form class="subscribe-form subscribe-form--stacked" id="signup-form">
-      <input type="text" id="fname" data-i18n-placeholder="reg.fname" placeholder="First name" autocomplete="given-name" />
-      <input type="email" id="email" required data-i18n-placeholder="wait.email" placeholder="your@email.com" autocomplete="email" />
-      <select id="interest" aria-label="Interest">
-        <option value="grains" data-i18n="reg.interest.grains">Grains &amp; oilseeds</option>
-        <option value="livestock" data-i18n="reg.interest.livestock">Livestock</option>
-        <option value="dairy" data-i18n="reg.interest.dairy">Dairy</option>
-        <option value="softs" data-i18n="reg.interest.softs">Softs</option>
-        <option value="fertilizer" data-i18n="reg.interest.fertilizer">Fertilizer</option>
-        <option value="all" data-i18n="reg.interest.all" selected>All markets</option>
-      </select>
-      <button type="submit" data-i18n="sub.cta">Subscribe Free</button>
-    </form>
-    <p class="subscribe-note" style="margin-top:12px"><a href="/register.html" data-i18n="reg.fullPage">Full registration form →</a></p>
-    <div id="form-status"></div>
-    <div class="subscribe-note" data-i18n="sub.note">No spam. Unsubscribe in one click. We don't sell your data.</div>
-  </section>
-
-</main>
-
-<!-- Footer -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <div class="brand-name-sm">FURROW</div>
-        <p>Independent agricultural market intelligence for traders, producers, and institutions worldwide.</p>
-      </div>
-      <div class="footer-col">
-        <h5>Sections</h5>
-        <ul>
-          <li><a href="#">Markets</a></li>
-          <li><a href="#">Regions</a></li>
-          <li><a href="#">Analysis</a></li>
-          <li><a href="#">Data</a></li>
-          <li><a href="#">Reports</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h5>Company</h5>
-        <ul>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Methodology</a></li>
-          <li><a href="#">Editorial Standards</a></li>
-          <li><a href="#">Contact</a></li>
-          <li><a href="#">Careers</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h5>Subscribe</h5>
-        <ul>
-          <li><a href="#">Pricing</a></li>
-          <li><a href="#">Free Brief</a></li>
-          <li><a href="#">RSS</a></li>
-          <li><a href="#">API</a></li>
-          <li><a href="#">Enterprise</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <div>© 2026 Furrow Markets. A Nexus Group company.</div>
-      <div>
-        <a href="#">Terms</a> · <a href="#">Privacy</a> · <a href="#">Disclosures</a>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<link rel="stylesheet" href="styles/furrow-chat.css">
-<button type="button" class="furrow-chat-fab" id="furrow-chat-fab" aria-expanded="false" aria-controls="furrow-chat-panel" data-i18n="chat.fab">AI Analyst</button>
-<div class="furrow-chat-panel" id="furrow-chat-panel" role="dialog" aria-label="Furrow Analyst">
-	<div class="furrow-chat-head">
-		<div>
-			<strong data-i18n="chat.title">Furrow Analyst</strong>
-			<span class="furrow-chat-status" id="furrow-chat-status">…</span>
-		</div>
-		<button type="button" class="furrow-chat-close" id="furrow-chat-close" aria-label="Close">×</button>
-	</div>
-	<div class="furrow-chat-msgs" id="furrow-chat-msgs" aria-live="polite"></div>
-	<p class="furrow-chat-hint" data-i18n="chat.hint">Market intelligence · launch 2026</p>
-	<div class="furrow-chat-quick" id="furrow-chat-quick">
-		<button type="button" data-i18n="chat.quickPricing" data-prompt="What are Furrow pricing plans?">Pricing</button>
-		<button type="button" data-i18n="chat.quickWaitlist" data-prompt="I want to join the early access waitlist. My name is Alex, email alex@example.com">Waitlist</button>
-		<button type="button" data-i18n="chat.quickBlackSea" data-prompt="Explain Black Sea wheat export trends">Black Sea</button>
-		<button type="button" data-i18n="chat.quickMarkets" data-prompt="What are current delayed CBOT wheat, corn and soy prices?">Markets</button>
-	</div>
-	<div class="furrow-chat-foot">
-		<textarea id="furrow-chat-input" rows="2" maxlength="2000" data-i18n-placeholder="chat.placeholder" placeholder="Ask…"></textarea>
-		<button type="button" class="furrow-chat-send" id="furrow-chat-send" aria-label="Send">→</button>
-	</div>
-</div>
-
-<script src="scripts/i18n-strings.js?v=2"></script>
-<script src="scripts/i18n-home-strings.js?v=2"></script>
-<script src="scripts/i18n.js?v=2"></script>
-<script src="scripts/waitlist.js"></script>
-<script src="scripts/sponsor-ui.js"></script>
-<script src="scripts/nav-stubs.js"></script>
-<script src="scripts/ticker-live.js"></script>
-<script src="scripts/i18n-chat-strings.js?v=2"></script>
-<script src="scripts/furrow-chat.js"></script>
-<script src="scripts/furrow-analytics.js" defer></script>
 </body>
 </html>
