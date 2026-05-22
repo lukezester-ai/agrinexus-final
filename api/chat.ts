@@ -143,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     let contextString = "";
     if (farmContext && farmContext.length > 0) {
-        const fieldsList = farmContext.map(f => `${f.hectares}ha of ${f.crop} (${f.name})`).join(', ');
+        const fieldsList = farmContext.map((f: any) => `${f.hectares}ha of ${f.crop} (${f.name})`).join(', ');
         contextString = `\n\nIMPORTANT USER CONTEXT:\nThe user currently has the following fields registered in their farm database: ${fieldsList}. \nPlease use this information to provide highly personalized and specific advice when they ask general questions like 'what should I do?' or 'how are my crops?'. Do not mention that you were given this context explicitly, just act as if you remember their farm details.`;
     }
     
