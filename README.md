@@ -1,83 +1,45 @@
-# Furrow Markets — pre-launch site
+# AgriNexus 🌾
 
-**FT/WSJ-style homepage** + EN/RU + waitlist + **delayed live ticker** + **AI Analyst**.
+**An operating system that senses, thinks, acts.**
 
-- **Launch guide (Bulgarian, $0):** [FURROW-LAUNCH-BG.md](./FURROW-LAUNCH-BG.md)
+AgriNexus is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
 
-## Quick start (full stack)
+## Project Structure & Core Pages
 
-Работиш от **корена на този repo** (където са `package.json` и `index.html`).
+### 1. Agents (`index.html`)
+**"Eighteen specialists. One thinking farm."**
+The system is built on a strong metaphor: 18 distinct specialists forming a coordinated team, orchestrated by a central intelligence.
+- **5 Families:** Crop Lifecycle, Monitoring & Detection, Operations, Business & Compliance, Meta Layer.
+- **Autonomy Levels:** Trust is built on control. The system ranges from L1 (Advisor) to L4 (Autonomous).
+- **Transparency:** Over 340 decisions a day, 100% auditable.
 
-```bash
-cp .env.example .env   # MISTRAL_API_KEY + RESEND_* for waitlist email
-npm install
-npm run dev
-```
+### 2. Market Intelligence (`market-intelligence.html`)
+**"Trade your harvest like a hedge fund."**
+A Bloomberg-meets-Stripe terminal aesthetic, designed for farmers.
+- **Live Ticker:** Real-time prices for Wheat, Corn, Sunflower, Rapeseed, Barley, and Soy.
+- **The Engine:** Forecast targets combined with the farmer's break-even metrics to show potential profit.
+- **Signal Stack:** Synthesizes news, satellite data, FX rates, and USDA reports into an actionable Orchestrator Synthesis (e.g., "+2.0% bullish bias").
+- **Optimal Selling Window:** A clear visualization (Sell Now vs. Sell Sep vs. Hold) proving ROI (+€18/tonne).
 
-`npm run typecheck` — проверка на `api/*.ts` и `server/*.ts` (без emit).
+### 3. Platform Architecture (`platform.html`)
+**"Three layers, one nervous system."**
+A transparent look at how data flows through the system.
+- **01 SENSE:** Satellites (10m/px), IoT Mesh, Market Feeds, Field Reports.
+- **02 THINK:** Unified Data Lake, the Agent Mesh (LangGraph), Model Library.
+- **03 ACT:** Daily Briefings, Autonomous Actions, Mobile & Web UI.
+- **Integrations:** Sits seamlessly on top of existing setups (John Deere, Trimble, Sentinel Hub, Rabobank, etc.).
+- **Foundation:** Built on Data Sovereignty (EU GDPR), Auditable Decisions (SOC 2), and Developer Access.
 
-> Ако работиш от монорепо, същият код често е под папка **`furrow-marketing/`** — `cd` там и изпълни същите команди от корена ѝ.
+### 4. Academy (`academy.html`)
+**"A library that grows with you."**
+A warm, educational space operating on a different emotional register—designed for learning, not just marketing.
+- **Learning Paths:** Structured curriculum for modern farming.
+- **Field Notes Podcast:** Real stories from real farmers (e.g., "The day I stopped guessing the market").
+- **Farmer's Table Community:** A living pulse of peer-to-peer support, alpha sharing, and success stories.
 
-Open **http://127.0.0.1:3456** — EN/RU, live ticker, subscribe form, **AI Analyst** (bottom right).
+### 5. Dashboard (`dashboard.html`)
+**The Command Center.**
+The actual product from the inside. A calm, highly functional UI where the farmer starts their morning with a cup of coffee. It transitions the user from learning and exploring into executing and managing their farm operations.
 
-**Furrow analysis archive:** [/archive](./archive.html) — only Furrow desk longreads (Egypt, Ukraine, tomato outlook, sample).
-
-**Статичен индекс на статии:** [`/agridirect/`](./agridirect/) — опционален JSON/HTML изход за вътрешен sync (виж [agridirect/README.md](./agridirect/README.md)). Редакционният лонгрид архив остава на [`/archive`](./archive.html). Обновяване: `npm run sync:agridirect`.
-
-> `npx serve .` only shows static HTML (no API, no live ticker, chat offline).
-
-## APIs (самостоятелни — без връзка с други проекти)
-
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/furrow-chat` | GET/POST | AI Analyst (Mistral/OpenAI) |
-| `/api/furrow-signals` | GET/POST | Delayed CBOT + Baltic (Yahoo) |
-| `/api/waitlist` | POST | Waitlist email via Resend |
-| `/api/public-config` | GET | Mailchimp URLs + `waitlistResendConfigured` (без секрети) |
-
-Чисти URL-и (Vercel `vercel.json`): `/register` → `register.html`; `/archive` → редакционен архив; `/agridirect` → статичен индекс на статии. Локално `npm run dev` обслужва `/register`, `/archive` и `/agridirect`.
-
-**Agent tools:** `search_knowledge`, `get_market_signals`, `submit_waitlist`
-
-## Deploy — GitHub **roxson** + Vercel
-
-Furrow Markets се публикува като **самостоятелен** сайт от repo **roxson** на GitHub (не като подпроект в чужд корен на друг сайт).
-
-### 1. Код в repo `roxson`
-
-В GitHub repo **roxson** в **корена** трябва да са файловете (`index.html`, `api/`, `server/`, `scripts/`, …) — **без** вложена подпапка със същия сайт.
-
-Ако копираш файлове от монорепо, вземи **съдържанието** на `furrow-marketing/` в корена на `roxson`, не цялата вложена папка като единствен подкаталог.
-
-Локално (еднократно или при обновления):
-
-```bash
-# пример: клонирай roxson, копирай файловете в корена, push
-git clone https://github.com/YOUR_USER/roxson.git
-cd roxson
-# (ако източникът е monorepo) cp -r ../path/to/furrow-marketing/* .   # без node_modules
-git add .
-git commit -m "Furrow pre-launch site"
-git push
-```
-
-### 2. Vercel
-
-1. [vercel.com](https://vercel.com) → **Add New Project**
-2. **Import** Git repo → избери **roxson** (repo-то на Furrow)
-3. **Root Directory** → остави **`.`** (корен на roxson)
-4. **Environment Variables** → `MISTRAL_API_KEY`, `RESEND_API_KEY`, `RESEND_FROM`, `FURROW_INBOX_EMAIL`
-5. Deploy
-
-Всеки `git push` в **roxson** обновява live сайта.
-
-### 3. Vercel проект за Furrow
-
-Използвай **отделен** Vercel project само за този repo (`roxson`), за да не се смесват build-ове и env с несвързани приложения.
-
-Не смесвай Furrow с други приложения в един и същ Vercel project.
-
-## Waitlist
-
-1. **Resend** — `RESEND_*` + `FURROW_INBOX_EMAIL`
-2. **Mailchimp** (по избор) — `FURROW_MAILCHIMP_URL`, `FURROW_MAILCHIMP_HIDDEN`
+---
+*Every article peer-reviewed by working agronomists and traders. Always free. No vendor lock-in. Open standards, your data, your call.*
