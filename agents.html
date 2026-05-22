@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agents - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f6f1;
+            --surface: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --border: rgba(0, 0, 0, 0.08);
+            
+            /* The 5 families */
+            --green: #2d5a27;       /* Crop Lifecycle */
+            --moss: #6b8e23;        /* Monitoring */
+            --gold: #d4af37;        /* Operations */
+            --terracotta: #cc4e36;  /* Business */
+            --charcoal: #2f4f4f;    /* Meta */
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            
+            --transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVIGATION (Mock) */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 120px 0 60px;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* STATS STRIP */
+        .stats-strip {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 80px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* LIVE AGENT MESH */
+        .mesh-container {
+            position: relative;
+            height: 600px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 120px;
+        }
+
+        .mesh-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(47, 79, 79, 0.05) 0%, transparent 60%);
+        }
+
+        .orchestrator {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: var(--charcoal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(47, 79, 79, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .orchestrator::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border: 1px solid rgba(47, 79, 79, 0.2);
+            border-radius: 50%;
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .orbit {
+            position: absolute;
+            border: 1px dashed rgba(0,0,0,0.1);
+            border-radius: 50%;
+            animation: rotate 60s linear infinite;
+        }
+
+        .orbit-1 { width: 300px; height: 300px; }
+        .orbit-2 { width: 450px; height: 450px; animation-direction: reverse; animation-duration: 80s; }
+        .orbit-3 { width: 600px; height: 600px; animation-duration: 100s; }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .satellite-agent {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: white;
+            font-weight: 600;
+            top: 0; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .sat-green { background: var(--green); }
+        .sat-moss { background: var(--moss); }
+        .sat-gold { background: var(--gold); }
+        .sat-terra { background: var(--terracotta); }
+        .sat-char { background: var(--charcoal); }
+
+        /* THEMED SECTIONS */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .section-num {
+            font-size: 24px;
+            color: var(--text-muted);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        /* AGENT CARD */
+        .agent-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .agent-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .agent-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.04);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .agent-alias {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .agent-desc {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .autonomy-level {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .pips {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            opacity: 0.2;
+        }
+
+        .pip.active {
+            opacity: 1;
+        }
+
+        .level-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        /* LADDER SECTION */
+        .ladder-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            margin-bottom: 120px;
+            border: 1px solid var(--border);
+        }
+
+        .ladder-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .ladder-header h2 {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .ladder-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .ladder-step {
+            padding: 24px;
+            background: rgba(0,0,0,0.02);
+            border-radius: var(--radius-md);
+            border-top: 3px solid;
+        }
+
+        .ladder-step h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .ladder-step p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* FINAL CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 40px;
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface);
+        }
+
+        /* Family colors for agent cards */
+        .family-green .agent-icon { background: var(--green); }
+        .family-green .pip.active { background: var(--green); }
+        
+        .family-moss .agent-icon { background: var(--moss); }
+        .family-moss .pip.active { background: var(--moss); }
+        
+        .family-gold .agent-icon { background: var(--gold); }
+        .family-gold .pip.active { background: var(--gold); }
+        
+        .family-terra .agent-icon { background: var(--terracotta); }
+        .family-terra .pip.active { background: var(--terracotta); }
+        
+        .family-char .agent-icon { background: var(--charcoal); }
+        .family-char .pip.active { background: var(--charcoal); }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+            <div class="logo">
+                <div class="logo-dot"></div>
+                AgriNexus
+            </div>
+            <div style="font-size: 14px; color: var(--text-muted);">Platform / Agents</div>
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Eighteen specialists.<br>One thinking farm.</h1>
+            <p>AgriNexus isn't a single AI. It's a coordinated team of expert agents, each with a specific domain, working together to manage your operation.</p>
+        </section>
+
+        <!-- STATS -->
+        <div class="stats-strip">
+            <div class="stat-item">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Specialist Agents</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Autonomy Levels</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~340</div>
+                <div class="stat-label">Decisions / Day</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Auditable Logs</div>
+            </div>
+        </div>
+
+        <!-- MESH VISUALIZATION -->
+        <div class="mesh-container">
+            <div class="mesh-bg"></div>
+            
+            <div class="orbit orbit-3">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(0deg) translateY(-300px) rotate(0deg);">PLN</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(72deg) translateY(-300px) rotate(-72deg);">SAT</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(144deg) translateY(-300px) rotate(-144deg);">FLT</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(216deg) translateY(-300px) rotate(-216deg);">MKT</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(288deg) translateY(-300px) rotate(-288deg);">LRN</div>
+            </div>
+
+            <div class="orbit orbit-2">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(45deg) translateY(-225px) rotate(-45deg);">SED</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(135deg) translateY(-225px) rotate(-135deg);">DIS</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(225deg) translateY(-225px) rotate(-225px);">LAB</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(315deg) translateY(-225px) rotate(-315deg);">NWS</div>
+            </div>
+
+            <div class="orbit orbit-1">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(30deg) translateY(-150px) rotate(-30deg);">IRR</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(120deg) translateY(-150px) rotate(-120deg);">WED</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(210deg) translateY(-150px) rotate(-210deg);">FIN</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(300deg) translateY(-150px) rotate(-300deg);">CNV</div>
+            </div>
+
+            <div class="orchestrator">ORC</div>
+        </div>
+
+        <!-- SECTIONS -->
+
+        <!-- 01: Crop Lifecycle -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Crop Lifecycle</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">PLN</div>
+                    <div class="agent-code">PLN</div>
+                </div>
+                <div class="agent-name">Planning</div>
+                <div class="agent-alias">The Architect</div>
+                <div class="agent-desc">Designs rotation plans and yield targets based on historical field data.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">SED</div>
+                    <div class="agent-code">SED</div>
+                </div>
+                <div class="agent-name">Seeding</div>
+                <div class="agent-alias">The Planter</div>
+                <div class="agent-desc">Calculates optimal seed depth and density per square meter.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">IRR</div>
+                    <div class="agent-code">IRR</div>
+                </div>
+                <div class="agent-name">Irrigation</div>
+                <div class="agent-alias">The Hydrologist</div>
+                <div class="agent-desc">Manages water pivots and drip lines based on hyper-local moisture sensors.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">NUT</div>
+                    <div class="agent-code">NUT</div>
+                </div>
+                <div class="agent-name">Nutrition</div>
+                <div class="agent-alias">The Chemist</div>
+                <div class="agent-desc">Prescribes variable-rate fertilizer application to maximize yield vs cost.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 02: Monitoring & Detection -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Monitoring & Detection</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">SAT</div>
+                    <div class="agent-code">SAT</div>
+                </div>
+                <div class="agent-name">Satellite</div>
+                <div class="agent-alias">The Eye</div>
+                <div class="agent-desc">Ingests Sentinel-2 and Planet imagery to track NDVI and crop vigor.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">DIS</div>
+                    <div class="agent-code">DIS</div>
+                </div>
+                <div class="agent-name">Disease</div>
+                <div class="agent-alias">The Pathologist</div>
+                <div class="agent-desc">Detects early signs of septoria, rust, and blight before they spread.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L1 ADVISOR</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WED</div>
+                    <div class="agent-code">WED</div>
+                </div>
+                <div class="agent-name">Weed Scout</div>
+                <div class="agent-alias">The Spotter</div>
+                <div class="agent-desc">Identifies invasive species using drone imagery and field camera data.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WTH</div>
+                    <div class="agent-code">WTH</div>
+                </div>
+                <div class="agent-name">Weather Sentry</div>
+                <div class="agent-alias">The Meteorologist</div>
+                <div class="agent-desc">Predicts micro-climate shifts and issues frost or hail alerts.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: Operations -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Operations</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">FLT</div>
+                    <div class="agent-code">FLT</div>
+                </div>
+                <div class="agent-name">Fleet</div>
+                <div class="agent-alias">The Dispatcher</div>
+                <div class="agent-desc">Routes tractors and combines to minimize idle time and fuel burn.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">LAB</div>
+                    <div class="agent-code">LAB</div>
+                </div>
+                <div class="agent-name">Labor</div>
+                <div class="agent-alias">The Foreman</div>
+                <div class="agent-desc">Assigns daily tasks to human crew based on priority and location.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">INV</div>
+                    <div class="agent-code">INV</div>
+                </div>
+                <div class="agent-name">Inventory</div>
+                <div class="agent-alias">The Quartermaster</div>
+                <div class="agent-desc">Tracks silos, fuel tanks, and seed stock, alerting before depletion.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 04: Business & Compliance -->
+        <div class="section-header">
+            <span class="section-num">04</span>
+            <h2 class="section-title">Business & Compliance</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">MKT</div>
+                    <div class="agent-code">MKT</div>
+                </div>
+                <div class="agent-name">Market</div>
+                <div class="agent-alias">The Trader</div>
+                <div class="agent-desc">Analyzes futures exchanges to recommend the exact day to sell your harvest.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">NWS</div>
+                    <div class="agent-code">NWS</div>
+                </div>
+                <div class="agent-name">News</div>
+                <div class="agent-alias">The Analyst</div>
+                <div class="agent-desc">Scans global geopolitical news for supply chain disruptions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CMP</div>
+                    <div class="agent-code">CMP</div>
+                </div>
+                <div class="agent-name">Compliance</div>
+                <div class="agent-alias">The Auditor</div>
+                <div class="agent-desc">Automatically fills CAP subsidy forms and ensures regulatory adherence.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CRB</div>
+                    <div class="agent-code">CRB</div>
+                </div>
+                <div class="agent-name">Carbon</div>
+                <div class="agent-alias">The Ecologist</div>
+                <div class="agent-desc">Calculates sequestered carbon for credit trading on green markets.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">FIN</div>
+                    <div class="agent-code">FIN</div>
+                </div>
+                <div class="agent-name">Finance</div>
+                <div class="agent-alias">The CFO</div>
+                <div class="agent-desc">Manages cash flow, invoice tracking, and ROI analysis per field.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 05: Meta Layer -->
+        <div class="section-header">
+            <span class="section-num">05</span>
+            <h2 class="section-title">Meta Layer</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">ORC</div>
+                    <div class="agent-code">ORC</div>
+                </div>
+                <div class="agent-name">Orchestrator</div>
+                <div class="agent-alias">The Conductor</div>
+                <div class="agent-desc">Synthesizes data from all 17 agents to resolve conflicts and finalize decisions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">CNV</div>
+                    <div class="agent-code">CNV</div>
+                </div>
+                <div class="agent-name">Conversation</div>
+                <div class="agent-alias">The Interface</div>
+                <div class="agent-desc">Translates complex system decisions into simple, human-readable text and voice.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">LRN</div>
+                    <div class="agent-code">LRN</div>
+                </div>
+                <div class="agent-name">Learning</div>
+                <div class="agent-alias">The Scholar</div>
+                <div class="agent-desc">Updates local models based on the outcomes of your specific farm's past actions.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTONOMY LADDER -->
+        <div class="ladder-section">
+            <div class="ladder-header">
+                <h2>You control the autonomy.</h2>
+                <p style="color: var(--text-muted);">Set boundaries for every agent. Dial it up as trust builds.</p>
+            </div>
+            <div class="ladder-grid">
+                <div class="ladder-step" style="border-color: var(--green);">
+                    <h3>L1 · Advisor</h3>
+                    <p>Agent analyzes data and suggests actions. You must manually execute every step.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--moss);">
+                    <h3>L2 · Co-pilot</h3>
+                    <p>Agent drafts the complete action plan. Requires one click from you to approve and deploy.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--gold);">
+                    <h3>L3 · Auto-pilot</h3>
+                    <p>Agent executes routine actions automatically, but alerts you for high-risk decisions.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--terracotta);">
+                    <h3>L4 · Autonomous</h3>
+                    <p>Agent runs the entire domain independently. All actions are logged for periodic review.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>See your agents work on your farm.</h2>
+            <div class="btn-group">
+                <a href="#" class="btn btn-primary">Start free trial</a>
+                <a href="#" class="btn btn-outline">Read the documentation</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

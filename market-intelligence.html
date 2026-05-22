@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Intelligence - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f6f1;
+            --surface: #ffffff;
+            --surface-dark: #1e1e1e;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --text-light: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-light: rgba(255, 255, 255, 0.1);
+            
+            /* The 5 families */
+            --green: #2d5a27;
+            --green-bright: #3a8a30;
+            --moss: #6b8e23;
+            --gold: #d4af37;
+            --terracotta: #cc4e36;
+            --charcoal: #2f4f4f;
+
+            --red: #e3342f;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            
+            --transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* LIVE TICKER */
+        .ticker-wrap {
+            background-color: var(--surface-dark);
+            color: var(--text-light);
+            padding: 8px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .ticker-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green-bright);
+            border-radius: 50%;
+            margin: 0 16px;
+            animation: pulse 2s infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(58, 138, 48, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(58, 138, 48, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(58, 138, 48, 0); }
+        }
+
+        .ticker-label {
+            color: #999;
+            margin-right: 24px;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .ticker-items {
+            display: flex;
+            gap: 40px;
+            white-space: nowrap;
+            animation: ticker 30s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .tick { display: flex; align-items: center; gap: 8px; }
+        .tick-name { font-weight: 500; }
+        .tick-price { color: #ccc; }
+        .tick-up { color: var(--green-bright); }
+        .tick-down { color: var(--red); }
+
+        /* NAVIGATION */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--terracotta);
+            border-radius: 50%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 100px 0 60px;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        /* TERMINAL SECTION */
+        .terminal-container {
+            background: var(--surface-dark);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            padding: 32px;
+            color: var(--text-light);
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 48px;
+            margin-bottom: 100px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Terminal Aurora Background */
+        .terminal-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 70%, rgba(204, 78, 54, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 70% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .terminal-left, .terminal-right {
+            position: relative;
+            z-index: 1;
+        }
+
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .term-price-main {
+            font-family: 'Times New Roman', serif;
+            font-size: 80px;
+            line-height: 1;
+            letter-spacing: -2px;
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        .term-delta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            color: var(--green-bright);
+        }
+
+        /* Mock Chart */
+        .term-chart-area {
+            height: 240px;
+            position: relative;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-light);
+            border-left: 1px solid var(--border-light);
+        }
+
+        .chart-line-past {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 60%;
+            height: 2px;
+            background: var(--green-bright);
+            transform: translateY(-50%) rotate(-10deg);
+            transform-origin: left center;
+        }
+
+        .chart-line-future {
+            position: absolute;
+            top: 25%;
+            left: 60%;
+            width: 40%;
+            height: 2px;
+            border-top: 2px dashed var(--gold);
+            transform: translateY(-50%) rotate(-15deg);
+            transform-origin: left center;
+        }
+
+        .chart-confidence {
+            position: absolute;
+            top: 5%;
+            left: 60%;
+            width: 40%;
+            height: 60%;
+            background: rgba(212, 175, 55, 0.1);
+            clip-path: polygon(0 50%, 100% 0, 100% 100%, 0 50%);
+        }
+
+        .today-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 60%;
+            width: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .today-label {
+            position: absolute;
+            top: 10px;
+            left: calc(60% + 10px);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 1px;
+        }
+
+        .term-info-boxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .term-box {
+            background: rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .term-box-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .term-box-val {
+            font-size: 20px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Signal Stack */
+        .signal-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            margin-bottom: 24px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .signal-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .signal-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .signal-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #888;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .signal-src { color: var(--gold); }
+
+        .signal-text {
+            font-size: 14px;
+            color: #ddd;
+            line-height: 1.4;
+        }
+
+        .signal-strength {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .s-pip { width: 4px; height: 12px; background: #444; border-radius: 2px; }
+        .s-pip.active-green { background: var(--green-bright); }
+        .s-pip.active-red { background: var(--red); }
+
+        .signal-synthesis {
+            background: rgba(58, 138, 48, 0.1);
+            border: 1px solid rgba(58, 138, 48, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .signal-synthesis p {
+            font-size: 14px;
+            color: var(--green-bright);
+            font-weight: 500;
+        }
+
+        /* OPTIMAL SELLING WINDOW (01) */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+        .section-num {
+            font-size: 24px;
+            color: var(--text-muted);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .timeline-wrap {
+            margin-bottom: 80px;
+        }
+
+        .timeline-bar {
+            display: flex;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            background: var(--border);
+        }
+
+        .t-seg { height: 100%; transition: var(--transition); }
+        .t-past { width: 15%; background: #ccc; }
+        .t-now { width: 30%; background: var(--green); }
+        .t-hold1 { width: 15%; background: rgba(0,0,0,0.05); }
+        .t-sep { width: 30%; background: var(--gold); }
+        .t-hold2 { width: 10%; background: rgba(0,0,0,0.05); }
+
+        .timeline-cells {
+            display: grid;
+            grid-template-columns: 15% 30% 45% 10%;
+            gap: 16px;
+        }
+
+        .t-cell {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .t-cell.highlight-green { border-color: var(--green); background: rgba(45,90,39,0.02); }
+        .t-cell.highlight-gold { border-color: var(--gold); background: rgba(212,175,55,0.02); }
+
+        .t-cell-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .t-cell-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        
+        .t-cell-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .expected-box {
+            grid-column: 1 / -1;
+            background: var(--charcoal);
+            color: white;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* DATA INPUTS (02) */
+        .data-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        .data-card {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 32px;
+        }
+
+        .data-card-num {
+            font-family: 'Times New Roman', serif;
+            font-size: 40px;
+            color: var(--terracotta);
+            line-height: 1;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        
+        .data-card-num span {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-card h3 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .data-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .data-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* THREE PILLARS (03) */
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 120px;
+        }
+        
+        .pillar { text-align: center; }
+        
+        .pillar-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 24px;
+            color: var(--charcoal);
+        }
+        
+        .pillar h3 {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .pillar p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* ROI PROOF */
+        .roi-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            margin-bottom: 120px;
+        }
+
+        .roi-left {
+            padding: 80px 60px;
+            background: var(--green);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .roi-left h2 {
+            font-size: 40px;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .roi-left p {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .roi-right {
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-content: center;
+        }
+
+        .roi-stat {
+            background: var(--bg-color);
+            padding: 24px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .roi-stat-val {
+            font-size: 32px;
+            font-family: 'Times New Roman', serif;
+            color: var(--green);
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+        
+        .roi-stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 48px;
+            font-weight: 400;
+            margin-bottom: 32px;
+            letter-spacing: -1px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            background: var(--text-main);
+            color: white;
+            transition: var(--transition);
+        }
+        
+        .btn:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        /* SVG Utilities */
+        .icon { width: 1em; height: 1em; fill: currentColor; }
+
+    </style>
+</head>
+<body>
+
+    <!-- LIVE TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker-pulse"></div>
+        <div class="ticker-label">LIVE MARKETS</div>
+        <div class="ticker-items">
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+            <div class="tick"><span class="tick-name">SUNFLOWER</span> <span class="tick-price">€412.00</span> <span class="tick-down">-1.2%</span></div>
+            <div class="tick"><span class="tick-name">RAPESEED</span> <span class="tick-price">€465.75</span> <span class="tick-up">+3.1%</span></div>
+            <div class="tick"><span class="tick-name">BARLEY</span> <span class="tick-price">€210.00</span> <span class="tick-down">-0.5%</span></div>
+            <div class="tick"><span class="tick-name">SOY</span> <span class="tick-price">€430.50</span> <span class="tick-up">+1.5%</span></div>
+            <!-- Duplicate for seamless loop -->
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+            <div class="logo">
+                <div class="logo-dot"></div>
+                AgriNexus
+            </div>
+            <div style="font-size: 14px; color: var(--text-muted);">Platform / Market Intelligence</div>
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Trade your harvest like a hedge fund.</h1>
+            <p style="font-size: 20px; color: var(--text-muted); max-width: 600px; margin: 0 auto;">No more selling on a hunch. Get institutional-grade market intelligence, tailored specifically to your farm's break-even metrics.</p>
+        </section>
+
+        <!-- MAIN TERMINAL -->
+        <div class="terminal-container">
+            <div class="terminal-left">
+                <div class="term-header">
+                    <div>
+                        <div style="font-family: 'JetBrains Mono', monospace; color: #999; margin-bottom: 8px;">MATIF MILLING WHEAT (SEP 26)</div>
+                        <div class="term-price-main">
+                            €246<span style="font-size: 32px; color: #999;">.50</span>
+                            <span class="term-delta">+€5.80 (+2.4%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="term-chart-area">
+                    <div class="chart-line-past"></div>
+                    <div class="chart-confidence"></div>
+                    <div class="chart-line-future"></div>
+                    
+                    <div class="today-line"></div>
+                    <div class="today-label">TODAY</div>
+                </div>
+
+                <div class="term-info-boxes">
+                    <div class="term-box">
+                        <div class="term-box-label">FORECAST TARGET (SEP)</div>
+                        <div class="term-box-val" style="color: var(--gold);">€268 <span style="font-size: 14px; color: #666;">±€14</span></div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">78% CONFIDENCE</div>
+                    </div>
+                    <div class="term-box">
+                        <div class="term-box-label">YOUR BREAK-EVEN</div>
+                        <div class="term-box-val">€184 <span style="font-size: 14px; color: #666;">/ TONNE</span></div>
+                        <div style="font-size: 12px; color: var(--green-bright); margin-top: 8px;">POTENTIAL PROFIT: +€84/t</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terminal-right">
+                <div class="signal-title">SIGNAL STACK (LAST 12H)</div>
+                
+                <div class="signal-stack">
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">SENTIMENT</span>
+                            <span>06:30</span>
+                        </div>
+                        <div class="signal-text">Black Sea export pace slowing down due to logistics bottlenecks.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">SATELLITE</span>
+                            <span>06:15</span>
+                        </div>
+                        <div class="signal-text">US Winter wheat conditions downgraded 2% below estimates.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip active-green"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">FX RATE</span>
+                            <span>05:30</span>
+                        </div>
+                        <div class="signal-text">EUR/USD dropped to 1.072, increasing EU export competitiveness.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">USDA</span>
+                            <span>04:00</span>
+                        </div>
+                        <div class="signal-text">WASDE report indicates slightly higher global ending stocks.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-red"></div><div class="s-pip active-red"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-synthesis">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(58,138,48,0.7); margin-bottom: 4px;">ORCHESTRATOR SYNTHESIS</div>
+                    <p>Net signal: +2.0% bullish bias, holding positive for 4 of the last 5 sessions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 01: OPTIMAL SELLING WINDOW -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Optimal selling window</h2>
+        </div>
+        <div class="timeline-wrap">
+            <div class="timeline-bar">
+                <div class="t-seg t-past"></div>
+                <div class="t-seg t-now"></div>
+                <div class="t-seg t-hold1"></div>
+                <div class="t-seg t-sep"></div>
+                <div class="t-seg t-hold2"></div>
+            </div>
+            <div class="timeline-cells">
+                <div class="t-cell">
+                    <div class="t-cell-label">PAST</div>
+                    <div class="t-cell-val" style="color: var(--text-muted);">0%</div>
+                </div>
+                <div class="t-cell highlight-green">
+                    <div class="t-cell-label" style="color: var(--green);">SELL NOW (30%)</div>
+                    <div class="t-cell-val">144t @ €246</div>
+                    <div class="t-cell-sub">Secure baseline profit</div>
+                </div>
+                <div class="t-cell highlight-gold" style="grid-column: span 2;">
+                    <div class="t-cell-label" style="color: var(--gold);">SELL SEP (50%) + HOLD (20%)</div>
+                    <div class="t-cell-val">240t @ €268 <span style="font-weight: 300; margin: 0 8px;">|</span> 96t @ €275-290</div>
+                    <div class="t-cell-sub">Maximize upside during peak target window</div>
+                </div>
+            </div>
+            
+            <div class="expected-box">
+                <div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999; margin-bottom: 8px;">EXPECTED REVENUE (SPLIT STRATEGY)</div>
+                    <div style="font-size: 32px; font-weight: 500;">€127,920</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 18px; color: var(--green-bright);">+€8,640</div>
+                    <div style="font-size: 13px; color: #999; margin-top: 4px;">vs. one-shot sale today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 02: DATA INPUTS -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Data inputs</h2>
+        </div>
+        <div class="data-cards">
+            <div class="data-card">
+                <div class="data-card-num">42 <span>SOURCES</span></div>
+                <h3>Exchanges & Macro</h3>
+                <div class="data-tags">
+                    <span class="data-tag">CBOT</span>
+                    <span class="data-tag">MATIF</span>
+                    <span class="data-tag">USDA</span>
+                    <span class="data-tag">ECB FX</span>
+                    <span class="data-tag">BRENT</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">38 <span>SOURCES</span></div>
+                <h3>Alternative Data</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Sentinel-2</span>
+                    <span class="data-tag">AIS Shipping</span>
+                    <span class="data-tag">Port Silos</span>
+                    <span class="data-tag">Weather Models</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">120+ <span>SOURCES</span></div>
+                <h3>News & Sentiment</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Reuters</span>
+                    <span class="data-tag">Bloomberg</span>
+                    <span class="data-tag">Regional Press</span>
+                    <span class="data-tag">Agri Forums</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: THREE PILLARS -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Three pillars of conviction</h2>
+        </div>
+        <div class="pillars-grid">
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                </svg>
+                <h3>Probabilistic forecasts</h3>
+                <p>We don't predict a single number. We simulate 10,000 market paths to give you confidence intervals you can actually trust.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <h3>Explainable signals</h3>
+                <p>No black box magic. Every recommendation is traced back to specific news, weather, or exchange data so you know the 'why'.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h3>Risk & hedge</h3>
+                <p>Your strategy is tailored to your unique farm costs, ensuring you protect your baseline while capturing upside.</p>
+            </div>
+        </div>
+
+        <!-- ROI PROOF -->
+        <div class="roi-section">
+            <div class="roi-left">
+                <h2>An average farmer earns +€18 per tonne just from better timing.</h2>
+                <p>No new machinery. No new crops. Just selling what you already have, exactly when the market needs it most. For a standard 500t operation, that's €9,000 extra per season.</p>
+            </div>
+            <div class="roi-right">
+                <div class="roi-stat">
+                    <div class="roi-stat-val">+€18/t</div>
+                    <div class="roi-stat-label">AVG PREMIUM</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">82%</div>
+                    <div class="roi-stat-label">FORECAST ACCURACY</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">6x</div>
+                    <div class="roi-stat-label">REFRESHES PER HOUR</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">€0</div>
+                    <div class="roi-stat-label">COST FOR FARMERS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL CTA -->
+        <div class="cta-section">
+            <h2>Stop selling on a hunch.<br>Start selling on evidence.</h2>
+            <div style="margin-top: 40px;">
+                <a href="#" class="btn">Get your first briefing tomorrow at 06:42</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

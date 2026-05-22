@@ -31,6 +31,18 @@
 			color: #64748b;
 			margin-top: 6px;
 		}
+		.archive-page-btn {
+			padding: 8px 16px;
+			background: #fff;
+			border: 1px solid #e2e8f0;
+			cursor: pointer;
+			font-family: inherit;
+			font-weight: 500;
+		}
+		.archive-page-btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 	</style>
 </head>
 <body data-i18n-title="arc.page.title">
@@ -60,45 +72,23 @@
 		Long-form desk notes and seasonal outlooks published on Furrow Markets.
 	</p>
 
+	<div class="archive-controls" style="display: flex; gap: 16px; margin: 24px 0;">
+		<input type="text" id="archive-search" placeholder="Search articles..." style="flex: 1; padding: 10px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 15px;">
+		<select id="archive-category" style="padding: 10px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 15px; background: white;">
+			<option value="all">All Categories</option>
+			<option value="north-america">North America</option>
+			<option value="europe">Europe</option>
+			<option value="mena">MENA</option>
+			<option value="global">Global Analysis</option>
+		</select>
+	</div>
+
 	<h2 data-i18n="arc.h2.desk">Desk longreads</h2>
-	<ul class="archive-list">
-		<li>
-			<a href="/us-canada-wheat-trade-war-en"><span>The U.S. vs. Canada in May 2026: Trade War and a Wheat Earthquake</span></a>
-			<div class="archive-meta"><span>NORTH AMERICA · Trade · English · May 2026</span></div>
-		</li>
-		<li>
-			<a href="/us-canada-wheat-trade-war-ru"><span>США против Канады: торговая война и пшеничное землетрясение</span></a>
-			<div class="archive-meta"><span>СЕВЕРНАЯ АМЕРИКА · Торговля · Русский · май 2026</span></div>
-		</li>
-		<li>
-			<a href="/egypt-agriculture-analysis-en"><span>Egypt's Fields: The Desert Oasis That Feeds 108 Million People (MD)</span></a>
-			<div class="archive-meta"><span>MENA · Nile · English · May 2026</span></div>
-		</li>
-		<li>
-			<a href="/egypt-agriculture-analysis-ru"><span>Поля Египта: пустынный оазис, который кормит 108 миллионов человек (MD)</span></a>
-			<div class="archive-meta"><span>MENA · Нил · Русский · май 2026</span></div>
-		</li>
-		<li>
-			<a href="/egypt-fields-desert-oasis-2026"><span data-i18n="arc.row.egypt.en.title">Egypt's Fields: The Desert Oasis That Feeds 108 Million People</span></a>
-			<div class="archive-meta"><span data-i18n="arc.row.egypt.en.meta">MENA · Nile · English · May 2026</span></div>
-		</li>
-		<li>
-			<a href="/egypt-fields-desert-oasis-2026-ru"><span data-i18n="arc.row.egypt.ru.title">Поля Египта: пустынный оазис, который кормит 108 миллионов человек</span></a>
-			<div class="archive-meta"><span data-i18n="arc.row.egypt.ru.meta">MENA · Нил · Русский · май 2026</span></div>
-		</li>
-		<li>
-			<a href="/ukraine-harvest-war"><span data-i18n="arc.row.ukr.title">Ukraine: The Harvest of War</span></a>
-			<div class="archive-meta"><span data-i18n="arc.row.ukr.meta">Black Sea · English · May 2026</span></div>
-		</li>
-		<li>
-			<a href="/tomato-harvest-2026"><span data-i18n="arc.row.tm.title">Tomato Harvest 2026: Europe Recovers, Iran Exits</span></a>
-			<div class="archive-meta"><span data-i18n="arc.row.tm.meta">Softs · English · May 2026</span></div>
-		</li>
-		<li>
-			<a href="article/sample.html"><span data-i18n="arc.row.sample.title">Sample desk format (demo)</span></a>
-			<div class="archive-meta"><span data-i18n="arc.row.sample.meta">Internal · English</span></div>
-		</li>
+	<ul class="archive-list" id="archive-dynamic-list">
+		<!-- Dynamic content injected by archive.js -->
 	</ul>
+	
+	<div id="archive-pagination" style="display: flex; gap: 16px; margin-top: 24px; align-items: center; justify-content: center;"></div>
 </article>
 
 <footer class="article-footer">
@@ -109,6 +99,8 @@
 <script src="scripts/i18n-strings.js?v=2"></script>
 <script src="scripts/i18n-archive-strings.js?v=2"></script>
 <script src="scripts/i18n.js?v=2"></script>
+<script src="scripts/archive-data.js?v=1"></script>
+<script src="scripts/archive.js?v=1"></script>
 <script src="scripts/furrow-analytics.js" defer></script>
 </body>
 </html>

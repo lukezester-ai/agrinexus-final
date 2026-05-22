@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8f6f1;
+            --surface: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-strong: rgba(0, 0, 0, 0.15);
+            
+            /* The 5 families */
+            --green: #2d5a27;
+            --moss: #6b8e23;
+            --gold: #d4af37;
+            --terracotta: #cc4e36;
+            --charcoal: #2f4f4f;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            
+            --transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVIGATION */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--charcoal);
+            border-radius: 50%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 100px 0 80px;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            font-weight: 400;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ARCHITECTURE DIAGRAM (The 3 Layers) */
+        .architecture-diagram {
+            position: relative;
+            padding: 60px 0;
+            margin-bottom: 120px;
+        }
+
+        /* Connecting Lines/Particles */
+        .data-stream {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(0,0,0,0.05);
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: flow 4s linear infinite;
+        }
+
+        .p1 { background: var(--green); animation-delay: 0s; }
+        .p2 { background: var(--moss); animation-delay: 1.2s; }
+        .p3 { background: var(--gold); animation-delay: 2.4s; }
+        .p4 { background: var(--terracotta); animation-delay: 3.6s; }
+
+        @keyframes flow {
+            0% { top: 10%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 90%; opacity: 0; }
+        }
+
+        .layer-band {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 60px;
+        }
+
+        .layer-band:last-child {
+            margin-bottom: 0;
+        }
+
+        .layer-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .layer-num {
+            font-family: 'Times New Roman', serif;
+            font-size: 48px;
+            line-height: 1;
+            color: rgba(0,0,0,0.1);
+            font-style: italic;
+        }
+
+        .layer-pill {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(45,90,39,0.1);
+            color: var(--green);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .layer-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .l-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .l-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        }
+
+        .l-card.heart {
+            border: 2px solid var(--text-main);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            transform: scale(1.02);
+        }
+        
+        .l-card.heart:hover {
+            transform: scale(1.02) translateY(-4px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.1);
+        }
+
+        .l-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .l-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .spec-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+            margin-top: auto;
+        }
+
+        .spec-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #888;
+            background: rgba(0,0,0,0.03);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* TRUST LADDER FEATURE ROW */
+        .trust-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 60px;
+            margin-bottom: 120px;
+        }
+
+        .trust-levels {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .t-level {
+            display: flex;
+            gap: 16px;
+        }
+
+        .t-level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .t-level h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .t-level p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .trust-chart {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            border-left: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            padding: 20px;
+        }
+
+        .y-axis-label {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        .staircase {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            padding-left: 2px;
+        }
+
+        .step-block {
+            flex: 1;
+            border-top: 2px solid;
+            border-right: 2px dashed rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .step-1 { height: 25%; border-color: var(--green); }
+        .step-2 { height: 50%; border-color: var(--moss); }
+        .step-3 { height: 75%; border-color: var(--gold); }
+        .step-4 { height: 100%; border-color: var(--terracotta); border-right: none; }
+
+        .step-point {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: inherit;
+        }
+        
+        .step-1 .step-point { background: var(--green); }
+        .step-2 .step-point { background: var(--moss); }
+        .step-3 .step-point { background: var(--gold); }
+        .step-4 .step-point { background: var(--terracotta); right: 0; }
+
+        /* INTEGRATIONS GRID */
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+            font-weight: 400;
+        }
+
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 120px;
+        }
+
+        .integ-col {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 32px 24px;
+        }
+
+        .integ-col h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .integ-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .integ-list li {
+            font-size: 15px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .integ-list li::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 50%;
+        }
+
+        /* FOUNDATION LAYER (04) */
+        .foundation-layer {
+            margin-bottom: 120px;
+        }
+
+        .foundation-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .foundation-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .f-card {
+            background: var(--charcoal);
+            color: white;
+            padding: 32px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .f-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 24px;
+            color: var(--gold);
+        }
+
+        .f-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .f-card p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 24px;
+        }
+
+        .f-badge {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        /* FINAL CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 48px;
+            font-weight: 400;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+        
+        .cta-section p {
+            font-size: 20px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            background: var(--text-main);
+            color: white;
+            transition: var(--transition);
+        }
+        
+        .btn:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        /* SVG Utilities */
+        .icon { width: 1em; height: 1em; fill: currentColor; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+            <div class="logo">
+                <div class="logo-dot"></div>
+                AgriNexus
+            </div>
+            <div style="font-size: 14px; color: var(--text-muted);">Platform / Architecture</div>
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>An operating system that<br>senses, thinks, acts.</h1>
+            <p>Three layers, one nervous system. AgriNexus isn't just a dashboard; it's a complete infrastructure for modern farming.</p>
+        </section>
+
+        <!-- ARCHITECTURE DIAGRAM -->
+        <div class="architecture-diagram">
+            
+            <div class="data-stream">
+                <div class="particle p1"></div>
+                <div class="particle p2"></div>
+                <div class="particle p3"></div>
+                <div class="particle p4"></div>
+            </div>
+
+            <!-- Layer 01: SENSE -->
+            <div class="layer-band">
+                <div class="layer-header">
+                    <span class="layer-num">01</span>
+                    <span class="layer-pill">Sense</span>
+                </div>
+                <div class="layer-cards">
+                    <div class="l-card">
+                        <h3>Satellite Stack</h3>
+                        <p>Continuous ingestion of multi-spectral imagery to monitor crop health and moisture.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">10m/px</span>
+                            <span class="spec-tag">5-day cadence</span>
+                        </div>
+                    </div>
+                    <div class="l-card">
+                        <h3>IoT Mesh</h3>
+                        <p>Direct integration with field sensors, weather stations, and soil probes.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">MQTT</span>
+                            <span class="spec-tag">Edge buffered</span>
+                        </div>
+                    </div>
+                    <div class="l-card">
+                        <h3>Market & News Feed</h3>
+                        <p>Real-time scraping of global exchanges, geopolitical news, and trade reports.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">6x/h refresh</span>
+                            <span class="spec-tag">12 languages</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer 02: THINK -->
+            <div class="layer-band">
+                <div class="layer-header">
+                    <span class="layer-num">02</span>
+                    <span class="layer-pill" style="background: rgba(204,78,54,0.1); color: var(--terracotta);">Think</span>
+                </div>
+                <div class="layer-cards">
+                    <div class="l-card">
+                        <h3>Unified Data Lake</h3>
+                        <p>All your structured and unstructured data, standardized and mapped to your fields.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">PostGIS</span>
+                            <span class="spec-tag">TimescaleDB</span>
+                            <span class="spec-tag">Pinecone</span>
+                        </div>
+                    </div>
+                    <div class="l-card heart">
+                        <h3>Agent Mesh</h3>
+                        <p>The 18 specialists working in concert to analyze data and debate the best actions.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">LangGraph</span>
+                            <span class="spec-tag">MCP Tools</span>
+                        </div>
+                    </div>
+                    <div class="l-card">
+                        <h3>Model Library</h3>
+                        <p>Domain-specific forecasting models trained on localized agronomic data.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">Ensemble</span>
+                            <span class="spec-tag">Federated Learning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer 03: ACT -->
+            <div class="layer-band">
+                <div class="layer-header">
+                    <span class="layer-num">03</span>
+                    <span class="layer-pill" style="background: rgba(212,175,55,0.1); color: var(--gold);">Act</span>
+                </div>
+                <div class="layer-cards">
+                    <div class="l-card">
+                        <h3>Daily Briefing</h3>
+                        <p>A synthesized, human-readable summary delivered every morning before you start.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">06:42 Local Time</span>
+                            <span class="spec-tag">Voice Ready</span>
+                        </div>
+                    </div>
+                    <div class="l-card">
+                        <h3>Autonomous Actions</h3>
+                        <p>Direct execution of approved plans via API to your machinery and software.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">L1 to L4</span>
+                            <span class="spec-tag">Audit Logged</span>
+                        </div>
+                    </div>
+                    <div class="l-card">
+                        <h3>Mobile & Web</h3>
+                        <p>The command center in your pocket, built to work even in the middle of a field.</p>
+                        <div class="spec-tags">
+                            <span class="spec-tag">Offline-first</span>
+                            <span class="spec-tag">PWA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRUST LADDER -->
+        <div class="trust-section">
+            <div class="trust-levels">
+                <div class="t-level">
+                    <div class="t-level-dot" style="background: var(--green);"></div>
+                    <div>
+                        <h4 style="color: var(--green);">L1 · Advisor</h4>
+                        <p>System suggests. You execute everything manually.</p>
+                    </div>
+                </div>
+                <div class="t-level">
+                    <div class="t-level-dot" style="background: var(--moss);"></div>
+                    <div>
+                        <h4 style="color: var(--moss);">L2 · Co-pilot</h4>
+                        <p>System drafts the plan. You click once to approve.</p>
+                    </div>
+                </div>
+                <div class="t-level">
+                    <div class="t-level-dot" style="background: var(--gold);"></div>
+                    <div>
+                        <h4 style="color: var(--gold);">L3 · Auto-pilot</h4>
+                        <p>System runs routine tasks. Alerts you for high risks.</p>
+                    </div>
+                </div>
+                <div class="t-level">
+                    <div class="t-level-dot" style="background: var(--terracotta);"></div>
+                    <div>
+                        <h4 style="color: var(--terracotta);">L4 · Autonomous</h4>
+                        <p>System manages domain fully. You review the logs.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trust-chart">
+                <div class="y-axis-label">TRUST LEVEL</div>
+                <div class="staircase">
+                    <div class="step-block step-1"><div class="step-point"></div></div>
+                    <div class="step-block step-2"><div class="step-point"></div></div>
+                    <div class="step-block step-3"><div class="step-point"></div></div>
+                    <div class="step-block step-4"><div class="step-point"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTEGRATIONS -->
+        <div class="section-header">
+            <h2>Plays well with your existing setup</h2>
+            <p style="color: var(--text-muted);">No need to rip and replace. AgriNexus sits on top of your current tools.</p>
+        </div>
+        <div class="integrations-grid">
+            <div class="integ-col">
+                <h3>Machinery</h3>
+                <ul class="integ-list">
+                    <li>John Deere Ops</li>
+                    <li>Trimble</li>
+                    <li>Claas</li>
+                    <li>Case IH</li>
+                    <li>Kubota</li>
+                </ul>
+            </div>
+            <div class="integ-col">
+                <h3>Data Sources</h3>
+                <ul class="integ-list">
+                    <li>Sentinel Hub</li>
+                    <li>Planet Labs</li>
+                    <li>USDA APIs</li>
+                    <li>FAO</li>
+                    <li>Open-Meteo</li>
+                </ul>
+            </div>
+            <div class="integ-col">
+                <h3>Finance</h3>
+                <ul class="integ-list">
+                    <li>Rabobank</li>
+                    <li>UniCredit Agri</li>
+                    <li>StoneX</li>
+                    <li>Crop Insurance</li>
+                    <li>Stripe</li>
+                </ul>
+            </div>
+            <div class="integ-col">
+                <h3>Workflow</h3>
+                <ul class="integ-list">
+                    <li>WhatsApp</li>
+                    <li>Telegram</li>
+                    <li>Slack</li>
+                    <li>Google Calendar</li>
+                    <li>SAP Agri</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 04: FOUNDATION -->
+        <div class="foundation-layer">
+            <div class="foundation-header">
+                <span class="layer-num" style="font-size: 32px;">04</span>
+                <span class="layer-pill" style="background: rgba(0,0,0,0.1); color: var(--text-muted);">Foundation & Security</span>
+            </div>
+            <div class="foundation-cards">
+                <div class="f-card">
+                    <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <h3>Data Sovereignty</h3>
+                    <p>Your field data never trains public models. You own it entirely.</p>
+                    <div class="f-badge">EU GDPR RESIDENCY</div>
+                </div>
+                <div class="f-card">
+                    <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <h3>Auditable Decisions</h3>
+                    <p>Every automated action is logged cryptographically.</p>
+                    <div class="f-badge">SOC 2 · ISO 27001</div>
+                </div>
+                <div class="f-card">
+                    <svg class="f-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    <h3>Developer Access</h3>
+                    <p>Build custom agents or connect legacy systems directly.</p>
+                    <div class="f-badge">developers.agrinexus.io</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL CTA -->
+        <div class="cta-section">
+            <h2>A platform you can actually understand.</h2>
+            <p>No black box. No vendor lock-in. Open standards, your data, your call.</p>
+            <div style="margin-top: 32px;">
+                <a href="#" class="btn">Explore the architecture docs</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
