@@ -957,15 +957,28 @@
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); margin-left: 16px;">LIVE FEED</span>
             </div>
             
-            <div class="threads-list">
-                <div class="thread-item">
-                    <div class="thread-avatar ava-1"></div>
-                    <div>
-                        <div class="thread-meta">
-                            <strong>Marcus T.</strong> <span style="color: #ccc;">•</span> Illinois <span style="color: #ccc;">•</span> 2h ago
-                        </div>
-                        <div class="thread-title">What's your minimum rain threshold before deploying N-fertilizer this week?</div>
-                    </div>
+            <div id="login-prompt" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; text-align: center; margin-bottom: 24px; display: none;">
+                <p style="margin-bottom: 16px; color: var(--text-muted);">Please log in to join the conversation and post to the community.</p>
+                <a href="../login.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">Log In</a>
+            </div>
+
+            <div id="new-post-form" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; display: none;">
+                <textarea id="new-post-content" placeholder="Ask a question, coordinate a sale, or share a success story..." style="width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; margin-bottom: 12px; resize: vertical;"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <select id="new-post-tag" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);">
+                        <option value="">No Tag</option>
+                        <option value="QUESTION">Question</option>
+                        <option value="MARKET">Market</option>
+                        <option value="SUCCESS STORY">Success Story</option>
+                    </select>
+                    <button id="submit-post-btn" class="btn btn-primary" style="padding: 8px 24px; font-size: 14px;">Post</button>
+                </div>
+            </div>
+
+            <div class="threads-list" id="live-threads-list">
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading community posts...</div>
+            </div>
+        </div>
                     <div class="thread-eng">
                         <div class="eng-item">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -1112,5 +1125,11 @@
         });
     </script>
     
+
+    <!-- Supabase and Community Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../scripts/auth.js"></script>
+    <script src="../scripts/community.js"></script>
+
 </body>
 </html>
