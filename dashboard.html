@@ -611,10 +611,14 @@
         </nav>
         <div class="user-profile">
             <div class="avatar"></div>
-            <div class="user-info">
-                <span class="user-name">Dimitar T.</span>
-                <span class="user-farm">Dobrich Valley Farm</span>
-            </div>
+            
+        <div class="user-info" style="flex-grow: 1;">
+            <span class="user-name" style="word-break: break-all;">Loading...</span>
+            <span class="user-farm">AgriNexus User</span>
+        </div>
+        <button onclick="signOutUser()" title="Sign Out" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:4px;">
+            <svg class="icon" viewBox="0 0 24 24" style="width:20px; height:20px;"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </button>
         </div>
     </aside>
 
@@ -815,5 +819,12 @@
 
             </div>
         </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/scripts/auth.js"></script>
+    <script>
+        // Protect the route
+        document.addEventListener('DOMContentLoaded', protectRoute);
+    </script>
 </body>
 </html>

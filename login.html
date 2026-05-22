@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Sign Up - AgriNexus</title>
+    <title>Log In - AgriNexus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -153,17 +153,6 @@
             text-align: center;
             display: none;
         }
-        
-        .success-message {
-            color: var(--green);
-            font-size: 14px;
-            margin-top: 12px;
-            text-align: center;
-            display: none;
-            padding: 16px;
-            background: rgba(45, 90, 39, 0.1);
-            border-radius: 8px;
-        }
     </style>
 </head>
 <body>
@@ -173,83 +162,65 @@
             AgriNexus
         </a>
         
-        <h1>Create an account</h1>
-        <p class="subtitle">Join the intelligent farming network</p>
+        <h1>Welcome back</h1>
+        <p class="subtitle">Log in to access your farm's dashboard</p>
         
-        <form id="register-form">
-            <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" required autocomplete="name">
-            </div>
+        <form id="login-form">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" required autocomplete="email">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required autocomplete="new-password" minlength="6">
+                <input type="password" id="password" required autocomplete="current-password">
             </div>
             
             <div id="error-msg" class="error-message"></div>
             
-            <button type="submit" id="submit-btn" class="btn-primary">Sign Up</button>
+            <button type="submit" id="submit-btn" class="btn-primary">Log In</button>
         </form>
         
-        <div id="success-msg" class="success-message">
-            Registration successful! Please check your email to verify your account, then log in.
-        </div>
-        
         <div class="auth-footer">
-            Already have an account? <a href="/login.html">Log in</a>
+            Don't have an account? <a href="/register.html">Sign up</a>
         </div>
     </div>
 
     <script src="/scripts/auth.js"></script>
     <script>
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const fullName = document.getElementById('fullName').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const btn = document.getElementById('submit-btn');
             const errorMsg = document.getElementById('error-msg');
-            const successMsg = document.getElementById('success-msg');
-            const form = document.getElementById('register-form');
             
             btn.disabled = true;
-            btn.textContent = 'Creating account...';
+            btn.textContent = 'Logging in...';
             errorMsg.style.display = 'none';
-            successMsg.style.display = 'none';
             
             const sb = await initSupabase();
             if (!sb) {
                 errorMsg.textContent = 'System configuration error. Please try again later.';
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Sign Up';
+                btn.textContent = 'Log In';
                 return;
             }
             
-            const { data, error } = await sb.auth.signUp({
+            const { data, error } = await sb.auth.signInWithPassword({
                 email: email,
                 password: password,
-                options: {
-                    data: {
-                        full_name: fullName
-                    }
-                }
             });
             
             if (error) {
                 errorMsg.textContent = error.message;
                 errorMsg.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Sign Up';
+                btn.textContent = 'Log In';
             } else {
                 // Success
-                form.style.display = 'none';
-                successMsg.style.display = 'block';
+                window.location.href = '/dashboard.html';
             }
         });
     </script>
