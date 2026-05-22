@@ -1,0 +1,65 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import yahooFinance from 'yahoo-finance2';
+
+// Cache results for 1 hour to avoid rate limits on historical data
+let cachedHistory: any = {};
+let lastFetchTime: any = {};
+const CACHE_DURATION_MS = 60 * 60 * 1000;
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const symbol = (req.query.symbol as string) || 'ZW=F'; // Default to Wheat
+  const now = Date.now();
+
+  if (cachedHistory[symbol] && (now - lastFetchTime[symbol] < CACHE_DURATION_MS)) {
+    return res.status(200).json(cachedHistory[symbol]);
+  }
+
+  try {
+    yahooFinance.suppressNotices(['yahooSurvey']);
+    
+    // Get date 30 days ago
+    const period1 = new Date();
+    period1.setDate(period1.getDate() - 30);
+    
+    const queryOptions = { period1 };
+    const result = await yahooFinance.historical(symbol, queryOptions);
+
+    // Filter to only include date and close price to save bandwidth
+    const formattedData = result.map(item => ({
+      date: item.date.toISOString().split('T')[0],
+      price: Number(item.close.toFixed(2))
+    }));
+
+    const responseData = {
+      symbol,
+      data: formattedData
+    };
+
+    cachedHistory[symbol] = responseData;
+    lastFetchTime[symbol] = now;
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error(`Error fetching historical data for ${symbol}:`, error);
+    
+    // Fallback mock data
+    const mockData = [];
+    let startPrice = symbol === 'ZW=F' ? 530 : 420;
+    const today = new Date();
+    for (let i = 30; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        startPrice = startPrice + (Math.random() * 10 - 5);
+        mockData.push({
+            date: d.toISOString().split('T')[0],
+            price: Number(startPrice.toFixed(2))
+        });
+    }
+
+    return res.status(200).json({ symbol, data: mockData, isFallback: true });
+  }
+}
