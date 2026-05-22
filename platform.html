@@ -345,17 +345,6 @@
             
             <!-- SVG Connections -->
             <svg class="svg-connections" preserveAspectRatio="none">
-                <!-- Hardcoded bezier curves assuming relative positions -->
-                <!-- From SENSE row (4 nodes) to THINK row (center node) -->
-                <path class="conn-line" d="M 330,130 C 330,220 540,180 540,290" />
-                <path class="conn-line" d="M 470,130 C 470,220 540,180 540,290" />
-                <path class="conn-line" d="M 610,130 C 610,220 540,180 540,290" />
-                <path class="conn-line" d="M 750,130 C 750,220 540,180 540,290" />
-
-                <!-- From THINK row (center node) to ACT row -->
-                <path class="conn-line" d="M 540,380 C 540,450 380,450 380,510" />
-                <path class="conn-line" d="M 540,380 C 540,450 540,450 540,510" />
-                <path class="conn-line" d="M 540,380 C 540,450 700,450 700,510" />
             </svg>
 
             <!-- ROW 1: SENSE -->
@@ -490,5 +479,59 @@
         </div>
     </section>
 
+    <script>
+        function drawConnections() {
+            const svg = document.querySelector('.svg-connections');
+            if (!svg) return;
+            svg.innerHTML = '';
+            
+            const rows = document.querySelectorAll('.arch-row');
+            if (rows.length < 3) return;
+            
+            const senseWrappers = rows[0].querySelectorAll('.node-icon-wrapper');
+            const thinkWrappers = rows[1].querySelectorAll('.node-icon-wrapper');
+            const actWrappers = rows[2].querySelectorAll('.node-icon-wrapper');
+            
+            if (!thinkWrappers[1]) return;
+            const centerNode = thinkWrappers[1];
+            
+            const archCard = document.querySelector('.arch-card');
+            const cardRect = archCard.getBoundingClientRect();
+            
+            function getCenter(el) {
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2 - cardRect.left,
+                    y: rect.top + rect.height / 2 - cardRect.top
+                };
+            }
+            
+            const centerPos = getCenter(centerNode);
+            
+            function drawCurve(startEl, endEl) {
+                const start = getCenter(startEl);
+                const end = getCenter(endEl);
+                
+                const cp1x = start.x;
+                const cp1y = start.y + (end.y - start.y) / 2;
+                const cp2x = end.x;
+                const cp2y = start.y + (end.y - start.y) / 2;
+                
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${start.x},${start.y} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${end.x},${end.y}`);
+                path.setAttribute('class', 'conn-line');
+                svg.appendChild(path);
+            }
+            
+            senseWrappers.forEach(node => drawCurve(node, centerNode));
+            actWrappers.forEach(node => drawCurve(centerNode, node));
+        }
+        
+        window.addEventListener('resize', drawConnections);
+        window.addEventListener('load', drawConnections);
+        // Sometimes fonts/layout shifts right after parse
+        setTimeout(drawConnections, 100);
+        drawConnections();
+    </script>
 </body>
 </html>
