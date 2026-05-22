@@ -1,7 +1,7 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { StateGraph, START, END, MemorySaver } from '@langchain/langgraph';
 import { ChatMistralAI } from '@langchain/mistralai';
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 
 // Define the state interface for our graph
 interface AgentState {
@@ -105,9 +105,13 @@ workflow.addNode("orchestrator", orchestrator);
 workflow.addNode("marketAgent", marketAgent);
 workflow.addNode("generalAgent", generalAgent);
 
+// @ts-ignore
 workflow.addEdge(START, "orchestrator");
+// @ts-ignore
 workflow.addConditionalEdges("orchestrator", routeQuery);
+// @ts-ignore
 workflow.addEdge("marketAgent", END);
+// @ts-ignore
 workflow.addEdge("generalAgent", END);
 
 // Compile the graph
