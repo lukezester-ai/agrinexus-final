@@ -709,65 +709,111 @@
             </div>
 
             <div class="panel">
+                
                 <div class="panel-header">
-                    <span class="panel-title">Live Agent Mesh</span>
-                    <span class="time-badge" style="background: rgba(45,90,39,0.1); color: var(--green);">SYNCING</span>
+                    <span class="panel-title">Ask the Agent Mesh</span>
+                    <span class="time-badge" style="background: rgba(45,90,39,0.1); color: var(--green);" id="agent-status">ONLINE</span>
                 </div>
-                <div class="panel-content">
-                    <div class="agent-feed">
-                        <div class="feed-item">
-                            <div class="feed-icon" style="color: var(--gold); border-color: rgba(212,175,55,0.3);">MKT</div>
-                            <div class="feed-content">
-                                <div class="feed-meta">
-                                    <span class="feed-agent">Market Agent</span>
-                                    <span class="feed-time">06:30</span>
-                                </div>
-                                <div class="feed-text">
-                                    Processed MATIF opening. Upward trend holds. Confidence in €268 target increased to <strong>82%</strong>.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feed-item">
-                            <div class="feed-icon" style="color: var(--green); border-color: rgba(45,90,39,0.3);">SAT</div>
-                            <div class="feed-content">
-                                <div class="feed-meta">
-                                    <span class="feed-agent">Satellite Sentry</span>
-                                    <span class="feed-time">06:15</span>
-                                </div>
-                                <div class="feed-text">
-                                    Ingested new Sentinel-2 imagery. NDVI for Field 1 shows <strong>optimal maturity</strong>.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="feed-item">
-                            <div class="feed-icon" style="color: var(--terracotta); border-color: rgba(204,78,54,0.3);">IRR</div>
-                            <div class="feed-content">
-                                <div class="feed-meta">
-                                    <span class="feed-agent">Irrigation Manager</span>
-                                    <span class="feed-time">05:42</span>
-                                </div>
-                                <div class="feed-text">
-                                    Drafted schedule for Field 4 (Corn). Awaiting your approval. <br>
-                                    <span style="display:inline-block; margin-top:8px; color: var(--terracotta); font-size:12px; font-weight:600; cursor:pointer;">REVIEW PLAN →</span>
-                                </div>
-                            </div>
-                        </div>
+                <div class="panel-content" style="display: flex; flex-direction: column; padding: 0;">
+                    <div id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; min-height: 250px; max-height: 400px;">
                         <div class="feed-item">
                             <div class="feed-icon" style="color: var(--text-main); border-color: var(--border);">ORC</div>
                             <div class="feed-content">
                                 <div class="feed-meta">
                                     <span class="feed-agent">Orchestrator</span>
-                                    <span class="feed-time">05:30</span>
                                 </div>
                                 <div class="feed-text">
-                                    Synthesized 34 data points into Daily Briefing.
+                                    Hello Dimitar. The mesh is online. What would you like to know about the markets or your farm?
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: #fff;">
+                        <input type="text" id="chat-input" placeholder="Ask about wheat prices, weather, etc..." style="flex-grow: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 30px; font-size: 14px; outline: none; font-family: inherit;">
+                        <button id="chat-send" class="btn btn-primary" style="padding: 12px 24px;">Ask</button>
+                    </div>
                 </div>
+                
+                <script>
+                    const chatMessages = document.getElementById('chat-messages');
+                    const chatInput = document.getElementById('chat-input');
+                    const chatSend = document.getElementById('chat-send');
+                    const agentStatus = document.getElementById('agent-status');
+
+                    function appendMessage(sender, text, agentType) {
+                        const isUser = sender === 'You';
+                        
+                        let iconText = isUser ? 'USR' : 'ORC';
+                        let color = isUser ? 'var(--text-main)' : 'var(--green)';
+                        let borderColor = isUser ? 'var(--border)' : 'rgba(45,90,39,0.3)';
+                        
+                        if (agentType === 'marketAgent') {
+                            iconText = 'MKT';
+                            color = 'var(--gold)';
+                            borderColor = 'rgba(212,175,55,0.3)';
+                        }
+                        
+                        const msgHtml = `
+                            <div class="feed-item">
+                                <div class="feed-icon" style="color: ${color}; border-color: ${borderColor};">${iconText}</div>
+                                <div class="feed-content">
+                                    <div class="feed-meta">
+                                        <span class="feed-agent">${sender}</span>
+                                    </div>
+                                    <div class="feed-text">
+                                        ${text.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        chatMessages.innerHTML += msgHtml;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+
+                    async function sendMessage() {
+                        const message = chatInput.value.trim();
+                        if (!message) return;
+
+                        // 1. Show user message
+                        appendMessage('You', message);
+                        chatInput.value = '';
+                        
+                        // 2. Set status to processing
+                        agentStatus.textContent = 'THINKING...';
+                        agentStatus.style.color = 'var(--terracotta)';
+                        agentStatus.style.background = 'rgba(204,78,54,0.1)';
+
+                        try {
+                            const res = await fetch('/api/chat', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: message })
+                            });
+                            
+                            const data = await res.json();
+                            
+                            if (res.ok) {
+                                const agentName = data.handledBy === 'marketAgent' ? 'Market Intelligence Agent' : 'General Agent';
+                                appendMessage(agentName, data.response, data.handledBy);
+                            } else {
+                                appendMessage('System Error', data.error || 'Failed to process request.');
+                            }
+                        } catch (err) {
+                            appendMessage('System Error', 'Network error. Please check if backend is running.');
+                        } finally {
+                            agentStatus.textContent = 'ONLINE';
+                            agentStatus.style.color = 'var(--green)';
+                            agentStatus.style.background = 'rgba(45,90,39,0.1)';
+                        }
+                    }
+
+                    chatSend.addEventListener('click', sendMessage);
+                    chatInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') sendMessage();
+                    });
+                </script>
+
             </div>
-        </div>
-    </main>
+        </main>
 </body>
 </html>
