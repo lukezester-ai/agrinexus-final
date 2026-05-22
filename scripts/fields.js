@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        window.userFarmContext = fields;
         container.innerHTML = '';
         fields.forEach(field => {
             const el = document.createElement('div');

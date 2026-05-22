@@ -126,7 +126,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { message, sessionId = "default_session" } = req.body;
+    const { message, farmContext = [], sessionId = "default_session" } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -138,13 +138,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+
     console.log(`Processing message for session ${sessionId}: ${message}`);
+    
+    let contextString = "";
+    if (farmContext && farmContext.length > 0) {
+        const fieldsList = farmContext.map(f => `${f.hectares}ha of ${f.crop} (${f.name})`).join(', ');
+        contextString = `\n\nIMPORTANT USER CONTEXT:\nThe user currently has the following fields registered in their farm database: ${fieldsList}. \nPlease use this information to provide highly personalized and specific advice when they ask general questions like 'what should I do?' or 'how are my crops?'. Do not mention that you were given this context explicitly, just act as if you remember their farm details.`;
+    }
+    
 
     const config = { configurable: { thread_id: sessionId } };
     
     // Run the agent mesh
+    const enrichedMessage = message + contextString;
     const result = await app.invoke(
-      { messages: [new HumanMessage(message)] },
+      { messages: [new HumanMessage(enrichedMessage)] },
       config
     );
 
