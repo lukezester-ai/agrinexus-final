@@ -406,7 +406,16 @@
             .dash-grid { grid-template-columns: 1fr !important; }
         }
 
-    </style>
+    
+        @media (max-width: 768px) {
+            .mesh-container { display: none !important; } /* Hide complex animations on mobile to save space */
+            .stats-strip { flex-direction: column !important; align-items: center; }
+            .stat-item { width: 100% !important; margin-bottom: 24px; }
+            .split-hero { flex-direction: column !important; }
+            .nodes-container { flex-direction: column !important; }
+            .hero h1 { font-size: 28px !important; }
+        }
+        </style>
 </head>
 <body>
 
