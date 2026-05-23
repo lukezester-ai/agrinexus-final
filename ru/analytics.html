@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Графики CBOT — AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+</head>
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker-pulse"></div>
+        <div class="ticker-label">РЫНКИ <span style="opacity:0.65;font-weight:400">(Yahoo, задержка)</span></div>
+        <div class="ticker-items" id="agn-live-ticker">
+            <div class="tick"><span class="tick-name">ЗАГРУЗКА</span> <span class="tick-price">…</span></div>
+            <div class="tick"><span class="tick-name">ЗАГРУЗКА</span> <span class="tick-price">…</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <nav>
+            <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
+                <div class="logo-dot" style="background-color: var(--green, #2d5a27);"></div>
+                AgriNexus
+            </a>
+            <div style="display: flex; gap: 32px; align-items: center; font-size: 14px; font-weight: 500;">
+                <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Агенты</a>
+                <a href="platform.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Платформа</a>
+                <a href="market-intelligence.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Аналитика</a>
+                <a href="analytics.html" style="text-decoration: none; color: var(--text-main, #111);">Графики</a>
+                <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Академия</a>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+                <a href="../analytics.html" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">EN</a>
+                <span style="opacity: 0.3;">|</span>
+                <a href="analytics.html" style="color: var(--text-main, #111); text-decoration: none;">RU</a>
+            </div>
+            <a href="dashboard.html" style="padding: 10px 24px; border-radius: 30px; font-size: 14px; text-decoration: none; background: var(--text-main, #1a1a1a); color: white; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Панель управления</a>
+        </nav>
+
+        <section class="hero">
+            <h1>Деск графиков.</h1>
+            <p style="font-size: 20px; color: var(--text-muted); max-width: 720px; margin: 0 auto;">Тот же терминальный вид, что и в разделе аналитики рынка — закрытия по нескольким товарам, простые сигналы волатильности и чеклист для планирования. <strong>Не инвестиционная рекомендация.</strong> Данные: отложенные фьючерсы Yahoo (USD).</p>
+            <div style="max-width: 720px; margin: 28px auto 0; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); text-align: left; font-size: 14px; color: var(--text-muted); line-height: 1.55;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); margin-bottom: 8px; letter-spacing: 0.06em;">ИИ-КУРАТОР — ANL (FIN-ANL)</div>
+                <strong style="color: var(--text-main);">Кто за что отвечает:</strong> графики и эвристики «аномалий» на странице считаются <strong>детерминированно</strong> (браузер + <code style="font-size:12px">/api/market-history</code>). Агент <strong>AI Analytics</strong> отвечает на вопросы в <strong>сети LangGraph</strong> через <code style="font-size:12px">POST /api/chat</code> (маршрут <code style="font-size:12px">ANALYTICS_AGENT</code>) по тому же отложенному снимку Yahoo, что и Market Intelligence — нужен <code style="font-size:12px">MISTRAL_API_KEY</code>; опционально <code style="font-size:12px">MISTRAL_ANALYTICS_AGENT_MODEL</code> задаёт модель для этого деска.
+            </div>
+        </section>
+
+        <div class="terminal-container analytics-split">
+            <div class="terminal-left">
+                <div class="term-header">
+                    <div>
+                        <div style="font-family: 'JetBrains Mono', monospace; color: #999; margin-bottom: 8px;">CBOT — 30 ДНЕЙ, CLOSE</div>
+                        <div class="an-chart-shell">
+                            <canvas id="multiChart"></canvas>
+                            <div id="chart-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;">ЗАГРУЗКА СЕРИЙ…</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="term-info-boxes">
+                    <div class="term-box">
+                        <div class="term-box-label">СТАТУС ДАННЫХ</div>
+                        <div class="term-box-val" id="data-status">—</div>
+                    </div>
+                    <div class="term-box">
+                        <div class="term-box-label">СМЕШАННЫЙ ТРЕНД (30Д)</div>
+                        <div class="term-box-val" id="blend-trend">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="terminal-right">
+                <div class="signal-title">ПРОСКАНИРОВАТЬ АНОМАЛИИ</div>
+                <div class="signal-stack" id="anomaly-stack"></div>
+                <div class="signal-synthesis">
+                    <p id="synth-line">Сводка по ценам…</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Краткая сводка и урожай</h2>
+        </div>
+        <div class="data-cards" style="margin-bottom: 48px;">
+            <div class="data-card">
+                <div class="data-card-num">01 <span>сводка</span></div>
+                <h3>Взгляд с деска</h3>
+                <p style="color:var(--text-muted);font-size:15px;margin-bottom:12px;" id="card-summary">—</p>
+                <div class="data-tags" id="card-tags"></div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">02 <span>сезон</span></div>
+                <h3>Ожидаемая экономика урожая</h3>
+                <p style="color:var(--text-muted);font-size:15px;" id="card-harvest">Иллюстративная рамка — сопоставьте с вашими урожайностью, затратами и локальным базисом с консультантом.</p>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">03 <span>след. сезон</span></div>
+                <h3>Следующий год</h3>
+                <p style="color:var(--text-muted);font-size:15px;" id="card-forward">—</p>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Строительные блоки стратегии</h2>
+        </div>
+        <div class="timeline-wrap">
+            <div class="timeline-cells analytics-timeline-cells">
+                <div class="t-cell highlight-green">
+                    <div class="t-cell-label">Безубыточность</div>
+                    <div class="t-cell-val">Фикс. €/т</div>
+                    <div class="t-cell-sub">Знайте пол до хеджа или форварда.</div>
+                </div>
+                <div class="t-cell">
+                    <div class="t-cell-label">Окна</div>
+                    <div class="t-cell-val">Сезонность</div>
+                    <div class="t-cell-sub">Сопоставьте слабые/сильные месяцы с денежным потоком.</div>
+                </div>
+                <div class="t-cell highlight-gold">
+                    <div class="t-cell-label">Ликвидность</div>
+                    <div class="t-cell-val">Объём</div>
+                    <div class="t-cell-sub">Избегайте неликвидных контрактов при переносе хеджа.</div>
+                </div>
+                <div class="t-cell">
+                    <div class="t-cell-label">Погодный блок</div>
+                    <div class="t-cell-val">Слой риска</div>
+                    <div class="t-cell-sub">Региональные индексы засухи/морозов — не прогноз здесь.</div>
+                </div>
+            </div>
+            <div class="expected-box" style="margin-top: 24px;">
+                <div>
+                    <div style="font-size:12px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Дальше</div>
+                    <div style="font-size:20px;font-weight:500;">Сочетайте деск с <a href="market-intelligence.html" style="color:var(--gold);">аналитикой рынка</a> и агрономом.</div>
+                </div>
+                <a href="dashboard.html" class="btn" style="background:var(--gold);color:#1a1a1a;">Открыть панель</a>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Сначала данные.<br>Тот же стиль AgriNexus.</h2>
+            <div style="margin-top: 40px;">
+                <a href="market-intelligence.html" class="btn">К аналитике рынка</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const SYMBOLS = [
+            { sym: 'ZW=F', label: 'Пшеница', color: '#D4AF37' },
+            { sym: 'ZC=F', label: 'Кукуруза', color: '#3a8a30' },
+            { sym: 'ZS=F', label: 'Соя', color: '#7eb8da' },
+            { sym: 'ZL=F', label: 'Масло', color: '#cc4e36' }
+        ];
+
+        function std(arr) {
+            const m = arr.reduce((a,b)=>a+b,0)/arr.length;
+            return Math.sqrt(arr.map(x => (x-m)*(x-m)).reduce((a,b)=>a+b,0)/arr.length);
+        }
+
+        function dailyReturns(prices) {
+            const r = [];
+            for (let i = 1; i < prices.length; i++) r.push((prices[i]-prices[i-1])/prices[i-1]);
+            return r;
+        }
+
+        function mergeSeries(list) {
+            const dates = new Set();
+            list.forEach(({ data }) => data.forEach(d => dates.add(d.date)));
+            const labels = [...dates].sort();
+            return { labels, list };
+        }
+
+        let multiChart = null;
+
+        async function loadAll() {
+            const loadEl = document.getElementById('chart-loading');
+            loadEl.style.display = 'flex';
+            const hist = await Promise.all(SYMBOLS.map(async ({ sym }) => {
+                try {
+                    const r = await fetch('/api/market-history?symbol=' + encodeURIComponent(sym));
+                    const j = await r.json();
+                    return { sym, data: j.data || [], isFallback: j.isFallback };
+                } catch (e) {
+                    return { sym, data: [], err: true };
+                }
+            }));
+
+            const { labels, list } = mergeSeries(hist.map(h => ({ data: h.data })));
+            const datasets = SYMBOLS.map((meta, i) => {
+                const row = hist[i];
+                const map = new Map(row.data.map(d => [d.date, d.price]));
+                return {
+                    label: meta.label,
+                    data: labels.map(d => map.has(d) ? map.get(d) : null),
+                    borderColor: meta.color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    pointRadius: 0,
+                    spanGaps: true
+                };
+            });
+
+            const ctx = document.getElementById('multiChart').getContext('2d');
+            if (multiChart) multiChart.destroy();
+            multiChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255,255,255,0.75)', font: { family: 'JetBrains Mono', size: 11 } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,20,0.92)',
+                            titleColor: '#fff',
+                            bodyColor: '#ddd',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: 'rgba(255,255,255,0.45)', maxTicksLimit: 8, font: { family: 'JetBrains Mono', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: 'rgba(255,255,255,0.45)', font: { family: 'JetBrains Mono', size: 10 } }
+                        }
+                    }
+                }
+            });
+            loadEl.style.display = 'none';
+
+            const fb = hist.some(h => h.isFallback);
+            document.getElementById('data-status').textContent = fb ? 'Резерв / частично' : 'Yahoo (задержка)';
+
+            const trends = hist.map((h, i) => {
+                const p = h.data.map(d => d.price);
+                if (p.length < 3) return SYMBOLS[i].label + ': н/д';
+                const a = p.slice(0, Math.floor(p.length/3)).reduce((x,y)=>x+y,0) / Math.floor(p.length/3);
+                const b = p.slice(-Math.floor(p.length/3)).reduce((x,y)=>x+y,0) / Math.floor(p.length/3);
+                const dir = b > a * 1.01 ? '↑' : b < a * 0.99 ? '↓' : '→';
+                return SYMBOLS[i].label + ' ' + dir;
+            });
+            document.getElementById('blend-trend').textContent = trends.join(' · ');
+
+            const stack = document.getElementById('anomaly-stack');
+            stack.innerHTML = '';
+            hist.forEach((h, i) => {
+                const p = h.data.map(d => d.price);
+                if (p.length < 5) return;
+                const r = dailyReturns(p);
+                const v = std(r);
+                const last3 = (p[p.length-1]-p[p.length-3]) / p[p.length-3];
+                let txt = 'Волатильность близка к медиане окна.';
+                let pips = '<div class="s-pip"></div><div class="s-pip"></div><div class="s-pip"></div>';
+                if (v > 0.025) { txt = 'Повышенная дневная волатильность — следите за спредами и ликвидностью.'; pips = '<div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip"></div>'; }
+                if (last3 < -0.04) { txt = 'Резкое снижение закрытий за 3 сессии — проверьте кэшфлоу при аналогии на воротах хозяйства.'; pips = '<div class="s-pip active-red"></div><div class="s-pip active-red"></div><div class="s-pip"></div>'; }
+                stack.innerHTML += '<div class="signal-item"><div class="signal-meta"><span class="signal-src">' + SYMBOLS[i].label.toUpperCase() + '</span><span>СТАТ</span></div><div class="signal-text">' + txt + '</div><div class="signal-strength">' + pips + '</div></div>';
+            });
+
+            const up = trends.filter(t => t.includes('↑')).length;
+            const down = trends.filter(t => t.includes('↓')).length;
+            document.getElementById('synth-line').textContent = 'Сводка: ' + up + ' рядов показывают краткосрочное усиление, ' + down + ' слабее. Для обсуждения тайминга — не призыв к покупке/продаже.';
+            document.getElementById('card-summary').textContent = 'Фьючерсы — термометр риска, не прогноз урожая. Сопоставьте с локальным базисом и своими тоннами.';
+            document.getElementById('card-forward').textContent = 'На следующий сельхозгод заложите в бюджет худшую ногу из этого 30-дневного окна и отметьте даты ролловера.';
+            const tags = document.getElementById('card-tags');
+            tags.innerHTML = '<span class="data-tag">Задержка данных</span><span class="data-tag">CBOT</span><span class="data-tag">Волатильность</span><span class="data-tag">Чеклист</span>';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAll().catch(console.error);
+            (async function ticker() {
+                const el = document.getElementById('agn-live-ticker');
+                if (!el) return;
+                try {
+                    const res = await fetch('/api/market-data');
+                    const j = await res.json();
+                    const rows = Array.isArray(j.data) ? j.data : [];
+                    if (!rows.length) return;
+                    const one = rows.map(function (d) {
+                        var nm = (d.name || d.symbol || '').split(' ')[0].slice(0, 14).toUpperCase();
+                        var pr = d.price != null ? Number(d.price).toFixed(2) : '—';
+                        var cur = d.currency || '';
+                        var pct = d.changePercent != null ? Number(d.changePercent) : 0;
+                        var up = pct >= 0;
+                        var cls = up ? 'tick-up' : 'tick-down';
+                        var sign = pct >= 0 ? '+' : '';
+                        return '<div class="tick"><span class="tick-name">' + nm + '</span> <span class="tick-price">' + pr + ' ' + cur + '</span> <span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span></div>';
+                    }).join('');
+                    el.innerHTML = one + one;
+                } catch (e) { /* keep placeholder */ }
+            })();
+        });
+    </script>
+</body>
+</html>

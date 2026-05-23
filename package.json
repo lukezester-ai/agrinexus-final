@@ -4,6 +4,10 @@
 	"type": "module",
 	"scripts": {
 		"dev": "node --import tsx scripts/dev-server.mjs",
+		"dev:web": "npm --prefix apps/web run dev",
+		"dev:backend": "cd apps/backend && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
+		"compose:up": "docker compose up --build",
+		"compose:down": "docker compose down",
 		"serve": "npx --yes serve . -p 3456",
 		"sync:agridirect": "node scripts/sync-agridirect-articles.mjs",
 		"build:egypt": "node scripts/build-egypt-article.mjs",

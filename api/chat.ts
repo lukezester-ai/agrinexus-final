@@ -8,6 +8,7 @@ import { checkRateLimit, clientIpFromVercelRequest } from './lib/rate-limit.js';
 
 type RouteKey =
 	| 'MARKET_AGENT'
+	| 'ANALYTICS_AGENT'
 	| 'WEATHER_AGENT'
 	| 'ACADEMY_AGENT'
 	| 'GENERAL_RESPONSE';
@@ -32,6 +33,7 @@ function logJson(event: string, fields: Record<string, unknown>) {
 
 function normalizeRoute(raw: string): RouteKey {
 	const u = raw.toUpperCase();
+	if (u.includes('ANALYTIC')) return 'ANALYTICS_AGENT';
 	if (u.includes('MARKET')) return 'MARKET_AGENT';
 	if (u.includes('WEATHER') || u.includes('AGRONOM') || u.includes('IRRIGATION')) return 'WEATHER_AGENT';
 	if (
@@ -55,12 +57,13 @@ const orchestrator = async (state: AgentState) => {
 
 	const prompt = new SystemMessage(
 		`You are the AgriNexus Orchestrator. Route the user message to exactly ONE key (output ONLY the key, no markdown):
-MARKET_AGENT — prices, futures, selling/buying crops, hedging, spreads, export parity.
+ANALYTICS_AGENT — charts/dashboards, multi-series futures, volatility, "what does this pattern mean", CBOT desk / Analytics Lab style questions (explain, no trade signals).
+MARKET_AGENT — prices, futures, selling/buying crops, hedging, spreads, export parity (execution / timing mindset).
 WEATHER_AGENT — weather, rainfall, temperature forecasts, irrigation timing, frost risk (not prices).
 ACADEMY_AGENT — learning paths, courses, curriculum, AgriNexus Academy, podcasts, "how do I learn", study plans.
 GENERAL_RESPONSE — everything else (farm ops UI, greetings, vague questions).
 
-Output ONLY one of: MARKET_AGENT | WEATHER_AGENT | ACADEMY_AGENT | GENERAL_RESPONSE`,
+Output ONLY one of: ANALYTICS_AGENT | MARKET_AGENT | WEATHER_AGENT | ACADEMY_AGENT | GENERAL_RESPONSE`,
 	);
 
 	const response = await llm.invoke([prompt, new HumanMessage(userQuery)]);
@@ -87,6 +90,27 @@ ${snapshot}`,
 	const response = await llm.invoke([prompt, lastMessage]);
 	logJson('market_agent_done', { ms: Date.now() - t0 });
 	return { agentResponse: response.content, currentTask: 'DONE', lastRoute: 'marketAgent' };
+};
+
+const analyticsAgent = async (state: AgentState) => {
+	const t0 = Date.now();
+	const llm = getChatMistral(
+		process.env.MISTRAL_ANALYTICS_AGENT_MODEL?.trim() || process.env.MISTRAL_MARKET_AGENT_MODEL?.trim(),
+	);
+	const lastMessage = state.messages[state.messages.length - 1] as HumanMessage;
+	const snapshot = await fetchMarketSnapshotForLlm();
+	const prompt = new SystemMessage(
+		`${AGN_POLICY}
+
+You are the AgriNexus **AI Analytics** agent (codename ANL / FIN-ANL).
+You steward the Analytics desk: explain delayed multi-commodity futures, volatility regimes, and how to read chart-style summaries using ONLY the numbers in the snapshot.
+Do not invent prices. No buy/sell instructions — educational framing only. One-line disclaimer: Yahoo data is delayed; not investment advice.
+
+${snapshot}`,
+	);
+	const response = await llm.invoke([prompt, lastMessage]);
+	logJson('analytics_agent_done', { ms: Date.now() - t0 });
+	return { agentResponse: response.content, currentTask: 'DONE', lastRoute: 'analyticsAgent' };
 };
 
 const weatherAgent = async (state: AgentState) => {
@@ -139,6 +163,7 @@ Answer helpfully and concisely. If the user mixes topics, acknowledge it and foc
 
 const routeQuery = (state: AgentState) => {
 	const t = state.currentTask;
+	if (t === 'ANALYTICS_AGENT') return 'analyticsAgent';
 	if (t === 'MARKET_AGENT') return 'marketAgent';
 	if (t === 'WEATHER_AGENT') return 'weatherAgent';
 	if (t === 'ACADEMY_AGENT') return 'academyAgent';
@@ -167,6 +192,7 @@ const workflow = new StateGraph<AgentState>({
 });
 
 workflow.addNode('orchestrator', orchestrator);
+workflow.addNode('analyticsAgent', analyticsAgent);
 workflow.addNode('marketAgent', marketAgent);
 workflow.addNode('weatherAgent', weatherAgent);
 workflow.addNode('academyAgent', academyAgent);
@@ -176,6 +202,8 @@ workflow.addNode('generalAgent', generalAgent);
 workflow.addEdge(START, 'orchestrator');
 // @ts-expect-error LangGraph typings vary by version
 workflow.addConditionalEdges('orchestrator', routeQuery);
+// @ts-expect-error LangGraph typings vary by version
+workflow.addEdge('analyticsAgent', END);
 // @ts-expect-error LangGraph typings vary by version
 workflow.addEdge('marketAgent', END);
 // @ts-expect-error LangGraph typings vary by version

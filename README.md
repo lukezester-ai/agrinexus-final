@@ -4,6 +4,8 @@
 
 AgriNexus is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
 
+**AI кошче:** временни чернови, фрагменти и еднократни артефакти от работа с ИИ — папка **`ai-trash/`** (съдържанието е в `.gitignore`, виж `ai-trash/README.md`). Правило за агентите: `.cursor/rules/ai-trash.mdc`.
+
 ## Project Structure & Core Pages
 
 ### 1. Agents (`index.html`)
@@ -15,8 +17,8 @@ The system is built on a strong metaphor: 18 distinct specialists forming a coor
 
 ### 2. Market Intelligence (`market-intelligence.html`)
 **"Trade your harvest like a hedge fund."**
-A Bloomberg-meets-Stripe terminal aesthetic, designed for farmers.
-- **Live Ticker:** Real-time prices for Wheat, Corn, Sunflower, Rapeseed, Barley, and Soy.
+A Bloomberg-meets-Stripe terminal aesthetic, designed for farmers. Styles live in **`styles/agri-market-shared.css`** (shared with **`analytics.html`**).
+- **Live Ticker & chart:** `npm run dev` then open the page — data comes from **`/api/market-data`** and **`/api/market-history`** (delayed Yahoo CBOT symbols `ZW=F` / `ZC=F`). Plain static hosting (`npm run serve`) serves files only; APIs will not run.
 - **The Engine:** Forecast targets combined with the farmer's break-even metrics to show potential profit.
 - **Signal Stack:** Synthesizes news, satellite data, FX rates, and USDA reports into an actionable Orchestrator Synthesis (e.g., "+2.0% bullish bias").
 - **Optimal Selling Window:** A clear visualization (Sell Now vs. Sell Sep vs. Hold) proving ROI (+€18/tonne).
@@ -44,9 +46,22 @@ The actual product from the inside. A calm, highly functional UI where the farme
 
 ## Implementation vs. product story
 
-- **“18 specialists”** on `agents.html` is a **design metaphor** for the five agent families and autonomy levels. In this repository, the **executable** agent mesh is the **LangGraph** flow in `api/chat.ts` (orchestrator → **market**, **weather**, **academy**, **general** agents) plus the separate **`POST /api/academy-tutor`** endpoint for the Academy pages.
+- **“18 specialists”** on `agents.html` is a **design metaphor** for the five agent families and autonomy levels. In this repository, the **executable** agent mesh is the **LangGraph** flow in `api/chat.ts` (orchestrator → **ANALYTICS_AGENT**, **MARKET_AGENT**, **WEATHER_AGENT**, **ACADEMY_AGENT**, **GENERAL_RESPONSE**) plus the separate **`POST /api/academy-tutor`** endpoint for the Academy pages.
 - **Market quotes** in the mesh and Academy use **Yahoo Finance** (delayed); the LLM must **not invent** prices when the snapshot is present (see `api/lib/market-snapshot.ts` and `api/lib/agrinexus-policy.ts`).
 - **Fieldlot** (subfolder) has its own chat + RAG pipeline; `fieldlot/scripts/sync-gov-listings.ts` **fails the build** if `MISTRAL_API_KEY` is set but the semantic RAG index has **chunks and zero embeddings** (misconfigured embed step).
+
+## Marketing site + Yahoo APIs (repo root)
+
+```bash
+npm install
+npm run dev
+```
+
+Serves `http://127.0.0.1:3456` with static HTML/CSS plus **`/api/market-data`**, **`/api/market-history`**, **`POST /api/chat`** (LangGraph mesh, including **AI Analytics** / `ANALYTICS_AGENT`), waitlist, etc. **`market-intelligence.html`**, **`analytics.html`**, and RU mirrors load charts/ticker through these routes — use **`npm run dev`**, not **`npm run serve`** (static-only, no APIs).
+
+## Target stack (roadmap)
+
+Продуктов слой (бъдеща фаза): **Next.js** (frontend), **Python + FastAPI** (backend), **PostgreSQL** (OLTP), **vector DB** (AI memory), **Docker** automation, **VPS** → по-късно **Kubernetes**. Пълна таблица и роли: **`docs/TARGET-ARCHITECTURE.md`**. Скелет за локална работа: **`docs/LOCAL-DEV.md`** (`apps/web`, `apps/backend`, `docker-compose.yml`).
 
 ## CI
 

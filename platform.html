@@ -225,6 +225,7 @@
             align-items: flex-start;
             padding: 0 40px;
             position: relative;
+            z-index: 3;
         }
 
         .nodes-think {
@@ -249,9 +250,10 @@
             justify-content: center;
             position: relative;
             z-index: 5;
+            transition: transform 0.2s ease;
         }
 
-        /* Inner ring */
+        /* Inner ring — must not steal clicks from the <a> */
         .node-icon-wrapper::after {
             content: '';
             position: absolute;
@@ -262,6 +264,7 @@
             border: 1.5px solid var(--c-sense);
             border-radius: 50%;
             opacity: 0.7;
+            pointer-events: none;
         }
 
         /* Special Central Node */
@@ -285,6 +288,41 @@
         .node-center .node-label {
             color: var(--text-main);
             font-weight: 600;
+        }
+
+        /* Clickable platform nodes (cards → real sections / apps) */
+        a.node {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 20px;
+            padding: 10px 12px;
+            margin: -10px -12px;
+            transition: transform 0.2s ease, background 0.2s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(68, 122, 84, 0.15);
+        }
+        a.node:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+        a.node:hover .node-icon-wrapper {
+            transform: scale(1.06);
+        }
+        a.node svg {
+            pointer-events: none;
+        }
+        a.node:focus-visible {
+            outline: 2px solid var(--c-sense);
+            outline-offset: 3px;
+        }
+        a.node.node-center:focus-visible {
+            outline-color: var(--c-think);
+        }
+        .arch-row:nth-child(4) a.node:focus-visible {
+            outline-color: var(--c-act);
+        }
+        html {
+            scroll-behavior: smooth;
         }
 
         /* SVG BACKGROUND CONNECTIONS */
@@ -432,6 +470,7 @@
         <a href="index.html" style="text-decoration: none; color: var(--text-muted, #777);">Agents</a>
         <a href="platform.html" style="text-decoration: none; color: var(--text-muted, #777);">Platform</a>
         <a href="market-intelligence.html" style="text-decoration: none; color: var(--text-muted, #777);">Market</a>
+        <a href="analytics.html" style="text-decoration: none; color: var(--text-muted, #777);">Analytics</a>
         <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #777);">Academy</a>
     </div>
     
@@ -448,15 +487,15 @@
         <h1>An operating system<br>that <span class="c-sense">senses</span>, <span class="c-think">thinks</span>, <span class="c-act">acts</span>.</h1>
         <p>Three layers, one nervous system. Sensors feed the brain, the brain commands the hands. Every signal traceable, every action reversible.</p>
         
-        <div class="scroll-down">
+        <a href="#platform-architecture" class="scroll-down" aria-label="Scroll to platform architecture" title="View architecture">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <polyline points="19 12 12 19 5 12"></polyline>
             </svg>
-        </div>
+        </a>
     </header>
 
-    <section class="arch-section container">
+    <section id="platform-architecture" class="arch-section container">
         <div class="arch-card">
             
             <!-- SVG Connections -->
@@ -467,7 +506,7 @@
             <div class="arch-row">
                 <div class="row-label">01 . SENSE</div>
                 <div class="nodes-container">
-                    <div class="node">
+                    <a href="market-intelligence.html" class="node" title="Market intelligence — signals & context">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <rect x="2" y="8" width="20" height="8" rx="2"></rect>
@@ -475,8 +514,8 @@
                             </svg>
                         </div>
                         <div class="node-label">Satellites</div>
-                    </div>
-                    <div class="node">
+                    </a>
+                    <a href="fieldlot/index.html" class="node" title="Fieldlot — equipment & farm catalog">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
@@ -486,19 +525,19 @@
                             </svg>
                         </div>
                         <div class="node-label">IoT sensors</div>
-                    </div>
-                    <div class="node">
+                    </a>
+                    <a href="agridirect/index.html" class="node" title="AgriDirect — news & market desk">
                         <div class="node-icon-wrapper">
                             <!-- Small green dot top center of this circle as seen in design -->
-                            <div style="position:absolute; top:-2px; width:6px; height:6px; background:var(--c-sense); border-radius:50%; z-index:10;"></div>
+                            <div style="position:absolute; top:-2px; width:6px; height:6px; background:var(--c-sense); border-radius:50%; z-index:10; pointer-events:none;"></div>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <rect x="3" y="4" width="18" height="16" rx="2"></rect>
                                 <path d="M7 8h10"></path>
                             </svg>
                         </div>
                         <div class="node-label">News & markets</div>
-                    </div>
-                    <div class="node">
+                    </a>
+                    <a href="dashboard.html" class="node" title="Dashboard — field reports & workspace">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <rect x="7" y="3" width="10" height="18" rx="2"></rect>
@@ -506,7 +545,7 @@
                             </svg>
                         </div>
                         <div class="node-label">Field reports</div>
-                    </div>
+                    </a>
                 </div>
                 <div class="row-meta">collection</div>
             </div>
@@ -515,7 +554,7 @@
             <div class="arch-row">
                 <div class="row-label" style="color: var(--c-think);">02 . THINK</div>
                 <div class="nodes-container nodes-think">
-                    <div class="node">
+                    <a href="register.html" class="node" title="Register — join the data lake / early access">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
                                 <ellipse cx="12" cy="5" rx="7" ry="3"></ellipse>
@@ -524,9 +563,9 @@
                             </svg>
                         </div>
                         <div class="node-label">Data lake</div>
-                    </div>
+                    </a>
                     
-                    <div class="node node-center">
+                    <a href="index.html" class="node node-center" title="Agents — orchestration mesh">
                         <div class="node-icon-wrapper">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -541,9 +580,9 @@
                             </svg>
                         </div>
                         <div class="node-label">Agent mesh</div>
-                    </div>
+                    </a>
                     
-                    <div class="node">
+                    <a href="academy.html" class="node" title="Academy — courses & model literacy">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
                                 <circle cx="12" cy="12" r="8"></circle>
@@ -551,7 +590,7 @@
                             </svg>
                         </div>
                         <div class="node-label">Models</div>
-                    </div>
+                    </a>
                 </div>
                 <div class="row-meta">reasoning</div>
             </div>
@@ -560,7 +599,7 @@
             <div class="arch-row" style="margin-bottom: 0;">
                 <div class="row-label" style="color: var(--c-act);">03 . ACT</div>
                 <div class="nodes-container nodes-think">
-                    <div class="node">
+                    <a href="dashboard.html" class="node" title="Dashboard — daily briefing & alerts">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -568,18 +607,18 @@
                             </svg>
                         </div>
                         <div class="node-label">Daily Briefing</div>
-                    </div>
+                    </a>
                     
-                    <div class="node">
+                    <a href="agents.html" class="node" title="Agents — automation & playbooks">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                         </div>
                         <div class="node-label">Auto actions</div>
-                    </div>
+                    </a>
                     
-                    <div class="node">
+                    <a href="https://www.agrinexuslaw.com/" target="_blank" rel="noopener noreferrer" class="node" title="AgriNexus.Law — mobile PWA & voice-ready app (opens in new tab)">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <rect x="5" y="2" width="14" height="20" rx="2"></rect>
@@ -587,7 +626,7 @@
                             </svg>
                         </div>
                         <div class="node-label">Mobile & voice</div>
-                    </div>
+                    </a>
                 </div>
                 <div class="row-meta">execution</div>
             </div>

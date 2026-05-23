@@ -3,6 +3,12 @@
 	"outputDirectory": ".",
 	"framework": null,
 	"rewrites": [
+		{ "source": "/analytics", "destination": "/analytics.html" },
+		{ "source": "/ru/analytics", "destination": "/ru/analytics.html" },
+		{ "source": "/market-intelligence", "destination": "/market-intelligence.html" },
+		{ "source": "/ru/market-intelligence", "destination": "/ru/market-intelligence.html" },
+		{ "source": "/platform", "destination": "/platform.html" },
+		{ "source": "/ru/platform", "destination": "/ru/platform.html" },
 		{ "source": "/agridirect", "destination": "/agridirect/index.html" },
 		{ "source": "/register", "destination": "/register.html" },
 		{ "source": "/archive", "destination": "/archive.html" },
