@@ -737,8 +737,8 @@
     <!-- LIVE TICKER -->
     <div class="ticker-wrap">
         <div class="ticker-pulse"></div>
-        <div class="ticker-label">LIVE MARKETS</div>
-        <div class="ticker-items">
+        <div class="ticker-label">LIVE MARKETS <span style="opacity:0.65;font-weight:400">(Yahoo, delayed)</span></div>
+        <div class="ticker-items" id="agn-live-ticker">
             <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
             <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
             <div class="tick"><span class="tick-name">SUNFLOWER</span> <span class="tick-price">€412.00</span> <span class="tick-down">-1.2%</span></div>
@@ -1140,6 +1140,27 @@
         // Initial load
         window.addEventListener('DOMContentLoaded', () => {
             loadChart('ZW=F');
+            (async function loadTicker() {
+                const el = document.getElementById('agn-live-ticker');
+                if (!el) return;
+                try {
+                    const res = await fetch('/api/market-data');
+                    const j = await res.json();
+                    const rows = Array.isArray(j.data) ? j.data : [];
+                    if (!rows.length) return;
+                    const one = rows.map(function (d) {
+                        var nm = (d.name || d.symbol || '').split(' ')[0].slice(0, 14).toUpperCase();
+                        var pr = d.price != null ? Number(d.price).toFixed(2) : '—';
+                        var cur = d.currency || '';
+                        var pct = d.changePercent != null ? Number(d.changePercent) : 0;
+                        var up = pct >= 0;
+                        var cls = up ? 'tick-up' : 'tick-down';
+                        var sign = pct >= 0 ? '+' : '';
+                        return '<div class="tick"><span class="tick-name">' + nm + '</span> <span class="tick-price">' + pr + ' ' + cur + '</span> <span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span></div>';
+                    }).join('');
+                    el.innerHTML = one + one;
+                } catch (e) { console.warn('ticker', e); }
+            })();
         });
     </script>
     

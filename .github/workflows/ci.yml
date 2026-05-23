@@ -1,0 +1,38 @@
+name: AgriNexus CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  root-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install root
+        run: npm ci
+      - name: Typecheck root (api + server)
+        run: npm run typecheck
+      - name: Fieldlot RAG index sanity
+        run: npm run check:fieldlot-rag
+
+  fieldlot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fieldlot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: fieldlot/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test

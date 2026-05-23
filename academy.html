@@ -763,6 +763,20 @@
             </div>
         </div>
 
+        <!-- LIVE ACADEMY TUTOR (uses /api/academy-tutor + delayed Yahoo snapshot for teaching) -->
+        <div class="section-header" style="margin-top: 48px;">
+            <h2>Ask the Academy Tutor</h2>
+            <span style="font-size: 13px; color: var(--text-muted);">Live market snapshot is for learning only — not trading advice.</span>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 720px;">
+            <textarea id="agn-academy-input" rows="4" placeholder="e.g. How do I read wheat futures vs my local elevator bid?" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: inherit; font-size: 15px; resize: vertical;"></textarea>
+            <div style="display: flex; gap: 12px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
+                <button type="button" id="agn-academy-send" style="padding: 12px 22px; border-radius: 999px; border: none; background: var(--text-main); color: #fff; font-weight: 600; cursor: pointer;">Get a lesson</button>
+                <span id="agn-academy-status" style="font-size: 13px; color: var(--text-muted);"></span>
+            </div>
+            <div id="agn-academy-reply" style="margin-top: 18px; font-size: 15px; line-height: 1.55; color: var(--text-main); white-space: pre-wrap;"></div>
+        </div>
+
         <!-- THIS WEEK'S READING -->
         <div class="section-header">
             <h2>This week's reading</h2>
@@ -1078,6 +1092,38 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/community.js"></script>
+    <script>
+    (function () {
+        var btn = document.getElementById('agn-academy-send');
+        var input = document.getElementById('agn-academy-input');
+        var out = document.getElementById('agn-academy-reply');
+        var st = document.getElementById('agn-academy-status');
+        if (!btn || !input || !out || !st) return;
+        btn.addEventListener('click', async function () {
+            var q = (input.value || '').trim();
+            if (!q) { st.textContent = 'Please type a question.'; return; }
+            st.textContent = 'Thinking…';
+            out.textContent = '';
+            btn.disabled = true;
+            try {
+                var res = await fetch('/api/academy-tutor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: q })
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+                out.textContent = data.reply || '';
+                st.textContent = 'Done.';
+            } catch (e) {
+                st.textContent = 'Could not reach tutor (configure MISTRAL_API_KEY on deployment).';
+                out.textContent = String(e && e.message ? e.message : e);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    })();
+    </script>
 
 </body>
 </html>

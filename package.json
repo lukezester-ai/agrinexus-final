@@ -8,7 +8,9 @@
 		"sync:agridirect": "node scripts/sync-agridirect-articles.mjs",
 		"build:egypt": "node scripts/build-egypt-article.mjs",
 		"build:egypt:ru": "node scripts/build-egypt-article-ru.mjs",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"check:fieldlot-rag": "node scripts/check-fieldlot-rag.mjs",
+		"ci": "npm run typecheck && node scripts/check-fieldlot-rag.mjs"
 	},
 	"dependencies": {
 		"@langchain/core": "^1.1.48",

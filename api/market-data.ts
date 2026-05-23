@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import yahooFinance from 'yahoo-finance2';
+import { yahooFinance } from './yahoo-finance-client.js';
 
 // Cache results for 15 minutes to avoid rate limits
 let cachedData: any = null;
@@ -22,10 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Fetch live commodity data
     // ZW=F : Chicago SRW Wheat Futures
     // ZC=F : Corn Futures
-    const symbols = ['ZW=F', 'ZC=F'];
-    
-    // Disable logging for cleaner Vercel logs
-    yahooFinance.suppressNotices(['yahooSurvey']);
+    const symbols = ['ZW=F', 'ZC=F', 'ZS=F', 'ZL=F'];
     
     const results = await yahooFinance.quote(symbols);
     
@@ -67,6 +64,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           price: 430.50,
           change: -2.25,
           changePercent: -0.52,
+          currency: "USD"
+        },
+        {
+          symbol: "ZS=F",
+          name: "Soybean Futures",
+          price: 1020,
+          change: 0,
+          changePercent: 0,
+          currency: "USD"
+        },
+        {
+          symbol: "ZL=F",
+          name: "Soybean Oil",
+          price: 48,
+          change: 0,
+          changePercent: 0,
           currency: "USD"
         }
       ]

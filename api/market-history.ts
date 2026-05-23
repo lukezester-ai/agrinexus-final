@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import yahooFinance from 'yahoo-finance2';
+import { yahooFinance } from './yahoo-finance-client.js';
 
 // Cache results for 1 hour to avoid rate limits on historical data
 let cachedHistory: any = {};
@@ -19,8 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    yahooFinance.suppressNotices(['yahooSurvey']);
-    
     // Get date 30 days ago
     const period1 = new Date();
     period1.setDate(period1.getDate() - 30);
