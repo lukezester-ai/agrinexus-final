@@ -33,10 +33,13 @@ export default async function CoursePage({ params }: Props) {
 				<li>Module 2 — placeholder</li>
 				<li>Module 3 — placeholder</li>
 			</ol>
-			<p className="mt-10 text-sm">
+			<p className="mt-10 flex flex-wrap gap-4 text-sm">
 				<Link href="/academy" className="text-emerald-800 underline underline-offset-4">
-					← All courses
+					← All courses (Next)
 				</Link>
+				<a href="/course.html" className="text-emerald-800 underline underline-offset-4">
+					Open static course shell →
+				</a>
 			</p>
 		</main>
 	);

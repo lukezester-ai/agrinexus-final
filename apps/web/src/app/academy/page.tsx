@@ -16,7 +16,11 @@ export default function AcademyHubPage() {
 			<p className="text-sm font-medium uppercase tracking-wide text-emerald-800">AgriNexus · Academy</p>
 			<h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Courses (skeleton)</h1>
 			<p className="mt-3 text-slate-600">
-				Static placeholder list. Replace with API from <code className="rounded bg-slate-200 px-1">apps/backend</code> + learner progress.
+				Static placeholder list. Replace with API from <code className="rounded bg-slate-200 px-1">apps/backend</code> + learner progress.{" "}
+				<a href="/academy.html" className="font-medium text-emerald-800 underline underline-offset-4">
+					Full library (static)
+				</a>
+				.
 			</p>
 			<ul className="mt-10 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white shadow-sm">
 				{STUB_COURSES.map((c) => (
@@ -31,10 +35,13 @@ export default function AcademyHubPage() {
 					</li>
 				))}
 			</ul>
-			<p className="mt-8 text-sm">
+			<p className="mt-8 text-sm flex flex-wrap gap-4">
 				<Link href="/" className="text-emerald-800 underline underline-offset-4">
-					← Home
+					← Home (Next)
 				</Link>
+				<a href="/" className="text-emerald-800 underline underline-offset-4">
+					Marketing home (static)
+				</a>
 			</p>
 		</main>
 	);

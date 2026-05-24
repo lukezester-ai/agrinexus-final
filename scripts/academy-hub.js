@@ -46,8 +46,9 @@
 				'Full vision: docs/ACADEMY_PRODUCT_VISION.md · Architecture sketch: docs/ACADEMY_ARCHITECTURE.md (repository root).',
 		},
 		bg: {
-			materialsTitle: 'Библиотека с материали',
-			materialsSub: 'Статии на сайта, AgriDirect и проверени външни източници — филтър по тема.',
+			materialsTitle: 'Каталог с връзки',
+			materialsSub:
+				'Търсене по тема към страници от сайта. Повечето материали са на английски (корен на домейна); българските екрани навигират към тях, докато няма превод.',
 			searchPh: 'Търсене: NDVI, CAP, пшеница, фючърси, Египет…',
 			empty: 'Няма резултати — опитайте друга дума или нулирайте филтрите.',
 			open: 'Отвори',
@@ -74,7 +75,7 @@
 			roadmapEyebrow: 'Продуктова пътна карта',
 			roadmapTitle: 'Какво следва (MVP)',
 			roadmapSub:
-				'Структурирани курсове, видео в сайта, кратки тестове и табло за учащ — върху днешната библиотека и наставника.',
+				'Структурирани курсове, видео в сайта, кратки тестове и табло за учащ — върху днешния каталог и наставника.',
 			roadmapLi1: 'Профили и вход за учащи',
 			roadmapLi2: 'Първа водена пътека с проследяване на прогрес',
 			roadmapLi3: 'Вградени видео модули и транскрипти, където е възможно',
@@ -85,6 +86,25 @@
 		},
 	};
 	const L = labels[LANG];
+
+	/** From bg/*.html, root articles need ../ ; pages mirrored under bg/ stay same-folder. */
+	function resolveMaterialHref(href) {
+		if (!href || /^https?:\/\//i.test(href)) return href;
+		if (LANG !== 'bg') return href;
+		const clean = href.replace(/^\.\//, '');
+		const file = clean.split('/').pop();
+		const inBgFolder = [
+			'index.html',
+			'academy.html',
+			'analytics.html',
+			'market-intelligence.html',
+			'platform.html',
+			'dashboard.html',
+			'agents.html',
+		];
+		if (!clean.includes('/') && inBgFolder.includes(file)) return clean;
+		return '../' + clean;
+	}
 
 	function norm(s) {
 		return (s || '').toLowerCase();
@@ -127,7 +147,7 @@
 		grid.innerHTML = list
 			.map(function (it) {
 				const ext = it.href && it.href.startsWith('http');
-				const rel = ext ? it.href : it.href;
+				const rel = ext ? it.href : resolveMaterialHref(it.href);
 				const target = ext ? ' rel="noopener noreferrer" target="_blank"' : '';
 				const badge = typeLabel(it.type || 'article');
 				return (

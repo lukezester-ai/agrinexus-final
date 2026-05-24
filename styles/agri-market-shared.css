@@ -108,6 +108,12 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* Clear visual break between brand wordmark and first nav link (e.g. Начало / Start) */
+        nav > a.logo {
+            margin-right: clamp(24px, 4vw, 48px);
+            flex-shrink: 0;
+        }
         
         .logo {
             font-weight: 600;
@@ -632,6 +638,7 @@
             nav > a.logo {
                 width: 100%;
                 justify-content: center;
+                margin-right: 0;
                 margin-bottom: 8px;
             }
             nav > div {
