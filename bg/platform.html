@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Platform - AgriNexus</title>
+    <title>Платформа — AgriNexus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
     <style>
         :root {
             --bg-body: #fcfcf9;
@@ -59,7 +60,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 40px;
+            padding: 0 24px;
         }
 
         /* NAVBAR */
@@ -457,43 +458,46 @@
 </head>
 <body>
 
-    <nav class="container">
-    <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
-        <div class="logo-icon">
-            <svg width="14" height="18" viewBox="0 0 14 18" fill="none">
-                <path d="M7 0C7 0 0 6 0 11C0 14.866 3.134 18 7 18C10.866 18 14 14.866 14 11C14 6 7 0 7 0Z" fill="white"/>
-            </svg>
-        </div>
-        AgriNexus
+    <nav class="container" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px 0;">
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus Academy
     </a>
-    <div style="display: flex; gap: 32px; align-items: center; font-size: 15px; font-weight: 500;">
-        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #777);">Агенты</a>
-        <a href="platform.html" style="text-decoration: none; color: var(--text-muted, #777);">Платформа</a>
-        <a href="market-intelligence.html" style="text-decoration: none; color: var(--text-muted, #777);">Аналитика</a>
-        <a href="analytics.html" style="text-decoration: none; color: var(--text-muted, #777);">Графики</a>
-        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #777);">Академия</a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 15px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Начало</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Библиотека</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Лаборатория</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Модели</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #777); font-size: 13px; opacity: 0.9;">Архив</a>
     </div>
-    
-    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; color: var(--text-muted, #999);">
         <a href="../platform.html" style="color: inherit; text-decoration: none;">EN</a>
         <span style="opacity: 0.3;">|</span>
-        <a href="platform.html" style="color: var(--text-main, #111); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">RU</a>
+        <a href="platform.html" style="color: var(--text-main, #111); text-decoration: none;">BG</a>
     </div>
-    <a href="dashboard.html" class="btn-join">Панель управления</a>
 </nav>
 
     <header class="hero container">
         <div class="eyebrow">// PLATFORM</div>
-        <h1>An operating system<br>that <span class="c-sense">senses</span>, <span class="c-think">thinks</span>, <span class="c-act">acts</span>.</h1>
-        <p>Три уровня, одна нервная система. Датчики питают мозг, мозг управляет руками. Каждый сигнал отслеживается, каждое действие обратимо.</p>
+        <h1>Операционна система,<br>която <span class="c-sense">усеща</span>, <span class="c-think">мисли</span> и <span class="c-act">действа</span>.</h1>
+        <p>Три слоя, една нервна система. Сензорите хранят мозъка, мозъкът командва „ръцете“. Всеки сигнал е проследим, всяко действие — обратимо.</p>
         
-        <a href="#platform-architecture" class="scroll-down" aria-label="Прокрутить к архитектуре платформы" title="Архитектура">
+        <a href="#platform-architecture" class="scroll-down" aria-label="Превъртете към архитектурата на платформата" title="Архитектура">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <polyline points="19 12 12 19 5 12"></polyline>
             </svg>
         </a>
     </header>
+
+    <div class="container" style="margin: -24px auto 48px; padding: 0 24px;">
+        <div style="max-width: 920px; margin: 0 auto; padding: 20px 24px; background: var(--bg-card); border-radius: var(--radius-row); border: 1px solid var(--border-light); text-align: center; font-size: 16px; line-height: 1.55; color: var(--text-muted);">
+            <strong style="color: var(--text-main); font-weight: 600;">Научете стека, после го свържете.</strong>
+            <a href="academy.html" style="color: var(--c-sense); font-weight: 600; text-decoration: none; margin-left: 6px;">Отворете Академията</a>
+            <span style="opacity: 0.45;"> — </span>
+            четива, наставник и материали следват същата карта Възприятие → Мислене → Действие като по-долу.
+        </div>
+    </div>
 
     <section id="platform-architecture" class="arch-section container">
         <div class="arch-card">
@@ -506,16 +510,16 @@
             <div class="arch-row">
                 <div class="row-label">01 . SENSE</div>
                 <div class="nodes-container">
-                    <a href="market-intelligence.html" class="node" title="Аналитика рынка — сигналы и контекст">
+                    <a href="market-intelligence.html" class="node" title="Пазарна аналитика — сигнали и контекст">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <rect x="2" y="8" width="20" height="8" rx="2"></rect>
                                 <circle cx="12" cy="12" r="2"></circle>
                             </svg>
                         </div>
-                        <div class="node-label">Спутники</div>
+                        <div class="node-label">Сателити</div>
                     </a>
-                    <a href="../fieldlot/index.html" class="node" title="Fieldlot — каталог техники и поля">
+                    <a href="../fieldlot/index.html" class="node" title="Fieldlot — каталог техника и полета">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
@@ -524,9 +528,9 @@
                                 <line x1="12" y1="20" x2="12.01" y2="20"></line>
                             </svg>
                         </div>
-                        <div class="node-label">IoT-датчики</div>
+                        <div class="node-label">IoT сензори</div>
                     </a>
-                    <a href="../agridirect/index.html" class="node" title="AgriDirect — новости и рынки">
+                    <a href="../agridirect/index.html" class="node" title="AgriDirect — новини и пазар">
                         <div class="node-icon-wrapper">
                             <!-- Small green dot top center of this circle as seen in design -->
                             <div style="position:absolute; top:-2px; width:6px; height:6px; background:var(--c-sense); border-radius:50%; z-index:10; pointer-events:none;"></div>
@@ -535,26 +539,26 @@
                                 <path d="M7 8h10"></path>
                             </svg>
                         </div>
-                        <div class="node-label">Новости и рынки</div>
+                        <div class="node-label">Новини и пазари</div>
                     </a>
-                    <a href="dashboard.html" class="node" title="Панель — полевые отчёты">
+                    <a href="dashboard.html" class="node" title="Табло — полеви отчети">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
                                 <rect x="7" y="3" width="10" height="18" rx="2"></rect>
                                 <path d="M11 17h2"></path>
                             </svg>
                         </div>
-                        <div class="node-label">Полевые отчеты</div>
+                        <div class="node-label">Полеви отчети</div>
                     </a>
                 </div>
-                <div class="row-meta">сбор данных</div>
+                <div class="row-meta">събиране на данни</div>
             </div>
 
             <!-- ROW 2: THINK -->
             <div class="arch-row">
                 <div class="row-label" style="color: var(--c-think);">02 . THINK</div>
                 <div class="nodes-container nodes-think">
-                    <a href="../register.html" class="node" title="Регистрация — доступ к «озеру данных»">
+                    <a href="../register.html" class="node" title="Регистрация — достъп до езерото от данни">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
                                 <ellipse cx="12" cy="5" rx="7" ry="3"></ellipse>
@@ -562,10 +566,10 @@
                                 <path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"></path>
                             </svg>
                         </div>
-                        <div class="node-label">Озеро данных</div>
+                        <div class="node-label">Езеро от данни</div>
                     </a>
                     
-                    <a href="index.html" class="node node-center" title="Агенты — сеть оркестрации">
+                    <a href="index.html" class="node node-center" title="Агенти — мрежа за оркестрация">
                         <div class="node-icon-wrapper">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -579,10 +583,10 @@
                                 <circle cx="21" cy="12" r="1" fill="var(--c-think)"></circle>
                             </svg>
                         </div>
-                        <div class="node-label">Сеть агентов</div>
+                        <div class="node-label">Мрежа от агенти</div>
                     </a>
                     
-                    <a href="academy.html" class="node" title="Академия — курсы и модели">
+                    <a href="academy.html" class="node" title="Академия — курсове и грамотност за модели">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
                                 <circle cx="12" cy="12" r="8"></circle>
@@ -599,36 +603,36 @@
             <div class="arch-row" style="margin-bottom: 0;">
                 <div class="row-label" style="color: var(--c-act);">03 . ACT</div>
                 <div class="nodes-container nodes-think">
-                    <a href="dashboard.html" class="node" title="Панель — сводка дня">
+                    <a href="dashboard.html" class="node" title="Табло — дневен брифинг и сигнали">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                 <path d="M9 10h6"></path>
                             </svg>
                         </div>
-                        <div class="node-label">Сводка дня</div>
+                        <div class="node-label">Дневен брифинг</div>
                     </a>
                     
-                    <a href="agents.html" class="node" title="Агенты — автоматизация">
+                    <a href="agents.html" class="node" title="Агенти — автоматизация">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                         </div>
-                        <div class="node-label">Авто-действия</div>
+                        <div class="node-label">Автоматични действия</div>
                     </a>
                     
-                    <a href="https://www.agrinexuslaw.com/" target="_blank" rel="noopener noreferrer" class="node" title="AgriNexus.Law — мобильное PWA (новая вкладка)">
+                    <a href="https://www.agrinexuslaw.com/" target="_blank" rel="noopener noreferrer" class="node" title="AgriNexus.Law — мобилно PWA (нов раздел)">
                         <div class="node-icon-wrapper">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
                                 <rect x="5" y="2" width="14" height="20" rx="2"></rect>
                                 <path d="M12 18h.01"></path>
                             </svg>
                         </div>
-                        <div class="node-label">Мобильный и голос</div>
+                        <div class="node-label">Мобилно и глас</div>
                     </a>
                 </div>
-                <div class="row-meta">исполнение</div>
+                <div class="row-meta">изпълнение</div>
             </div>
 
         </div>

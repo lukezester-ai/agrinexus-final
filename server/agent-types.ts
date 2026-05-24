@@ -11,4 +11,4 @@ export type ChatMessage = {
 
 export type AgentActionRecord = { tool: string; ok: boolean; summary: string };
 
-export type AgentToolContext = { lang: 'en' | 'ru'; clientIp?: string | null; sessionId?: string };
+export type AgentToolContext = { lang: 'en' | 'bg'; clientIp?: string | null; sessionId?: string };

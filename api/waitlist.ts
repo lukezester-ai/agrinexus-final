@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 				: '';
 	const email = typeof body.email === 'string' ? body.email : '';
 	const interest = typeof body.interest === 'string' ? body.interest : 'all';
-	const lang = body.lang === 'ru' ? 'ru' : 'en';
+	const lang = body.lang === 'bg' || body.lang === 'ru' ? 'bg' : 'en';
 	const source = typeof body.source === 'string' ? body.source : 'website';
 
 	const result = await submitFurrowWaitlist({ fullName, email, interest, lang, source });
@@ -52,9 +52,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 		message: result.welcomeSent
 			? en
 				? 'Registered! Check your inbox for confirmation.'
-				: 'Готово! Проверьте почту для подтверждения.'
+				: 'Готово! Проверете имейла за потвърждение.'
 			: en
 				? 'You are on the list. We will contact you before launch.'
-				: 'Вы в списке. Напишем перед запуском.',
+				: 'Вие сте в списъка. Ще пишем преди старт.',
 	});
 }

@@ -42,10 +42,12 @@ export async function handleFurrowChatPost(
 
 	const sessionId = typeof body.sessionId === 'string' ? body.sessionId : 'anonymous-session';
 
-	const lang: 'en' | 'ru' =
-		body.context && typeof body.context === 'object' && (body.context as { lang?: string }).lang === 'ru'
-			? 'ru'
-			: 'en';
+	const lang: 'en' | 'bg' =
+		body.context && typeof body.context === 'object' && (body.context as { lang?: string }).lang === 'bg'
+			? 'bg'
+			: body.context && typeof body.context === 'object' && (body.context as { lang?: string }).lang === 'ru'
+				? 'bg'
+				: 'en';
 
 	const workflow = new WorkflowAgent();
 	return workflow.run(upstream, userMessageContent, sessionId, lang, opts);

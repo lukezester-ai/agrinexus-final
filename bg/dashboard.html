@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Dashboard - AgriNexus</title>
+    <title>Контролно табло — AgriNexus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -640,29 +640,31 @@
 <body>
     <aside>
         <div class="logo">
+            <a href="../index.html" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
             <div class="logo-dot"></div>
-            AgriNexus
+            <span>AgriNexus <span style="opacity:0.75;font-weight:500;">Academy</span></span>
+            </a>
         </div>
         <nav>
             <a href="/dashboard.html" class="active">
                 <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-                Command Center
+                Команден център
             </a>
-            <a href="#" onclick="alert('This module is coming soon!')">
+            <a href="#" onclick="alert('Този модул идва скоро!')">
                 <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13l6.5-13z"/></svg>
-                Fields & Crops
+                Полета и култури
             </a>
             <a href="/market-intelligence.html">
                 <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                Market Intelligence
+                Пазарна аналитика
             </a>
             <a href="#">
                 <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z"/></svg>
-                Fleet & Logistics
+                Флот и логистика
             </a>
             <a href="#">
                 <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
-                Agent Mesh
+                Мрежа от агенти
             </a>
         </nav>
         <div class="user-profile">
@@ -677,18 +679,18 @@
     <main>
         <header>
             <div class="greeting">
-                <h1>Good morning, Dimitar.</h1>
+                <h1>Добро утро, Димитър.</h1>
                 <div class="subtitle">
-                    <span class="time-badge">06:42 AM</span>
-                    <span>18°C, Clear sky. 30% chance of light rain at 14:00.</span>
+                    <span class="time-badge">06:42</span>
+                    <span>18°C, ясно. 30% вероятност за слаб дъжд в 14:00.</span>
                 </div>
             </div>
             <div class="header-actions">
                 <button class="btn btn-outline">
                     <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    New Task
+                    Нова задача
                 </button>
-                <button class="btn btn-primary">Open Сводка дня</button>
+                <button class="btn btn-primary">Отвори дневния брифинг</button>
             </div>
         </header>
 
@@ -697,9 +699,9 @@
                 <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
             </div>
             <div class="briefing-content">
-                <div class="briefing-title">Overnight Synthesis</div>
+                <div class="briefing-title">Нощен синтез</div>
                 <div class="briefing-text">
-                    <strong>Wheat harvest window opens in 3 days.</strong> Market agent upgraded sell recommendation to <em>Strong</em> following €8 surge on MATIF. Soil moisture in Field 4 dropped to 22%; Irrigation agent has prepared a schedule for review.
+                    <strong>Прозорецът за жътва на пшеницата отваря след 3 дни.</strong> Пазарният агент повиши препоръката за продажба до <em>Силна</em> след скок от €8 на MATIF. Влагата в поле 4 падна до 22%; агентът за напояване е подготвил график за преглед.
                 </div>
             </div>
         </div>
@@ -707,42 +709,42 @@
         <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-header">
-                    <span class="metric-title">Wheat (MATIF Sep)</span>
+                    <span class="metric-title">Пшеница (MATIF сеп)</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 </div>
-                <div class="metric-value" id="wheat-price">Loading...</div>
+                <div class="metric-value" id="wheat-price">Зареждане…</div>
                 <div class="metric-change" id="wheat-change">
-                    Syncing...
+                    Синхронизиране…
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-header">
-                    <span class="metric-title">Corn (CBOT)</span>
+                    <span class="metric-title">Царевица (CBOT)</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
                 </div>
-                <div class="metric-value" id="corn-price">Loading...</div>
+                <div class="metric-value" id="corn-price">Зареждане…</div>
                 <div class="metric-change" id="corn-change">
-                    Syncing...
+                    Синхронизиране…
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-header">
-                    <span class="metric-title">Active Agents</span>
+                    <span class="metric-title">Активни агенти</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
                 </div>
                 <div class="metric-value">17/18</div>
                 <div class="metric-change change-neutral">
-                    1 idle (Harvest Sentry)
+                    1 в покой (Harvest Sentry)
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-header">
-                    <span class="metric-title">Pending Decisions</span>
+                    <span class="metric-title">Чакащи решения</span>
                     <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z"/></svg>
                 </div>
                 <div class="metric-value">3</div>
                 <div class="metric-change change-neutral">
-                    Requires L2+ approval
+                    Изисква одобрение L2+
                 </div>
             </div>
         </div>
@@ -750,7 +752,7 @@
         <div class="dashboard-split">
             <div class="panel">
                 <div class="panel-header">
-                    <span class="panel-title">Field Status</span>
+                    <span class="panel-title">Статус на полетата</span>
                     
                 </div>
                 <div class="panel-content" style="padding: 16px;">
@@ -763,14 +765,14 @@
                     </div>
                     
                     <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-                        <div style="font-weight: 500; font-size: 14px; margin-bottom: 12px;">Add New Field</div>
+                        <div style="font-weight: 500; font-size: 14px; margin-bottom: 12px;">Ново поле</div>
                         <form id="add-field-form" style="display: flex; flex-direction: column; gap: 8px;">
-                            <input type="text" id="field-name" placeholder="Field Name (e.g. North Plot)" required style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                            <input type="text" id="field-name" placeholder="Име на поле (напр. Северна парцел)" required style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
                             <div style="display: flex; gap: 8px;">
                                 <input type="text" id="field-crop" placeholder="Crop (e.g. Wheat)" required style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
                                 <input type="number" id="field-size" placeholder="Hectares" required min="0.1" step="0.1" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
                             </div>
-                            <button type="submit" id="add-field-btn" class="btn btn-primary" style="padding: 8px; font-size: 13px; border-radius: 6px; width: 100%; margin-top: 4px;">Save Field</button>
+                            <button type="submit" id="add-field-btn" class="btn btn-primary" style="padding: 8px; font-size: 13px; border-radius: 6px; width: 100%; margin-top: 4px;">Запази полето</button>
                         </form>
                         <div id="field-error" style="color: var(--terracotta); font-size: 12px; margin-top: 8px; display: none;"></div>
                     </div>
@@ -781,8 +783,8 @@
             <div class="panel">
                 
                 <div class="panel-header">
-                    <span class="panel-title">Спросите Сеть Агентов</span>
-                    <span class="time-badge" style="background: rgba(45,90,39,0.1); color: var(--green);" id="agent-status">В СЕТИ</span>
+                    <span class="panel-title">Питайте мрежата от агенти</span>
+                    <span class="time-badge" style="background: rgba(45,90,39,0.1); color: var(--green);" id="agent-status">НА ЛИНИЯ</span>
                 </div>
                 <div class="panel-content" style="display: flex; flex-direction: column; padding: 0;">
                     <div id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; min-height: 250px; max-height: 400px;">
@@ -793,14 +795,14 @@
                                     <span class="feed-agent">Оркестратор</span>
                                 </div>
                                 <div class="feed-text">
-                                    Здравствуйте, Димитр. Сеть онлайн. Что бы вы хотели узнать о рынках или вашей ферме?
+                                    Здравейте, Димитър. Мрежата е онлайн. Какво искате да научите за пазарите или вашето стопанство?
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: #fff;">
-                        <input type="text" id="chat-input" placeholder="Спросите о ценах на пшеницу, погоде и т.д..." style="flex-grow: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 30px; font-size: 14px; outline: none; font-family: inherit;">
-                        <button id="chat-send" class="btn btn-primary" style="padding: 12px 24px;">Спросить</button>
+                        <input type="text" id="chat-input" placeholder="Питайте за цени на пшеница, времето и др…" style="flex-grow: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 30px; font-size: 14px; outline: none; font-family: inherit;">
+                        <button id="chat-send" class="btn btn-primary" style="padding: 12px 24px;">Изпрати</button>
                     </div>
                 </div>
                 
@@ -811,7 +813,7 @@
                     const agentStatus = document.getElementById('agent-status');
 
                     function appendMessage(sender, text, agentType) {
-                        const isUser = sender === 'Вы';
+                        const isUser = sender === 'Вие';
                         
                         let iconText = isUser ? 'USR' : 'ORC';
                         let color = isUser ? 'var(--text-main)' : 'var(--green)';
@@ -844,10 +846,10 @@
                         const message = chatInput.value.trim();
                         if (!message) return;
 
-                        appendMessage('Вы', message);
+                        appendMessage('Вие', message);
                         chatInput.value = '';
                         
-                        agentStatus.textContent = 'ДУМАЕТ...';
+                        agentStatus.textContent = 'МИСЛИ…';
                         agentStatus.style.color = 'var(--terracotta)';
                         agentStatus.style.background = 'rgba(204,78,54,0.1)';
 
@@ -861,15 +863,15 @@
                             const data = await res.json();
                             
                             if (res.ok) {
-                                const agentName = data.handledBy === 'marketAgent' ? 'Агент Аналитики Рынка' : 'Общий Агент';
+                                const agentName = data.handledBy === 'marketAgent' ? 'Агент пазарна аналитика' : 'Общ агент';
                                 appendMessage(agentName, data.response, data.handledBy);
                             } else {
-                                appendMessage('Системная Ошибка', data.error || 'Не удалось обработать запрос.');
+                                appendMessage('Системна грешка', data.error || 'Неуспешна обработка на заявката.');
                             }
                         } catch (err) {
-                            appendMessage('Системная Ошибка', 'Ошибка сети. Проверьте, запущен ли бэкенд.');
+                            appendMessage('Системна грешка', 'Мрежова грешка. Проверете дали бекендът работи.');
                         } finally {
-                            agentStatus.textContent = 'В СЕТИ';
+                            agentStatus.textContent = 'НА ЛИНИЯ';
                             agentStatus.style.color = 'var(--green)';
                             agentStatus.style.background = 'rgba(45,90,39,0.1)';
                         }

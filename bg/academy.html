@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&family=PT+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
     <style>
         :root {
             /* Academy Palette - Warmer, Library Feel */
@@ -50,7 +51,7 @@
         }
 
         .container {
-            max-width: 1100px; /* Slightly narrower for reading comfort */
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 24px;
         }
@@ -127,6 +128,42 @@
             max-width: 600px;
             margin: 0 auto 24px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .search-box .agn-search-input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .trending-tags .t-tag {
+            border: none;
+        }
+
+        .agn-video-thumb {
+            border-radius: var(--radius-md);
+            min-height: 140px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .agn-video-card {
+            display: block;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 0 16px 16px;
+            background: var(--surface);
+            transition: var(--transition);
+        }
+
+        .agn-video-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
         }
 
         .blinking-cursor {
@@ -702,29 +739,28 @@
         <nav>
     <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
         <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
-        AgriNexus
+        AgriNexus Academy
     </a>
-    <div style="display: flex; gap: 32px; align-items: center; font-size: 14px; font-weight: 500;">
-        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Агенты</a>
-        <a href="platform.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Платформа</a>
-        <a href="market-intelligence.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Аналитика</a>
-        <a href="analytics.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Графики</a>
-        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Академия</a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Начало</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-main, #111);">Библиотека</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Лаборатория</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Модели</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Архив</a>
     </div>
     
     <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
         <a href="../academy.html" style="color: inherit; text-decoration: none;">EN</a>
         <span style="opacity: 0.3;">|</span>
-        <a href="academy.html" style="color: var(--text-main, #111); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">RU</a>
+        <a href="academy.html" style="color: var(--text-main, #111); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">BG</a>
     </div>
-    <a href="dashboard.html" style="padding: 10px 24px; border-radius: 30px; font-size: 14px; text-decoration: none; background: var(--text-main, #1a1a1a); color: white; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Панель управления</a>
 </nav>
 
         <!-- HERO -->
         <section class="hero">
             <div>
-                <h1>Библиотека, которая растет вместе с вами.</h1>
-                <p style="font-size: 20px; color: var(--text-muted);">Learn the mechanics of modern farming, from algorithmic trading to hyper-local agronomy. Written by the experts building AgriNexus.</p>
+                <h1>Библиотеката, която расте заедно с вас.</h1>
+                <p style="font-size: 20px; color: var(--text-muted);">Научете механиката на модерното земеделие — от алгоритмична търговия до хипер-локална агрономия. Написано от експертите, които изграждат AgriNexus.</p>
             </div>
             <div class="hero-illustration">
                 <!-- Custom SVG Illustration: Book with sprout and sun -->
@@ -748,39 +784,97 @@
             </div>
         </section>
 
-        <!-- SEARCH SECTION -->
-        <div class="search-section">
+        <!-- ACADEMY ↔ PLATFORM (same i18n keys as academy.html) -->
+        <section class="agn-platform-bridge" aria-labelledby="agn-platform-bridge-title">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="platformEyebrow">From lessons to operations</div>
+            <h2 id="agn-platform-bridge-title" style="font-family:'PT Serif',serif;font-size:32px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="platformTitle">Academy explains why — Platform runs how</h2>
+            <p data-i18n-academy="platformSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:20px;">The Academy is for literacy: readings, video paths, and the Tutor. The Platform page is the live map of the same Sense → Think → Act stack.</p>
+            <ul>
+                <li data-i18n-academy="platformLi1">Sense — market & satellite context, AgriDirect desk, field reports</li>
+                <li data-i18n-academy="platformLi2">Think — agent mesh, data lake, and model literacy (tied back to courses here)</li>
+                <li data-i18n-academy="platformLi3">Act — daily briefings, playbooks, and mobile / voice hand-offs</li>
+            </ul>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <a href="platform.html#platform-architecture" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta">Open Platform map</a>
+                <a href="index.html" class="btn btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta2">Agents & mesh</a>
+            </div>
+        </section>
+
+        <!-- AI FARMER BRAIN — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-farmer-brain" aria-labelledby="agn-farmer-brain-title" style="margin-bottom: 40px;">
+            <h2 id="agn-farmer-brain-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="brainTitle">„AI фермерски мозък“</h2>
+            <ul style="margin-bottom:0;padding-left:1.25rem;">
+                <li data-i18n-academy="brainLi1" style="margin-bottom:10px;line-height:1.5;">Учи фермера.</li>
+                <li data-i18n-academy="brainLi2" style="margin-bottom:10px;line-height:1.5;">Анализира фермата.</li>
+                <li data-i18n-academy="brainLi3" style="margin-bottom:10px;line-height:1.5;">Дава решения.</li>
+                <li data-i18n-academy="brainLi4" style="margin-bottom:10px;line-height:1.5;">Автоматизира дейности.</li>
+            </ul>
+        </section>
+
+        <!-- PRODUCT ROADMAP (MVP) — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-roadmap" aria-labelledby="agn-roadmap-title" style="margin-bottom: 48px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="roadmapEyebrow">Product roadmap</div>
+            <h2 id="agn-roadmap-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="roadmapTitle">What we ship next (MVP)</h2>
+            <p data-i18n-academy="roadmapSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:16px;">Structured courses, in-site video paths, short quizzes, and a learner dashboard — building on today’s library and Tutor.</p>
+            <ul style="margin-bottom:16px;padding-left:1.25rem;">
+                <li data-i18n-academy="roadmapLi1" style="margin-bottom:8px;">Accounts & learner profiles</li>
+                <li data-i18n-academy="roadmapLi2" style="margin-bottom:8px;">First guided course path with progress</li>
+                <li data-i18n-academy="roadmapLi3" style="margin-bottom:8px;">Embedded video modules and transcripts where possible</li>
+                <li data-i18n-academy="roadmapLi4" style="margin-bottom:8px;">Module quizzes and optional recap touchpoints</li>
+                <li data-i18n-academy="roadmapLi5" style="margin-bottom:8px;">Dashboard: pick up where you left off</li>
+            </ul>
+            <p data-i18n-academy="roadmapFoot" style="font-size:14px;color:var(--text-muted);max-width:720px;line-height:1.5;">Full vision: docs/ACADEMY_PRODUCT_VISION.md · Architecture sketch: docs/ACADEMY_ARCHITECTURE.md (repository root).</p>
+        </section>
+
+        <!-- MATERIALS + SEARCH -->
+        <div class="search-section" style="margin-bottom: 64px;">
+            <div class="section-header" style="margin-bottom: 12px; text-align: center; justify-content: center;">
+                <h2 style="font-family: 'PT Serif', serif;" data-i18n-academy="materialsTitle">Materials library</h2>
+            </div>
+            <p data-i18n-academy="materialsSub" style="text-align: center; color: var(--text-muted); max-width: 720px; margin: 0 auto 24px; font-size: 15px; line-height: 1.5;">Articles on this site, partner hub, and trusted external guides — filter by topic.</p>
             <div class="search-box">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #999;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #999; flex-shrink: 0;">
                     <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <span>how do I read NDVI maps</span><span class="blinking-cursor"></span>
+                <input type="search" id="agn-academy-search" class="agn-search-input" autocomplete="off" placeholder="Търсене…" />
             </div>
-            <div class="trending-tags">
-                <div class="t-tag">selling wheat timing</div>
-                <div class="t-tag">septoria early signs</div>
-                <div class="t-tag">CAP subsidy</div>
-                <div class="t-tag">carbon credits</div>
+            <div class="trending-tags" id="agn-quick-filters">
+                <button type="button" class="t-tag" data-q="ndvi satellite imagery crop">NDVI &amp; imagery</button>
+                <button type="button" class="t-tag" data-q="wheat futures market">Wheat &amp; futures</button>
+                <button type="button" class="t-tag" data-q="egypt irrigation oasis">Egypt &amp; water</button>
+                <button type="button" class="t-tag" data-q="tomato harvest prices">Tomato sector</button>
+                <button type="button" class="t-tag" data-q="fao guide policy download">Guides &amp; FAO</button>
             </div>
+            <div id="agn-catalog-grid" class="fresh-grid" style="margin-top: 32px;"></div>
+            <p id="agn-catalog-empty" style="display: none; text-align: center; color: var(--text-muted); margin-top: 24px; font-size: 15px;">Няма съвпадения</p>
         </div>
 
+        <!-- VISUAL LESSONS -->
+        <div class="section-header">
+            <h2 data-i18n-academy="visualTitle">Visual lessons</h2>
+        </div>
+        <p data-i18n-academy="visualSub" style="font-size: 15px; color: var(--text-muted); max-width: 720px; margin: -12px 0 28px; line-height: 1.5;">Curated video searches (YouTube opens in a new tab).</p>
+        <div id="agn-visual-lessons" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 64px;"></div>
+
+        <div id="agn-academy-tutor">
         <!-- LIVE ACADEMY TUTOR -->
         <div class="section-header" style="margin-top: 48px;">
-            <h2>Спросите наставника Академии</h2>
-            <span style="font-size: 13px; color: var(--text-muted);">Снимок рынка — только для обучения, не инвестиционный совет.</span>
+            <h2>Питайте наставника на Академията</h2>
+            <span style="font-size: 13px; color: var(--text-muted);">Пазарен снимък — само за обучение, не е инвестиционен съвет.</span>
         </div>
         <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 720px;">
-            <textarea id="agn-academy-input" rows="4" placeholder="Например: как читать котировки пшеницы на бирже и мою цену на элеваторе?" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: inherit; font-size: 15px; resize: vertical;"></textarea>
+            <textarea id="agn-academy-input" rows="4" placeholder="Напр.: как да чета котировките на пшеницата на борсата спрямо цената ми на елеватор?" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: inherit; font-size: 15px; resize: vertical;"></textarea>
             <div style="display: flex; gap: 12px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
-                <button type="button" id="agn-academy-send" style="padding: 12px 22px; border-radius: 999px; border: none; background: var(--text-main); color: #fff; font-weight: 600; cursor: pointer;">Получить урок</button>
+                <button type="button" id="agn-academy-send" style="padding: 12px 22px; border-radius: 999px; border: none; background: var(--text-main); color: #fff; font-weight: 600; cursor: pointer;">Вземи урок</button>
                 <span id="agn-academy-status" style="font-size: 13px; color: var(--text-muted);"></span>
             </div>
             <div id="agn-academy-reply" style="margin-top: 18px; font-size: 15px; line-height: 1.55; color: var(--text-main); white-space: pre-wrap;"></div>
         </div>
+        </div>
 
         <!-- THIS WEEK'S READING -->
         <div class="section-header">
-            <h2>Чтение на этой неделе</h2>
+            <h2>Четиво за тази седмица</h2>
         </div>
         <div class="featured-grid">
             <div class="article-card card-large">
@@ -789,13 +883,13 @@
                         <span class="cat-tag cat-market">MARKET</span>
                         <span class="read-time">14 MIN READ</span>
                     </div>
-                    <h3>Why you almost always sell your wheat too early.</h3>
-                    <p style="font-size: 16px; color: var(--text-muted); max-width: 80%;">A trader's perspective on the psychological traps of harvest selling, and how probabilistic models remove the emotion.</p>
+                    <h3>Защо почти винаги продавате пшеницата си твърде рано.</h3>
+                    <p style="font-size: 16px; color: var(--text-muted); max-width: 80%;">Поглед на трейдър върху психологическите капани при продажба на реколтата и как вероятностните модели махат емоцията.</p>
                     <div class="author-row">
                         <div class="author-avatar" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23d4a32a\'/></svg>') center/cover;"></div>
                         <div>
                             <div class="author-name">Elena Kostova</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Lead Market Analyst</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Главен пазарен аналитик</div>
                         </div>
                     </div>
                 </div>
@@ -807,9 +901,9 @@
                         <span class="cat-tag cat-field">FIELD</span>
                         <span class="read-time">8 MIN READ</span>
                     </div>
-                    <h3>Spotting Septoria before the canopy closes</h3>
+                    <h3>Септория преди затварянето на полога</h3>
                     <div class="author-row" style="padding-top: 12px;">
-                        <div class="author-name" style="color: var(--text-muted);">By Dr. Ivan Petrov</div>
+                        <div class="author-name" style="color: var(--text-muted);">От д-р Иван Петров</div>
                     </div>
                 </div>
                 <div class="article-card card-small" style="flex: 1;">
@@ -817,9 +911,9 @@
                         <span class="cat-tag cat-market">BUSINESS</span>
                         <span class="read-time">6 MIN READ</span>
                     </div>
-                    <h3>Carbon credits: The definitive guide for EU farmers</h3>
+                    <h3>Въглеродни кредити: практически наръчник за фермери в ЕС</h3>
                     <div class="author-row" style="padding-top: 12px;">
-                        <div class="author-name" style="color: var(--text-muted);">By Anna Ilieva</div>
+                        <div class="author-name" style="color: var(--text-muted);">От Анна Илиева</div>
                     </div>
                 </div>
             </div>
@@ -827,50 +921,50 @@
 
         <!-- LEARNING PATHS -->
         <div class="section-header">
-            <h2>Learning Paths</h2>
-            <a href="#" class="view-all">View all paths →</a>
+            <h2>Учебни пътеки</h2>
+            <a href="../archive.html" class="view-all">Всички пътеки →</a>
         </div>
         <div class="paths-grid">
             <a href="../course.html" class="path-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                <div class="path-num">Path 01</div>
-                <h3>Soil & Crop Fundamentals</h3>
+                <div class="path-num">Пътека 01</div>
+                <h3>Основи на почвата и културата</h3>
                 <div class="progress-bar">
                     <div class="progress-pip filled"></div>
                     <div class="progress-pip filled"></div>
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                 </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">2/4 COMPLETED</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">2/4 ЗАВЪРШЕНИ</div>
             </a>
             
             <div class="path-card">
-                <div class="path-num">Path 02</div>
-                <h3>Markets for Farmers</h3>
+                <div class="path-num">Пътека 02</div>
+                <h3>Пазари за фермери</h3>
                 <div class="progress-bar">
                     <div class="progress-pip filled"></div>
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                 </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">1/4 COMPLETED</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">1/4 ЗАВЪРШЕНИ</div>
             </div>
 
             <div class="path-card">
-                <div class="path-num">Path 03</div>
-                <h3>Working with your Agents</h3>
+                <div class="path-num">Пътека 03</div>
+                <h3>Работа с вашите агенти</h3>
                 <div class="progress-bar">
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                     <div class="progress-pip"></div>
                 </div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">NOT STARTED</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">НЕ Е ЗАПОЧНАТА</div>
             </div>
         </div>
 
         <!-- FRESH ARTICLES -->
         <div class="section-header">
-            <h2>Fresh in the library</h2>
+            <h2>Ново в библиотеката</h2>
         </div>
         <div class="fresh-grid">
             <div class="article-card card-small">
@@ -878,32 +972,32 @@
                     <span class="cat-tag cat-market">MARKET</span>
                     <span class="read-time">5 MIN READ</span>
                 </div>
-                <h3>What the USDA report actually said — and what it didn't</h3>
-                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Translating the latest 120-page release into actionable takeaways for European growers.</p>
+                <h3>Какво наистина каза докладът на USDA — и какво премълча</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">120-страничният доклад, преведен в конкретни изводи за европейски производители.</p>
             </div>
             <div class="article-card card-small">
                 <div class="meta-row">
                     <span class="cat-tag cat-field">BUSINESS</span>
                     <span class="read-time">11 MIN READ</span>
                 </div>
-                <h3>Forward contracts: when they protect you, when they trap you</h3>
-                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">A deep dive into the math behind forward contracting and when to leverage it.</p>
+                <h3>Форвардни договори: кога пазят и кога капанират</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Математиката зад форварда и кога да го използвате.</p>
             </div>
             <div class="article-card card-small">
                 <div class="meta-row">
                     <span class="cat-tag cat-field">FIELD</span>
                     <span class="read-time">7 MIN READ</span>
                 </div>
-                <h3>Drone vs Satellite: Which imagery should you trust?</h3>
-                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Comparing resolution, frequency, and cost to find the right monitoring strategy.</p>
+                <h3>Дрон срещу сателит: на кое изображение да разчитате</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Резолюция, честота и цена — как да изберете стратегия за мониторинг.</p>
             </div>
             <div class="article-card card-small">
                 <div class="meta-row">
                     <span class="cat-tag cat-market">TECH</span>
                     <span class="read-time">9 MIN READ</span>
                 </div>
-                <h3>Inside the Orchestrator: How conflicts are resolved</h3>
-                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">When the Market Agent says 'Sell' but the Yield Agent says 'Wait', who wins?</p>
+                <h3>В оркестратора: как се решават конфликтите</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Когато пазарният агент каже „Продай“, а агентът за добив — „Чакай“, кой печели?</p>
             </div>
         </div>
 
@@ -911,25 +1005,25 @@
         <div class="podcast-card">
             <div class="pod-left">
                 <span class="pod-tag">FIELD NOTES PODCAST</span>
-                <h2 class="pod-title">Episode 47: The day I stopped guessing the market</h2>
-                <p class="pod-desc">Ivan T., a third-generation farmer from Iowa, sits down to discuss a €31,000 mistake that completely changed how he views data and emotion in farming.</p>
+                <h2 class="pod-title">Епизод 47: Денят, в който спрях да гадая пазара</h2>
+                <p class="pod-desc">Иван Т., фермер трето поколение от Айова, за грешка от €31 000 и как данните променят емоцията в решенията.</p>
                 <div class="pod-stats">
                     <div>
                         <div class="p-stat-val">47</div>
-                        <div class="p-stat-label">Episodes</div>
+                        <div class="p-stat-label">Епизоди</div>
                     </div>
                     <div>
                         <div class="p-stat-val">38m</div>
-                        <div class="p-stat-label">Avg Length</div>
+                        <div class="p-stat-label">Средна дължина</div>
                     </div>
                     <div>
                         <div class="p-stat-val">42k</div>
-                        <div class="p-stat-label">Listeners</div>
+                        <div class="p-stat-label">Слушатели</div>
                     </div>
                 </div>
             </div>
             
-            <div class="pod-right" style="width: 100%;">
+            <div class="pod-right" style="width: 100%; flex-direction: column;">
                 <div class="custom-player" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; backdrop-filter: blur(10px);">
                     <audio id="podcast-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
                     
@@ -959,9 +1053,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
-    
-                </div>
+                <p id="agn-podcast-note" style="font-size: 12px; color: rgba(255,255,255,0.55); max-width: 400px; margin-top: 16px; text-align: center; line-height: 1.45;"></p>
             </div>
         </div>
 
@@ -973,7 +1065,7 @@
             </div>
             
             <div id="login-prompt" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; text-align: center; margin-bottom: 24px; display: none;">
-                <p style="margin-bottom: 16px; color: var(--text-muted);">Please log in to join the conversation and post to the community.</p>
+                <p style="margin-bottom: 16px; color: var(--text-muted);">Влезте, за да участвате в разговора и да публикувате в общността.</p>
                 <a href="../login.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">Log In</a>
             </div>
 
@@ -999,11 +1091,11 @@
 
     <!-- FINAL CTA -->
     <div class="cta-section">
-        <h2>Обучение, написанное теми, кто реально занимается фермерством.</h2>
-        <p>Каждая статья проверяется работающими агрономами и трейдерами. Всегда бесплатно.</p>
+        <h2>Обучение от хора, които наистина работят в земеделието.</h2>
+        <p>Всяка статия е прегледана от практикуващи агрономи и трейдъри. Винаги безплатно.</p>
         <div class="btn-group">
-            <a href="#" class="btn btn-primary">Открыть библиотеку</a>
-            <a href="#" class="btn btn-outline">Получать еженедельно newsletter</a>
+            <a href="../archive.html" class="btn btn-primary">Отвори библиотеката</a>
+            <a href="#" class="btn btn-outline">Седмичен бюлетин по имейл</a>
         </div>
     </div>
 
@@ -1093,6 +1185,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../scripts/auth.js"></script>
     <script src="../scripts/community.js"></script>
+    <script>window.AGN_ACADEMY_LANG = 'bg';</script>
+    <script src="../scripts/academy-hub.js"></script>
     <script>
     (function () {
         var btn = document.getElementById('agn-academy-send');
@@ -1102,8 +1196,8 @@
         if (!btn || !input || !out || !st) return;
         btn.addEventListener('click', async function () {
             var q = (input.value || '').trim();
-            if (!q) { st.textContent = 'Введите вопрос.'; return; }
-            st.textContent = 'Думаю…';
+            if (!q) { st.textContent = 'Напишете въпрос.'; return; }
+            st.textContent = 'Мисля…';
             out.textContent = '';
             btn.disabled = true;
             try {
@@ -1117,7 +1211,7 @@
                 out.textContent = data.reply || '';
                 st.textContent = 'Готово.';
             } catch (e) {
-                st.textContent = 'Нет связи с наставником (нужен MISTRAL_API_KEY на сервере).';
+                st.textContent = 'Няма връзка с наставника (нужен е MISTRAL_API_KEY на сървъра).';
                 out.textContent = String(e && e.message ? e.message : e);
             } finally {
                 btn.disabled = false;

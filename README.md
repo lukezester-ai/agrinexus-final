@@ -6,14 +6,12 @@ AgriNexus is a complete infrastructure for modern farming. It replaces the tradi
 
 **AI кошче:** временни чернови, фрагменти и еднократни артефакти от работа с ИИ — папка **`ai-trash/`** (съдържанието е в `.gitignore`, виж `ai-trash/README.md`). Правило за агентите: `.cursor/rules/ai-trash.mdc`.
 
+**Графичен слой:** споделени стилове в **`styles/agri-market-shared.css`** + **`styles/agri-marketing-supplement.css`** за начална/агенти; описание и таблица: **`docs/DESIGN-SYSTEM.md`**.
+
 ## Project Structure & Core Pages
 
-### 1. Agents (`index.html`)
-**"Eighteen specialists. One thinking farm."**
-The system is built on a strong metaphor: 18 distinct specialists forming a coordinated team, orchestrated by a central intelligence.
-- **5 Families:** Crop Lifecycle, Monitoring & Detection, Operations, Business & Compliance, Meta Layer.
-- **Autonomy Levels:** Trust is built on control. The system ranges from L1 (Advisor) to L4 (Autonomous).
-- **Transparency:** Over 340 decisions a day, 100% auditable.
+### 1. Academy home (`index.html`, `bg/index.html`)
+**Public site is Academy-first:** short entry with links to the full **library** (`academy.html` / `bg/academy.html`), a **lab** section (safe experiments, Tutor anchor), and a **compare** block (two mental models + self-check—no “correct” click). The earlier agent marketing mesh lives on **`agents.html`** (archive).
 
 ### 2. Market Intelligence (`market-intelligence.html`)
 **"Trade your harvest like a hedge fund."**
@@ -38,7 +36,10 @@ A warm, educational space operating on a different emotional register—designed
 - **Learning Paths:** Structured curriculum for modern farming.
 - **Field Notes Podcast:** Real stories from real farmers (e.g., "The day I stopped guessing the market").
 - **Farmer's Table Community:** A living pulse of peer-to-peer support, alpha sharing, and success stories.
-- **Academy Tutor (implemented):** On `academy.html` / `ru/academy.html`, the **Ask the Academy Tutor** panel calls `POST /api/academy-tutor`. It uses Mistral plus a **delayed Yahoo Finance snapshot** (same family as `/api/market-data`) only as **teaching context**, not trading advice.
+- **Academy Tutor (implemented):** On `academy.html` / `bg/academy.html`, the **Ask the Academy Tutor** panel calls `POST /api/academy-tutor`. It uses Mistral plus a **delayed Yahoo Finance snapshot** (same family as `/api/market-data`) only as **teaching context**, not trading advice.
+- **Product & architecture docs:** `docs/ACADEMY_PRODUCT_VISION.md` (визия, MVP, фази), `docs/ACADEMY_ARCHITECTURE.md` (потокове и файлове в репото).
+- **Roadmap on the page:** MVP highlights on `academy.html` and `bg/academy.html`, localized through `scripts/academy-hub.js`.
+- **„AI фермерски мозък“:** same pages — title plus four short lines (teach → analyze → decide → automate); details in `docs/ACADEMY_PRODUCT_VISION.md` §3 and `docs/ACADEMY_ARCHITECTURE.md` §2.
 
 ### 5. Dashboard (`dashboard.html`)
 **The Command Center.**
@@ -46,7 +47,7 @@ The actual product from the inside. A calm, highly functional UI where the farme
 
 ## Implementation vs. product story
 
-- **“18 specialists”** on `agents.html` is a **design metaphor** for the five agent families and autonomy levels. In this repository, the **executable** agent mesh is the **LangGraph** flow in `api/chat.ts` (orchestrator → **ANALYTICS_AGENT**, **MARKET_AGENT**, **WEATHER_AGENT**, **ACADEMY_AGENT**, **GENERAL_RESPONSE**) plus the separate **`POST /api/academy-tutor`** endpoint for the Academy pages.
+- **“18 specialists”** on **`agents.html`** is a **design metaphor** for the five agent families and autonomy levels. In this repository, the **executable** agent mesh is the **LangGraph** flow in `api/chat.ts` (orchestrator → **ANALYTICS_AGENT**, **MARKET_AGENT**, **WEATHER_AGENT**, **ACADEMY_AGENT**, **GENERAL_RESPONSE**) plus the separate **`POST /api/academy-tutor`** endpoint for the Academy pages.
 - **Market quotes** in the mesh and Academy use **Yahoo Finance** (delayed); the LLM must **not invent** prices when the snapshot is present (see `api/lib/market-snapshot.ts` and `api/lib/agrinexus-policy.ts`).
 - **Fieldlot** (subfolder) has its own chat + RAG pipeline; `fieldlot/scripts/sync-gov-listings.ts` **fails the build** if `MISTRAL_API_KEY` is set but the semantic RAG index has **chunks and zero embeddings** (misconfigured embed step).
 

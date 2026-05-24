@@ -47,7 +47,7 @@ The existing `npm run dev` is still the **static site + TS API** dev server for 
 
 ## Layout
 
-- `apps/web` — Next.js 15 (App Router, Tailwind)
+- `apps/web` — Next.js 15 (App Router, Tailwind). Skeleton routes: `/login`, `/academy`, `/academy/course/[slug]` (see `apps/web/README.md`).
 - `apps/backend` — FastAPI + Uvicorn
 - `docker-compose.yml` — `db` (pgvector) + `backend`
 - `infra/docker/init-db.sql` — enables `vector` extension on first DB init

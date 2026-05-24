@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Academy - AgriNexus</title>
+    <title>Library — AgriNexus Academy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&family=PT+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/agri-market-shared.css">
     <style>
         :root {
             /* Academy Palette - Warmer, Library Feel */
@@ -50,7 +51,7 @@
         }
 
         .container {
-            max-width: 1100px; /* Slightly narrower for reading comfort */
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 24px;
         }
@@ -127,6 +128,79 @@
             max-width: 600px;
             margin: 0 auto 24px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .search-box .agn-search-input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .trending-tags .t-tag {
+            border: none;
+        }
+
+        .agn-video-thumb {
+            border-radius: var(--radius-md);
+            min-height: 140px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .agn-video-card {
+            display: block;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 0 16px 16px;
+            background: var(--surface);
+            transition: var(--transition);
+        }
+
+        .agn-video-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+
+        .agn-platform-bridge {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px 36px;
+            margin-bottom: 48px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .agn-platform-bridge ul {
+            list-style: none;
+            margin: 0 0 24px;
+            padding: 0;
+            max-width: 720px;
+        }
+
+        .agn-platform-bridge li {
+            position: relative;
+            padding-left: 22px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            line-height: 1.55;
+            color: var(--text-main);
+        }
+
+        .agn-platform-bridge li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.55em;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+            opacity: 0.85;
         }
 
         .blinking-cursor {
@@ -702,22 +776,21 @@
         <nav>
     <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
         <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
-        AgriNexus
+        AgriNexus Academy
     </a>
-    <div style="display: flex; gap: 32px; align-items: center; font-size: 14px; font-weight: 500;">
-        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Agents</a>
-        <a href="platform.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Platform</a>
-        <a href="market-intelligence.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Market</a>
-        <a href="analytics.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Analytics</a>
-        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Academy</a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Start</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-main, #111);">Library</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Lab</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Models</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Archive</a>
     </div>
     
     <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
         <a href="academy.html" style="color: var(--text-main, #111); text-decoration: none;">EN</a>
         <span style="opacity: 0.3;">|</span>
-        <a href="ru/academy.html" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">RU</a>
+        <a href="bg/academy.html" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">BG</a>
     </div>
-    <a href="dashboard.html" style="padding: 10px 24px; border-radius: 30px; font-size: 14px; text-decoration: none; background: var(--text-main, #1a1a1a); color: white; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Dashboard</a>
 </nav>
 
         <!-- HERO -->
@@ -748,22 +821,79 @@
             </div>
         </section>
 
-        <!-- SEARCH SECTION -->
-        <div class="search-section">
+        <!-- ACADEMY ↔ PLATFORM -->
+        <section class="agn-platform-bridge" aria-labelledby="agn-platform-bridge-title">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="platformEyebrow">From lessons to operations</div>
+            <h2 id="agn-platform-bridge-title" style="font-family:'PT Serif',serif;font-size:32px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="platformTitle">Academy explains why — Platform runs how</h2>
+            <p data-i18n-academy="platformSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:20px;">The Academy is for literacy: readings, video paths, and the Tutor. The Platform page is the live map of the same Sense → Think → Act stack.</p>
+            <ul>
+                <li data-i18n-academy="platformLi1">Sense — market & satellite context, AgriDirect desk, field reports</li>
+                <li data-i18n-academy="platformLi2">Think — agent mesh, data lake, and model literacy (tied back to courses here)</li>
+                <li data-i18n-academy="platformLi3">Act — daily briefings, playbooks, and mobile / voice hand-offs</li>
+            </ul>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <a href="platform.html#platform-architecture" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta">Open Platform map</a>
+                <a href="index.html" class="btn btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta2">Agents & mesh</a>
+            </div>
+        </section>
+
+        <!-- AI FARMER BRAIN — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-farmer-brain" aria-labelledby="agn-farmer-brain-title" style="margin-bottom: 40px;">
+            <h2 id="agn-farmer-brain-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="brainTitle">“AI farmer brain”</h2>
+            <ul style="margin-bottom:0;padding-left:1.25rem;">
+                <li data-i18n-academy="brainLi1" style="margin-bottom:10px;line-height:1.5;">Teaches the farmer.</li>
+                <li data-i18n-academy="brainLi2" style="margin-bottom:10px;line-height:1.5;">Analyzes the farm.</li>
+                <li data-i18n-academy="brainLi3" style="margin-bottom:10px;line-height:1.5;">Delivers decisions.</li>
+                <li data-i18n-academy="brainLi4" style="margin-bottom:10px;line-height:1.5;">Automates activities.</li>
+            </ul>
+        </section>
+
+        <!-- PRODUCT ROADMAP (MVP) — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-roadmap" aria-labelledby="agn-roadmap-title" style="margin-bottom: 48px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="roadmapEyebrow">Product roadmap</div>
+            <h2 id="agn-roadmap-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="roadmapTitle">What we ship next (MVP)</h2>
+            <p data-i18n-academy="roadmapSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:16px;">Structured courses, in-site video paths, short quizzes, and a learner dashboard — building on today’s library and Tutor.</p>
+            <ul style="margin-bottom:16px;padding-left:1.25rem;">
+                <li data-i18n-academy="roadmapLi1" style="margin-bottom:8px;">Accounts & learner profiles</li>
+                <li data-i18n-academy="roadmapLi2" style="margin-bottom:8px;">First guided course path with progress</li>
+                <li data-i18n-academy="roadmapLi3" style="margin-bottom:8px;">Embedded video modules and transcripts where possible</li>
+                <li data-i18n-academy="roadmapLi4" style="margin-bottom:8px;">Module quizzes and optional recap touchpoints</li>
+                <li data-i18n-academy="roadmapLi5" style="margin-bottom:8px;">Dashboard: pick up where you left off</li>
+            </ul>
+            <p data-i18n-academy="roadmapFoot" style="font-size:14px;color:var(--text-muted);max-width:720px;line-height:1.5;">Full vision: docs/ACADEMY_PRODUCT_VISION.md · Architecture sketch: docs/ACADEMY_ARCHITECTURE.md (repository root).</p>
+        </section>
+
+        <!-- MATERIALS + SEARCH -->
+        <div class="search-section" style="margin-bottom: 64px;">
+            <div class="section-header" style="margin-bottom: 12px; text-align: center; justify-content: center;">
+                <h2 style="font-family: 'PT Serif', serif;" data-i18n-academy="materialsTitle">Materials library</h2>
+            </div>
+            <p data-i18n-academy="materialsSub" style="text-align: center; color: var(--text-muted); max-width: 720px; margin: 0 auto 24px; font-size: 15px; line-height: 1.5;">Articles on this site, partner hub, and trusted external guides — filter by topic.</p>
             <div class="search-box">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #999;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #999; flex-shrink: 0;">
                     <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <span>how do I read NDVI maps</span><span class="blinking-cursor"></span>
+                <input type="search" id="agn-academy-search" class="agn-search-input" autocomplete="off" placeholder="Search…" />
             </div>
-            <div class="trending-tags">
-                <div class="t-tag">selling wheat timing</div>
-                <div class="t-tag">septoria early signs</div>
-                <div class="t-tag">CAP subsidy</div>
-                <div class="t-tag">carbon credits</div>
+            <div class="trending-tags" id="agn-quick-filters">
+                <button type="button" class="t-tag" data-q="ndvi satellite imagery crop">NDVI &amp; imagery</button>
+                <button type="button" class="t-tag" data-q="wheat futures market">Wheat &amp; futures</button>
+                <button type="button" class="t-tag" data-q="egypt irrigation oasis">Egypt &amp; water</button>
+                <button type="button" class="t-tag" data-q="tomato harvest prices">Tomato sector</button>
+                <button type="button" class="t-tag" data-q="fao guide policy download">Guides &amp; FAO</button>
             </div>
+            <div id="agn-catalog-grid" class="fresh-grid" style="margin-top: 32px;"></div>
+            <p id="agn-catalog-empty" style="display: none; text-align: center; color: var(--text-muted); margin-top: 24px; font-size: 15px;">No matches</p>
         </div>
 
+        <!-- VISUAL LESSONS -->
+        <div class="section-header">
+            <h2 data-i18n-academy="visualTitle">Visual lessons</h2>
+        </div>
+        <p data-i18n-academy="visualSub" style="font-size: 15px; color: var(--text-muted); max-width: 720px; margin: -12px 0 28px; line-height: 1.5;">Curated video searches (YouTube opens in a new tab).</p>
+        <div id="agn-visual-lessons" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 64px;"></div>
+
+        <div id="agn-academy-tutor">
         <!-- LIVE ACADEMY TUTOR (uses /api/academy-tutor + delayed Yahoo snapshot for teaching) -->
         <div class="section-header" style="margin-top: 48px;">
             <h2>Ask the Academy Tutor</h2>
@@ -776,6 +906,7 @@
                 <span id="agn-academy-status" style="font-size: 13px; color: var(--text-muted);"></span>
             </div>
             <div id="agn-academy-reply" style="margin-top: 18px; font-size: 15px; line-height: 1.55; color: var(--text-main); white-space: pre-wrap;"></div>
+        </div>
         </div>
 
         <!-- THIS WEEK'S READING -->
@@ -828,7 +959,7 @@
         <!-- LEARNING PATHS -->
         <div class="section-header">
             <h2>Learning Paths</h2>
-            <a href="#" class="view-all">View all paths →</a>
+            <a href="archive.html" class="view-all">View all paths →</a>
         </div>
         <div class="paths-grid">
             <a href="course.html" class="path-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
@@ -929,7 +1060,7 @@
                 </div>
             </div>
             
-            <div class="pod-right" style="width: 100%;">
+            <div class="pod-right" style="width: 100%; flex-direction: column;">
                 <div class="custom-player" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; backdrop-filter: blur(10px);">
                     <audio id="podcast-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
                     
@@ -959,9 +1090,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
-    
-                </div>
+                <p id="agn-podcast-note" style="font-size: 12px; color: rgba(255,255,255,0.55); max-width: 400px; margin-top: 16px; text-align: center; line-height: 1.45;"></p>
             </div>
         </div>
 
@@ -1002,7 +1131,7 @@
         <h2>Learning, written by people who actually farm.</h2>
         <p>Every article peer-reviewed by working agronomists and traders. Always free.</p>
         <div class="btn-group">
-            <a href="#" class="btn btn-primary">Open the library</a>
+            <a href="archive.html" class="btn btn-primary">Open the library</a>
             <a href="#" class="btn btn-outline">Get the weekly newsletter</a>
         </div>
     </div>
@@ -1093,6 +1222,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="scripts/auth.js"></script>
     <script src="scripts/community.js"></script>
+    <script>window.AGN_ACADEMY_LANG = 'en';</script>
+    <script src="scripts/academy-hub.js"></script>
     <script>
     (function () {
         var btn = document.getElementById('agn-academy-send');

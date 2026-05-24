@@ -1,0 +1,350 @@
+/* AgriNexus — marketing pages supplement (home + agents; load after agri-market-shared.css) */
+.hero {
+    padding: 120px 0 60px;
+}
+/* STATS STRIP */
+        .stats-strip {
+            display: flex;
+            justify-content: center;
+            gap: 64px;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 80px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* LIVE AGENT MESH */
+        .mesh-container {
+            position: relative;
+            height: 600px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 120px;
+        }
+
+        .mesh-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(47, 79, 79, 0.05) 0%, transparent 60%);
+        }
+
+        .orchestrator {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background: var(--charcoal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(47, 79, 79, 0.2);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .orchestrator::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border: 1px solid rgba(47, 79, 79, 0.2);
+            border-radius: 50%;
+            animation: orch-ring 3s infinite;
+        }
+
+        @keyframes orch-ring {
+            0% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .orbit {
+            position: absolute;
+            border: 2px solid rgba(0,0,0,0.06);
+            border-radius: 50%;
+            animation: rotate 60s linear infinite;
+        }
+
+        .orbit-1 { width: 300px; height: 300px; }
+        .orbit-2 { width: 450px; height: 450px; animation-direction: reverse; animation-duration: 80s; }
+        .orbit-3 { width: 600px; height: 600px; animation-duration: 100s; }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .satellite-agent {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: white;
+            font-weight: 600;
+            top: 0; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .sat-green { background: var(--green); }
+        .sat-moss { background: var(--moss); }
+        .sat-gold { background: var(--gold); }
+        .sat-terra { background: var(--terracotta); }
+        .sat-char { background: var(--charcoal); }
+
+        /* THEMED SECTIONS */
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .section-num {
+            font-size: 24px;
+            color: var(--text-muted);
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        /* AGENT CARD */
+        .agent-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .agent-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .agent-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.04);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .agent-name {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .agent-alias {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .agent-desc {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .autonomy-level {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .pips {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            opacity: 0.2;
+        }
+
+        .pip.active {
+            opacity: 1;
+        }
+
+        .level-label {
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        /* LADDER SECTION */
+        .ladder-section {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            margin-bottom: 120px;
+            border: 1px solid var(--border);
+        }
+
+        .ladder-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .ladder-header h2 {
+            font-size: 32px;
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+
+        .ladder-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .ladder-step {
+            padding: 24px;
+            background: rgba(0,0,0,0.02);
+            border-radius: var(--radius-md);
+            border-top: 3px solid;
+        }
+
+        .ladder-step h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .ladder-step p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* FINAL CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-section h2 {
+            font-size: 40px;
+            font-weight: 400;
+            margin-bottom: 32px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--text-main);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface);
+        }
+
+        /* Family colors for agent cards */
+        .family-green .agent-icon { background: var(--green); }
+        .family-green .pip.active { background: var(--green); }
+        
+        .family-moss .agent-icon { background: var(--moss); }
+        .family-moss .pip.active { background: var(--moss); }
+        
+        .family-gold .agent-icon { background: var(--gold); }
+        .family-gold .pip.active { background: var(--gold); }
+        
+        .family-terra .agent-icon { background: var(--terracotta); }
+        .family-terra .pip.active { background: var(--terracotta); }
+        
+        .family-char .agent-icon { background: var(--charcoal); }
+        .family-char .pip.active { background: var(--charcoal); }

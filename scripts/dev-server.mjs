@@ -227,6 +227,35 @@ const server = createServer(async (req, res) => {
 		return;
 	}
 
+	if (pathname === '/api/academy-tutor' && req.method === 'POST') {
+		const { default: handler } = await import('../api/academy-tutor.ts');
+		const parsed = await readBody(req);
+		const vReq = {
+			method: 'POST',
+			body: parsed ?? {},
+			headers: req.headers,
+			socket: req.socket,
+		};
+		let status = 200;
+		let body;
+		const vRes = {
+			status(c) {
+				status = c;
+				return vRes;
+			},
+			json(b) {
+				body = b;
+			},
+			setHeader() {
+				return vRes;
+			},
+			end() {},
+		};
+		await handler(vReq, vRes);
+		json(res, status, body);
+		return;
+	}
+
 	if (pathname === '/api/public-config' && req.method === 'GET') {
 		const mailchimpUrl = (process.env.FURROW_MAILCHIMP_URL || '').trim();
 		const mailchimpHidden = (process.env.FURROW_MAILCHIMP_HIDDEN || '').trim();
@@ -257,7 +286,7 @@ const server = createServer(async (req, res) => {
 					: '';
 		const email = typeof body.email === 'string' ? body.email : '';
 		const interest = typeof body.interest === 'string' ? body.interest : 'all';
-		const lang = body.lang === 'ru' ? 'ru' : 'en';
+		const lang = body.lang === 'bg' || body.lang === 'ru' ? 'bg' : 'en';
 		const source = typeof body.source === 'string' ? body.source : 'website';
 		const result = await submitFurrowWaitlist({ fullName, email, interest, lang, source });
 		if (!result.ok) {
@@ -272,10 +301,10 @@ const server = createServer(async (req, res) => {
 			message: result.welcomeSent
 				? en
 					? 'Registered! Check your inbox for confirmation.'
-					: 'Готово! Проверьте почту для подтверждения.'
+					: 'Готово! Проверете имейла за потвърждение.'
 				: en
 					? 'You are on the list. We will contact you before launch.'
-					: 'Вы в списке. Напишем перед запуском.',
+					: 'Вие сте в списъка. Ще пишем преди старт.',
 		});
 		return;
 	}
@@ -285,9 +314,9 @@ const server = createServer(async (req, res) => {
 	if (staticPath === '/register') staticPath = '/register.html';
 	if (staticPath === '/archive') staticPath = '/archive.html';
 	if (staticPath === '/analytics') staticPath = '/analytics.html';
-	if (staticPath === '/ru/analytics') staticPath = '/ru/analytics.html';
+	if (staticPath === '/bg/analytics') staticPath = '/bg/analytics.html';
 	if (staticPath === '/market-intelligence') staticPath = '/market-intelligence.html';
-	if (staticPath === '/ru/market-intelligence') staticPath = '/ru/market-intelligence.html';
+	if (staticPath === '/bg/market-intelligence') staticPath = '/bg/market-intelligence.html';
 	if (staticPath === '/egypt-fields-desert-oasis-2026') staticPath = '/egypt-fields-desert-oasis-2026.html';
 	if (staticPath === '/egypt-fields-desert-oasis-2026-ru') staticPath = '/egypt-fields-desert-oasis-2026-ru.html';
 
@@ -311,6 +340,8 @@ const server = createServer(async (req, res) => {
 
 server.listen(port, () => {
 	console.log(`Furrow dev: http://127.0.0.1:${port}`);
-	console.log('APIs: /api/furrow-chat, /api/furrow-signals, /api/waitlist, /api/public-config, /api/market-data, /api/market-history, /api/chat');
+	console.log(
+		'APIs: /api/furrow-chat, /api/furrow-signals, /api/waitlist, /api/public-config, /api/market-data, /api/market-history, /api/chat, /api/academy-tutor',
+	);
 	console.log('Set MISTRAL_API_KEY in .env for AI; RESEND_* for waitlist email.');
 });

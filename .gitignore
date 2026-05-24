@@ -9,6 +9,7 @@ node_modules/
 # Next.js app
 apps/web/.next/
 apps/web/node_modules/
+*.tsbuildinfo
 
 # Python backend
 apps/backend/.venv/

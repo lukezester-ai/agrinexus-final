@@ -1,5 +1,5 @@
 /**
- * EN / RU language switch for Furrow marketing pages.
+ * EN / BG language switch for Furrow marketing pages.
  */
 (function initFurrowI18n() {
 	const STORAGE_KEY = 'furrow_lang';
@@ -7,13 +7,19 @@
 
 	function getLang() {
 		const saved = localStorage.getItem(STORAGE_KEY);
-		if (saved === 'en' || saved === 'ru') return saved;
+		if (saved === 'en' || saved === 'bg') return saved;
+		/* Legacy key from older builds */
+		if (saved === 'ru') {
+			localStorage.setItem(STORAGE_KEY, 'bg');
+			return 'bg';
+		}
 		const nav = (navigator.language || '').toLowerCase();
-		return nav.startsWith('ru') ? 'ru' : DEFAULT_LANG;
+		return nav.startsWith('bg') ? 'bg' : DEFAULT_LANG;
 	}
 
 	function apply(lang) {
-		document.documentElement.lang = lang === 'ru' ? 'ru' : 'en';
+		if (lang === 'ru') lang = 'bg';
+		document.documentElement.lang = lang === 'bg' ? 'bg' : 'en';
 		const map = window.FURROW_I18N?.[lang];
 		const titleKey = document.body?.dataset?.i18nTitle || 'page.title';
 		if (map?.[titleKey]) document.title = map[titleKey];

@@ -65,7 +65,7 @@ export class WorkflowAgent {
 		upstream: TextChatUpstream,
 		userMessageContent: string,
 		sessionId: string,
-		lang: 'en' | 'ru',
+		lang: 'en' | 'bg',
 		opts?: { clientIp?: string | null }
 	): Promise<
 		| { ok: true; reply: string; agentMode: boolean; actions?: AgentActionRecord[]; knowledgeIds?: string[] }

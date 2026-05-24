@@ -50,12 +50,12 @@ async function sendViaResend(opts: {
 	return 'sent';
 }
 
-function welcomeCopy(lang: 'en' | 'ru', fullName: string): { subject: string; html: string; text: string } {
-	if (lang === 'ru') {
+function welcomeCopy(lang: 'en' | 'bg', fullName: string): { subject: string; html: string; text: string } {
+	if (lang === 'bg') {
 		return {
-			subject: 'Furrow Markets — вы в листе ожидания',
-			text: `Здравствуйте, ${fullName}!\n\nСпасибо за регистрацию в Furrow Markets. Мы напишем перед запуском (лето 2026).\n\n— Furrow Markets`,
-			html: `<p>Здравствуйте, <strong>${fullName}</strong>!</p><p>Спасибо за регистрацию в <strong>Furrow Markets</strong>. Мы напишем перед запуском (лето 2026).</p><p style="color:#64748b;font-size:14px;">Это письмо не является инвестиционной рекомендацией.</p>`,
+			subject: 'Furrow Markets — вие сте в списъка за ранен достъп',
+			text: `Здравейте, ${fullName}!\n\nБлагодарим за регистрацията в Furrow Markets. Ще се свържем преди старт (лято 2026).\n\n— Furrow Markets`,
+			html: `<p>Здравейте, <strong>${fullName}</strong>!</p><p>Благодарим за регистрацията в <strong>Furrow Markets</strong>. Ще пишем преди старт (лято 2026).</p><p style="color:#64748b;font-size:14px;">Това писмо не е инвестиционен съвет.</p>`,
 		};
 	}
 	return {
@@ -69,7 +69,7 @@ export async function submitFurrowWaitlist(input: {
 	fullName: string;
 	email: string;
 	interest?: string;
-	lang?: 'en' | 'ru';
+	lang?: 'en' | 'bg' | 'ru';
 	source?: string;
 }): Promise<
 	| { ok: true; mailDelivery: 'sent'; welcomeSent: boolean }
@@ -78,7 +78,7 @@ export async function submitFurrowWaitlist(input: {
 	const email = input.email.trim().toLowerCase();
 	const fullName = (input.fullName.trim() || email.split('@')[0] || 'Subscriber').slice(0, 120);
 	const interest = (input.interest?.trim() || 'all').slice(0, 64);
-	const lang = input.lang === 'ru' ? 'ru' : 'en';
+	const lang = input.lang === 'bg' || input.lang === 'ru' ? 'bg' : 'en';
 	const source = (input.source?.trim() || 'website').slice(0, 64);
 
 	if (!EMAIL_RE.test(email)) {

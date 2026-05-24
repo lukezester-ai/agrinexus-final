@@ -19,22 +19,22 @@
 		'chat.quickBlackSea': 'Black Sea wheat',
 		'chat.quickMarkets': 'CBOT prices',
 	});
-	Object.assign(window.FURROW_I18N.ru, {
-		'chat.fab': 'AI Аналитик',
+	Object.assign(window.FURROW_I18N.bg, {
+		'chat.fab': 'AI анализатор',
 		'chat.title': 'Furrow Analyst',
-		'chat.hint': 'Аналитика рынков · запуск 2026',
-		'chat.placeholder': 'Спросите про зерно, Чёрное море, тарифы…',
+		'chat.hint': 'Пазарна аналитика · старт 2026',
+		'chat.placeholder': 'Питайте за зърно, Черно море, цени…',
 		'chat.welcome':
-			'Здравствуйте — я Furrow Analyst. Расскажу о платформе, тарифах и могу добавить вас в лист ожидания.',
+			'Здравейте — аз съм Furrow Analyst. Мога да обясня плановете, покритието и цените или да ви добавя към ранния достъп.',
 		'chat.thinking': 'Анализ…',
-		'chat.offlinePh': 'AI offline — нужен API ключ на сервере',
-		'chat.offlineReply': 'Аналитик offline. Задайте MISTRAL_API_KEY и npm run dev.',
-		'chat.noReply': 'Нет ответа от сервера.',
-		'chat.network': 'Ошибка сети — API запущен?',
-		'chat.busy': 'Ошибка. Попробуйте снова.',
-		'chat.quickPricing': 'Тарифы',
-		'chat.quickWaitlist': 'Лист ожидания',
-		'chat.quickBlackSea': 'Пшеница ЧМ',
+		'chat.offlinePh': 'AI е офлайн — нужен е API ключ на сървъра',
+		'chat.offlineReply': 'Анализаторът е офлайн. Задайте MISTRAL_API_KEY и стартирайте npm run dev.',
+		'chat.noReply': 'Няма отговор от сървъра.',
+		'chat.network': 'Мрежова грешка — API ли работи?',
+		'chat.busy': 'Грешка. Опитайте отново.',
+		'chat.quickPricing': 'Цени',
+		'chat.quickWaitlist': 'Списък за достъп',
+		'chat.quickBlackSea': 'Пшеница Черно море',
 		'chat.quickMarkets': 'CBOT',
 	});
 })();

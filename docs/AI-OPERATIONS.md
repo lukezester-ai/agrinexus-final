@@ -6,6 +6,8 @@
 |------|------|
 | `POST /api/chat` | LangGraph mesh: orchestrator → `marketAgent` \| `weatherAgent` \| `academyAgent` \| `generalAgent`. Response includes `lastRoute`. |
 | `POST /api/academy-tutor` | Academy pages only; Mistral + Yahoo snapshot for **teaching** (not advice). |
+
+Local `npm run dev` (`scripts/dev-server.mjs`) exposes the same route as Vercel so Academy pages can call the Tutor without a 404.
 | `GET /api/market-data` | Cached commodity quotes (Yahoo). Used by Market Intelligence ticker + LLM snapshots. |
 
 ## Environment

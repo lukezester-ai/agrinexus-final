@@ -7,7 +7,7 @@ import {
 import { submitFurrowWaitlist } from './waitlist.js';
 
 export type AgentActionRecord = { tool: string; ok: boolean; summary: string };
-export type AgentToolContext = { lang: 'en' | 'ru'; clientIp?: string | null };
+export type AgentToolContext = { lang: 'en' | 'bg'; clientIp?: string | null };
 
 export const FURROW_AGENT_TOOLS = [
 	{

@@ -15,6 +15,14 @@ export default function Home() {
 				<h2 className="text-sm font-semibold text-slate-800">Backend health</h2>
 				<ApiStatus />
 			</div>
+			<nav className="mt-10 flex flex-wrap gap-4 text-sm font-medium text-emerald-800">
+				<a className="underline underline-offset-4 hover:text-emerald-950" href="/login">
+					Login (skeleton)
+				</a>
+				<a className="underline underline-offset-4 hover:text-emerald-950" href="/academy">
+					Academy / courses (skeleton)
+				</a>
+			</nav>
 		</main>
 	);
 }

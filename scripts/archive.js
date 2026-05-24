@@ -10,7 +10,7 @@
   const categorySelect = document.getElementById('archive-category');
   
   function getLang() {
-    return document.documentElement.lang === 'ru' ? 'ru' : 'en';
+    return document.documentElement.lang === 'bg' ? 'bg' : 'en';
   }
 
   function getFilteredArticles() {
@@ -65,7 +65,7 @@
         divMeta.className = 'archive-meta';
         
         const spanMeta = document.createElement('span');
-        spanMeta.textContent = article.meta[lang] + ' · ' + (lang === 'en' ? 'English' : 'Английский');
+        spanMeta.textContent = article.meta[lang] + ' · ' + (lang === 'en' ? 'English' : 'Български');
         divMeta.appendChild(spanMeta);
         
         li.appendChild(a);
@@ -94,14 +94,12 @@
     paginationContainer.appendChild(prevBtn);
     
     const spanInfo = document.createElement('span');
-    spanInfo.textContent = \` \${currentPage} / \${totalPages} \`;
+    spanInfo.textContent = ' ' + currentPage + ' / ' + totalPages + ' ';
     spanInfo.className = 'archive-page-info';
     paginationContainer.appendChild(spanInfo);
     
     const nextBtn = document.createElement('button');
-    nextBtn.textContent = getLang() === 'en' ? 'Next' : 'Напред'; // Russian for Next: 'Вперед', wait, 'Напред' is BG, Russian is 'Далее' or 'Вперед'. We'll use 'Далее'
-    if (getLang() === 'ru') nextBtn.textContent = 'Далее';
-    
+    nextBtn.textContent = getLang() === 'en' ? 'Next' : 'Напред';
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.className = 'archive-page-btn';
     nextBtn.addEventListener('click', () => {
@@ -132,14 +130,14 @@
       renderList();
       
       // Update UI texts for search and category
-      const isRu = getLang() === 'ru';
-      if (searchInput) searchInput.placeholder = isRu ? 'Поиск...' : 'Search articles...';
+      const isBg = getLang() === 'bg';
+      if (searchInput) searchInput.placeholder = isBg ? 'Търсене в статии...' : 'Search articles...';
       if (categorySelect) {
-        categorySelect.options[0].text = isRu ? 'Все категории' : 'All Categories';
-        categorySelect.options[1].text = isRu ? 'Северная Америка' : 'North America';
-        categorySelect.options[2].text = isRu ? 'Европа' : 'Europe';
-        categorySelect.options[3].text = isRu ? 'MENA' : 'MENA';
-        categorySelect.options[4].text = isRu ? 'Аналитика (Мир)' : 'Global Analysis';
+        categorySelect.options[0].text = isBg ? 'Всички категории' : 'All Categories';
+        categorySelect.options[1].text = isBg ? 'Северна Америка' : 'North America';
+        categorySelect.options[2].text = isBg ? 'Европа' : 'Europe';
+        categorySelect.options[3].text = isBg ? 'MENA' : 'MENA';
+        categorySelect.options[4].text = isBg ? 'Глобален анализ' : 'Global Analysis';
       }
     });
     

@@ -19,7 +19,7 @@
 		let welcomeShown = false;
 
 		function lang() {
-			return window.FurrowI18n?.getLang?.() === 'ru' ? 'ru' : 'en';
+			return window.FurrowI18n?.getLang?.() === 'bg' ? 'bg' : 'en';
 		}
 
 		function setOpen(next) {
@@ -58,17 +58,17 @@
 			input.placeholder = t('chat.placeholder', 'Ask…');
 			statusEl.textContent =
 				data?.agentEnabled && data?.agentTools
-					? lang() === 'ru'
+					? lang() === 'bg'
 						? 'Агент · действия'
 						: 'Agent · tools'
-					: lang() === 'ru'
+					: lang() === 'bg'
 						? 'онлайн'
 						: 'online';
 		}
 
 		function formatActions(actions) {
 			if (!Array.isArray(actions) || !actions.length) return '';
-			const head = lang() === 'ru' ? 'Действия:' : 'Actions:';
+			const head = lang() === 'bg' ? 'Действия:' : 'Actions:';
 			return `${head}\n${actions.map((a) => `${a.ok ? '✓' : '✗'} ${a.summary || a.tool}`).join('\n')}`;
 		}
 

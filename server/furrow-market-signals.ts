@@ -95,12 +95,12 @@ export async function getFurrowMarketSignals(opts?: { force?: boolean }): Promis
 }
 
 /** Compact text block for LLM context / tool results */
-export function formatSignalsForAgent(signals: FurrowMarketSignals, lang: 'en' | 'ru'): string {
+export function formatSignalsForAgent(signals: FurrowMarketSignals, lang: 'en' | 'bg'): string {
 	const en = lang === 'en';
 	if (!signals.futures.length) {
 		return en
 			? 'Market signals unavailable right now (delayed CBOT/Baltic via Yahoo).'
-			: 'Рыночные сигналы сейчас недоступны (отложенные CBOT/Baltic через Yahoo).';
+			: 'Пазарните сигнали са недостъпни в момента (забавени CBOT/Baltic през Yahoo).';
 	}
 	const lines = signals.futures.map((f) => {
 		const price =
@@ -114,6 +114,6 @@ export function formatSignalsForAgent(signals: FurrowMarketSignals, lang: 'en' |
 	});
 	const head = en
 		? `Delayed market snapshot (as of ${signals.updatedAt?.slice(0, 19) ?? 'n/a'} UTC):`
-		: `Отложенный снимок рынка (${signals.updatedAt?.slice(0, 19) ?? 'n/a'} UTC):`;
-	return `${head}\n${lines.join('\n')}\n\n${en ? 'Disclaimer: not investment advice. Verify with official sources.' : 'Не является инвестиционной рекомендацией. Проверяйте официальные источники.'}`;
+		: `Забавен пазарен снимък (${signals.updatedAt?.slice(0, 19) ?? 'n/a'} UTC):`;
+	return `${head}\n${lines.join('\n')}\n\n${en ? 'Disclaimer: not investment advice. Verify with official sources.' : 'Не е инвестиционен съвет. Проверявайте официални източници.'}`;
 }

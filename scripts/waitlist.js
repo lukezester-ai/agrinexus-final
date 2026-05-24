@@ -9,7 +9,7 @@
 	let mailchimpUrl = null;
 	let mailchimpHidden = null;
 
-	const lang = () => (window.FurrowI18n?.getLang?.() === 'ru' ? 'ru' : 'en');
+	const lang = () => (window.FurrowI18n?.getLang?.() === 'bg' ? 'bg' : 'en');
 	const msg = (key) => window.FURROW_I18N?.[lang()]?.[key] || key;
 
 	function showStatus(className, text) {
