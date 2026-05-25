@@ -8,6 +8,12 @@ const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	outputFileTracingRoot: monorepoRoot,
+	/** Само в development: същия origin като Next → FastAPI (удобно за бъдещи client fetch). */
+	async rewrites() {
+		if (process.env.NODE_ENV !== "development") return [];
+		const origin = (process.env.BACKEND_ORIGIN ?? "http://127.0.0.1:8000").replace(/\/$/, "");
+		return [{ source: "/api/py/:path*", destination: `${origin}/:path*` }];
+	},
 };
 
 export default nextConfig;

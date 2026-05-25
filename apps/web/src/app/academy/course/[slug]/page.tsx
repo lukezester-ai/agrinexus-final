@@ -1,45 +1,73 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-const TITLES: Record<string, string> = {
-	"market-literacy": "Market literacy starter",
-	"sense-think-act": "Sense → Think → Act overview",
-};
+import { COURSES, courseBySlug } from "@/content/academy-courses";
 
 type Props = { params: Promise<{ slug: string }> };
 
+export function generateStaticParams() {
+	return COURSES.map((c) => ({ slug: c.slug }));
+}
+
 export async function generateMetadata({ params }: Props) {
 	const { slug } = await params;
-	const title = TITLES[slug];
-	if (!title) return { title: "Course · AgriNexus" };
-	return { title: `${title} · AgriNexus` };
+	const course = courseBySlug(slug);
+	if (!course) return { title: "Курс · AgriNexus" };
+	return { title: `${course.title} · AgriNexus` };
 }
 
 export default async function CoursePage({ params }: Props) {
 	const { slug } = await params;
-	const title = TITLES[slug];
-	if (!title) notFound();
+	const course = courseBySlug(slug);
+	if (!course) notFound();
 
 	return (
 		<main className="mx-auto max-w-2xl px-6 py-16">
-			<p className="text-sm font-medium uppercase tracking-wide text-emerald-800">AgriNexus · Course</p>
-			<h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
-			<p className="mt-3 text-slate-600">
-				Skeleton: modules, video embeds, and quizzes will load from the backend. Slug:{" "}
-				<code className="rounded bg-slate-200 px-1">{slug}</code>
+			<p className="text-sm font-medium uppercase tracking-wide text-emerald-800">AgriNexus · Курс</p>
+			<h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{course.title}</h1>
+			<p className="mt-3 text-slate-600">{course.description}</p>
+			<p className="mt-2 text-sm text-slate-500">
+				{course.modules} модула (лекции) — текстове в{" "}
+				<code className="rounded bg-slate-100 px-1">public/lectures/courses/{slug}/</code>
 			</p>
-			<ol className="mt-8 list-decimal space-y-2 pl-6 text-slate-800">
-				<li>Module 1 — placeholder</li>
-				<li>Module 2 — placeholder</li>
-				<li>Module 3 — placeholder</li>
+
+			<ol className="mt-8 list-decimal space-y-3 pl-6 text-slate-800">
+				{course.lectures.map((lec, i) => (
+					<li key={lec.id} className="pl-1">
+						<p className="font-medium text-slate-900">
+							{i + 1}. {lec.title}
+						</p>
+						<p className="mt-1 text-sm text-slate-600">{lec.summary}</p>
+						<Link
+							href={`/academy/lecturer?focus=${encodeURIComponent(lec.id)}`}
+							className="mt-2 inline-block text-sm font-medium text-emerald-800 underline underline-offset-4"
+						>
+							Отвори в лектора →
+						</Link>
+					</li>
+				))}
 			</ol>
+
+			<Link
+				href={`/academy/course/${slug}/test`}
+				className="mt-8 flex items-center justify-between gap-4 rounded-2xl border-2 border-amber-500/80 bg-amber-50 px-5 py-4 text-amber-950 shadow-sm transition-colors hover:bg-amber-100/90"
+			>
+				<div>
+					<p className="text-xs font-semibold uppercase tracking-wide text-amber-900">Финален тест</p>
+					<p className="font-semibold">25 въпроса по материала от курса</p>
+					<p className="mt-1 text-sm text-amber-900/90">Множествен избор; при успех — поздрав с конфети.</p>
+				</div>
+				<span className="text-2xl" aria-hidden>
+					→
+				</span>
+			</Link>
+
 			<p className="mt-10 flex flex-wrap gap-4 text-sm">
 				<Link href="/academy" className="text-emerald-800 underline underline-offset-4">
-					← All courses (Next)
+					← Всички курсове
 				</Link>
-				<a href="/course.html" className="text-emerald-800 underline underline-offset-4">
-					Open static course shell →
-				</a>
+				<Link href="/academy/lecturer" className="text-emerald-800 underline underline-offset-4">
+					Лектор (избор на лекция)
+				</Link>
 			</p>
 		</main>
 	);

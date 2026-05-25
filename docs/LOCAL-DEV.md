@@ -20,7 +20,13 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` — the home page calls the backend `/health`.
+Open `http://localhost:3000` — the home page calls the backend `/health` and includes a **“Питай”** box that proxies to the root marketing dev server `POST /api/chat` (set `AGN_MARKETING_ORIGIN` in `apps/web/.env.local`, default `http://127.0.0.1:3456`). Run **`npm run dev` from the repo root** on port 3456 with `MISTRAL_API_KEY` for that chat to work.
+
+- **`POST /api/academy-tutor-proxy`** in `apps/web` → same origin, forwards to **`POST /api/academy-tutor`** on the marketing dev server (Academy Tutor). Used by **`/academy/lecturer`**.
+- **Lectures**: Markdown under **`apps/web/public/lectures/courses/<course-slug>/`**, catalog in **`apps/web/src/content/academy-courses.ts`** (loaded at runtime in the browser from `/lectures/...`).
+- **Academy final tests**: 25 multiple-choice questions per course in **`apps/web/src/content/final-course-tests/`** (bundled at build time). Pass threshold **`PASS_SHARE`** (default **80%**, `types.ts`). Unanswered questions count as wrong on submit. UI: **`/academy/course/<slug>/test`**.
+
+In **development**, Next.js also proxies `http://localhost:3000/api/py/*` → FastAPI on `BACKEND_ORIGIN` (default `http://127.0.0.1:8000/*`) so you can hit the API same-origin from the browser (e.g. `/api/py/docs` may work for Swagger; asset paths on `/docs` are safest when opened directly at `:8000/docs`).
 
 ## Option B — Postgres only in Docker, API on host
 
