@@ -23,6 +23,16 @@ export function Footer() {
 				</Link>
 			</p>
 			<p className="mt-2">{t("stats")}</p>
+			<p className="mt-4 text-ink/45">
+				{t("ownership")}{" "}
+				{t("contactIntro")}{" "}
+				<a
+					href="mailto:info@agrinexus.eu"
+					className="text-ink/55 underline underline-offset-2 transition-colors hover:text-ink"
+				>
+					info@agrinexus.eu
+				</a>
+			</p>
 		</footer>
 	);
 }

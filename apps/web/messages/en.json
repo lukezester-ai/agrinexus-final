@@ -28,7 +28,9 @@
 		"sponsors": "Sponsors",
 		"advertise": "Advertise",
 		"privacy": "Privacy",
-		"stats": "2,847 farms · 14 countries · 1.2M hectares"
+		"stats": "2,847 farms · 14 countries · 1.2M hectares",
+		"ownership": "This website is owned by AgriNexus LTD.",
+		"contactIntro": "Contact:"
 	},
 	"Home": {
 		"heroLine1": "From soil to",
@@ -98,6 +100,15 @@
 	"MarketMeta": {
 		"title": "Market intelligence",
 		"description": "Commodity insight for farmers."
+	},
+	"MarketDesk": {
+		"noteEyebrow": "Desk note · Mistral · delayed Yahoo",
+		"noAi": "Add MISTRAL_API_KEY to the web app environment to generate the daily paragraph. Live tickers still load below.",
+		"delayDisclaimer": "Quotes are delayed unofficial Yahoo Finance data, shown for context only — not investment, hedging, or execution advice.",
+		"terminalTitle": "Commodity desk",
+		"liveBadge": "LIVE",
+		"rowsEmpty": "Could not load live rows. Check network or try again shortly.",
+		"cbotRef": "CBOT wheat reference (ZW=F)"
 	},
 	"PlatformMeta": {
 		"title": "Platform",
