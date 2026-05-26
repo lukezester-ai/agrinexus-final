@@ -78,6 +78,7 @@
 		"modules": "{count} modules (lectures) — texts in public/lectures/courses/{slug}/",
 		"openCourse": "Open course →",
 		"moduleCount": "{count} modules",
+		"coursesTitle": "Courses",
 		"homeBack": "← Home (Next)"
 	},
 	"Course": {

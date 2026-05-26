@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* ─── AgriNexus brand (merged from AgriNexus_NextJS template) ─── */
 /* --font-inter, --font-fraunces, --font-mono: set by next/font in layout.tsx */

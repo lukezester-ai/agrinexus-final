@@ -78,6 +78,7 @@
 		"modules": "{count} модула (лекции) — текстове в public/lectures/courses/{slug}/",
 		"openCourse": "Отвори курса →",
 		"moduleCount": "{count} модула",
+		"coursesTitle": "Курсове",
 		"homeBack": "← Начало (Next)"
 	},
 	"Course": {

@@ -104,8 +104,8 @@ export const COURSES: Course[] = [
 	{
 		slug: "precision-data",
 		title: "Прецизно земеделие и данни",
-		description: "GPS, карти на полето, запис на операции — основа за по-малко гадаене.",
-		modules: 2,
+		description: "Карти и слоеве, GPS, метео за операции, карти на добив, запис — по-малко гадаене.",
+		modules: 4,
 		lectures: [
 			{
 				id: "pd-yield-maps",
@@ -118,6 +118,18 @@ export const COURSES: Course[] = [
 				title: "Проследимост и запис",
 				summary: "Защо „дневникът“ на полето плаща при изкупуване и при спор.",
 				file: "courses/precision-data/02-prosledimost-zapis.md",
+			},
+			{
+				id: "pd-maps-gps",
+				title: "Карти, GPS и слоеве в полето",
+				summary: "Ортофото, слоеве, телефон срещу приемник, граници и AB линии без объркване.",
+				file: "courses/precision-data/03-karti-gps-sloevi.md",
+			},
+			{
+				id: "pd-weather-ops",
+				title: "Метео за операции",
+				summary: "Кратък и сезонен хоризонт, локална станция, вятър за пръскане, радар за дъжд.",
+				file: "courses/precision-data/04-meteo-operatsii.md",
 			},
 		],
 	},

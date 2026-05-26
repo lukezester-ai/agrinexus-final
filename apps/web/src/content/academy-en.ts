@@ -67,7 +67,7 @@ export const courseEn: Record<
 	},
 	"precision-data": {
 		title: "Precision farming and data",
-		description: "GPS, field maps, operation logs — less guessing, clearer decisions.",
+		description: "Maps and layers, GPS, weather for operations, yield maps, records — less guesswork.",
 		lectures: {
 			"pd-yield-maps": {
 				title: "Yield maps and zoning",
@@ -76,6 +76,14 @@ export const courseEn: Record<
 			"pd-traceability": {
 				title: "Traceability and records",
 				summary: "Why a field diary pays at purchase and in disputes.",
+			},
+			"pd-maps-gps": {
+				title: "Maps, GPS, and layers in the field",
+				summary: "Orthophoto, layers, phone vs receiver, boundaries and AB lines without confusion.",
+			},
+			"pd-weather-ops": {
+				title: "Weather for field operations",
+				summary: "Short vs seasonal outlook, local station, spray wind limits, rain radar.",
 			},
 		},
 	},
