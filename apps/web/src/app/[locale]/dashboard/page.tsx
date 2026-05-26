@@ -1,319 +1,316 @@
 import type { Metadata } from "next";
+import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Your farm, summarized. Daily briefing, agent activity, market positions.",
-};
+type PageProps = { params: Promise<{ locale: string }> };
 
-const sideItems = {
-  daily: [
-    { icon: "🏠", label: "Briefing", href: "/dashboard", active: true },
-    { icon: "📋", label: "Fields",   href: "#", badge: "8" },
-    { icon: "📈", label: "Market",   href: "/market" },
-    { icon: "💰", label: "Finance",  href: "#" },
-  ],
-  mesh: [
-    { icon: "🤖", label: "Agents",          href: "/agents", badge: "18" },
-    { icon: "💬", label: "Ask AgriNexus",   href: "#" },
-  ],
-  more: [
-    { icon: "🎓", label: "Academy",  href: "/academy" },
-    { icon: "⚙",  label: "Settings", href: "#" },
-  ],
-};
-
-const briefings = [
-  { tag: "MARKET", tagClass: "bg-forest-700/10 text-forest-700",      meta: "4 agents consulted", text: <>Wheat opened <span className="text-semantic-success font-medium">+2.4%</span>. Your 60t at <strong className="font-medium">€246</strong> · this is a strong forward window.</>, cta: "See full analysis" },
-  { tag: "FIELD",  tagClass: "bg-earth-600/15 text-harvest-700",      meta: "SatelliteAgent",     text: <>NDVI drop in <strong className="font-medium">Field A-204, south block</strong>. Possible early septoria · drone scout dispatched.</>, cta: "See the stress zone" },
-  { tag: "OPS",    tagClass: "bg-semantic-info/[0.12] text-semantic-info", meta: "WeatherAgent + IrrigationAgent", text: <>14mm rain at <strong className="font-medium">17:00</strong> · irrigation paused, pump rerouted to greenhouse 2.</>, cta: "See forecast" },
-];
-
-const fields = [
-  { swatch: "#1f4d2c", name: "A-205", ha: "42 ha", crop: "Wheat",     stat: "0.84", status: "healthy" as const },
-  { swatch: "#c4a86a", name: "A-204", ha: "87 ha", crop: "Wheat",     stat: "0.58", status: "alert" as const },
-  { swatch: "#5a9968", name: "A-202", ha: "35 ha", crop: "Sunflower", stat: "0.76", status: "healthy" as const },
-  { swatch: "#97c459", name: "A-203", ha: "28 ha", crop: "Rapeseed",  stat: "0.71", status: "ok" as const },
-];
-
-const agentFeed = [
-  { icon: "📈", tag: "MKT", time: "06:42", text: <>Wheat <strong className="font-medium">+2.4%</strong> · forward window flagged</>, status: "pending" as const, statusText: "⏵ Awaiting your tap" },
-  { icon: "💧", tag: "IRR", time: "06:18", text: <>Paused irrigation on <strong className="font-medium">A-204</strong> · rain at 17:00</>, status: "done" as const, statusText: "✓ Executed (L4 autonomy)" },
-  { icon: "🛰️", tag: "SAT", time: "05:50", text: <>NDVI drop in <strong className="font-medium">A-204 south</strong> · 2.3 ha flagged</>, status: "done" as const, statusText: "✓ Drone dispatched" },
-  { icon: "🦠", tag: "DIS", time: "04:12", text: <>Septoria probability <strong className="font-medium">78%</strong> · scout report queued</>, status: "pending" as const, statusText: "⏵ Confirm treatment plan" },
-];
-
-const weather = [
-  { dow: "Today", icon: "🌧", high: "22°", low: "14°", rain: "14mm",  today: true },
-  { dow: "Sat",   icon: "☁",  high: "19°", low: "12°", rain: "2mm" },
-  { dow: "Sun",   icon: "⛅", high: "23°", low: "13°", rain: "—" },
-  { dow: "Mon",   icon: "☀",  high: "26°", low: "15°", rain: "—" },
-  { dow: "Tue",   icon: "⛈",  high: "21°", low: "14°", rain: "28mm" },
-];
-
-const tasks = [
-  { done: false, title: "Confirm septoria treatment for A-204", meta: "Due 11:00 · before rain", from: "DIS" },
-  { done: false, title: "Approve 144t wheat forward at €246",   meta: "Window closes 16:00",     from: "MKT" },
-  { done: true,  title: "Review weekly sustainability report",  meta: "Done · 06:15",            from: "CO2" },
-  { done: false, title: "Call Stefan about combine maintenance", meta: "Self-added · this week", from: "YOU" },
-];
-
-function SidebarGroup({ label, items }: { label: string; items: { icon: string; label: string; href: string; active?: boolean; badge?: string }[] }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <div className="text-[9px] text-ink/40 tracking-[0.1em] uppercase px-2 pb-1.5">{label}</div>
-      {items.map((i) => (
-        <Link
-          key={i.label}
-          href={i.href}
-          className={
-            "flex items-center gap-2.5 py-2 px-2.5 rounded-lg text-[13px] no-underline transition-colors " +
-            (i.active ? "bg-ink/[0.06] text-ink font-medium" : "text-ink/65 hover:bg-ink/[0.04]")
-          }
-        >
-          <span>{i.icon}</span>
-          <span>{i.label}</span>
-          {i.badge && <span className="ml-auto text-[9px] py-px px-1.5 rounded-full bg-forest-700/10 text-forest-700 font-medium font-mono">{i.badge}</span>}
-        </Link>
-      ))}
-    </div>
-  );
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+	const { locale } = await params;
+	return locale === "bg"
+		? { title: "Табло", description: "Твоето стопанство, обобщено: briefing, агенти, пазари и задачи." }
+		: { title: "Dashboard", description: "Your farm, summarized. Daily briefing, agent activity, market positions." };
 }
 
-export default function DashboardPage() {
-  return (
-    <div className="flex min-h-screen bg-[#f6f3ec] relative z-[2]">
+const fields = [
+	{ swatch: "#1f4d2c", name: "A-205", ha: "42 ha", crop: { en: "Wheat", bg: "Пшеница" }, stat: "0.84", status: "healthy" as const },
+	{ swatch: "#c4a86a", name: "A-204", ha: "87 ha", crop: { en: "Wheat", bg: "Пшеница" }, stat: "0.58", status: "alert" as const },
+	{ swatch: "#5a9968", name: "A-202", ha: "35 ha", crop: { en: "Sunflower", bg: "Слънчоглед" }, stat: "0.76", status: "healthy" as const },
+	{ swatch: "#97c459", name: "A-203", ha: "28 ha", crop: { en: "Rapeseed", bg: "Рапица" }, stat: "0.71", status: "ok" as const },
+];
 
-      <aside className="hidden md:flex w-[220px] flex-shrink-0 bg-paper/85 backdrop-blur-xl border-r border-ink/[0.06] py-5 px-3.5 flex-col gap-4.5 sticky top-0 h-screen">
-        <Link href="/" className="flex items-center gap-2 py-1 px-1.5 pb-3 no-underline text-ink">
-          <span className="w-5.5 h-5.5 w-[22px] h-[22px] rounded-md bg-brand-gradient flex items-center justify-center text-white text-xs shadow-[0_2px_8px_rgba(31,77,44,0.25)]">✦</span>
-          <span className="text-[13px] font-medium">AgriNexus</span>
-        </Link>
+const copy = {
+	en: {
+		side: {
+			daily: "Daily",
+			mesh: "Mesh",
+			more: "More",
+			items: {
+				briefing: "Briefing",
+				fields: "Fields",
+				market: "Market",
+				finance: "Finance",
+				agents: "Agents",
+				ask: "Ask AgriNexus",
+				academy: "Academy",
+				settings: "Settings",
+			},
+			userMeta: "Dobrich · 280 ha",
+		},
+		greeting: "Good morning,",
+		date: "Friday · 22 May 2026 · 06:42 EET",
+		search: "Ask anything…",
+		briefings: [
+			{ tag: "MARKET", meta: "4 agents consulted", text: <>Wheat opened <span className="text-semantic-success font-medium">+2.4%</span>. Your 60t at <strong className="font-medium">€246</strong> · this is a strong forward window.</>, cta: "See full analysis", tagClass: "bg-forest-700/10 text-forest-700" },
+			{ tag: "FIELD", meta: "SatelliteAgent", text: <>NDVI drop in <strong className="font-medium">Field A-204, south block</strong>. Possible early septoria · drone scout dispatched.</>, cta: "See the stress zone", tagClass: "bg-earth-600/15 text-harvest-700" },
+			{ tag: "OPS", meta: "WeatherAgent + IrrigationAgent", text: <>14mm rain at <strong className="font-medium">17:00</strong> · irrigation paused, pump rerouted to greenhouse 2.</>, cta: "See forecast", tagClass: "bg-semantic-info/[0.12] text-semantic-info" },
+		],
+		fieldsTitle: "Your fields",
+		fieldTabs: ["NDVI", "Moisture", "Yield est."],
+		status: { healthy: "Healthy", alert: "Stress", ok: "Watching" },
+		mapLabel: "A-204 · 2.3 ha",
+		marketTitle: "Market positions",
+		marketMeta: "MATIF · 06:42 live",
+		wheatMeta: "WHEAT · DEC26 · 480t reserve",
+		forecast: "Forecast · Sep 30",
+		overCost: "+€84/t over break-even",
+		lock: "Lock 144t",
+		wait: "Wait",
+		activityTitle: "Agent activity",
+		activityMeta: "last 6h · 23 actions",
+		activity: [
+			{ icon: "📈", tag: "MKT", time: "06:42", text: <>Wheat <strong className="font-medium">+2.4%</strong> · forward window flagged</>, statusText: "⏵ Awaiting your tap", done: false },
+			{ icon: "💧", tag: "IRR", time: "06:18", text: <>Paused irrigation on <strong className="font-medium">A-204</strong> · rain at 17:00</>, statusText: "✓ Executed (L4 autonomy)", done: true },
+			{ icon: "🛰️", tag: "SAT", time: "05:50", text: <>NDVI drop in <strong className="font-medium">A-204 south</strong> · 2.3 ha flagged</>, statusText: "✓ Drone dispatched", done: true },
+			{ icon: "🦠", tag: "DIS", time: "04:12", text: <>Septoria probability <strong className="font-medium">78%</strong> · scout report queued</>, statusText: "⏵ Confirm treatment plan", done: false },
+		],
+		weatherTitle: "Weather · Dobrich",
+		weatherMeta: "7-day · hyper-local",
+		weather: [
+			{ dow: "Today", icon: "🌧", high: "22°", low: "14°", rain: "14mm", today: true },
+			{ dow: "Sat", icon: "☁", high: "19°", low: "12°", rain: "2mm" },
+			{ dow: "Sun", icon: "⛅", high: "23°", low: "13°", rain: "—" },
+			{ dow: "Mon", icon: "☀", high: "26°", low: "15°", rain: "—" },
+			{ dow: "Tue", icon: "⛈", high: "21°", low: "14°", rain: "28mm" },
+		],
+		tasksTitle: "Today's tasks",
+		tasksMeta: "3 from agents · 1 from you",
+		tasks: [
+			{ done: false, title: "Confirm septoria treatment for A-204", meta: "Due 11:00 · before rain", from: "DIS" },
+			{ done: false, title: "Approve 144t wheat forward at €246", meta: "Window closes 16:00", from: "MKT" },
+			{ done: true, title: "Review weekly sustainability report", meta: "Done · 06:15", from: "CO2" },
+			{ done: false, title: "Call Stefan about combine maintenance", meta: "Self-added · this week", from: "YOU" },
+		],
+		links: { mobile: "📱 View mobile version", home: "← Home" },
+	},
+	bg: {
+		side: {
+			daily: "Дневно",
+			mesh: "Мрежа",
+			more: "Още",
+			items: {
+				briefing: "Обзор",
+				fields: "Поля",
+				market: "Пазар",
+				finance: "Финанси",
+				agents: "Агенти",
+				ask: "Попитай AgriNexus",
+				academy: "Академия",
+				settings: "Настройки",
+			},
+			userMeta: "Добрич · 280 ха",
+		},
+		greeting: "Добро утро,",
+		date: "Петък · 22 май 2026 · 06:42 EET",
+		search: "Попитай каквото и да е…",
+		briefings: [
+			{ tag: "ПАЗАР", meta: "4 агента консултирани", text: <>Пшеницата отвори <span className="text-semantic-success font-medium">+2.4%</span>. Твоите 60 т при <strong className="font-medium">€246</strong> · силен forward прозорец.</>, cta: "Виж пълния анализ", tagClass: "bg-forest-700/10 text-forest-700" },
+			{ tag: "ПОЛЕ", meta: "SatelliteAgent", text: <>NDVI спад в <strong className="font-medium">поле A-204, южен блок</strong>. Възможна ранна септория · изпратен дрон.</>, cta: "Виж стрес зоната", tagClass: "bg-earth-600/15 text-harvest-700" },
+			{ tag: "ОПЕР.", meta: "WeatherAgent + IrrigationAgent", text: <>14 мм дъжд в <strong className="font-medium">17:00</strong> · напояването е паузирано, помпата е пренасочена.</>, cta: "Виж прогнозата", tagClass: "bg-semantic-info/[0.12] text-semantic-info" },
+		],
+		fieldsTitle: "Твоите полета",
+		fieldTabs: ["NDVI", "Влага", "Оценка добив"],
+		status: { healthy: "Здраво", alert: "Стрес", ok: "Следене" },
+		mapLabel: "A-204 · 2.3 ха",
+		marketTitle: "Пазарни позиции",
+		marketMeta: "MATIF · 06:42 на живо",
+		wheatMeta: "ПШЕНИЦА · DEC26 · 480 т резерв",
+		forecast: "Прогноза · 30 сеп",
+		overCost: "+€84/т над себестойност",
+		lock: "Заключи 144 т",
+		wait: "Изчакай",
+		activityTitle: "Активност на агенти",
+		activityMeta: "последни 6 ч · 23 действия",
+		activity: [
+			{ icon: "📈", tag: "MKT", time: "06:42", text: <>Пшеница <strong className="font-medium">+2.4%</strong> · маркиран forward прозорец</>, statusText: "⏵ Чака твое потвърждение", done: false },
+			{ icon: "💧", tag: "IRR", time: "06:18", text: <>Напояването на <strong className="font-medium">A-204</strong> е паузирано · дъжд в 17:00</>, statusText: "✓ Изпълнено (L4 автономност)", done: true },
+			{ icon: "🛰️", tag: "SAT", time: "05:50", text: <>NDVI спад в <strong className="font-medium">A-204 юг</strong> · 2.3 ха маркирани</>, statusText: "✓ Дронът е изпратен", done: true },
+			{ icon: "🦠", tag: "DIS", time: "04:12", text: <>Вероятност за септория <strong className="font-medium">78%</strong> · scout отчетът е готов</>, statusText: "⏵ Потвърди план за третиране", done: false },
+		],
+		weatherTitle: "Време · Добрич",
+		weatherMeta: "7 дни · локално",
+		weather: [
+			{ dow: "Днес", icon: "🌧", high: "22°", low: "14°", rain: "14 мм", today: true },
+			{ dow: "Съб", icon: "☁", high: "19°", low: "12°", rain: "2 мм" },
+			{ dow: "Нед", icon: "⛅", high: "23°", low: "13°", rain: "—" },
+			{ dow: "Пон", icon: "☀", high: "26°", low: "15°", rain: "—" },
+			{ dow: "Вто", icon: "⛈", high: "21°", low: "14°", rain: "28 мм" },
+		],
+		tasksTitle: "Задачи за днес",
+		tasksMeta: "3 от агенти · 1 от теб",
+		tasks: [
+			{ done: false, title: "Потвърди третиране срещу септория за A-204", meta: "До 11:00 · преди дъжда", from: "DIS" },
+			{ done: false, title: "Одобри 144 т пшеница forward при €246", meta: "Прозорецът затваря 16:00", from: "MKT" },
+			{ done: true, title: "Прегледай седмичния sustainability отчет", meta: "Готово · 06:15", from: "CO2" },
+			{ done: false, title: "Обади се на Стефан за профилактика на комбайна", meta: "Добавено от теб · тази седмица", from: "ТИ" },
+		],
+		links: { mobile: "📱 Виж мобилна версия", home: "← Начало" },
+	},
+};
 
-        <SidebarGroup label="Daily" items={sideItems.daily} />
-        <SidebarGroup label="Mesh"  items={sideItems.mesh} />
-        <SidebarGroup label="More"  items={sideItems.more} />
+function SidebarGroup({ label, items }: { label: string; items: { icon: string; label: string; href: string; active?: boolean; badge?: string }[] }) {
+	return (
+		<div className="flex flex-col gap-0.5">
+			<div className="px-2 pb-1.5 text-[9px] uppercase tracking-[0.1em] text-ink/40">{label}</div>
+			{items.map((item) => (
+				<Link
+					key={item.label}
+					href={item.href}
+					className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] no-underline transition-colors ${
+						item.active ? "bg-ink/[0.06] font-medium text-ink" : "text-ink/65 hover:bg-ink/[0.04]"
+					}`}
+				>
+					<span>{item.icon}</span>
+					<span>{item.label}</span>
+					{item.badge && <span className="ml-auto rounded-full bg-forest-700/10 px-1.5 py-px font-mono text-[9px] font-medium text-forest-700">{item.badge}</span>}
+				</Link>
+			))}
+		</div>
+	);
+}
 
-        <div className="mt-auto p-3 px-2 bg-white/50 rounded-[10px] flex items-center gap-2.5">
-          <div className="w-7.5 h-7.5 w-[30px] h-[30px] rounded-full bg-gradient-to-br from-harvest-500 to-earth-600 text-white text-xs font-medium flex items-center justify-center flex-shrink-0">MP</div>
-          <div>
-            <div className="text-xs font-medium">Marko P.</div>
-            <div className="text-[10px] text-ink/50">Dobrich · 280 ha</div>
-          </div>
-        </div>
-      </aside>
+export default async function DashboardPage({ params }: PageProps) {
+	const { locale } = await params;
+	setRequestLocale(locale);
+	const c = locale === "bg" ? copy.bg : copy.en;
+	const sideItems = {
+		daily: [
+			{ icon: "🏠", label: c.side.items.briefing, href: "/dashboard", active: true },
+			{ icon: "📋", label: c.side.items.fields, href: "#", badge: "8" },
+			{ icon: "📈", label: c.side.items.market, href: "/market" },
+			{ icon: "💰", label: c.side.items.finance, href: "#" },
+		],
+		mesh: [
+			{ icon: "🤖", label: c.side.items.agents, href: "/agents", badge: "18" },
+			{ icon: "💬", label: c.side.items.ask, href: "#" },
+		],
+		more: [
+			{ icon: "🎓", label: c.side.items.academy, href: "/academy" },
+			{ icon: "⚙", label: c.side.items.settings, href: "#" },
+		],
+	};
 
-      <main className="flex-1 py-5 px-6 md:px-7 pb-12 min-w-0 relative">
+	return (
+		<div className="relative z-[2] flex min-h-screen bg-[#f6f3ec]">
+			<aside className="sticky top-0 hidden h-screen w-[220px] flex-shrink-0 flex-col gap-4 border-r border-ink/[0.06] bg-paper/85 px-3.5 py-5 backdrop-blur-xl md:flex">
+				<Link href="/" className="flex items-center gap-2 px-1.5 py-1 pb-3 text-ink no-underline">
+					<span className="flex h-[22px] w-[22px] items-center justify-center rounded-md bg-brand-gradient text-xs text-white shadow-[0_2px_8px_rgba(31,77,44,0.25)]">✦</span>
+					<span className="text-[13px] font-medium">AgriNexus</span>
+				</Link>
+				<SidebarGroup label={c.side.daily} items={sideItems.daily} />
+				<SidebarGroup label={c.side.mesh} items={sideItems.mesh} />
+				<SidebarGroup label={c.side.more} items={sideItems.more} />
+				<div className="mt-auto flex items-center gap-2.5 rounded-[10px] bg-white/50 p-3 px-2">
+					<div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-harvest-500 to-earth-600 text-xs font-medium text-white">MP</div>
+					<div><div className="text-xs font-medium">Marko P.</div><div className="text-[10px] text-ink/50">{c.side.userMeta}</div></div>
+				</div>
+			</aside>
 
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <div className="font-serif text-2xl md:text-[26px] font-normal tracking-[-0.015em] leading-[1.1]">
-              Good morning, <em className="grad-text">Marko.</em>
-            </div>
-            <div className="text-[11px] text-ink/50 mt-1 font-mono">Friday · 22 May 2026 · 06:42 EET</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden lg:flex bg-white/65 backdrop-blur-md border border-ink/[0.06] rounded-full py-2 px-3.5 text-xs text-ink/50 items-center gap-2 min-w-[220px]">
-              <span>Ask anything…</span>
-              <span className="font-mono text-[9px] py-px px-1.5 border border-ink/15 rounded ml-auto">⌘K</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/65 backdrop-blur-md border border-ink/[0.06] flex items-center justify-center cursor-pointer text-sm relative">
-              🔔
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-semantic-warning border-[1.5px] border-[#f6f3ec]" />
-            </div>
-            <div className="w-8 h-8 rounded-full bg-white/65 backdrop-blur-md border border-ink/[0.06] flex items-center justify-center cursor-pointer text-sm">💬</div>
-          </div>
-        </div>
+			<main className="relative min-w-0 flex-1 px-6 py-5 pb-12 md:px-7">
+				<div className="mb-5 flex items-center justify-between">
+					<div>
+						<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.greeting} <em className="grad-text">Marko.</em></div>
+						<div className="mt-1 font-mono text-[11px] text-ink/50">{c.date}</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<div className="hidden min-w-[220px] items-center gap-2 rounded-full border border-ink/[0.06] bg-white/65 px-3.5 py-2 text-xs text-ink/50 backdrop-blur-md lg:flex">
+							<span>{c.search}</span><span className="ml-auto rounded border border-ink/15 px-1.5 py-px font-mono text-[9px]">⌘K</span>
+						</div>
+						<div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-ink/[0.06] bg-white/65 text-sm backdrop-blur-md">🔔<span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full border-[1.5px] border-[#f6f3ec] bg-semantic-warning" /></div>
+						<div className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/[0.06] bg-white/65 text-sm backdrop-blur-md">💬</div>
+					</div>
+				</div>
 
-        {/* Briefing */}
-        <section className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-[18px] py-5 px-6 mb-3.5 grid grid-cols-1 md:grid-cols-3 gap-5">
-          {briefings.map((b, idx) => (
-            <div key={b.tag} className={idx < briefings.length - 1 ? "md:pr-4 md:border-r border-ink/[0.06]" : ""}>
-              <div className="flex items-center gap-2 text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-2.5">
-                <span className={`py-0.5 px-1.5 rounded font-mono font-medium tracking-[0.06em] ${b.tagClass}`}>{b.tag}</span>
-                <span>{b.meta}</span>
-              </div>
-              <div className="text-[13.5px] leading-[1.45] text-ink mb-2.5">{b.text}</div>
-              <span className="text-[11px] text-forest-700 cursor-pointer font-medium">{b.cta} →</span>
-            </div>
-          ))}
-        </section>
+				<section className="mb-3.5 grid grid-cols-1 gap-5 rounded-[18px] border border-white/70 bg-white/55 px-6 py-5 backdrop-blur-xl md:grid-cols-3">
+					{c.briefings.map((briefing, idx) => (
+						<div key={briefing.tag} className={idx < c.briefings.length - 1 ? "border-ink/[0.06] md:border-r md:pr-4" : ""}>
+							<div className="mb-2.5 flex items-center gap-2 text-[9px] uppercase tracking-[0.08em] text-ink/50">
+								<span className={`rounded px-1.5 py-0.5 font-mono font-medium tracking-[0.06em] ${briefing.tagClass}`}>{briefing.tag}</span>
+								<span>{briefing.meta}</span>
+							</div>
+							<div className="mb-2.5 text-[13.5px] leading-[1.45] text-ink">{briefing.text}</div>
+							<span className="cursor-pointer text-[11px] font-medium text-forest-700">{briefing.cta} →</span>
+						</div>
+					))}
+				</section>
 
-        {/* Body grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-3.5">
-          <div className="flex flex-col gap-3.5">
+				<div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[1.4fr_1fr]">
+					<div className="flex flex-col gap-3.5">
+						<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl">
+							<div className="flex items-baseline justify-between px-4 pb-2.5 pt-3.5">
+								<div className="text-[13px] font-medium">{c.fieldsTitle}</div>
+								<div className="flex gap-1">
+									{c.fieldTabs.map((tab, i) => <span key={tab} className={`rounded-md px-2.5 py-1 font-mono text-[10px] tracking-[0.04em] ${i === 0 ? "bg-ink text-white" : "text-ink/50"}`}>{tab}</span>)}
+								</div>
+							</div>
+							<div className="mx-4 mb-3 mt-2 h-[230px] overflow-hidden rounded-xl">
+								<svg viewBox="0 0 460 230" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="h-full w-full">
+									<rect width="460" height="230" fill="rgba(31,77,44,0.04)" />
+									<path d="M 20 20 L 140 25 L 145 90 L 25 95 Z" fill="#5a9968" opacity="0.55" />
+									<path d="M 145 25 L 270 28 L 268 88 L 145 90 Z" fill="#7fb487" opacity="0.6" />
+									<path d="M 268 28 L 380 30 L 382 95 L 268 88 Z" fill="#97c459" opacity="0.55" />
+									<path d="M 25 95 L 145 90 L 150 165 L 28 170 Z" fill="#1f4d2c" opacity="0.55" />
+									<path d="M 145 90 L 268 88 L 270 168 L 150 165 Z" fill="#5a9968" opacity="0.5" />
+									<path d="M 268 88 L 382 95 L 384 175 L 270 168 Z" fill="#c4a86a" opacity="0.5" />
+									<circle cx="335" cy="135" r="5" fill="#b87a3d" />
+									<rect x="291" y="103" width="86" height="18" rx="3" fill="rgba(184,122,61,0.95)" />
+									<text x="334" y="116" textAnchor="middle" fontSize="9" fill="white" fontFamily="ui-monospace,monospace" fontWeight="500">{c.mapLabel}</text>
+								</svg>
+							</div>
+							<div className="mx-4 mb-4 flex flex-col gap-px overflow-hidden rounded-[10px] bg-ink/[0.04] px-4 pb-4">
+								{fields.map((field) => (
+									<div key={field.name} className="grid cursor-pointer grid-cols-[auto_1fr_auto_auto_auto] items-center gap-2.5 bg-[rgba(252,251,247,0.95)] px-3.5 py-2.5 text-xs">
+										<div className="h-2.5 w-2.5 rounded-sm" style={{ background: field.swatch }} />
+										<div className="font-medium">{field.name} <span className="ml-1.5 text-[11px] font-normal text-ink/45">{field.ha}</span></div>
+										<div className="text-[11px] text-ink/55">{field.crop[locale === "bg" ? "bg" : "en"]}</div>
+										<div className="font-mono text-[11px] text-ink/70">{field.stat}</div>
+										<span className={`rounded px-2 py-px text-[10px] font-medium ${field.status === "healthy" ? "bg-forest-700/10 text-forest-700" : field.status === "alert" ? "bg-earth-600/15 text-harvest-700" : "bg-ink/[0.06] text-ink/50"}`}>{c.status[field.status]}</span>
+									</div>
+								))}
+							</div>
+						</div>
 
-            {/* Fields */}
-            <div className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden">
-              <div className="flex justify-between items-baseline py-3.5 px-4 pb-2.5">
-                <div className="text-[13px] font-medium">Your fields</div>
-                <div className="flex gap-1">
-                  {["NDVI", "Moisture", "Yield est."].map((t, i) => (
-                    <span key={t} className={`py-1 px-2.5 rounded-md font-mono text-[10px] tracking-[0.04em] cursor-pointer ${i === 0 ? "bg-ink text-white" : "text-ink/50"}`}>{t}</span>
-                  ))}
-                </div>
-              </div>
+						<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl">
+							<div className="flex items-baseline justify-between px-4 pb-2.5 pt-3.5"><div className="text-[13px] font-medium">{c.marketTitle}</div><div className="font-mono text-[10px] text-ink/50">{c.marketMeta}</div></div>
+							<div className="grid grid-cols-1 gap-3.5 px-4 pb-5 py-1 md:grid-cols-2">
+								<div><div className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-ink/50">{c.wheatMeta}</div><div className="mb-1 flex items-baseline gap-2"><span className="font-serif text-3xl tracking-[-0.02em]">€246</span><span className="text-[11px] font-medium text-semantic-success">+€8</span></div></div>
+								<div><div className="rounded-lg border border-forest-700/10 bg-forest-700/[0.06] px-3 py-2.5"><div className="mb-1 text-[9px] uppercase tracking-[0.06em] text-ink/50">{c.forecast}</div><div className="font-serif text-base text-forest-700">€268 ±€14</div><div className="text-[10px] text-forest-700/70">{c.overCost}</div></div><div className="flex gap-1.5 pt-3"><button className="flex-1 rounded-lg border-none bg-ink px-2.5 py-2 text-center text-[11px] font-medium text-white">{c.lock}</button><button className="flex-1 rounded-lg border border-ink/[0.18] bg-transparent px-2.5 py-2 text-center text-[11px] font-medium text-ink/65">{c.wait}</button></div></div>
+							</div>
+						</div>
+					</div>
 
-              <div className="mx-4 mt-2 mb-3 h-[230px] rounded-xl overflow-hidden">
-                <svg viewBox="0 0 460 230" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-full">
-                  <defs>
-                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(10,10,10,0.04)" strokeWidth="0.5"/>
-                    </pattern>
-                  </defs>
-                  <rect width="460" height="230" fill="url(#grid)"/>
-                  <path d="M 20 20 L 140 25 L 145 90 L 25 95 Z"      fill="#5a9968" opacity="0.55"/>
-                  <path d="M 145 25 L 270 28 L 268 88 L 145 90 Z"     fill="#7fb487" opacity="0.6"/>
-                  <path d="M 268 28 L 380 30 L 382 95 L 268 88 Z"     fill="#97c459" opacity="0.55"/>
-                  <path d="M 380 30 L 442 35 L 440 100 L 382 95 Z"    fill="#5a9968" opacity="0.5"/>
-                  <path d="M 25 95 L 145 90 L 150 165 L 28 170 Z"    fill="#1f4d2c" opacity="0.55"/>
-                  <path d="M 145 90 L 268 88 L 270 168 L 150 165 Z"  fill="#5a9968" opacity="0.5"/>
-                  <path d="M 268 88 L 382 95 L 384 175 L 270 168 Z"  fill="#c4a86a" opacity="0.5"/>
-                  <path d="M 382 95 L 440 100 L 438 178 L 384 175 Z" fill="#7fb487" opacity="0.55"/>
-                  <circle cx="335" cy="135" r="5" fill="#b87a3d"/>
-                  <circle cx="335" cy="135" r="10" fill="none" stroke="#b87a3d" strokeWidth="1" opacity="0.6">
-                    <animate attributeName="r" from="5" to="22" dur="2.2s" repeatCount="indefinite"/>
-                    <animate attributeName="opacity" from="0.7" to="0" dur="2.2s" repeatCount="indefinite"/>
-                  </circle>
-                  <g transform="translate(335 135)">
-                    <rect x="-44" y="-32" width="86" height="18" rx="3" fill="rgba(184,122,61,0.95)"/>
-                    <text x="0" y="-19" textAnchor="middle" fontSize="9" fill="white" fontFamily="ui-monospace,monospace" fontWeight="500">A-204 · 2.3 ha</text>
-                  </g>
-                </svg>
-              </div>
+					<div className="flex flex-col gap-3.5">
+						<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl">
+							<div className="flex items-baseline justify-between px-4 pb-2.5 pt-3.5"><div className="text-[13px] font-medium">{c.activityTitle}</div><div className="font-mono text-[10px] text-ink/50">{c.activityMeta}</div></div>
+							<div className="px-4 pb-4">
+								{c.activity.map((item, idx) => (
+									<div key={idx} className="flex gap-2.5 border-b border-ink/[0.05] py-2.5 last:border-b-0">
+										<div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border border-ink/[0.06] bg-white/60 text-[11px]">{item.icon}</div>
+										<div className="flex-1"><div className="mb-0.5 flex items-center gap-2"><span className="rounded-sm bg-ink/[0.04] px-1.5 py-px font-mono text-[9px] tracking-[0.06em] text-ink/50">{item.tag}</span><span className="text-[10px] text-ink/40">{item.time}</span></div><div className="text-xs leading-[1.4]">{item.text}</div><div className={`mt-1 text-[10px] ${item.done ? "text-semantic-success" : "text-harvest-700"}`}>{item.statusText}</div></div>
+									</div>
+								))}
+							</div>
+						</div>
 
-              <div className="px-4 pb-4 flex flex-col gap-px bg-ink/[0.04] rounded-[10px] overflow-hidden mx-4 mb-4">
-                {fields.map((f) => (
-                  <div key={f.name} className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-2.5 py-2.5 px-3.5 bg-[rgba(252,251,247,0.95)] items-center text-xs cursor-pointer">
-                    <div className="w-2.5 h-2.5 rounded-sm" style={{ background: f.swatch }} />
-                    <div className="font-medium">{f.name} <span className="text-ink/45 font-normal text-[11px] ml-1.5">{f.ha}</span></div>
-                    <div className="text-[11px] text-ink/55">{f.crop}</div>
-                    <div className="font-mono text-[11px] text-ink/70">{f.stat}</div>
-                    <span className={
-                      f.status === "healthy" ? "text-[10px] py-px px-2 rounded font-medium bg-forest-700/10 text-forest-700" :
-                      f.status === "alert"   ? "text-[10px] py-px px-2 rounded font-medium bg-earth-600/15 text-harvest-700" :
-                                                "text-[10px] py-px px-2 rounded font-medium bg-ink/[0.06] text-ink/50"
-                    }>
-                      {f.status === "healthy" ? "Healthy" : f.status === "alert" ? "Stress" : "Watching"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+						<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl">
+							<div className="flex items-baseline justify-between px-4 pb-2.5 pt-3.5"><div className="text-[13px] font-medium">{c.weatherTitle}</div><div className="font-mono text-[10px] text-ink/50">{c.weatherMeta}</div></div>
+							<div className="grid grid-cols-5">
+								{c.weather.map((day) => <div key={day.dow} className={`border-r border-ink/[0.05] px-1.5 py-3 text-center last:border-r-0 ${day.today ? "bg-forest-700/[0.04]" : ""}`}><div className="mb-2 font-mono text-[10px] uppercase tracking-[0.06em] text-ink/50">{day.dow}</div><div className="mb-1.5 text-[22px]">{day.icon}</div><div className="mb-1 text-[13px] font-medium">{day.high}<span className="text-[11px] font-normal text-ink/40"> / {day.low}</span></div><div className="text-[10px] text-semantic-info">{day.rain}</div></div>)}
+							</div>
+						</div>
 
-            {/* Market positions */}
-            <div className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden">
-              <div className="flex justify-between items-baseline py-3.5 px-4 pb-2.5">
-                <div className="text-[13px] font-medium">Market positions</div>
-                <div className="text-[10px] text-ink/50 font-mono">MATIF · 06:42 live</div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 py-1 px-4 pb-5">
-                <div>
-                  <div className="text-[10px] text-ink/50 font-mono tracking-[0.06em] mb-1">WHEAT · DEC26 · 480t reserve</div>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="font-serif text-3xl tracking-[-0.02em]">€246</span>
-                    <span className="text-[11px] text-semantic-success font-medium">+€8 today</span>
-                  </div>
-                  <div className="h-14 mt-2">
-                    <svg viewBox="0 0 240 56" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-full">
-                      <defs>
-                        <linearGradient id="mk-area-d" x1="0" x2="0" y1="0" y2="1">
-                          <stop offset="0%" stopColor="#5a9968" stopOpacity="0.35"/>
-                          <stop offset="100%" stopColor="#5a9968" stopOpacity="0"/>
-                        </linearGradient>
-                      </defs>
-                      <path d="M 0 38 L 18 36 L 36 41 L 54 32 L 72 34 L 90 28 L 108 24 L 126 30 L 144 22 L 162 18 L 180 14 L 198 20 L 216 12 L 230 16 L 230 56 L 0 56 Z" fill="url(#mk-area-d)"/>
-                      <path d="M 0 38 L 18 36 L 36 41 L 54 32 L 72 34 L 90 28 L 108 24 L 126 30 L 144 22 L 162 18 L 180 14 L 198 20 L 216 12 L 230 16" stroke="#1f4d2c" strokeWidth="1.4" fill="none"/>
-                      <circle cx="230" cy="16" r="2.5" fill="#1f4d2c"/>
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <div className="py-2.5 px-3 bg-forest-700/[0.06] border border-forest-700/10 rounded-lg">
-                    <div className="text-[9px] text-ink/50 tracking-[0.06em] uppercase mb-1">Forecast · Sep 30</div>
-                    <div className="font-serif text-base text-forest-700">€268 ±€14</div>
-                    <div className="text-[10px] text-forest-700/70">+€84/t over break-even</div>
-                  </div>
-                  <div className="flex gap-1.5 pt-3">
-                    <button className="flex-1 py-2 px-2.5 rounded-lg text-[11px] cursor-pointer text-center font-medium border-none bg-ink text-white">Lock 144t</button>
-                    <button className="flex-1 py-2 px-2.5 rounded-lg text-[11px] cursor-pointer text-center font-medium bg-transparent text-ink/65 border border-ink/[0.18]">Wait</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+						<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl">
+							<div className="flex items-baseline justify-between px-4 pb-2.5 pt-3.5"><div className="text-[13px] font-medium">{c.tasksTitle}</div><div className="font-mono text-[10px] text-ink/50">{c.tasksMeta}</div></div>
+							<div className="flex flex-col gap-1.5 px-4 pb-4">
+								{c.tasks.map((task, idx) => <div key={idx} className="flex cursor-pointer items-center gap-2.5 rounded-lg bg-white/50 px-2.5 py-2"><span className={`relative h-3.5 w-3.5 flex-shrink-0 rounded ${task.done ? "border border-forest-700 bg-gradient-to-br from-forest-700 to-forest-500" : "border border-ink/25"}`}>{task.done && <span className="absolute left-1 top-[2px] h-[7px] w-1 rotate-45 border-b-[1.5px] border-r-[1.5px] border-white" />}</span><div className="flex-1"><div className={`text-xs ${task.done ? "text-ink/40 line-through" : ""}`}>{task.title}</div><div className="mt-px text-[10px] text-ink/45">{task.meta}</div></div><span className="ml-auto rounded-sm bg-ink/[0.04] px-1.5 py-px font-mono text-[9px] tracking-[0.04em] text-ink/55">{task.from}</span></div>)}
+							</div>
+						</div>
+					</div>
+				</div>
 
-          {/* Right column */}
-          <div className="flex flex-col gap-3.5">
-
-            <div className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden">
-              <div className="flex justify-between items-baseline py-3.5 px-4 pb-2.5">
-                <div className="text-[13px] font-medium">Agent activity</div>
-                <div className="text-[10px] text-ink/50 font-mono">last 6h · 23 actions</div>
-              </div>
-              <div className="px-4 pb-4">
-                {agentFeed.map((a, idx) => (
-                  <div key={idx} className="flex gap-2.5 py-2.5 border-b border-ink/[0.05] last:border-b-0">
-                    <div className="w-6 h-6 rounded-md bg-white/60 border border-ink/[0.06] flex items-center justify-center text-[11px] flex-shrink-0">{a.icon}</div>
-                    <div className="flex-1">
-                      <div className="flex gap-2 items-center mb-0.5">
-                        <span className="font-mono text-[9px] text-ink/50 tracking-[0.06em] py-px px-1.5 bg-ink/[0.04] rounded-sm">{a.tag}</span>
-                        <span className="text-[10px] text-ink/40">{a.time}</span>
-                      </div>
-                      <div className="text-xs leading-[1.4]">{a.text}</div>
-                      <div className={`mt-1 text-[10px] ${a.status === "done" ? "text-semantic-success" : "text-harvest-700"}`}>{a.statusText}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Weather */}
-            <div className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden">
-              <div className="flex justify-between items-baseline py-3.5 px-4 pb-2.5">
-                <div className="text-[13px] font-medium">Weather · Dobrich</div>
-                <div className="text-[10px] text-ink/50 font-mono">7-day · hyper-local</div>
-              </div>
-              <div className="grid grid-cols-5">
-                {weather.map((d) => (
-                  <div key={d.dow} className={`py-3 px-1.5 text-center border-r border-ink/[0.05] last:border-r-0 ${d.today ? "bg-forest-700/[0.04]" : ""}`}>
-                    <div className="text-[10px] text-ink/50 font-mono mb-2 tracking-[0.06em] uppercase">{d.dow}</div>
-                    <div className="text-[22px] mb-1.5">{d.icon}</div>
-                    <div className="text-[13px] font-medium mb-1">{d.high}<span className="text-ink/40 font-normal text-[11px]"> / {d.low}</span></div>
-                    <div className="text-[10px] text-semantic-info">{d.rain}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tasks */}
-            <div className="bg-white/55 backdrop-blur-xl border border-white/70 rounded-2xl overflow-hidden">
-              <div className="flex justify-between items-baseline py-3.5 px-4 pb-2.5">
-                <div className="text-[13px] font-medium">Today&apos;s tasks</div>
-                <div className="text-[10px] text-ink/50 font-mono">3 from agents · 1 from you</div>
-              </div>
-              <div className="px-4 pb-4 flex flex-col gap-1.5">
-                {tasks.map((t, idx) => (
-                  <div key={idx} className="flex items-center gap-2.5 py-2 px-2.5 bg-white/50 rounded-lg cursor-pointer">
-                    <span className={`w-3.5 h-3.5 rounded flex-shrink-0 relative ${t.done ? "bg-gradient-to-br from-forest-700 to-forest-500 border border-forest-700" : "border border-ink/25"}`}>
-                      {t.done && <span className="absolute top-[2px] left-1 w-1 h-[7px] border-r-[1.5px] border-b-[1.5px] border-white rotate-45" />}
-                    </span>
-                    <div className="flex-1">
-                      <div className={`text-xs ${t.done ? "text-ink/40 line-through" : ""}`}>{t.title}</div>
-                      <div className="text-[10px] text-ink/45 mt-px">{t.meta}</div>
-                    </div>
-                    <span className="font-mono text-[9px] py-px px-1.5 bg-ink/[0.04] text-ink/55 rounded-sm tracking-[0.04em] ml-auto">{t.from}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center py-5 text-[11px] text-ink/40">
-          <Link href="/dashboard/mobile" className="hover:text-ink">📱 View mobile version</Link> · <Link href="/" className="hover:text-ink">← Home</Link>
-        </div>
-      </main>
-    </div>
-  );
+				<div className="py-5 text-center text-[11px] text-ink/40">
+					<Link href="/dashboard/mobile" className="hover:text-ink">{c.links.mobile}</Link> · <Link href="/" className="hover:text-ink">{c.links.home}</Link>
+				</div>
+			</main>
+		</div>
+	);
 }

@@ -42,7 +42,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 				</div>
 			</Hero>
 
-			<TerminalDemo />
+			<TerminalDemo locale={locale} />
 			<ThreePillars />
 			<FarmerQuote />
 			<SponsorBand />

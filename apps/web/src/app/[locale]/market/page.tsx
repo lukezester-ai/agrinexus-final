@@ -20,13 +20,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	};
 }
 
-const signals = [
-	{ dir: "up", text: "Russia extended grain export quotas", sub: "[NWS] 12 sources · published 03:14 EET · correlation 0.74", impact: "+0.9%" },
-	{ dir: "up", text: "US Plains drought index +12 points", sub: "[WTR] NOAA + Sentinel-2 · correlation 0.68", impact: "+0.7%" },
-	{ dir: "up", text: "EUR weaker vs USD by 1.2% overnight", sub: "[FIN] ECB rate decision priced in · correlation 0.55", impact: "+0.5%" },
-	{ dir: "flat", text: "USDA WASDE report tomorrow", sub: "[NWS] historical: 60% of moves happen post-release", impact: "±0.0%" },
-	{ dir: "down", text: "Argentine harvest 3% above forecast", sub: "[SAT] Planet Labs imagery · correlation 0.62", impact: "−0.3%" },
-];
+const signals = {
+	en: [
+		{ dir: "up", text: "Russia extended grain export quotas", sub: "[NWS] 12 sources · published 03:14 EET · correlation 0.74", impact: "+0.9%" },
+		{ dir: "up", text: "US Plains drought index +12 points", sub: "[WTR] NOAA + Sentinel-2 · correlation 0.68", impact: "+0.7%" },
+		{ dir: "up", text: "EUR weaker vs USD by 1.2% overnight", sub: "[FIN] ECB rate decision priced in · correlation 0.55", impact: "+0.5%" },
+		{ dir: "flat", text: "USDA WASDE report tomorrow", sub: "[NWS] historical: 60% of moves happen post-release", impact: "±0.0%" },
+		{ dir: "down", text: "Argentine harvest 3% above forecast", sub: "[SAT] Planet Labs imagery · correlation 0.62", impact: "−0.3%" },
+	],
+	bg: [
+		{ dir: "up", text: "Русия удължи квотите за износ на зърно", sub: "[NWS] 12 източника · публикувано 03:14 EET · корелация 0.74", impact: "+0.9%" },
+		{ dir: "up", text: "Индексът за суша в US Plains се повиши с 12 пункта", sub: "[WTR] NOAA + Sentinel-2 · корелация 0.68", impact: "+0.7%" },
+		{ dir: "up", text: "Еврото отслабна спрямо долара с 1.2% през нощта", sub: "[FIN] решение на ЕЦБ вече е в цената · корелация 0.55", impact: "+0.5%" },
+		{ dir: "flat", text: "Докладът USDA WASDE излиза утре", sub: "[NWS] исторически: 60% от движенията идват след публикация", impact: "±0.0%" },
+		{ dir: "down", text: "Аржентинската реколта е 3% над прогнозата", sub: "[SAT] Planet Labs imagery · корелация 0.62", impact: "−0.3%" },
+	],
+};
 
 const months = [
 	{ mo: "Jun", price: "€246", opacity: 0.5, color: "#c4a86a" },
@@ -43,11 +52,116 @@ const months = [
 	{ mo: "May", price: "€247", opacity: 0.6, color: "#c4a86a" },
 ];
 
+const bgMonths = ["Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек", "Яну", "Фев", "Мар", "Апр", "Май"];
+
+const copy = {
+	en: {
+		heroEyebrow: "// Market intelligence",
+		heroLine1: "Trade like a hedge fund.",
+		heroEm: "Farm like a craftsman.",
+		heroSubtitle:
+			"Real-time prices, 90-day forecasts, signal explanations. The same data the agribusiness desks use — translated for the farm, free for every grower.",
+		forecastEyebrow: "90-day forecast",
+		forecastTitleBefore: "Where wheat ",
+		forecastTitleEm: "is going.",
+		forecastSub:
+			"Ensemble of weather, demand, currency and supply models. Confidence interval shown so you know how much weight to give it.",
+		forecastCardTitle: "Wheat · DEC26 forecast",
+		confidence: "Confidence: 78% · updated 06:42",
+		todayLabel: "Today · €246",
+		sepLabel: "Sep 30 · €268",
+		optimalWindow: "OPTIMAL WINDOW",
+		now: "Now",
+		nowSub: "EU milling, DEC26",
+		forecastSep: "Forecast Sep 30",
+		confidenceShort: "78% confidence",
+		overBreakEven: "Over break-even",
+		overSub: "vs. your €184 cost",
+		signalEyebrow: "Signal stack",
+		signalTitleBefore: "Why the price is ",
+		signalTitleEm: "moving.",
+		signalSub: "Every forecast carries its evidence. Click any signal to see the source articles, datasets, and historical correlation.",
+		optimizerEyebrow: "Selling window optimizer",
+		optimizerTitleBefore: "When to lock, ",
+		optimizerTitleEm: "when to wait.",
+		optimizerSub:
+			"For each 30-day window over the next year, the optimizer estimates expected price, risk-adjusted return, and basis. The agent doesn't tell you what to do — it tells you the math.",
+		heatmapTitle: "12-month selling-window heatmap",
+		legendStrong: "Strong sell window",
+		legendAcceptable: "Acceptable",
+		legendHold: "Hold & hedge instead",
+		roiEyebrow: "What the desk delivered",
+		roiTitleBefore: "Real numbers, ",
+		roiTitleEm: "not promises.",
+		roiSub: "2024 vs 2025 sales by AgriNexus farmers using the market desk vs without it. Same crops, same regions.",
+		roiMetric: "average uplift on sold tonnage",
+		roiText:
+			"Across 1,840 wheat farms in 2025, those who followed Market Agent signals realized €18.42 more per tonne on average. For a 300-hectare farm at 6 t/ha yield, that's €33,156 in additional gross margin per year — for a tool that costs nothing.",
+		finalLine1: "Get the same intelligence",
+		finalLine2: "the desks have.",
+		finalSub: "It comes turned on, day one. Free. Forever.",
+		finalCta1: "Open the desk →",
+		finalCta2: "Meet MarketAgent",
+	},
+	bg: {
+		heroEyebrow: "// Пазарно разузнаване",
+		heroLine1: "Търгувай с данни като desk.",
+		heroEm: "Фермерствай с майсторство.",
+		heroSubtitle:
+			"Цени в реално време, 90-дневни прогнози и обяснение на сигналите. Данните, които използват агро desk-овете, преведени за стопанството и безплатни за всеки производител.",
+		forecastEyebrow: "90-дневна прогноза",
+		forecastTitleBefore: "Накъде отива ",
+		forecastTitleEm: "пшеницата.",
+		forecastSub:
+			"Комбинация от модели за време, търсене, валути и предлагане. Показваме и интервал на увереност, за да знаеш колко тежест да му дадеш.",
+		forecastCardTitle: "Пшеница · DEC26 прогноза",
+		confidence: "Увереност: 78% · обновено 06:42",
+		todayLabel: "Днес · €246",
+		sepLabel: "30 сеп · €268",
+		optimalWindow: "ОПТИМАЛЕН ПРОЗОРЕЦ",
+		now: "Сега",
+		nowSub: "EU milling, DEC26",
+		forecastSep: "Прогноза 30 сеп",
+		confidenceShort: "78% увереност",
+		overBreakEven: "Над себестойност",
+		overSub: "спрямо твоя разход €184",
+		signalEyebrow: "Сигнален стек",
+		signalTitleBefore: "Защо цената ",
+		signalTitleEm: "се движи.",
+		signalSub: "Всяка прогноза носи доказателства: източници, datasets и историческа корелация.",
+		optimizerEyebrow: "Оптимизатор на прозорец за продажба",
+		optimizerTitleBefore: "Кога да заключиш цена, ",
+		optimizerTitleEm: "кога да изчакаш.",
+		optimizerSub:
+			"За всеки 30-дневен прозорец през следващата година оптимизаторът оценява очаквана цена, риск-коригирана доходност и basis. Агентът не казва какво да правиш — показва математиката.",
+		heatmapTitle: "12-месечна heatmap карта за прозорец на продажба",
+		legendStrong: "Силен прозорец за продажба",
+		legendAcceptable: "Приемливо",
+		legendHold: "Задръж и хеджирай вместо продажба",
+		roiEyebrow: "Какво донесе desk-ът",
+		roiTitleBefore: "Реални числа, ",
+		roiTitleEm: "не обещания.",
+		roiSub: "Продажби през 2024 спрямо 2025 при фермери с AgriNexus market desk и без него. Същите култури, същите региони.",
+		roiMetric: "средно повишение върху продадения тонаж",
+		roiText:
+			"Сред 1 840 пшенични ферми през 2025 г. тези, които следват сигналите на Market Agent, реализират средно €18.42 повече на тон. За 300 хектара при 6 т/ха това са €33 156 допълнителен брутен марж годишно — от инструмент, който не струва нищо.",
+		finalLine1: "Получаваш същото разузнаване",
+		finalLine2: "което имат desk-овете.",
+		finalSub: "Включено е от първия ден. Безплатно. Завинаги.",
+		finalCta1: "Отвори desk-а →",
+		finalCta2: "Виж MarketAgent",
+	},
+};
+
 export default async function MarketPage({ params }: PageProps) {
 	const { locale } = await params;
 	setRequestLocale(locale);
 	const t = await getTranslations({ locale, namespace: "MarketDesk" });
 	const desk = await loadMarketDesk(locale as AppLocale);
+	const isBg = locale === "bg";
+	const c = isBg ? copy.bg : copy.en;
+	const pageSignals = isBg ? signals.bg : signals.en;
+	const pageMonths = isBg ? months.map((m, i) => ({ ...m, mo: bgMonths[i] })) : months;
 	const updated = new Date(desk.updatedAt);
 	const timeFmt = new Intl.DateTimeFormat(locale === "bg" ? "bg-BG" : "en-GB", {
 		dateStyle: "medium",
@@ -59,15 +173,15 @@ export default async function MarketPage({ params }: PageProps) {
 	return (
 		<>
 			<Hero
-				eyebrow="// Market intelligence"
+				eyebrow={c.heroEyebrow}
 				title={
 					<>
-						Trade like a hedge fund.
+						{c.heroLine1}
 						<br />
-						<em className="grad-text not-italic [font-style:italic]">Farm like a craftsman.</em>
+						<em className="grad-text not-italic [font-style:italic]">{c.heroEm}</em>
 					</>
 				}
-				subtitle="Real-time prices, 90-day forecasts, signal explanations. The same data the agribusiness desks use — translated for the farm, free for every grower."
+				subtitle={c.heroSubtitle}
 			/>
 
 			{/* Live desk note (Mistral) + disclaimer */}
@@ -133,19 +247,20 @@ export default async function MarketPage({ params }: PageProps) {
 			{/* Forecast (illustrative UI) — tie “now” to live CBOT wheat when available */}
 			<SectionHeader
 				num="01"
-				eyebrow="90-day forecast"
+				eyebrow={c.forecastEyebrow}
 				title={
 					<>
-						Where wheat <em className="grad-text">is going.</em>
+						{c.forecastTitleBefore}
+						<em className="grad-text">{c.forecastTitleEm}</em>
 					</>
 				}
-				subtitle="Ensemble of weather, demand, currency and supply models. Confidence interval shown so you know how much weight to give it."
+				subtitle={c.forecastSub}
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-6">
 					<div className="flex justify-between items-baseline mb-4 pb-3.5 border-b border-ink/[0.06]">
-						<div className="font-serif text-xl font-normal tracking-[-0.015em]">Wheat · DEC26 forecast</div>
-						<div className="font-mono text-[11px] text-ink/50">Confidence: 78% · updated 06:42</div>
+						<div className="font-serif text-xl font-normal tracking-[-0.015em]">{c.forecastCardTitle}</div>
+						<div className="font-mono text-[11px] text-ink/50">{c.confidence}</div>
 					</div>
 
 					{wheatRow ? (
@@ -194,15 +309,15 @@ export default async function MarketPage({ params }: PageProps) {
 							<circle cx="320" cy="95" r="4" fill="#1f4d2c" />
 							<circle cx="560" cy="78" r="4" fill="#c4a86a" />
 							<text x="290" y="200" fontSize="10" fill="#0a0a0a" fontWeight="500">
-								Today · €246
+								{c.todayLabel}
 							</text>
 							<text x="540" y="65" fontSize="10" fill="#8a6a2f" fontWeight="500">
-								Sep 30 · €268
+								{c.sepLabel}
 							</text>
 
 							<rect x="440" y="0" width="120" height="180" fill="rgba(45,122,63,0.08)" stroke="none" />
 							<text x="445" y="14" fontSize="9" fill="#2d7a3f" fontFamily="ui-monospace,monospace" fontWeight="600">
-								OPTIMAL WINDOW
+								{c.optimalWindow}
 							</text>
 
 							<g fontSize="9" fill="rgba(10,10,10,0.5)" fontFamily="ui-monospace,monospace">
@@ -236,19 +351,19 @@ export default async function MarketPage({ params }: PageProps) {
 
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-3.5 border-t border-ink/[0.06]">
 						<div className="py-2.5">
-							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">Now</div>
+							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.now}</div>
 							<div className="font-serif text-[22px] text-forest-700 tracking-[-0.01em]">€246</div>
-							<div className="text-[10px] text-ink/50 mt-0.5">EU milling, DEC26</div>
+							<div className="text-[10px] text-ink/50 mt-0.5">{c.nowSub}</div>
 						</div>
 						<div className="py-2.5">
-							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">Forecast Sep 30</div>
+							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.forecastSep}</div>
 							<div className="font-serif text-[22px] text-harvest-700 tracking-[-0.01em]">€268 ±€14</div>
-							<div className="text-[10px] text-ink/50 mt-0.5">78% confidence</div>
+							<div className="text-[10px] text-ink/50 mt-0.5">{c.confidenceShort}</div>
 						</div>
 						<div className="py-2.5">
-							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">Over break-even</div>
+							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.overBreakEven}</div>
 							<div className="font-serif text-[22px] text-semantic-success tracking-[-0.01em]">+€84/t</div>
-							<div className="text-[10px] text-ink/50 mt-0.5">vs. your €184 cost</div>
+							<div className="text-[10px] text-ink/50 mt-0.5">{c.overSub}</div>
 						</div>
 					</div>
 				</div>
@@ -257,17 +372,18 @@ export default async function MarketPage({ params }: PageProps) {
 			{/* Signal stack */}
 			<SectionHeader
 				num="02"
-				eyebrow="Signal stack"
+				eyebrow={c.signalEyebrow}
 				title={
 					<>
-						Why the price is <em className="grad-text">moving.</em>
+						{c.signalTitleBefore}
+						<em className="grad-text">{c.signalTitleEm}</em>
 					</>
 				}
-				subtitle="Every forecast carries its evidence. Click any signal to see the source articles, datasets, and historical correlation."
+				subtitle={c.signalSub}
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-6">
-					{signals.map((s) => (
+					{pageSignals.map((s) => (
 						<div key={s.text} className="grid grid-cols-[28px_1fr_60px] gap-3 py-3 border-b border-ink/[0.05] last:border-b-0 items-center">
 							<div
 								className={`w-5.5 h-5.5 w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] text-white font-semibold ${
@@ -299,19 +415,20 @@ export default async function MarketPage({ params }: PageProps) {
 			{/* Window optimizer */}
 			<SectionHeader
 				num="03"
-				eyebrow="Selling window optimizer"
+				eyebrow={c.optimizerEyebrow}
 				title={
 					<>
-						When to lock, <em className="grad-text">when to wait.</em>
+						{c.optimizerTitleBefore}
+						<em className="grad-text">{c.optimizerTitleEm}</em>
 					</>
 				}
-				subtitle="For each 30-day window over the next year, the optimizer estimates expected price, risk-adjusted return, and basis. The agent doesn't tell you what to do — it tells you the math."
+				subtitle={c.optimizerSub}
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-6">
-					<h3 className="font-serif text-[22px] italic text-forest-700 m-0 mb-3.5 tracking-[-0.01em]">12-month selling-window heatmap</h3>
+					<h3 className="font-serif text-[22px] italic text-forest-700 m-0 mb-3.5 tracking-[-0.01em]">{c.heatmapTitle}</h3>
 					<div className="grid grid-cols-6 md:grid-cols-12 gap-1 mb-4">
-						{months.map((m) => (
+						{pageMonths.map((m) => (
 							<div key={m.mo} className="text-center">
 								<div className="font-mono text-[9px] text-ink/70 mb-1">{m.mo}</div>
 								<div
@@ -326,15 +443,15 @@ export default async function MarketPage({ params }: PageProps) {
 					<div className="flex gap-4 flex-wrap text-[11px] text-ink/60">
 						<span className="inline-flex items-center gap-1.5">
 							<span className="inline-block w-3 h-1.5 rounded-sm bg-gradient-to-r from-forest-700 to-forest-500" />
-							Strong sell window
+							{c.legendStrong}
 						</span>
 						<span className="inline-flex items-center gap-1.5">
 							<span className="inline-block w-3 h-1.5 rounded-sm bg-gradient-to-r from-harvest-500 to-harvest-200" />
-							Acceptable
+							{c.legendAcceptable}
 						</span>
 						<span className="inline-flex items-center gap-1.5">
 							<span className="inline-block w-3 h-1.5 rounded-sm bg-gradient-to-r from-earth-600 to-[#c89070]" />
-							Hold & hedge instead
+							{c.legendHold}
 						</span>
 					</div>
 				</div>
@@ -343,36 +460,34 @@ export default async function MarketPage({ params }: PageProps) {
 			{/* ROI proof */}
 			<SectionHeader
 				num="04"
-				eyebrow="What the desk delivered"
+				eyebrow={c.roiEyebrow}
 				title={
 					<>
-						Real numbers, <em className="grad-text">not promises.</em>
+						{c.roiTitleBefore}
+						<em className="grad-text">{c.roiTitleEm}</em>
 					</>
 				}
-				subtitle="2024 vs 2025 sales by AgriNexus farmers using the market desk vs without it. Same crops, same regions."
+				subtitle={c.roiSub}
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-7 text-center">
 					<div className="font-serif text-6xl italic text-semantic-success tracking-[-0.025em] leading-none mb-2">+€18/t</div>
-					<div className="text-[13px] text-ink/60 mb-4">average uplift on sold tonnage</div>
-					<p className="text-xs text-ink/50 max-w-md mx-auto leading-[1.5]">
-						Across 1,840 wheat farms in 2025, those who followed Market Agent signals realized €18.42 more per tonne on average. For a
-						300-hectare farm at 6 t/ha yield, that&apos;s €33,156 in additional gross margin per year — for a tool that costs nothing.
-					</p>
+					<div className="text-[13px] text-ink/60 mb-4">{c.roiMetric}</div>
+					<p className="text-xs text-ink/50 max-w-md mx-auto leading-[1.5]">{c.roiText}</p>
 				</div>
 			</div>
 
 			<section className="py-14 px-8 max-w-3xl mx-auto text-center">
 				<h2 className="font-serif text-3xl font-normal leading-[1.15] tracking-[-0.02em] mb-3 bg-gradient-to-br from-ink to-forest-700 bg-clip-text text-transparent">
-					Get the same intelligence
+					{c.finalLine1}
 					<br />
-					the desks have.
+					{c.finalLine2}
 				</h2>
-				<p className="text-sm text-ink/55 mb-6">It comes turned on, day one. Free. Forever.</p>
+				<p className="text-sm text-ink/55 mb-6">{c.finalSub}</p>
 				<CTARow>
-					<CTA href="/dashboard">Open the desk →</CTA>
+					<CTA href="/dashboard">{c.finalCta1}</CTA>
 					<CTA href="/agents" variant="secondary">
-						Meet MarketAgent
+						{c.finalCta2}
 					</CTA>
 				</CTARow>
 			</section>
