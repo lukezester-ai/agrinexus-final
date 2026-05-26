@@ -2,14 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── AgriNexus brand (merged from AgriNexus_NextJS template) ─── */
+/* --font-inter, --font-fraunces, --font-mono: set by next/font in layout.tsx */
 :root {
+	/* legacy vars used by older academy screens */
 	--foreground: #0f172a;
 	--background: #f8fafc;
 }
 
-body {
-	color: var(--foreground);
-	background: var(--background);
+@layer base {
+	html,
+	body {
+		@apply m-0 p-0 bg-paper text-ink antialiased;
+		font-family: var(--font-inter), system-ui, sans-serif;
+	}
+	* {
+		box-sizing: border-box;
+	}
+}
+
+@layer components {
+	.aurora {
+		@apply fixed inset-0 pointer-events-none z-0;
+		background:
+			radial-gradient(ellipse 700px 450px at 15% 20%, rgba(176, 220, 188, 0.55), transparent 60%),
+			radial-gradient(ellipse 600px 400px at 75% 15%, rgba(232, 195, 145, 0.5), transparent 60%),
+			radial-gradient(ellipse 500px 350px at 50% 45%, rgba(195, 178, 240, 0.35), transparent 60%),
+			radial-gradient(ellipse 600px 400px at 85% 60%, rgba(245, 188, 197, 0.35), transparent 60%);
+		filter: blur(50px);
+		animation: drift 25s ease-in-out infinite;
+	}
+
+	.grain {
+		@apply fixed inset-0 pointer-events-none z-[1] opacity-55;
+		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+	}
+
+	.glass {
+		background: rgba(255, 255, 255, 0.55);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 0.5px solid rgba(255, 255, 255, 0.7);
+		border-radius: 16px;
+		box-shadow: 0 4px 16px -4px rgba(10, 10, 10, 0.06);
+	}
+
+	.grad-text {
+		background: linear-gradient(110deg, #1f4d2c 0%, #5a9968 35%, #c4a86a 75%, #b87a3d 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		font-style: italic;
+	}
+
+	.live-dot {
+		@apply h-1.5 w-1.5 rounded-full bg-forest-500;
+		animation: pulseDot 2s infinite;
+	}
+}
+
+@keyframes drift {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	33% {
+		transform: translate(-30px, 20px) scale(1.04);
+	}
+	66% {
+		transform: translate(20px, -15px) scale(1.02);
+	}
+}
+
+@keyframes pulseDot {
+	0% {
+		box-shadow: 0 0 0 0 rgba(90, 153, 104, 0.5);
+	}
+	70% {
+		box-shadow: 0 0 0 8px rgba(90, 153, 104, 0);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(90, 153, 104, 0);
+	}
 }
 
 @keyframes subtle-shake {

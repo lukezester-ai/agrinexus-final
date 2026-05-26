@@ -1,64 +1,46 @@
-import Link from "next/link";
-import { ApiStatus } from "@/components/api-status";
-import { SimpleAskPanel } from "@/components/simple-ask-panel";
+import { Hero } from "@/components/Hero";
+import { CTA, CTARow } from "@/components/CTA";
+import { TerminalDemo } from "@/components/home/TerminalDemo";
+import { ThreePillars, FarmerQuote, SponsorBand, FinalCTA } from "@/components/home/parts";
 
-export const dynamic = "force-dynamic";
-
-export default function Home() {
+export default function HomePage() {
 	return (
-		<main className="mx-auto max-w-2xl px-6 py-16">
-			<p className="text-sm font-medium uppercase tracking-wide text-emerald-800">AgriNexus · работен плот</p>
-			<h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">За бизнес потребител</h1>
-			<p className="mt-3 text-slate-600">
-				Тук няма нужда да разбирате <strong>RAG</strong>, <strong>LLM</strong> или <strong>LangGraph</strong>. Това са технически
-				етикети зад кулисите. За вас има три прости неща:
-			</p>
-			<ul className="mt-4 list-inside list-disc space-y-2 text-slate-700">
-				<li>
-					<strong>Питай по-долу</strong> — изкуствен интелект маршрутизира въпроса ви към „пазар“, „време“, „обучение“ и т.н.
-				</li>
-				<li>
-					<strong>Здраве на API слоя</strong> — малък технически индикатор (Python/FastAPI на порт 8000).
-				</li>
-				<li>
-					<strong>Пълният маркетингов сайт</strong> с графики и още страници — отделен локален сървър (порт 3456).
-				</li>
-			</ul>
+		<>
+			<Hero
+				title={
+					<>
+						From soil to <em className="grad-text not-italic [font-style:italic]">market.</em>
+						<br />
+						For every farmer.
+					</>
+				}
+				subtitle="AgriNexus is the open intelligence layer for modern farming — satellites, agents, commodity insight. Free for every farmer, anywhere."
+			>
+				<div className="mb-7 inline-flex items-center gap-2 rounded-full border border-ink/[0.07] bg-white/65 py-1.5 pl-1.5 pr-3 text-[11px] text-ink/70 backdrop-blur-xl">
+					<span className="rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-medium text-white">
+						Free forever
+					</span>
+					<span>Built for farmers, funded by sponsors</span>
+				</div>
+				<CTARow>
+					<CTA href="/dashboard">Start free →</CTA>
+					<CTA href="#demo" variant="secondary">
+						▶ Watch demo
+					</CTA>
+				</CTARow>
+				<div className="mt-7 inline-flex items-center gap-2.5 rounded-full border border-ink/[0.07] bg-white/55 px-4 py-2 text-xs text-ink/65 backdrop-blur-xl">
+					<span className="h-2 w-2 rounded-full bg-brand-gradient" />
+					<span>
+						<strong className="font-medium text-ink">100% free</strong> · No ads · No data sold · No paywall · Forever
+					</span>
+				</div>
+			</Hero>
 
-			<SimpleAskPanel />
-
-			<p className="mt-4 text-xs text-slate-500">
-				За полето „Питай“ трябва в <strong>трети терминал</strong>, от <strong>корена на репото</strong> (папката с{" "}
-				<code className="rounded bg-slate-100 px-1">package.json</code> на целия проект):{" "}
-				<code className="rounded bg-slate-100 px-1">npm run dev</code> → порт <strong>3456</strong> и ключ{" "}
-				<code className="rounded bg-slate-100 px-1">MISTRAL_API_KEY</code> в <code className="rounded bg-slate-100 px-1">.env</code> там.
-				По желание: <code className="rounded bg-slate-100 px-1">AGN_MARKETING_ORIGIN</code> в <code className="rounded bg-slate-100 px-1">apps/web/.env.local</code> ако ползвате друг адрес.
-			</p>
-
-			<div className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-				<h2 className="text-sm font-semibold text-slate-800">Състояние на API слоя (FastAPI)</h2>
-				<ApiStatus />
-			</div>
-
-			<nav className="mt-10 flex flex-wrap gap-4 text-sm font-medium text-emerald-800">
-				<a
-					className="underline underline-offset-4 hover:text-emerald-950"
-					href="http://127.0.0.1:3456/"
-					target="_blank"
-					rel="noreferrer"
-				>
-					Маркетингов сайт (порт 3456)
-				</a>
-				<Link className="underline underline-offset-4 hover:text-emerald-950" href="/login">
-					Вход (скелет)
-				</Link>
-				<Link className="underline underline-offset-4 hover:text-emerald-950" href="/academy">
-					Академия + лаборатория
-				</Link>
-				<a className="underline underline-offset-4 hover:text-emerald-950" href="http://127.0.0.1:3456/academy.html" target="_blank" rel="noreferrer">
-					Пълна библиотека (статична)
-				</a>
-			</nav>
-		</main>
+			<TerminalDemo />
+			<ThreePillars />
+			<FarmerQuote />
+			<SponsorBand />
+			<FinalCTA />
+		</>
 	);
 }
