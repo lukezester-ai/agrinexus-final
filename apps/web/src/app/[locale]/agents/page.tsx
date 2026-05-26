@@ -1,12 +1,15 @@
-import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/Hero";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export const metadata: Metadata = {
-  title: "Agents — 18 specialist AI agents",
-  description:
-    "AgriNexus isn't one AI — it's a coordinated team of 18 specialist agents. Each owns a domain. Each acts within bounds you set.",
-};
+type PageProps = { params: Promise<{ locale: string }> };
+
+export async function generateMetadata({ params }: PageProps) {
+	const { locale } = await params;
+	setRequestLocale(locale);
+	const t = await getTranslations({ locale, namespace: "AgentsMeta" });
+	return { title: t("title"), description: t("description") };
+}
 
 type AgentLevel = 1 | 2 | 3 | 4;
 type Agent = {
@@ -126,8 +129,9 @@ function AgentCard({ a }: { a: Agent }) {
   );
 }
 
-export default function AgentsPage() {
-  return (
+export default async function AgentsPage({ params }: PageProps) {
+	setRequestLocale((await params).locale);
+	return (
     <>
       <Hero
         eyebrow="// The agent mesh"

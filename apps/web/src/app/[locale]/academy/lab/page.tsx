@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { AcademyLabSimulation } from "@/components/academy-lab-simulation";
 
 export const metadata = {

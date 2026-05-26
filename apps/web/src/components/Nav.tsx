@@ -1,18 +1,24 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 type NavProps = {
 	active?: "platform" | "market" | "agents" | "academy" | "sponsors";
 };
 
-const links: { href: string; label: string; key: NonNullable<NavProps["active"]> }[] = [
-	{ href: "/platform", label: "Platform", key: "platform" },
-	{ href: "/market", label: "Market intelligence", key: "market" },
-	{ href: "/agents", label: "Agents", key: "agents" },
-	{ href: "/academy", label: "Academy", key: "academy" },
-	{ href: "/sponsors", label: "Sponsors", key: "sponsors" },
+const keys: { href: string; labelKey: "platform" | "market" | "agents" | "academy" | "sponsors"; navKey: NonNullable<NavProps["active"]> }[] = [
+	{ href: "/platform", labelKey: "platform", navKey: "platform" },
+	{ href: "/market", labelKey: "market", navKey: "market" },
+	{ href: "/agents", labelKey: "agents", navKey: "agents" },
+	{ href: "/academy", labelKey: "academy", navKey: "academy" },
+	{ href: "/sponsors", labelKey: "sponsors", navKey: "sponsors" },
 ];
 
 export function Nav({ active }: NavProps) {
+	const t = useTranslations("Nav");
+
 	return (
 		<nav className="sticky top-0 z-50 flex items-center justify-between border-b border-ink/[0.05] bg-paper/65 px-8 py-4 backdrop-blur-xl">
 			<Link href="/" className="flex items-center gap-2.5 text-sm font-medium text-ink no-underline">
@@ -23,25 +29,30 @@ export function Nav({ active }: NavProps) {
 			</Link>
 
 			<div className="hidden gap-6 text-[13px] md:flex">
-				{links.map((l) => (
+				{keys.map((l) => (
 					<Link
-						key={l.key}
+						key={l.navKey}
 						href={l.href}
 						className={
-							active === l.key ? "font-medium text-ink" : "text-ink/60 transition-colors hover:text-ink"
+							active === l.navKey
+								? "font-medium text-ink"
+								: "text-ink/60 transition-colors hover:text-ink"
 						}
 					>
-						{l.label}
+						{t(l.labelKey)}
 					</Link>
 				))}
 			</div>
 
-			<Link
-				href="/dashboard"
-				className="inline-flex items-center gap-1 rounded-full bg-ink px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-ink/90"
-			>
-				Join free →
-			</Link>
+			<div className="flex items-center gap-3">
+				<LanguageSwitcher />
+				<Link
+					href="/dashboard"
+					className="inline-flex items-center gap-1 rounded-full bg-ink px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-ink/90"
+				>
+					{t("joinFree")}
+				</Link>
+			</div>
 		</nav>
 	);
 }

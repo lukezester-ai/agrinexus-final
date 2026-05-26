@@ -1,0 +1,122 @@
+{
+	"Metadata": {
+		"titleDefault": "AgriNexus — From soil to market. For every farmer.",
+		"titleTemplate": "%s — AgriNexus",
+		"description": "An open AI intelligence platform for modern farming — free for every farmer, funded by partners.",
+		"keywords": [
+			"agritech",
+			"AI for farmers",
+			"farm management",
+			"commodity intelligence",
+			"precision agriculture",
+			"satellite monitoring",
+			"agricultural AI"
+		],
+		"ogTitle": "AgriNexus — From soil to market. For every farmer.",
+		"ogDescription": "An open AI intelligence platform for modern farming — free for every farmer, funded by partners."
+	},
+	"Nav": {
+		"platform": "Platform",
+		"market": "Market intelligence",
+		"agents": "Agents",
+		"academy": "Academy",
+		"sponsors": "Sponsors",
+		"joinFree": "Join free →"
+	},
+	"Footer": {
+		"line1": "AgriNexus · An open intelligence platform ·",
+		"sponsors": "Sponsors",
+		"advertise": "Advertise",
+		"privacy": "Privacy",
+		"stats": "2,847 farms · 14 countries · 1.2M hectares"
+	},
+	"Home": {
+		"heroLine1": "From soil to",
+		"heroEm": "market.",
+		"heroLine2": "For every farmer.",
+		"subtitle": "AgriNexus is the open intelligence layer for modern farming — satellites, agents, commodity insight. Free for every farmer, anywhere.",
+		"badgeFree": "Free forever",
+		"badgeFunded": "Built for farmers, funded by sponsors",
+		"ctaStart": "Start free →",
+		"ctaDemo": "▶ Watch demo",
+		"trustStrong": "100% free",
+		"trustRest": "· No ads · No data sold · No paywall · Forever",
+		"pillar1Title": "It watches",
+		"pillar1Desc": "Satellites, sensors, weather, and 200 market sources, every minute.",
+		"pillar2Title": "It thinks",
+		"pillar2Desc": "18 specialist agents reason together — agronomist, trader, treasurer.",
+		"pillar3Title": "It acts",
+		"pillar3Desc": "Irrigates a field, hedges a contract, books the harvester. With your nod.",
+		"quote": "\"It told me to sell on a Tuesday morning. By Friday the price had dropped €22. That one call paid for years of work.\"",
+		"quoteAttribution": "Marko Petrov · 280 ha wheat · Dobrich",
+		"sponsorCode": "// Make this possible",
+		"sponsorTitleBefore": "Free for farmers, ",
+		"sponsorTitleEm": "because of partners.",
+		"sponsorBody": "Companies, foundations and brands fund AgriNexus so every farmer keeps access. Sponsor a region, partner on research, or place your brand where it matters.",
+		"sponsorCta1": "Become a sponsor →",
+		"sponsorCta2": "Advertise with us",
+		"finalTitle": "Start with one field.\nWatch what changes.",
+		"finalSubtitle": "No card. No setup. Just sign in and the agents take it from there.",
+		"finalCtaDash": "Start free →",
+		"finalCtaAcademy": "Browse the academy"
+	},
+	"Academy": {
+		"metaTitle": "Academy · AgriNexus",
+		"metaDescription": "Courses and lab (learning scenarios).",
+		"kicker": "AgriNexus · Academy",
+		"heading": "Learning",
+		"intro": "Five courses with Markdown lectures, a lab for simulation, and a Lecturer page with read-aloud and AI questions. Static marketing library:",
+		"introLink": "academy.html",
+		"labLabel": "Lab",
+		"labTitle": "Simulation: soil, weather, costs, yield, pros/cons",
+		"labSub": "Learning model — sliders and trial & error.",
+		"lecturerLabel": "Lecturer",
+		"lecturerTitle": "Materials from .md + read‑aloud + questions to AI (Academy Tutor)",
+		"lecturerSub": "Files in public/lectures/courses/ — catalog in src/content/academy-courses.ts.",
+		"modules": "{count} modules (lectures) — texts in public/lectures/courses/{slug}/",
+		"openCourse": "Open course →",
+		"moduleCount": "{count} modules",
+		"homeBack": "← Home (Next)"
+	},
+	"Course": {
+		"metaFallback": "Course · AgriNexus",
+		"kicker": "AgriNexus · Course",
+		"modulesHint": "{count} modules (lectures) — texts in public/lectures/courses/{slug}/",
+		"openLecturer": "Open in lecturer →",
+		"finalTestEyebrow": "Final test",
+		"finalTestTitle": "25 questions from the course material",
+		"finalTestSub": "Multiple choice; on success — confetti celebration.",
+		"backCourses": "← All courses",
+		"lecturerPicker": "Lecturer (pick a lecture)",
+		"backToCourse": "← Back to course",
+		"allCoursesShort": "All courses"
+	},
+	"AgentsMeta": {
+		"title": "Agents — 18 specialist AI agents",
+		"description": "AgriNexus isn't one AI — it's a coordinated team of 18 specialist agents."
+	},
+	"MarketMeta": {
+		"title": "Market intelligence",
+		"description": "Commodity insight for farmers."
+	},
+	"PlatformMeta": {
+		"title": "Platform",
+		"description": "AgriNexus platform overview."
+	},
+	"DashboardMeta": {
+		"title": "Dashboard",
+		"description": "Your AgriNexus dashboard."
+	},
+	"SponsorsMeta": {
+		"title": "Sponsors",
+		"description": "Partners who keep AgriNexus free for farmers."
+	},
+	"PrivacyMeta": {
+		"title": "Privacy",
+		"description": "Privacy information."
+	},
+	"LoginMeta": {
+		"title": "Sign in",
+		"description": "Sign in to AgriNexus (skeleton)."
+	}
+}

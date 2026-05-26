@@ -1,8 +1,10 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ALL_LECTURES, COURSES, lectureById, type LectureMeta } from "@/content/academy-courses";
+import type { AppLocale } from "@/i18n/routing";
+import { allLecturesForLocale, coursesForLocale, lectureMetaById, type LectureMeta } from "@/content/academy-courses";
 
 const MAX_CONTEXT = 9000;
 
@@ -28,8 +30,11 @@ ${studentQuestion.trim()}`;
 }
 
 export function AcademyLecturer() {
+	const locale = useLocale() as AppLocale;
 	const searchParams = useSearchParams();
-	const [id, setId] = useState(ALL_LECTURES[0]!.id);
+	const courses = useMemo(() => coursesForLocale(locale), [locale]);
+	const lectures = useMemo(() => allLecturesForLocale(locale), [locale]);
+	const [id, setId] = useState(() => lectures[0]!.id);
 	const [body, setBody] = useState("");
 	const [loadState, setLoadState] = useState<"idle" | "loading" | "ok" | "error">("idle");
 	const [loadError, setLoadError] = useState<string | null>(null);
@@ -40,14 +45,20 @@ export function AcademyLecturer() {
 	const [loading, setLoading] = useState(false);
 	const [err, setErr] = useState<string | null>(null);
 
-	const meta = useMemo(() => ALL_LECTURES.find((l) => l.id === id) ?? ALL_LECTURES[0]!, [id]);
+	useEffect(() => {
+		const first = lectures[0]?.id;
+		if (!first) return;
+		setId((prev) => (lectures.some((l) => l.id === prev) ? prev : first));
+	}, [lectures]);
+
+	const meta = useMemo(() => lectures.find((l) => l.id === id) ?? lectures[0]!, [id, lectures]);
 
 	useEffect(() => {
 		const focus = searchParams.get("focus");
 		if (!focus) return;
-		const found = lectureById(focus);
+		const found = lectureMetaById(focus, locale);
 		if (found) setId(found.id);
-	}, [searchParams]);
+	}, [searchParams, locale]);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -98,7 +109,7 @@ export function AcademyLecturer() {
 		stopSpeech();
 		const text = `${meta.courseTitle}. ${meta.title}. ${meta.summary}. ${body}`;
 		const u = new SpeechSynthesisUtterance(text);
-		u.lang = "bg-BG";
+		u.lang = locale === "en" ? "en-US" : "bg-BG";
 		const voices = window.speechSynthesis.getVoices();
 		const v =
 			voices.find((x) => x.lang.toLowerCase().startsWith("bg")) ||
@@ -109,7 +120,7 @@ export function AcademyLecturer() {
 		u.onerror = () => setSpeaking(false);
 		setSpeaking(true);
 		window.speechSynthesis.speak(u);
-	}, [body, meta.courseTitle, meta.summary, meta.title, stopSpeech]);
+	}, [body, locale, meta.courseTitle, meta.summary, meta.title, stopSpeech]);
 
 	async function askTutor() {
 		if (!body) return;
@@ -151,7 +162,7 @@ export function AcademyLecturer() {
 						stopSpeech();
 					}}
 				>
-					{COURSES.map((c) => (
+					{courses.map((c) => (
 						<optgroup key={c.slug} label={c.title}>
 							{c.lectures.map((l) => (
 								<option key={l.id} value={l.id}>

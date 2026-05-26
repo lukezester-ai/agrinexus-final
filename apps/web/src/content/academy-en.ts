@@ -1,0 +1,82 @@
+/**
+ * English catalog copy for AgriNexus Academy (Bulgarian Markdown files unchanged).
+ */
+export const courseEn: Record<
+	string,
+	{
+		title: string;
+		description: string;
+		lectures: Record<string, { title: string; summary: string }>;
+	}
+> = {
+	"soil-fertility": {
+		title: "Soil fertility and fertilization",
+		description: "Soil tests, pH, organic matter, and sensible NPK rates for resilient yield.",
+		lectures: {
+			"sf-probi": {
+				title: "Soil tests and basic diagnostics",
+				summary: "What to order from the lab and how to read results with a business mindset.",
+			},
+			"sf-npk": {
+				title: "NPK balance without burning budget",
+				summary: "When more fertilizer does not mean more profit.",
+			},
+		},
+	},
+	"crop-markets": {
+		title: "Crop markets for the farm",
+		description: "Exchange, basis, logistics — from futures quotes to price at the field gate.",
+		lectures: {
+			"cm-basis": {
+				title: "Basis and local price",
+				summary: "Why two neighbours can get different prices with the same exchange print.",
+			},
+			"cm-timing": {
+				title: "Selling timing and storage",
+				summary: "Seasonality, moisture, discounts — how “waiting” costs money.",
+			},
+		},
+	},
+	"water-irrigation": {
+		title: "Water and irrigation",
+		description: "Water budget, drought risk, and talking to your banker in m³/ha language.",
+		lectures: {
+			"wi-budget": {
+				title: "Season water budget",
+				summary: "A dedicated cost line — not a leftover after fertilizer.",
+			},
+			"wi-energy": {
+				title: "Pumps and energy",
+				summary: "When electricity eats the savings from “less fertilizer”.",
+			},
+		},
+	},
+	"farm-finance": {
+		title: "Farm finance and risk",
+		description: "Working capital, insurance, subsidies, and simple metrics for decisions.",
+		lectures: {
+			"ff-working-capital": {
+				title: "Working capital in the campaign",
+				summary: "Why drought is also a credit risk.",
+			},
+			"ff-insurance": {
+				title: "Insurance and weather triggers",
+				summary: "What “verifiable” means to a financial partner.",
+			},
+		},
+	},
+	"precision-data": {
+		title: "Precision farming and data",
+		description: "GPS, field maps, operation logs — less guessing, clearer decisions.",
+		lectures: {
+			"pd-yield-maps": {
+				title: "Yield maps and zoning",
+				summary: "From a picture to a decision: where to spend the next euro.",
+			},
+			"pd-traceability": {
+				title: "Traceability and records",
+				summary: "Why a field diary pays at purchase and in disputes.",
+			},
+		},
+	},
+};

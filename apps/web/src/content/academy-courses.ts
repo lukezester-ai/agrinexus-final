@@ -2,6 +2,8 @@
  * Курсове и лекции за AgriNexus Academy (Next).
  * Лекциите са Markdown в `public/lectures/<file>`.
  */
+import type { AppLocale } from "@/i18n/routing";
+import { courseEn } from "./academy-en";
 export type LectureRef = {
 	id: string;
 	title: string;
@@ -127,18 +129,47 @@ export type LectureMeta = LectureRef & {
 	courseTitle: string;
 };
 
-export const ALL_LECTURES: LectureMeta[] = COURSES.flatMap((c) =>
-	c.lectures.map((l) => ({
-		...l,
-		courseSlug: c.slug,
-		courseTitle: c.title,
-	})),
-);
+function localizeCourse(course: Course, locale: AppLocale): Course {
+	if (locale === "bg") return course;
+	const en = courseEn[course.slug];
+	if (!en) return course;
+	return {
+		...course,
+		title: en.title,
+		description: en.description,
+		lectures: course.lectures.map((l) => {
+			const lt = en.lectures[l.id];
+			return lt ? { ...l, title: lt.title, summary: lt.summary } : l;
+		}),
+	};
+}
 
-export function courseBySlug(slug: string): Course | undefined {
-	return COURSES.find((c) => c.slug === slug);
+export function coursesForLocale(locale: AppLocale): Course[] {
+	return COURSES.map((c) => localizeCourse(c, locale));
+}
+
+export function courseBySlug(slug: string, locale: AppLocale = "bg"): Course | undefined {
+	const c = COURSES.find((x) => x.slug === slug);
+	return c ? localizeCourse(c, locale) : undefined;
+}
+
+export function allLecturesForLocale(locale: AppLocale): LectureMeta[] {
+	return coursesForLocale(locale).flatMap((c) =>
+		c.lectures.map((l) => ({
+			...l,
+			courseSlug: c.slug,
+			courseTitle: c.title,
+		})),
+	);
+}
+
+/** @deprecated Prefer `allLecturesForLocale("bg")` — kept for older imports. */
+export const ALL_LECTURES: LectureMeta[] = allLecturesForLocale("bg");
+
+export function lectureMetaById(id: string, locale: AppLocale = "bg"): LectureMeta | undefined {
+	return allLecturesForLocale(locale).find((l) => l.id === id);
 }
 
 export function lectureById(id: string): LectureMeta | undefined {
-	return ALL_LECTURES.find((l) => l.id === id);
+	return lectureMetaById(id, "bg");
 }
