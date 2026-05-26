@@ -21,6 +21,8 @@ export default async function AcademyHubPage({ params }: Props) {
 	const t = await getTranslations("Academy");
 	const loc = locale as AppLocale;
 	const courses = coursesForLocale(loc);
+	const marketingOrigin = (process.env.AGN_MARKETING_ORIGIN ?? "").replace(/\/$/, "");
+	const legacyAcademyHref = marketingOrigin ? `${marketingOrigin}/academy.html` : "/academy.html";
 
 	return (
 		<main className="mx-auto max-w-2xl px-6 py-16">
@@ -29,7 +31,7 @@ export default async function AcademyHubPage({ params }: Props) {
 			<p className="mt-3 text-slate-600">
 				{t("intro")}{" "}
 				<a
-					href="http://127.0.0.1:3456/academy.html"
+					href={legacyAcademyHref}
 					className="font-medium text-emerald-800 underline underline-offset-4"
 					target="_blank"
 					rel="noreferrer"

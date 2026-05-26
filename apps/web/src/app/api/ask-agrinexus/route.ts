@@ -3,8 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 /** Кореновият `npm run dev` (scripts/dev-server.mjs) — там е `/api/chat` (Mistral + маршрутизатор). */
-function marketingOrigin(): string {
-	return (process.env.AGN_MARKETING_ORIGIN ?? "http://127.0.0.1:3456").replace(/\/$/, "");
+function marketingOrigin(): string | null {
+	const configured = process.env.AGN_MARKETING_ORIGIN?.trim();
+	if (configured) return configured.replace(/\/$/, "");
+	if (process.env.NODE_ENV !== "production") return "http://127.0.0.1:3456";
+	return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -16,6 +19,13 @@ export async function POST(req: NextRequest) {
 	}
 
 	const origin = marketingOrigin();
+	if (!origin) {
+		return NextResponse.json(
+			{ error: "AGN_MARKETING_ORIGIN must be configured for the AI server in production." },
+			{ status: 503 },
+		);
+	}
+
 	try {
 		const res = await fetch(`${origin}/api/chat`, {
 			method: "POST",
