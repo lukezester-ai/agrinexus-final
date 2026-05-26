@@ -18,7 +18,7 @@ function resolveSafeStaticPath(pathname) {
 	let rel = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
 	if (!rel) rel = 'index.html';
 	let filePath = resolve(rootResolved, rel);
-	if (pathname.endsWith('/')) filePath = resolve(filePath, 'index.html');
+	if (pathname !== '/' && pathname.endsWith('/')) filePath = resolve(filePath, 'index.html');
 	const relOut = relative(rootResolved, filePath);
 	if (relOut === '..' || relOut.startsWith(`..${sep}`) || relOut.startsWith('..')) return null;
 	return filePath;
