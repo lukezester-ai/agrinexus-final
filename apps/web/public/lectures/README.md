@@ -15,5 +15,7 @@
 
 1. Нова папка `public/lectures/courses/<slug>/`.
 2. Нов обект в масива `COURSES` в `academy-courses.ts`.
+3. Преводи за EN в `src/content/academy-en.ts`.
+4. Финален тест: 25 въпроса в `src/content/final-course-tests/<slug>.ts` и регистрация в `final-course-tests/index.ts`.
 
 Страницата **„Лектор“** (`/academy/lecturer`) зарежда текста от `/lectures/<file>`.

@@ -121,6 +121,26 @@ export const COURSES: Course[] = [
 			},
 		],
 	},
+	{
+		slug: "drone-pilots",
+		title: "Пилоти на дронове в стопанството",
+		description: "Симулатор: DJI където е уместно, безплатни варианти (напр. FPV SkyDive), тренинг на ръцете и безопасен преход към полет над нивата.",
+		modules: 2,
+		lectures: [
+			{
+				id: "dp-sim",
+				title: "Симулатор и тренинг преди първия полет",
+				summary: "DJI симулатори, безплатни варианти (напр. FPV SkyDive) и кратки сесии — по-малко скъпи грешки с витла и ориентация.",
+				file: "courses/drone-pilots/01-simulator-trening.md",
+			},
+			{
+				id: "dp-field",
+				title: "От симулатора до полето: безопасност и регламент",
+				summary: "Чеклист, екип от двама, поверителност — без да заместваме официалния регулатор.",
+				file: "courses/drone-pilots/02-bezopasnost-i-reglament.md",
+			},
+		],
+	},
 ];
 
 /** Плосък списък за компонента „Лектор“ (dropdown). */

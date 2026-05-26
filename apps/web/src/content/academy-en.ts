@@ -79,4 +79,18 @@ export const courseEn: Record<
 			},
 		},
 	},
+	"drone-pilots": {
+		title: "Farm drone pilots",
+		description: "Simulator training (DJI tools where relevant, plus free-tier options like FPV SkyDive), stick skills, and a safe path to flights over cropland.",
+		lectures: {
+			"dp-sim": {
+				title: "Simulator training before the first flight",
+				summary: "DJI simulators, free-tier options (e.g. FPV SkyDive on Steam), and short sessions — fewer expensive prop and orientation mistakes.",
+			},
+			"dp-field": {
+				title: "From simulator to field: safety and rules",
+				summary: "Checklists, two-person crew, privacy — without replacing the official regulator.",
+			},
+		},
+	},
 };

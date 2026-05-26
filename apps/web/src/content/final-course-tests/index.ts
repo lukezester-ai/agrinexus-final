@@ -1,4 +1,5 @@
 import { cropMarketsRows } from "./crop-markets";
+import { dronePilotsRows } from "./drone-pilots";
 import { farmFinanceRows } from "./farm-finance";
 import { precisionDataRows } from "./precision-data";
 import { soilFertilityRows } from "./soil-fertility";
@@ -30,6 +31,7 @@ const FINAL_TESTS_BY_SLUG: Record<string, CourseFinalTest> = {
 	"water-irrigation": pack("water-irrigation", waterIrrigationRows),
 	"farm-finance": pack("farm-finance", farmFinanceRows),
 	"precision-data": pack("precision-data", precisionDataRows),
+	"drone-pilots": pack("drone-pilots", dronePilotsRows),
 };
 
 export function getFinalTest(slug: string): CourseFinalTest | undefined {
