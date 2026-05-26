@@ -1,14 +1,24 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-	return (
-		<div
-			className={cn("rounded-xl border border-slate-200/90 bg-white text-slate-950 shadow-sm", className)}
-			data-slot="card"
-			{...props}
-		/>
-	);
+const cardVariants = cva("rounded-xl text-slate-950", {
+	variants: {
+		variant: {
+			solid: "border border-slate-200/90 bg-white shadow-sm",
+			glass:
+				"border border-white/50 bg-gradient-to-br from-white/70 via-white/45 to-white/30 shadow-[0_8px_40px_rgba(14,55,32,0.1)] backdrop-blur-2xl backdrop-saturate-150 ring-1 ring-white/45",
+		},
+	},
+	defaultVariants: {
+		variant: "solid",
+	},
+});
+
+export type CardProps = React.ComponentProps<"div"> & VariantProps<typeof cardVariants>;
+
+function Card({ className, variant, ...props }: CardProps) {
+	return <div className={cn(cardVariants({ variant }), className)} data-slot="card" {...props} />;
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
@@ -31,4 +41,4 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
 	return <div className={cn("flex items-center border-t border-slate-100 px-5 py-3", className)} data-slot="card-footer" {...props} />;
 }
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants };

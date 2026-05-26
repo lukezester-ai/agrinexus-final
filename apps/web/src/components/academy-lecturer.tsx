@@ -1,12 +1,14 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { allLecturesForLocale, coursesForLocale, lectureMetaById, type LectureMeta } from "@/content/academy-courses";
 
 const MAX_CONTEXT = 9000;
+/** Sync with `apps/web/src/app/api/elevenlabs-tts/route.ts` MAX_CHARS */
+const ELEVENLABS_MAX_CHARS = 4500;
 
 function composeTutorMessage(meta: LectureMeta, body: string, studentQuestion: string): string {
 	const head = `Ти си лектор в AgriNexus Academy. Отговори на български, ясно и уважително. Ползвай САМО текста на лекцията като фактологична основа; ако нещо липсва, кажи че не е в лекцията.
@@ -40,6 +42,13 @@ export function AcademyLecturer() {
 	const [loadError, setLoadError] = useState<string | null>(null);
 	const [voicesReady, setVoicesReady] = useState(false);
 	const [speaking, setSpeaking] = useState(false);
+	const [elevenConfigured, setElevenConfigured] = useState(false);
+	const [elevenLoading, setElevenLoading] = useState(false);
+	const [elevenPlayback, setElevenPlayback] = useState(false);
+	const [elevenErr, setElevenErr] = useState<string | null>(null);
+	const [elevenTruncated, setElevenTruncated] = useState(false);
+	const elevenAudioRef = useRef<HTMLAudioElement | null>(null);
+	const elevenUrlRef = useRef<string | null>(null);
 	const [question, setQuestion] = useState("Обясни ми с прости думи най-важното за бизнеса от тази лекция.");
 	const [reply, setReply] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -52,6 +61,11 @@ export function AcademyLecturer() {
 	}, [lectures]);
 
 	const meta = useMemo(() => lectures.find((l) => l.id === id) ?? lectures[0]!, [id, lectures]);
+
+	const speechText = useMemo(() => {
+		if (!body) return "";
+		return `${meta.courseTitle}. ${meta.title}. ${meta.summary}. ${body}`;
+	}, [body, meta.courseTitle, meta.summary, meta.title]);
 
 	useEffect(() => {
 		const focus = searchParams.get("focus");
@@ -99,15 +113,41 @@ export function AcademyLecturer() {
 		};
 	}, []);
 
+	useEffect(() => {
+		let cancelled = false;
+		fetch("/api/elevenlabs-tts", { method: "GET" })
+			.then((r) => r.json() as Promise<{ configured?: boolean }>)
+			.then((j) => {
+				if (!cancelled) setElevenConfigured(Boolean(j.configured));
+			})
+			.catch(() => {
+				if (!cancelled) setElevenConfigured(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
 	const stopSpeech = useCallback(() => {
 		window.speechSynthesis.cancel();
+		if (elevenAudioRef.current) {
+			elevenAudioRef.current.pause();
+			elevenAudioRef.current.currentTime = 0;
+			elevenAudioRef.current = null;
+		}
+		if (elevenUrlRef.current) {
+			URL.revokeObjectURL(elevenUrlRef.current);
+			elevenUrlRef.current = null;
+		}
 		setSpeaking(false);
+		setElevenLoading(false);
+		setElevenPlayback(false);
 	}, []);
 
 	const readAloud = useCallback(() => {
-		if (!body) return;
+		if (!speechText) return;
 		stopSpeech();
-		const text = `${meta.courseTitle}. ${meta.title}. ${meta.summary}. ${body}`;
+		const text = speechText;
 		const u = new SpeechSynthesisUtterance(text);
 		u.lang = locale === "en" ? "en-US" : "bg-BG";
 		const voices = window.speechSynthesis.getVoices();
@@ -120,7 +160,73 @@ export function AcademyLecturer() {
 		u.onerror = () => setSpeaking(false);
 		setSpeaking(true);
 		window.speechSynthesis.speak(u);
-	}, [body, locale, meta.courseTitle, meta.summary, meta.title, stopSpeech]);
+	}, [speechText, locale, stopSpeech]);
+
+	const readElevenLabs = useCallback(async () => {
+		if (!speechText) return;
+		setElevenErr(null);
+		setElevenTruncated(false);
+		stopSpeech();
+		let text = speechText;
+		if (text.length > ELEVENLABS_MAX_CHARS) {
+			text = text.slice(0, ELEVENLABS_MAX_CHARS);
+			setElevenTruncated(true);
+		}
+		setElevenLoading(true);
+		try {
+			const res = await fetch("/api/elevenlabs-tts", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ text }),
+			});
+			if (!res.ok) {
+				const data = (await res.json().catch(() => ({}))) as { error?: string };
+				setElevenErr(data.error || `HTTP ${res.status}`);
+				return;
+			}
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			elevenUrlRef.current = url;
+			const audio = new Audio(url);
+			elevenAudioRef.current = audio;
+			audio.onended = () => {
+				setSpeaking(false);
+				setElevenPlayback(false);
+				if (elevenUrlRef.current) {
+					URL.revokeObjectURL(elevenUrlRef.current);
+					elevenUrlRef.current = null;
+				}
+				elevenAudioRef.current = null;
+			};
+			audio.onerror = () => {
+				setElevenErr("Възпроизвеждането на аудио се провали.");
+				setSpeaking(false);
+				setElevenPlayback(false);
+				if (elevenUrlRef.current) {
+					URL.revokeObjectURL(elevenUrlRef.current);
+					elevenUrlRef.current = null;
+				}
+				elevenAudioRef.current = null;
+			};
+			await audio.play();
+			setSpeaking(true);
+			setElevenPlayback(true);
+		} catch {
+			setElevenErr("Мрежова грешка или блокирано автоматично възпроизвеждане.");
+			if (elevenUrlRef.current) {
+				URL.revokeObjectURL(elevenUrlRef.current);
+				elevenUrlRef.current = null;
+			}
+		} finally {
+			setElevenLoading(false);
+		}
+	}, [speechText, stopSpeech]);
+
+	useEffect(() => {
+		stopSpeech();
+		setElevenErr(null);
+		setElevenTruncated(false);
+	}, [meta.id, stopSpeech]);
 
 	async function askTutor() {
 		if (!body) return;
@@ -191,11 +297,21 @@ export function AcademyLecturer() {
 					<button
 						type="button"
 						onClick={readAloud}
-						disabled={speaking || !ready}
+						disabled={speaking || elevenLoading || !ready}
 						className="rounded-full bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
 					>
-						{speaking ? "Чете…" : "Чети на глас (браузър)"}
+						{speaking && !elevenPlayback && !elevenLoading ? "Чете…" : "Чети на глас (браузър)"}
 					</button>
+					{elevenConfigured && (
+						<button
+							type="button"
+							onClick={() => void readElevenLabs()}
+							disabled={speaking || elevenLoading || !ready}
+							className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+						>
+							{elevenLoading ? "Генерира MP3…" : elevenPlayback ? "Възпроизвежда (ElevenLabs)…" : "Чети на глас (ElevenLabs)"}
+						</button>
+					)}
 					<button
 						type="button"
 						onClick={stopSpeech}
@@ -205,8 +321,15 @@ export function AcademyLecturer() {
 					</button>
 					{!voicesReady && <span className="self-center text-xs text-amber-700">Зареждане на гласове…</span>}
 				</div>
+				{elevenErr && <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{elevenErr}</p>}
+				{elevenTruncated && (
+					<p className="mt-2 text-xs text-amber-800">
+						За ElevenLabs е използван само началото на текста (до {ELEVENLABS_MAX_CHARS} знака). За цялата лекция ползвайте браузър или разделете на части.
+					</p>
+				)}
 				<p className="mt-3 text-xs text-slate-500">
-					Гласът е от вашия браузър (Web Speech). Качеството зависи от Windows / инсталирани езици.
+					Гласът от бутона „браузър“ е Web Speech (качеството зависи от ОС). При зададен <code className="rounded bg-white/80 px-1">ELEVENLABS_API_KEY</code> в{" "}
+					<code className="rounded bg-white/80 px-1">.env.local</code> се появява ElevenLabs (по-добро качество; ключът не излиза към клиента).
 				</p>
 			</article>
 
