@@ -57,3 +57,16 @@ The existing `npm run dev` is still the **static site + TS API** dev server for 
 - `apps/backend` — FastAPI + Uvicorn
 - `docker-compose.yml` — `db` (pgvector) + `backend`
 - `infra/docker/init-db.sql` — enables `vector` extension on first DB init
+
+## Vercel — защо на production „липсва“ Next академията
+
+Кодът в GitHub **е качен**, но текущият production проект във Vercel най-често е вързан към **корена на репото** и ползва коренов **`vercel.json`**: там са **`buildCommand": "echo static"`** и **`outputDirectory": "."`**. Това качва **само статичните** HTML/CSS/JS от корена и пренасочва `/academy` към **`academy.html`**, а не към Next приложението в **`apps/web`**.
+
+За да се виждат лекторът, тестовете и останалите Next маршрути в production:
+
+1. Във **Vercel → Project → Settings → General → Root Directory** задай **`apps/web`** (или създай **отделен** проект към същия repo с root `apps/web`).
+2. Остави framework **Next.js** (авто) и build **`npm run build`** от тази папка.
+3. **Install command** обикновено е `npm install` в `apps/web` (Vercel го прави автоматично при правилен root).
+4. Домейн: или нов поддомейн (напр. `app.…`) за Next проекта, или преместване на production към Next-only проект (тогава статичните коренови страници няма да се обслужват от същия deploy — планирай пренасочвания/един front).
+
+Докато root directory остане `.`, новите файлове под **`apps/web/`** ще са в GitHub, но **няма да влязат** в този статичен build.
