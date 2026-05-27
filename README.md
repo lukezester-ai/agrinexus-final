@@ -62,9 +62,19 @@ npm run dev
 
 Serves `http://127.0.0.1:3456` with static HTML/CSS plus **`/api/market-data`**, **`/api/market-history`**, **`POST /api/chat`** (LangGraph mesh, including **AI Analytics** / `ANALYTICS_AGENT`), waitlist, etc. **`market-intelligence.html`**, **`analytics.html`**, and RU mirrors load charts/ticker through these routes — use **`npm run dev`**, not **`npm run serve`** (static-only, no APIs).
 
+## Mobile app — React Native + Expo
+
+Кодът е в **`apps/mobile`**: **Expo Router**, TypeScript, EN/БГ превключвател, вход към FastAPI и каталог академия към Next (`/api/mobile/courses`). От корена на репото:
+
+```bash
+npm run dev:mobile
+```
+
+Пълни инструкции (`.env`, Android `10.0.2.2`, заедно с `dev:web` и backend): **`apps/mobile/README.md`**.
+
 ## Target stack (roadmap)
 
-Продуктов слой (бъдеща фаза): **Next.js** (frontend), **Python + FastAPI** (backend), **PostgreSQL** (OLTP), **vector DB** (AI memory), **Docker** automation, **VPS** → по-късно **Kubernetes**. Пълна таблица и роли: **`docs/TARGET-ARCHITECTURE.md`**. Скелет за локална работа: **`docs/LOCAL-DEV.md`** (`apps/web`, `apps/backend`, `docker-compose.yml`).
+Продуктов слой (бъдеща фаза): **Next.js** (frontend), **Python + FastAPI** (backend), **PostgreSQL** (OLTP), **vector DB** (AI memory), **Docker** automation, **VPS** → по-късно **Kubernetes**. Пълна таблица и роли: **`docs/TARGET-ARCHITECTURE.md`**. Скелет за локална работа: **`docs/LOCAL-DEV.md`** (`apps/web`, `apps/backend`, `apps/mobile`, `docker-compose.yml`).
 
 ## CI
 

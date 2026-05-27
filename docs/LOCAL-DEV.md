@@ -40,6 +40,16 @@ set DATABASE_URL=postgresql://agrinexus:agrinexus_dev@127.0.0.1:5432/agrinexus
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
+## Mobile — Expo (React Native)
+
+From repo root:
+
+```bash
+npm run dev:mobile
+```
+
+This starts **`apps/mobile`** (Expo Router). For login + live academy catalog, run **Next** (`npm run dev:web`) and **FastAPI** as in Option A/B above, then set `EXPO_PUBLIC_WEB_ORIGIN` and `EXPO_PUBLIC_BACKEND_URL` (see **`apps/mobile/README.md`** and **`apps/mobile/.env.example`**).
+
 ## NPM scripts (repo root)
 
 | Script | Purpose |
@@ -48,12 +58,14 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 | `npm run compose:down` | `docker compose down` |
 | `npm run dev:web` | Next.js dev server (`apps/web`) |
 | `npm run dev:backend` | FastAPI with reload (`apps/backend`) |
+| `npm run dev:mobile` | Expo dev server (`apps/mobile`) |
 
 The existing `npm run dev` is still the **static site + TS API** dev server for the marketing stack (`scripts/dev-server.mjs`).
 
 ## Layout
 
 - `apps/web` — Next.js 15 (App Router, Tailwind). Skeleton routes: `/login`, `/academy`, `/academy/course/[slug]` (see `apps/web/README.md`).
+- `apps/mobile` — Expo + React Native (Expo Router); see `apps/mobile/README.md`.
 - `apps/backend` — FastAPI + Uvicorn
 - `docker-compose.yml` — `db` (pgvector) + `backend`
 - `infra/docker/init-db.sql` — enables `vector` extension on first DB init
