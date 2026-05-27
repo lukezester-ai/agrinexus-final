@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BookOpen, ChevronRight, FlaskConical } from "lucide-react";
+import { BookOpen, ChevronRight, FlaskConical, MapPinned } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 import { coursesForLocale } from "@/content/academy-courses";
@@ -35,7 +35,7 @@ export default async function AcademyHubPage({ params }: Props) {
 	const legacyAcademyHref = marketingOrigin ? `${marketingOrigin}/academy.html` : "/academy.html";
 
 	const tileGrid =
-		"mt-10 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]";
+		"mt-10 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3";
 
 	return (
 		<main className="mx-auto min-w-0 max-w-5xl px-6 py-14 sm:py-16">
@@ -97,6 +97,26 @@ export default async function AcademyHubPage({ params }: Props) {
 								<span className="mt-1 block text-sm font-normal leading-snug text-slate-600">{t("lecturerSub")}</span>
 							</span>
 							<ChevronRight className="mt-1 size-5 shrink-0 self-start text-slate-400" aria-hidden />
+						</Link>
+					</Button>
+				}
+				maps={
+					<Button
+						variant="secondary"
+						size="xl"
+						className="h-auto min-w-0 max-w-full rounded-xl border border-forest-700/20 bg-forest-900/10 shadow-md backdrop-blur-xl ring-1 ring-forest-800/15 hover:bg-forest-900/15 hover:ring-forest-800/25"
+						asChild
+					>
+						<Link href="/academy/maps" className="min-w-0 max-w-full text-left text-slate-900 [overflow-wrap:anywhere]">
+							<span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-forest-800/15 text-forest-800 ring-1 ring-forest-700/20 backdrop-blur-sm">
+								<MapPinned className="size-5" aria-hidden />
+							</span>
+							<span className="min-w-0 max-w-full flex-1 basis-0">
+								<span className="block text-xs font-semibold uppercase tracking-wide text-forest-800">{t("mapsLabel")}</span>
+								<span className="mt-1 block text-base font-medium leading-snug">{t("mapsTitle")}</span>
+								<span className="mt-1 block text-sm font-normal leading-snug text-slate-700">{t("mapsSub")}</span>
+							</span>
+							<ChevronRight className="mt-1 size-5 shrink-0 self-start text-forest-700/70" aria-hidden />
 						</Link>
 					</Button>
 				}

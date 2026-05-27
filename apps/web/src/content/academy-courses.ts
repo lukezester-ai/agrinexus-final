@@ -105,7 +105,7 @@ export const COURSES: Course[] = [
 		slug: "precision-data",
 		title: "Прецизно земеделие и данни",
 		description: "Карти и слоеве, GPS, метео за операции, карти на добив, запис — по-малко гадаене.",
-		modules: 4,
+		modules: 5,
 		lectures: [
 			{
 				id: "pd-yield-maps",
@@ -130,6 +130,39 @@ export const COURSES: Course[] = [
 				title: "Метео за операции",
 				summary: "Кратък и сезонен хоризонт, локална станция, вятър за пръскане, радар за дъжд.",
 				file: "courses/precision-data/04-meteo-operatsii.md",
+			},
+			{
+				id: "pd-field-sat-maps-practice",
+				title: "Практически занятия: карта, полета и сателит в реално време",
+				summary: "Очертаване на блокове, сателитни слоеве във времето, проверка на граници с GPS и обновяване в полето.",
+				file: "courses/precision-data/05-praktika-karta-satelit-poleta.md",
+			},
+		],
+	},
+	{
+		slug: "maps-and-fields",
+		title: "Карти и полета",
+		description:
+			"Отделен курс с жива учебна карта в браузъра: улици (OpenStreetMap), сателитен слой, очертаване на блок с кликове и изтегляне на GeoJSON.",
+		modules: 3,
+		lectures: [
+			{
+				id: "mf-why-draw",
+				title: "Защо чертаем блокове и какво е полигон",
+				summary: "Ролята на картата между стопанството, агронома и машината; понятия преди лабораторията.",
+				file: "courses/maps-and-fields/01-vavedenie-karti-poleta.md",
+			},
+			{
+				id: "mf-live-map",
+				title: "Жива карта: лаборатория в AgriNexus",
+				summary: "Страницата /academy/maps — реални плочки, сателит, клик за върхове и GeoJSON за упражнения.",
+				file: "courses/maps-and-fields/02-zhiva-karta-lab.md",
+			},
+			{
+				id: "mf-export-workflow",
+				title: "От чертежа до техниката и партньорите",
+				summary: "Подаване на файл към FMIS/QGIS и проверки преди операция в полето.",
+				file: "courses/maps-and-fields/03-eksport-i-raboten-potok.md",
 			},
 		],
 	},

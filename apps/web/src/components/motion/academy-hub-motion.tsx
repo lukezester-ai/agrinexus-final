@@ -85,15 +85,17 @@ type AcademyFeatureTilesProps = {
 	className?: string;
 	lab: ReactNode;
 	lecturer: ReactNode;
+	maps?: ReactNode;
 };
 
-export function AcademyFeatureTiles({ className, lab, lecturer }: AcademyFeatureTilesProps) {
+export function AcademyFeatureTiles({ className, lab, lecturer, maps }: AcademyFeatureTilesProps) {
 	const reduce = useReducedMotion();
 	if (reduce) {
 		return (
 			<section className={className}>
 				{lab}
 				{lecturer}
+				{maps}
 			</section>
 		);
 	}
@@ -111,6 +113,11 @@ export function AcademyFeatureTiles({ className, lab, lecturer }: AcademyFeature
 			<motion.div variants={tileItem} className="min-w-0">
 				{lecturer}
 			</motion.div>
+			{maps ? (
+				<motion.div variants={tileItem} className="min-w-0">
+					{maps}
+				</motion.div>
+			) : null}
 		</motion.section>
 	);
 }

@@ -85,6 +85,29 @@ export const courseEn: Record<
 				title: "Weather for field operations",
 				summary: "Short vs seasonal outlook, local station, spray wind limits, rain radar.",
 			},
+			"pd-field-sat-maps-practice": {
+				title: "Hands-on: maps, field outlines, and satellite in (near) real time",
+				summary: "Draw parcel polygons, use satellite time series, walk boundaries with live GPS, and refresh layers safely in the field.",
+			},
+		},
+	},
+	"maps-and-fields": {
+		title: "Maps and fields",
+		description:
+			"A dedicated course with a live training map in the browser: streets (OpenStreetMap), satellite layer, click-to-outline blocks, and GeoJSON export.",
+		lectures: {
+			"mf-why-draw": {
+				title: "Why we draw blocks and what a polygon is",
+				summary: "The map as shared language between farm, agronomist, and machinery — concepts before the lab.",
+			},
+			"mf-live-map": {
+				title: "Live map: AgriNexus lab",
+				summary: "The /academy/maps page — real tiles, satellite, vertices by click, and GeoJSON for class exercises.",
+			},
+			"mf-export-workflow": {
+				title: "From sketch to machinery and partners",
+				summary: "Handing files to FMIS/QGIS and checks before running an operation in the field.",
+			},
 		},
 	},
 	"drone-pilots": {

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
 import { COURSES, courseBySlug } from "@/content/academy-courses";
+import { getFinalTest } from "@/content/final-course-tests";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
@@ -26,6 +27,7 @@ export default async function CoursePage({ params }: Props) {
 	const t = await getTranslations("Course");
 	const course = courseBySlug(slug, locale as AppLocale);
 	if (!course) notFound();
+	const hasFinalTest = getFinalTest(slug) !== undefined;
 
 	return (
 		<main className="mx-auto max-w-2xl px-6 py-16">
@@ -53,19 +55,21 @@ export default async function CoursePage({ params }: Props) {
 				))}
 			</ol>
 
-			<Link
-				href={`/academy/course/${slug}/test`}
-				className="mt-8 flex items-center justify-between gap-4 rounded-2xl border-2 border-amber-500/80 bg-amber-50 px-5 py-4 text-amber-950 shadow-sm transition-colors hover:bg-amber-100/90"
-			>
-				<div>
-					<p className="text-xs font-semibold uppercase tracking-wide text-amber-900">{t("finalTestEyebrow")}</p>
-					<p className="font-semibold">{t("finalTestTitle")}</p>
-					<p className="mt-1 text-sm text-amber-900/90">{t("finalTestSub")}</p>
-				</div>
-				<span className="text-2xl" aria-hidden>
-					→
-				</span>
-			</Link>
+			{hasFinalTest ? (
+				<Link
+					href={`/academy/course/${slug}/test`}
+					className="mt-8 flex items-center justify-between gap-4 rounded-2xl border-2 border-amber-500/80 bg-amber-50 px-5 py-4 text-amber-950 shadow-sm transition-colors hover:bg-amber-100/90"
+				>
+					<div>
+						<p className="text-xs font-semibold uppercase tracking-wide text-amber-900">{t("finalTestEyebrow")}</p>
+						<p className="font-semibold">{t("finalTestTitle")}</p>
+						<p className="mt-1 text-sm text-amber-900/90">{t("finalTestSub")}</p>
+					</div>
+					<span className="text-2xl" aria-hidden>
+						→
+					</span>
+				</Link>
+			) : null}
 
 			<p className="mt-10 flex flex-wrap gap-4 text-sm">
 				<Link href="/academy" className="text-emerald-800 underline underline-offset-4">

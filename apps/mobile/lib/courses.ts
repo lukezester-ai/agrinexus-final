@@ -139,7 +139,7 @@ export const COURSES: CourseRow[] = [
 	},
 	{
 		slug: "precision-data",
-		modules: 4,
+		modules: 5,
 		title: { bg: "Прецизно земеделие и данни", en: "Precision farming and data" },
 		description: {
 			bg: "Карти и слоеве, GPS, метео за операции, карти на добив, запис — по-малко гадаене.",
@@ -179,6 +179,61 @@ export const COURSES: CourseRow[] = [
 				summary: {
 					bg: "Кратък и сезонен хоризонт, локална станция, вятър за пръскане, радар за дъжд.",
 					en: "Short vs seasonal outlook, local station, spray wind limits, rain radar.",
+				},
+			},
+			{
+				id: "pd-field-sat-maps-practice",
+				title: {
+					bg: "Практически занятия: карта, полета и сателит в реално време",
+					en: "Hands-on: maps, field outlines, and satellite in (near) real time",
+				},
+				summary: {
+					bg: "Очертаване на блокове, сателитни слоеве във времето, проверка на граници с GPS и обновяване в полето.",
+					en: "Draw parcel polygons, use satellite time series, walk boundaries with live GPS, and refresh layers safely in the field.",
+				},
+			},
+		],
+	},
+	{
+		slug: "maps-and-fields",
+		modules: 3,
+		title: { bg: "Карти и полета", en: "Maps and field outlines" },
+		description: {
+			bg: "Отделен курс с жива учебна карта в браузъра: улици (OpenStreetMap), сателитен слой, очертаване на блок с кликове и изтегляне на GeoJSON.",
+			en: "A dedicated course with a live training map in the browser: streets (OpenStreetMap), satellite layer, click-to-outline parcels, and GeoJSON download.",
+		},
+		lectures: [
+			{
+				id: "mf-why-draw",
+				title: {
+					bg: "Защо чертаем блокове и какво е полигон",
+					en: "Why we draw blocks and what a polygon is",
+				},
+				summary: {
+					bg: "Ролята на картата между стопанството, агронома и машината; понятия преди лабораторията.",
+					en: "How maps connect farm, agronomist, and machinery — concepts before the lab.",
+				},
+			},
+			{
+				id: "mf-live-map",
+				title: {
+					bg: "Жива карта: лаборатория в AgriNexus",
+					en: "Live map: AgriNexus lab",
+				},
+				summary: {
+					bg: "Страницата /academy/maps — реални плочки, сателит, клик за върхове и GeoJSON за упражнения.",
+					en: "The /academy/maps page — real tiles, satellite, click vertices, GeoJSON for exercises.",
+				},
+			},
+			{
+				id: "mf-export-workflow",
+				title: {
+					bg: "От чертежа до техниката и партньорите",
+					en: "From sketch to machinery and partners",
+				},
+				summary: {
+					bg: "Подаване на файл към FMIS/QGIS и проверки преди операция в полето.",
+					en: "Handing files to FMIS/QGIS and checks before field operations.",
 				},
 			},
 		],
