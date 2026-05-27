@@ -17,6 +17,10 @@
 
 Страници **shared + собствен `<style>`** (палитрите и уникалните блокове си остават; подравнена е обвивката и контейнерът): `platform.html`, `academy.html`, `ru/platform.html`, `ru/academy.html` — зареждат `agri-market-shared.css` преди локалния блок; `.container` е **max-width: 1200px; padding: 0 24px** като останалия маркетинг.
 
+## FieldLot — Agro-Modernism (отделен стек)
+
+B2B агро UI (FieldLot): токени, типография, Yellow Pages режим и компонентни правила — **`docs/AGRO-MODERNISM-DESIGN-SYSTEM.md`**. Не се бърка с маркетинговите CSS файлове по-горе; ползва се за `fieldlot/*.html` прототипи и бъдещи FieldLot компоненти.
+
 ## Още не е обединено (нарочно или следваща стъпка)
 
 - **`dashboard.html`** — продуктов UI; отделен слой (по желание същият `shared` линк по-късно).
