@@ -5,9 +5,9 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import type { AppLocale } from "@/i18n/routing";
 
 function btn(active: boolean) {
-	return active
-		? "rounded-full bg-ink px-2.5 py-1 font-medium text-white"
-		: "rounded-full px-2.5 py-1 text-ink/60 transition-colors hover:text-ink";
+	const base =
+		"rounded-full px-2.5 py-1 text-[11px] font-medium transition-all duration-200 ease-out hover:scale-[1.04] active:scale-[0.97]";
+	return active ? `${base} bg-ink text-white` : `${base} text-ink/60 hover:text-ink`;
 }
 
 export function LanguageSwitcher() {
@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
 	const pathname = usePathname();
 
 	return (
-		<div className="flex items-center gap-0.5 rounded-full border border-ink/10 bg-white/60 p-0.5 text-[11px] font-medium backdrop-blur-sm">
+		<div className="flex items-center gap-0.5 rounded-full border border-ink/10 bg-white/60 p-0.5 font-medium backdrop-blur-sm transition-shadow duration-300 ease-out hover:shadow-sm">
 			<button
 				type="button"
 				className={btn(locale === "en")}

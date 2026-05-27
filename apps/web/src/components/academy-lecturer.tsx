@@ -302,16 +302,19 @@ export function AcademyLecturer() {
 					>
 						{speaking && !elevenPlayback && !elevenLoading ? "Чете…" : "Чети на глас (браузър)"}
 					</button>
-					{elevenConfigured && (
-						<button
-							type="button"
-							onClick={() => void readElevenLabs()}
-							disabled={speaking || elevenLoading || !ready}
-							className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
-						>
-							{elevenLoading ? "Генерира MP3…" : elevenPlayback ? "Възпроизвежда (ElevenLabs)…" : "Чети на глас (ElevenLabs)"}
-						</button>
-					)}
+					<button
+						type="button"
+						onClick={() => void readElevenLabs()}
+						disabled={!elevenConfigured || speaking || elevenLoading || !ready}
+						title={
+							elevenConfigured
+								? undefined
+								: "Добави ELEVENLABS_API_KEY и ELEVENLABS_VOICE_ID в apps/web/.env.local (виж .env.example), после рестарт на dev сървъра."
+						}
+						className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40"
+					>
+						{elevenLoading ? "Генерира MP3…" : elevenPlayback ? "Възпроизвежда (ElevenLabs)…" : "Чети на глас (ElevenLabs)"}
+					</button>
 					<button
 						type="button"
 						onClick={stopSpeech}
@@ -327,9 +330,18 @@ export function AcademyLecturer() {
 						За ElevenLabs е използван само началото на текста (до {ELEVENLABS_MAX_CHARS} знака). За цялата лекция ползвайте браузър или разделете на части.
 					</p>
 				)}
+				{!elevenConfigured && (
+					<p className="mt-3 rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950">
+						<strong>ElevenLabs</strong> е изключен — няма <code className="rounded bg-white/80 px-1">ELEVENLABS_API_KEY</code> /{" "}
+						<code className="rounded bg-white/80 px-1">ELEVENLABS_VOICE_ID</code> в <code className="rounded bg-white/80 px-1">apps/web/.env.local</code>. Глас от{" "}
+						<a className="font-medium underline underline-offset-2" href="https://elevenlabs.io/app/voice-library" target="_blank" rel="noreferrer">
+							Voice Library
+						</a>
+						. След добавяне рестартирай <code className="rounded bg-white/70 px-1">npm run dev</code>.
+					</p>
+				)}
 				<p className="mt-3 text-xs text-slate-500">
-					Гласът от бутона „браузър“ е Web Speech (качеството зависи от ОС). При зададен <code className="rounded bg-white/80 px-1">ELEVENLABS_API_KEY</code> в{" "}
-					<code className="rounded bg-white/80 px-1">.env.local</code> се появява ElevenLabs (по-добро качество; ключът не излиза към клиента).
+					Гласът от бутона „браузър“ е Web Speech (качеството зависи от ОС). ElevenLabs дава по-добро качество; ключът остава на сървъра през <code className="rounded bg-white/80 px-1">POST /api/elevenlabs-tts</code>.
 				</p>
 			</article>
 

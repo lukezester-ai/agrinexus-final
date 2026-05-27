@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -7,10 +7,10 @@ import { Footer } from "@/components/Footer";
 import { SiteNav } from "@/components/site-nav";
 import { routing } from "@/i18n/routing";
 
-const inter = Inter({
+const spaceGrotesk = Space_Grotesk({
 	subsets: ["latin", "latin-ext"],
-	weight: ["400", "500", "600"],
-	variable: "--font-inter",
+	weight: ["400", "500", "600", "700"],
+	variable: "--font-sans",
 	display: "swap",
 });
 
@@ -29,7 +29,7 @@ const jetbrainsMono = JetBrains_Mono({
 	display: "swap",
 });
 
-const fontVariables = [inter.variable, fraunces.variable, jetbrainsMono.variable].join(" ");
+const fontVariables = [spaceGrotesk.variable, fraunces.variable, jetbrainsMono.variable].join(" ");
 
 export function generateStaticParams() {
 	return routing.locales.map((locale) => ({ locale }));
@@ -90,6 +90,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 					<div className="grain" aria-hidden="true" />
 					<div className="relative z-[2] flex min-h-screen flex-col">
 						<SiteNav />
+						<div className="h-[5.75rem] shrink-0 md:h-24" aria-hidden />
 						<div className="flex-1">{children}</div>
 						<Footer />
 					</div>

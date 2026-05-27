@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "node --import tsx scripts/dev-server.mjs",
 		"dev:web": "npm --prefix apps/web run dev",
+		"dev:mobile": "npm --prefix apps/mobile run start",
 		"dev:backend": "cd apps/backend && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
 		"compose:up": "docker compose up --build",
 		"compose:down": "docker compose down",

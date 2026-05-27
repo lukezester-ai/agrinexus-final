@@ -2,7 +2,7 @@
 @config "../../tailwind.config.ts";
 
 /* ─── AgriNexus brand (merged from AgriNexus_NextJS template) ─── */
-/* --font-inter, --font-fraunces, --font-mono: set by next/font in layout.tsx */
+/* --font-sans (Space Grotesk), --font-fraunces, --font-mono: set by next/font in layout.tsx */
 :root {
 	/* legacy vars used by older academy screens */
 	--foreground: #0f172a;
@@ -13,7 +13,7 @@
 	html,
 	body {
 		@apply m-0 p-0 bg-paper text-ink antialiased;
-		font-family: var(--font-inter), system-ui, sans-serif;
+		font-family: var(--font-sans), system-ui, sans-serif;
 	}
 	* {
 		box-sizing: border-box;
