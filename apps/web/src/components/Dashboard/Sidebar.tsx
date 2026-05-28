@@ -74,7 +74,7 @@ export default function Sidebar({
 		daily: [
 			{ icon: "🏠", label: c.items.briefing, href: "/dashboard", active: pathname === "/dashboard" || pathname === "/" },
 			{ icon: "📋", label: c.items.fields, href: "/dashboard/fields", active: pathname === "/dashboard/fields" },
-			{ icon: "📈", label: c.items.market, href: "/market", active: pathname === "/market" },
+			{ icon: "📈", label: c.items.market, href: "/dashboard/market", active: pathname === "/dashboard/market" },
 			{ icon: "💰", label: c.items.finance, href: "#" },
 		],
 		mesh: [
@@ -83,7 +83,7 @@ export default function Sidebar({
 		],
 		more: [
 			{ icon: "🎓", label: c.items.academy, href: "/academy", active: pathname === "/academy" },
-			{ icon: "⚙", label: c.items.settings, href: "#" },
+			{ icon: "⚙", label: c.items.settings, href: "/dashboard/settings", active: pathname === "/dashboard/settings" },
 		],
 	};
 
