@@ -18,11 +18,23 @@ export function Footer() {
 					{t("advertise")}
 				</Link>{" "}
 				·{" "}
+				<Link href="/methodology" className="transition-colors hover:text-ink">
+					{t("methodology")}
+				</Link>{" "}
+				·{" "}
 				<Link href="/privacy" className="transition-colors hover:text-ink">
 					{t("privacy")}
 				</Link>
 			</p>
-			<p className="mt-2">{t("stats")}</p>
+			<p className="mt-2 text-ink/50">
+				{t("earlyAdopter")}{" "}
+				<Link href="/login" className="text-ink/65 underline underline-offset-2 transition-colors hover:text-ink">
+					{t("earlyAdopterCta")}
+				</Link>
+			</p>
+			<p className="mx-auto mt-4 max-w-2xl text-left text-[10px] leading-relaxed text-ink/40 sm:text-center">
+				{t("legalDisclaimer")}
+			</p>
 			<p className="mt-4 text-ink/45">
 				{t("ownership")}{" "}
 				{t("contactIntro")}{" "}

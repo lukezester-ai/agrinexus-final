@@ -12,6 +12,7 @@ function activeFromPath(path: string): NavActive {
 	if (path.startsWith("/market")) return "market";
 	if (path.startsWith("/agents")) return "agents";
 	if (path.startsWith("/academy")) return "academy";
+	if (path.startsWith("/community")) return "community";
 	if (path.startsWith("/sponsors")) return "sponsors";
 	return undefined;
 }

@@ -23,6 +23,8 @@
 		{ "source": "/agridirect", "destination": "/agridirect/index.html" },
 		{ "source": "/register", "destination": "/register.html" },
 		{ "source": "/archive", "destination": "/archive.html" },
+		{ "source": "/methodology", "destination": "/methodology.html" },
+		{ "source": "/bg/methodology", "destination": "/bg/methodology.html" },
 		{ "source": "/api/(.*)", "destination": "/api/$1" },
 		{ "source": "/ukraine-harvest-war", "destination": "/ukraine-harvest-war.html" },
 		{ "source": "/egypt-fields-desert-oasis-2026", "destination": "/egypt-fields-desert-oasis-2026.html" },

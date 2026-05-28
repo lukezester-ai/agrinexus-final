@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/Hero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CTA, CTARow } from "@/components/CTA";
+import { ConfidenceHint } from "@/components/ConfidenceHint";
 import { loadMarketDesk, generateLiveMarketSignals } from "@/lib/market-live-desk";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -67,14 +68,13 @@ const copy = {
 		forecastSub:
 			"Ensemble of weather, demand, currency and supply models. Confidence interval shown so you know how much weight to give it.",
 		forecastCardTitle: "Wheat · DEC26 forecast",
-		confidence: "Confidence: 78% · updated 06:42",
+		confidenceTime: "06:42",
 		todayLabel: "Today · €246",
 		sepLabel: "Sep 30 · €268",
 		optimalWindow: "OPTIMAL WINDOW",
 		now: "Now",
 		nowSub: "EU milling, DEC26",
 		forecastSep: "Forecast Sep 30",
-		confidenceShort: "78% confidence",
 		overBreakEven: "Over break-even",
 		overSub: "vs. your €184 cost",
 		signalEyebrow: "Signal stack",
@@ -90,13 +90,13 @@ const copy = {
 		legendStrong: "Strong sell window",
 		legendAcceptable: "Acceptable",
 		legendHold: "Hold & hedge instead",
-		roiEyebrow: "What the desk delivered",
-		roiTitleBefore: "Real numbers, ",
-		roiTitleEm: "not promises.",
-		roiSub: "2024 vs 2025 sales by AgriNexus farmers using the market desk vs without it. Same crops, same regions.",
-		roiMetric: "average uplift on sold tonnage",
+		roiEyebrow: "Example scenario",
+		roiTitleBefore: "Illustrative ",
+		roiTitleEm: "decision math.",
+		roiSub: "How a split forward-selling window might be presented — not verified aggregate farm results.",
+		roiMetric: "example uplift in a model scenario (€/t)",
 		roiText:
-			"Across 1,840 wheat farms in 2025, those who followed Market Agent signals realized €18.42 more per tonne on average. For a 300-hectare farm at 6 t/ha yield, that's €33,156 in additional gross margin per year — for a tool that costs nothing.",
+			"In this illustration, a 300 ha farm at 6 t/ha compares a split forward window vs a one-shot sale. Numbers are for demonstration only; your break-even, basis, and logistics differ.",
 		finalLine1: "Get the same intelligence",
 		finalLine2: "the desks have.",
 		finalSub: "It comes turned on, day one. Free. Forever.",
@@ -115,14 +115,13 @@ const copy = {
 		forecastSub:
 			"Комбинация от модели за време, търсене, валути и предлагане. Показваме и интервал на увереност, за да знаеш колко тежест да му дадеш.",
 		forecastCardTitle: "Пшеница · DEC26 прогноза",
-		confidence: "Увереност: 78% · обновено 06:42",
+		confidenceTime: "06:42",
 		todayLabel: "Днес · €246",
 		sepLabel: "30 сеп · €268",
 		optimalWindow: "ОПТИМАЛЕН ПРОЗОРЕЦ",
 		now: "Сега",
 		nowSub: "EU milling, DEC26",
 		forecastSep: "Прогноза 30 сеп",
-		confidenceShort: "78% увереност",
 		overBreakEven: "Над себестойност",
 		overSub: "спрямо твоя разход €184",
 		signalEyebrow: "Сигнален стек",
@@ -138,13 +137,13 @@ const copy = {
 		legendStrong: "Силен прозорец за продажба",
 		legendAcceptable: "Приемливо",
 		legendHold: "Задръж и хеджирай вместо продажба",
-		roiEyebrow: "Какво донесе desk-ът",
-		roiTitleBefore: "Реални числа, ",
-		roiTitleEm: "не обещания.",
-		roiSub: "Продажби през 2024 спрямо 2025 при фермери с AgriNexus market desk и без него. Същите култури, същите региони.",
-		roiMetric: "средно повишение върху продадения тонаж",
+		roiEyebrow: "Примерен сценарий",
+		roiTitleBefore: "Илюстративна ",
+		roiTitleEm: "математика на решение.",
+		roiSub: "Как може да изглежда прозорец с разделена форуърд продажба — не проверени агрегирани резултати от стопанства.",
+		roiMetric: "примерно подобрение в моделен сценарий (€/т)",
 		roiText:
-			"Сред 1 840 пшенични ферми през 2025 г. тези, които следват сигналите на Market Agent, реализират средно €18.42 повече на тон. За 300 хектара при 6 т/ха това са €33 156 допълнителен брутен марж годишно — от инструмент, който не струва нищо.",
+			"В тази илюстрация 300 ha при 6 t/ha сравняват разделен forward прозорец с еднократна продажба. Числата са само за демонстрация; твоята себестойност, базис и логистика са различни.",
 		finalLine1: "Получаваш същото разузнаване",
 		finalLine2: "което имат desk-овете.",
 		finalSub: "Включено е от първия ден. Безплатно. Завинаги.",
@@ -157,9 +156,13 @@ export default async function MarketPage({ params }: PageProps) {
 	const { locale } = await params;
 	setRequestLocale(locale);
 	const t = await getTranslations({ locale, namespace: "MarketDesk" });
+	const l = await getTranslations({ locale, namespace: "Legal" });
+	const tc = await getTranslations({ locale, namespace: "Confidence" });
 	const desk = await loadMarketDesk(locale as AppLocale);
 	const isBg = locale === "bg";
 	const c = isBg ? copy.bg : copy.en;
+	const signalStrong = tc("signalStrong");
+	const signalLine = tc("signalLine", { level: signalStrong, time: c.confidenceTime });
 	const pageSignals = await generateLiveMarketSignals(locale as AppLocale);
 	const pageMonths = isBg ? months.map((m, i) => ({ ...m, mo: bgMonths[i] })) : months;
 	const updated = new Date(desk.updatedAt);
@@ -240,6 +243,7 @@ export default async function MarketPage({ params }: PageProps) {
 						{desk.warning && desk.rows.length > 0 ? (
 							<div className="px-4 pb-3 text-[10px] text-harvest-200/80">{desk.warning}</div>
 						) : null}
+						<p className="px-4 pb-3 text-[10px] leading-snug text-forest-200/55 m-0">{t("dataDelayTicker")}</p>
 					</div>
 				</div>
 			</div>
@@ -258,9 +262,20 @@ export default async function MarketPage({ params }: PageProps) {
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-6">
-					<div className="flex justify-between items-baseline mb-4 pb-3.5 border-b border-ink/[0.06]">
-						<div className="font-serif text-xl font-normal tracking-[-0.015em]">{c.forecastCardTitle}</div>
-						<div className="font-mono text-[11px] text-ink/50">{c.confidence}</div>
+					<div className="flex justify-between items-baseline mb-4 pb-3.5 border-b border-ink/[0.06] gap-3">
+						<div>
+							<div className="font-serif text-xl font-normal tracking-[-0.015em]">{c.forecastCardTitle}</div>
+							<span className="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.08em] text-ink/45">
+								{l("illustrativeBadge")}
+							</span>
+						</div>
+						<div className="text-right font-mono text-[11px] text-ink/50">
+							<ConfidenceHint
+								label={signalLine}
+								className="justify-end"
+								labelClassName="text-[11px] text-ink/50"
+							/>
+						</div>
 					</div>
 
 					{wheatRow ? (
@@ -358,7 +373,9 @@ export default async function MarketPage({ params }: PageProps) {
 						<div className="py-2.5">
 							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.forecastSep}</div>
 							<div className="font-serif text-[22px] text-harvest-700 tracking-[-0.01em]">€268 ±€14</div>
-							<div className="text-[10px] text-ink/50 mt-0.5">{c.confidenceShort}</div>
+							<div className="text-[10px] text-ink/50 mt-0.5">
+								<ConfidenceHint label={signalStrong} labelClassName="text-[10px] text-ink/50" />
+							</div>
 						</div>
 						<div className="py-2.5">
 							<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.overBreakEven}</div>
@@ -366,6 +383,9 @@ export default async function MarketPage({ params }: PageProps) {
 							<div className="text-[10px] text-ink/50 mt-0.5">{c.overSub}</div>
 						</div>
 					</div>
+					<p className="mt-3 pt-3 border-t border-ink/[0.06] text-[11px] leading-snug text-ink/45 m-0">
+						{l("forecastShort")}
+					</p>
 				</div>
 			</div>
 
@@ -471,9 +491,11 @@ export default async function MarketPage({ params }: PageProps) {
 			/>
 			<div className="px-6 pb-8 max-w-3xl mx-auto">
 				<div className="glass p-7 text-center">
-					<div className="font-serif text-6xl italic text-semantic-success tracking-[-0.025em] leading-none mb-2">+€18/t</div>
+					<p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink/45 mb-2">{l("roiExampleTitle")}</p>
+					<div className="font-serif text-5xl italic text-semantic-success tracking-[-0.025em] leading-none mb-2">+€18/t</div>
 					<div className="text-[13px] text-ink/60 mb-4">{c.roiMetric}</div>
 					<p className="text-xs text-ink/50 max-w-md mx-auto leading-[1.5]">{c.roiText}</p>
+					<p className="text-[11px] text-ink/40 max-w-md mx-auto leading-snug mt-3 mb-0">{l("roiExampleBody")}</p>
 				</div>
 			</div>
 

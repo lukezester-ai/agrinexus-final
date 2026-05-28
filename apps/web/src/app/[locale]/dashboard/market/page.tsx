@@ -2,6 +2,16 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { BreakEvenProfitCard } from "@/components/break-even/BreakEvenProfitCard";
+import { ConfidenceHint } from "@/components/ConfidenceHint";
+import {
+	cbotPriceStrToEurPerTonne,
+	formatEur,
+	parseBreakEvenInputs,
+	profitAtPrice,
+} from "@/lib/break-even";
+import { formatBasisEur, resolveMarketEurPerTonne } from "@/lib/local-price";
 import { loadMarketDesk, generateLiveMarketSignals } from "@/lib/market-live-desk";
 import type { AppLocale } from "@/i18n/routing";
 
@@ -37,16 +47,17 @@ const copy = {
 		title: "Market positions",
 		subtitle: "Live prices, 90-day forecast and signal explanations.",
 		forecastCardTitle: "Wheat · DEC26 forecast",
-		confidence: "Confidence: 78% · updated 06:42",
+		confidenceTime: "06:42",
 		todayLabel: "Today · €246",
 		sepLabel: "Sep 30 · €268",
 		optimalWindow: "OPTIMAL WINDOW",
 		now: "Now",
 		nowSub: "EU milling, DEC26",
 		forecastSep: "Forecast Sep 30",
-		confidenceShort: "78% confidence",
 		overBreakEven: "Over break-even",
-		overSub: "vs. your €184 cost",
+		overSubMissing: "Add costs in Settings",
+		overSubVs: "vs. your break-even",
+		basisLabel: "Basis vs CBOT",
 		signalTitle: "Signal stack",
 		heatmapTitle: "12-month selling-window heatmap",
 		legendStrong: "Strong sell window",
@@ -57,16 +68,17 @@ const copy = {
 		title: "Пазарни позиции",
 		subtitle: "Цени на живо, 90-дневни прогнози и сигнали.",
 		forecastCardTitle: "Пшеница · DEC26 прогноза",
-		confidence: "Увереност: 78% · обновено 06:42",
+		confidenceTime: "06:42",
 		todayLabel: "Днес · €246",
 		sepLabel: "30 сеп · €268",
 		optimalWindow: "ОПТИМАЛЕН ПРОЗОРЕЦ",
 		now: "Сега",
 		nowSub: "EU milling, DEC26",
 		forecastSep: "Прогноза 30 сеп",
-		confidenceShort: "78% увереност",
 		overBreakEven: "Над себестойност",
-		overSub: "спрямо твоя разход €184",
+		overSubMissing: "Въведи разходи в Настройки",
+		overSubVs: "спрямо твоя себестойност",
+		basisLabel: "Basis спрямо CBOT",
 		signalTitle: "Сигнален стек",
 		heatmapTitle: "12-месечна heatmap карта за прозорец на продажба",
 		legendStrong: "Силен прозорец за продажба",
@@ -83,10 +95,22 @@ export default async function DashboardMarketPage({ params }: PageProps) {
 	const { data: { session } } = await supabase.auth.getSession();
 	if (!session) redirect(`/${locale}/login`);
 
+	const { data: profile } = await supabase
+		.from("farm_profiles")
+		.select("break_even_inputs, total_ha")
+		.eq("user_id", session.user.id)
+		.single();
+	const breakEvenInputs = parseBreakEvenInputs(profile?.break_even_inputs);
+	const totalHa = Number(profile?.total_ha) || 0;
+
 	const t = await getTranslations({ locale, namespace: "MarketDesk" });
+	const l = await getTranslations({ locale, namespace: "Legal" });
+	const tc = await getTranslations({ locale, namespace: "Confidence" });
 	const desk = await loadMarketDesk(locale as AppLocale);
 	const isBg = locale === "bg";
 	const c = isBg ? copy.bg : copy.en;
+	const signalStrong = tc("signalStrong");
+	const signalLine = tc("signalLine", { level: signalStrong, time: c.confidenceTime });
 	const pageSignals = await generateLiveMarketSignals(locale as AppLocale);
 	const pageMonths = isBg ? months.map((m, i) => ({ ...m, mo: bgMonths[i] })) : months;
 	const updated = new Date(desk.updatedAt);
@@ -96,9 +120,18 @@ export default async function DashboardMarketPage({ params }: PageProps) {
 	}).format(updated);
 
 	const wheatRow = desk.rows.find((r) => r.sym === "WHEAT");
+	const cbotEur = wheatRow ? cbotPriceStrToEurPerTonne(wheatRow.priceStr) : null;
+	const priceResolved = breakEvenInputs
+		? resolveMarketEurPerTonne(breakEvenInputs, cbotEur)
+		: { eurPerTonne: cbotEur, source: "cbot" as const, basisEur: null };
+	const refPriceEur = priceResolved.eurPerTonne;
+	const marginPreview =
+		breakEvenInputs && refPriceEur != null && totalHa > 0
+			? profitAtPrice(refPriceEur, breakEvenInputs, totalHa)
+			: null;
 
 	return (
-		<div className="px-6 py-5 pb-12 md:px-7">
+		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12">
 			<div className="mb-6">
 				<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">
 					{c.title}
@@ -106,7 +139,19 @@ export default async function DashboardMarketPage({ params }: PageProps) {
 				<div className="mt-1.5 text-sm text-ink/60">{c.subtitle}</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6 items-start">
+			<BreakEvenProfitCard
+				locale={locale}
+				inputs={breakEvenInputs}
+				totalHa={totalHa}
+				wheatPriceStr={wheatRow?.priceStr}
+			/>
+			<p className="mt-2 mb-1 text-[12px] text-ink/55">
+				<Link href="/dashboard/decisions" className="font-medium text-forest-700 underline underline-offset-2">
+					{isBg ? "Запиши решение в дневника →" : "Log this decision in your diary →"}
+				</Link>
+			</p>
+
+			<div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6 items-start mt-6">
 				<div className="flex flex-col gap-6">
 					{/* Bloomberg-style terminal */}
 					<div className="bg-[rgba(14,40,24,0.92)] rounded-2xl p-1 shadow-sm">
@@ -146,14 +191,26 @@ export default async function DashboardMarketPage({ params }: PageProps) {
 									))
 								)}
 							</div>
+							<p className="px-4 pb-3 text-[10px] leading-snug text-forest-200/55 m-0">{t("dataDelayTicker")}</p>
 						</div>
 					</div>
 
 					{/* Forecast Area Chart */}
 					<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl p-5 md:p-6">
-						<div className="flex justify-between items-baseline mb-4 pb-3.5 border-b border-ink/[0.06]">
-							<div className="font-serif text-lg md:text-xl font-normal tracking-[-0.015em]">{c.forecastCardTitle}</div>
-							<div className="font-mono text-[10px] text-ink/50">{c.confidence}</div>
+						<div className="flex justify-between items-baseline mb-4 pb-3.5 border-b border-ink/[0.06] gap-3">
+							<div>
+								<div className="font-serif text-lg md:text-xl font-normal tracking-[-0.015em]">{c.forecastCardTitle}</div>
+								<span className="mt-1 inline-block font-mono text-[9px] uppercase tracking-[0.08em] text-ink/45">
+									{l("illustrativeBadge")}
+								</span>
+							</div>
+							<div className="text-right font-mono text-[10px] text-ink/50">
+								<ConfidenceHint
+									label={signalLine}
+									className="justify-end"
+									labelClassName="text-[10px] text-ink/50"
+								/>
+							</div>
 						</div>
 
 						{wheatRow ? (
@@ -201,20 +258,52 @@ export default async function DashboardMarketPage({ params }: PageProps) {
 						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-3.5 border-t border-ink/[0.06]">
 							<div className="py-1">
 								<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.now}</div>
-								<div className="font-serif text-[20px] text-forest-700 tracking-[-0.01em]">€246</div>
+								<div className="font-serif text-[20px] text-forest-700 tracking-[-0.01em]">
+									{refPriceEur != null ? formatEur(refPriceEur, locale) + "/t" : "—"}
+								</div>
 								<div className="text-[10px] text-ink/50 mt-0.5">{c.nowSub}</div>
+								{priceResolved.basisEur != null &&
+								priceResolved.source !== "cbot" ? (
+									<div className="text-[10px] text-ink/55 mt-1 font-mono">
+										{c.basisLabel}: {formatBasisEur(priceResolved.basisEur, locale)}
+										{priceResolved.buyer?.name
+											? ` · ${priceResolved.buyer.name}`
+											: ""}
+									</div>
+								) : null}
 							</div>
 							<div className="py-1">
 								<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.forecastSep}</div>
 								<div className="font-serif text-[20px] text-harvest-700 tracking-[-0.01em]">€268 ±€14</div>
-								<div className="text-[10px] text-ink/50 mt-0.5">{c.confidenceShort}</div>
+								<div className="text-[10px] text-ink/50 mt-0.5">
+									<ConfidenceHint label={signalStrong} labelClassName="text-[10px] text-ink/50" />
+								</div>
 							</div>
 							<div className="py-1">
 								<div className="font-mono text-[9px] text-ink/50 tracking-[0.08em] uppercase mb-1">{c.overBreakEven}</div>
-								<div className="font-serif text-[20px] text-semantic-success tracking-[-0.01em]">+€84/t</div>
-								<div className="text-[10px] text-ink/50 mt-0.5">{c.overSub}</div>
+								<div
+									className={`font-serif text-[20px] tracking-[-0.01em] ${
+										marginPreview && marginPreview.marginPerTonne >= 0
+											? "text-semantic-success"
+											: marginPreview
+												? "text-semantic-alert"
+												: "text-ink/40"
+									}`}
+								>
+									{marginPreview
+										? `${marginPreview.marginPerTonne >= 0 ? "+" : ""}${formatEur(marginPreview.marginPerTonne, locale)}/t`
+										: "—"}
+								</div>
+								<div className="text-[10px] text-ink/50 mt-0.5">
+									{marginPreview
+										? `${c.overSubVs} ${formatEur(marginPreview.breakEvenEurPerTonne, locale)}/t`
+										: c.overSubMissing}
+								</div>
 							</div>
 						</div>
+						<p className="mt-3 pt-3 border-t border-ink/[0.06] text-[11px] leading-snug text-ink/45 m-0">
+							{l("forecastShort")}
+						</p>
 					</div>
 
 					{/* Heatmap */}

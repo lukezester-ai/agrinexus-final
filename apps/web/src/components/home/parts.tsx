@@ -30,15 +30,10 @@ export function FarmerQuote() {
 	const t = useTranslations("Home");
 	return (
 		<section className="mx-auto max-w-xl px-8 py-10 text-center">
-			<p className="mb-4 font-serif text-[22px] font-normal italic leading-[1.4] tracking-[-0.005em] text-ink">
-				{t("quote")}
+			<p className="mb-2 font-serif text-lg font-normal leading-[1.45] tracking-[-0.005em] text-ink/85">
+				{t("quoteScenarioLabel")}
 			</p>
-			<div className="flex items-center justify-center gap-2.5 text-xs text-ink/50">
-				<span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-gradient-to-br from-harvest-500 to-harvest-200 text-[10px] font-medium text-white">
-					M
-				</span>
-				<span>{t("quoteAttribution")}</span>
-			</div>
+			<p className="text-xs text-ink/45">{t("quoteScenarioBody")}</p>
 		</section>
 	);
 }

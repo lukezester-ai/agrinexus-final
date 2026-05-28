@@ -1,3 +1,26 @@
+const legal = {
+	en: {
+		forecastShort:
+			"Informational forecast only — not investment or trading advice. Selling and hedging decisions are entirely yours.",
+		signalStrong: "Strong signal",
+		hintTitle: "How we estimate confidence",
+		hintBody:
+			"This reading shows how aligned today's signals are. When market data, news, weather, and FX point the same way, the signal is strong; when they conflict, it is mixed or weak. Judgment aid, not a guarantee.",
+		methodologyHref: "/methodology",
+		methodologyLink: "Full methodology →",
+	},
+	bg: {
+		forecastShort:
+			"Информативна прогноза, не е инвестиционен или търговски съвет. Решенията за продажба и хеджиране са изцяло твои.",
+		signalStrong: "Силен сигнал",
+		hintTitle: "Как смятаме увереността",
+		hintBody:
+			"Показателят отразява колко силно се подреждат наличните сигнали. Когато пазар, новини, метео и валута сочат заедно — сигналът е силен; при противоречие — смесен или слаб. Ориентир, не гаранция.",
+		methodologyHref: "/methodology",
+		methodologyLink: "Пълна методология →",
+	},
+};
+
 const copy = {
 	en: {
 		header: "Daily Briefing · 06:42 EET",
@@ -14,7 +37,7 @@ const copy = {
 		actions: ["✓ Lock 60t @ €246", "⏵ Wait for USDA", "Full analysis"],
 		behind: "Behind this call",
 		forecast: "Wheat · 90d forecast",
-		conf: "78% conf.",
+		conf: "Strong signal",
 		chartMonths: ["Jun", "Jul", "Today", "Sep", "Oct"],
 		now: <>Now <strong className="font-medium text-ink">€246</strong></>,
 		target: "Target Sep 30 · €268 ±€14",
@@ -47,7 +70,7 @@ const copy = {
 		actions: ["✓ Заключи 60 т @ €246", "⏵ Изчакай USDA", "Пълен анализ"],
 		behind: "Зад това решение",
 		forecast: "Пшеница · 90 дни прогноза",
-		conf: "78% увереност",
+		conf: "Силен сигнал",
 		chartMonths: ["Юни", "Юли", "Днес", "Сеп", "Окт"],
 		now: <>Сега <strong className="font-medium text-ink">€246</strong></>,
 		target: "Цел 30 сеп · €268 ±€14",
@@ -69,6 +92,7 @@ const copy = {
 
 export function TerminalDemo({ locale = "en" }: { locale?: string }) {
 	const c = locale === "bg" ? copy.bg : copy.en;
+	const l = locale === "bg" ? legal.bg : legal.en;
 
 	return (
 		<section id="demo" className="mx-auto max-w-3xl px-6 pb-7 pt-10">
@@ -98,6 +122,7 @@ export function TerminalDemo({ locale = "en" }: { locale?: string }) {
 								<span className="rounded border border-harvest-500/25 bg-harvest-500/10 px-2.5 py-1 text-[11px] font-medium text-harvest-700">{c.actions[1]}</span>
 								<span className="rounded border border-harvest-500/25 bg-harvest-500/10 px-2.5 py-1 text-[11px] font-medium text-harvest-700">{c.actions[2]}</span>
 							</div>
+							<p className="mt-2 text-[10px] leading-snug text-ink/45">{l.forecastShort}</p>
 							<div className="mt-3 border-t border-ink/[0.06] pt-3">
 								<div className="mb-2 text-[10px] uppercase tracking-[0.06em] text-ink/45">{c.behind}</div>
 								<div className="flex flex-col gap-1.5">
@@ -113,9 +138,25 @@ export function TerminalDemo({ locale = "en" }: { locale?: string }) {
 						</div>
 
 						<div className="bg-[rgba(252,251,247,0.92)] px-5 py-4">
-							<div className="mb-2 flex items-baseline justify-between">
+							<div className="mb-2 flex items-baseline justify-between gap-2">
 								<span className="text-[11px] font-medium text-ink/55">{c.forecast}</span>
-								<span className="text-[10px] text-ink/40">{c.conf}</span>
+								<div className="text-right text-[10px] text-ink/40">
+									<span className="inline-flex items-center gap-1">
+										{l.signalStrong}
+										<details className="relative inline-block text-left">
+											<summary className="inline-flex h-4 w-4 cursor-pointer list-none items-center justify-center rounded-full border border-ink/20 bg-ink/[0.04] text-[10px] font-semibold text-ink/55 [&::-webkit-details-marker]:hidden">
+												?
+											</summary>
+											<div className="absolute right-0 top-full z-50 mt-1.5 w-56 rounded-lg border border-ink/10 bg-white px-3 py-2 text-[10px] leading-relaxed text-ink/75 shadow-lg">
+												<strong className="mb-1 block text-ink">{l.hintTitle}</strong>
+												{l.hintBody}
+												<a href={l.methodologyHref} className="mt-2 inline-block font-medium text-forest-700 underline">
+													{l.methodologyLink}
+												</a>
+											</div>
+										</details>
+									</span>
+								</div>
 							</div>
 							<div className="h-[120px]">
 								<svg viewBox="0 0 260 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="h-full w-full">

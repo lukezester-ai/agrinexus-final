@@ -15,6 +15,7 @@
     <div class="ticker-wrap">
         <div class="ticker-pulse"></div>
         <div class="ticker-label">ПАЗАРИ НА ЖИВО <span style="opacity:0.65;font-weight:400">(Yahoo, закъснение)</span></div>
+        <div class="ticker-delay-note" style="font-size:10px;color:#888;margin-left:12px;max-width:360px;line-height:1.35;">Пазарни цени със закъснение ~15 мин (CBOT, ZW=F / ZC=F). Подходящи за форуърд решения, не за интрадей търговия.</div>
         <div class="ticker-items" id="agn-live-ticker">
             <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
             <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
@@ -83,7 +84,17 @@
                     <div class="term-box">
                         <div class="term-box-label">ПРОГНОЗНА ЦЕЛ (СЕП)</div>
                         <div class="term-box-val" style="color: var(--gold);">€268 <span style="font-size: 14px; color: #666;">±€14</span></div>
-                        <div style="font-size: 12px; color: #999; margin-top: 8px;">78% УВЕРЕНОСТ</div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">
+                            СИЛЕН СИГНАЛ
+                            <details style="display:inline-block;margin-left:4px;vertical-align:middle;">
+                                <summary style="cursor:pointer;list-style:none;display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border-radius:50%;border:1px solid #666;font-size:10px;font-weight:600;color:#aaa;">?</summary>
+                                <div style="position:absolute;z-index:20;margin-top:6px;max-width:300px;padding:10px 12px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:11px;line-height:1.45;color:#444;box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+                                    <strong style="display:block;margin-bottom:4px;color:#111;">Как смятаме увереността</strong>
+                                    Отразява колко силно се подреждат сигналите (пазар, новини, метео, валута). Силен при съгласие; смесен или слаб при противоречие. Ориентир, не гаранция.
+                                    <a href="methodology.html" style="display:block;margin-top:8px;color:#2d5a27;">Пълна методология →</a>
+                                </div>
+                            </details>
+                        </div>
                     </div>
                     <div class="term-box">
                         <div class="term-box-label">ВАШАТА НУЛЕВА ТОЧКА</div>
@@ -189,6 +200,7 @@
                     <div style="font-size: 13px; color: #999; margin-top: 4px;">спрямо еднократна продажба днес</div>
                 </div>
             </div>
+            <p style="font-size: 12px; color: #888; margin: 14px 0 0; line-height: 1.45; max-width: 720px;">Информативна прогноза, не е инвестиционен или търговски съвет. Решенията за продажба и хеджиране са изцяло твои.</p>
         </div>
 
         <!-- 02: DATA INPUTS -->

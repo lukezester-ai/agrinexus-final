@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { BreakEvenProfitCard } from "@/components/break-even/BreakEvenProfitCard";
+import { DecisionDiaryTeaser } from "@/components/decision-diary/DecisionDiaryTeaser";
 import { createClient } from "@/lib/supabase-server";
+import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseDecisionRow, type DecisionDiaryEntry } from "@/lib/decision-diary";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -162,13 +166,24 @@ export default async function DashboardPage({ params }: PageProps) {
 	let profile = null;
 	let userFields = null;
 
+	let diaryEntries: DecisionDiaryEntry[] = [];
+
 	if (session) {
-		const [{ data: pData }, { data: fData }] = await Promise.all([
+		const [{ data: pData }, { data: fData }, { data: diaryRows }] = await Promise.all([
 			supabase.from("farm_profiles").select("*").eq("user_id", session.user.id).single(),
-			supabase.from("fields").select("*").eq("user_id", session.user.id)
+			supabase.from("fields").select("*").eq("user_id", session.user.id),
+			supabase
+				.from("decision_diary_entries")
+				.select("*")
+				.eq("user_id", session.user.id)
+				.order("decided_at", { ascending: false })
+				.limit(5),
 		]);
 		profile = pData;
 		userFields = fData;
+		diaryEntries = (diaryRows ?? [])
+			.map((row) => parseDecisionRow(row as Record<string, unknown>))
+			.filter((e): e is DecisionDiaryEntry => e != null);
 	}
 
 	const userName = profile?.full_name || session?.user?.email?.split('@')[0] || "User";
@@ -176,6 +191,8 @@ export default async function DashboardPage({ params }: PageProps) {
 	const userRegion = profile?.region || "Unknown";
 	const userHa = profile?.total_ha || "0";
 	const userMeta = `${userRegion} · ${userHa} ${locale === "bg" ? "ха" : "ha"}`;
+	const breakEvenInputs = parseBreakEvenInputs(profile?.break_even_inputs);
+	const totalHa = Number(profile?.total_ha) || 0;
 
 	// Ако потребителят има свои полета, ги ползваме, иначе показваме примерните (defaultFields)
 	const fields = userFields && userFields.length > 0 
@@ -189,22 +206,30 @@ export default async function DashboardPage({ params }: PageProps) {
 		  }))
 		: defaultFields;
 	return (
-		<div className="px-6 py-5 pb-12 md:px-7">
-				<div className="mb-5 flex items-center justify-between">
+		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12">
+				<div className="mb-4 flex items-center justify-between md:mb-5">
 					<div>
-						<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.greeting} <em className="grad-text">{userName.split(' ')[0]}.</em></div>
+						<div className="font-serif text-xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.greeting} <em className="grad-text">{userName.split(' ')[0]}.</em></div>
 						<div className="mt-1 font-mono text-[11px] text-ink/50">{c.date}</div>
 					</div>
-					<div className="flex items-center gap-2">
-						<div className="hidden min-w-[220px] items-center gap-2 rounded-full border border-ink/[0.06] bg-white/65 px-3.5 py-2 text-xs text-ink/50 backdrop-blur-md lg:flex">
-							<span>{c.search}</span><span className="ml-auto rounded border border-ink/15 px-1.5 py-px font-mono text-[9px]">⌘K</span>
-						</div>
+					<div className="hidden items-center gap-2 md:flex">
+						<Link
+							href="/dashboard/ask"
+							className="hidden min-w-[220px] items-center gap-2 rounded-full border border-ink/[0.06] bg-white/65 px-3.5 py-2 text-xs text-ink/50 backdrop-blur-md no-underline transition-colors hover:border-forest-700/25 hover:text-forest-800 lg:flex"
+						>
+							<span>{c.search}</span>
+							<span className="ml-auto rounded border border-ink/15 px-1.5 py-px font-mono text-[9px]">💬</span>
+						</Link>
 						<div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-ink/[0.06] bg-white/65 text-sm backdrop-blur-md">🔔<span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full border-[1.5px] border-[#f6f3ec] bg-semantic-warning" /></div>
-						<div className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/[0.06] bg-white/65 text-sm backdrop-blur-md">💬</div>
 					</div>
 				</div>
 
-				<section className="mb-3.5 grid grid-cols-1 gap-5 rounded-[18px] border border-white/70 bg-white/55 px-6 py-5 backdrop-blur-xl md:grid-cols-3">
+				<div className="mb-5 grid grid-cols-1 gap-3.5 lg:grid-cols-[1fr_280px]">
+					<BreakEvenProfitCard locale={locale} inputs={breakEvenInputs} totalHa={totalHa} />
+					<DecisionDiaryTeaser locale={locale} entries={diaryEntries} />
+				</div>
+
+				<section className="mb-3.5 grid grid-cols-1 gap-5 rounded-[18px] border border-white/70 bg-white/55 px-4 py-4 backdrop-blur-xl md:px-6 md:py-5 md:grid-cols-3">
 					{c.briefings.map((briefing, idx) => (
 						<div key={briefing.tag} className={idx < c.briefings.length - 1 ? "border-ink/[0.06] md:border-r md:pr-4" : ""}>
 							<div className="mb-2.5 flex items-center gap-2 text-[9px] uppercase tracking-[0.08em] text-ink/50">
@@ -291,8 +316,8 @@ export default async function DashboardPage({ params }: PageProps) {
 					</div>
 				</div>
 
-				<div className="py-5 text-center text-[11px] text-ink/40">
-					<Link href="/dashboard/mobile" className="hover:text-ink">{c.links.mobile}</Link> · <Link href="/" className="hover:text-ink">{c.links.home}</Link>
+				<div className="hidden py-5 text-center text-[11px] text-ink/40 md:block">
+					<Link href="/" className="hover:text-ink">{c.links.home}</Link>
 				</div>
 		</div>
 	);

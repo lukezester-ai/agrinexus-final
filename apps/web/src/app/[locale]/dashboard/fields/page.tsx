@@ -23,7 +23,7 @@ export default async function FieldsPage({ params }: PageProps) {
 		.order("created_at", { ascending: true });
 
 	return (
-		<div className="min-h-screen p-6 md:p-8">
+		<div className="min-h-0 p-4 md:min-h-screen md:p-8">
 			<FieldsManager initialFields={fields || []} locale={locale} />
 		</div>
 	);

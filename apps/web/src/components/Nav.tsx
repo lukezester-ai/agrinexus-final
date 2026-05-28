@@ -1,17 +1,17 @@
 "use client";
 
-import { Bot, GraduationCap, Heart, Leaf, LineChart } from "lucide-react";
+import { Bot, GraduationCap, Heart, Leaf, LineChart, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 type NavProps = {
-	active?: "platform" | "market" | "agents" | "academy" | "sponsors";
+	active?: "platform" | "market" | "agents" | "academy" | "community" | "sponsors";
 };
 
 const keys: {
 	href: string;
-	labelKey: "platform" | "market" | "agents" | "academy" | "sponsors";
+	labelKey: "platform" | "market" | "agents" | "academy" | "community" | "sponsors";
 	navKey: NonNullable<NavProps["active"]>;
 	icon: typeof Leaf;
 	avatarClass: string;
@@ -43,6 +43,13 @@ const keys: {
 		navKey: "academy",
 		icon: GraduationCap,
 		avatarClass: "bg-gradient-to-br from-harvest-50 to-harvest-700 text-forest-900",
+	},
+	{
+		href: "/community",
+		labelKey: "community",
+		navKey: "community",
+		icon: Users,
+		avatarClass: "bg-gradient-to-br from-violet-200 to-forest-800 text-white",
 	},
 	{
 		href: "/sponsors",

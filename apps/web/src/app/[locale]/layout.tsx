@@ -4,8 +4,7 @@ import { Fraunces, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { Footer } from "@/components/Footer";
-import { SiteNav } from "@/components/site-nav";
+import { MarketingChrome } from "@/components/MarketingChrome";
 import { routing } from "@/i18n/routing";
 
 const spaceGrotesk = Space_Grotesk({
@@ -51,6 +50,12 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 
 	return {
 		metadataBase: new URL("https://agrinexus.io"),
+		viewport: {
+			width: "device-width",
+			initialScale: 1,
+			maximumScale: 1,
+			viewportFit: "cover",
+		},
 		title: {
 			default: t("titleDefault"),
 			template: t("titleTemplate"),
@@ -89,12 +94,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 				<NextIntlClientProvider locale={locale} messages={messages}>
 					<div className="aurora" aria-hidden="true" />
 					<div className="grain" aria-hidden="true" />
-					<div className="relative z-[2] flex min-h-screen flex-col">
-						<SiteNav />
-						<div className="h-[5.75rem] shrink-0 md:h-24" aria-hidden />
-						<div className="flex-1">{children}</div>
-						<Footer />
-					</div>
+					<MarketingChrome>{children}</MarketingChrome>
 				</NextIntlClientProvider>
 			</body>
 		</html>

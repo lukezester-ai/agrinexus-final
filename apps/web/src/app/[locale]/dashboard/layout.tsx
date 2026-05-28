@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
 import Sidebar from '@/components/Dashboard/Sidebar';
+import { MobileBottomNav } from '@/components/Dashboard/MobileBottomNav';
+import { MobileDashboardHeader } from '@/components/Dashboard/MobileDashboardHeader';
 
 export default async function DashboardLayout({
   children,
@@ -41,9 +43,13 @@ export default async function DashboardLayout({
         userName={userName} 
         userMeta={userMeta} 
       />
-      <main className="relative min-w-0 flex-1">
-        {children}
-      </main>
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        <MobileDashboardHeader locale={locale} userName={userName} initials={initials} />
+        <main className="relative min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+          {children}
+        </main>
+        <MobileBottomNav locale={locale} />
+      </div>
     </div>
   );
 }

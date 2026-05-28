@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { BreakEvenSettings } from "@/components/break-even/BreakEvenSettings";
+import { BriefingConnect } from "@/components/briefing/BriefingConnect";
+import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBriefingPreferences } from "@/lib/briefing-preferences";
 
 export default function SettingsForm({ 
 	locale, 
@@ -124,5 +128,31 @@ export default function SettingsForm({
 				</div>
 			)}
 		</form>
+	);
+}
+
+export function SettingsFormWithBreakEven({
+	locale,
+	profile,
+}: {
+	locale: string;
+	profile: {
+		user_id: string;
+		break_even_inputs?: unknown;
+		briefing_preferences?: unknown;
+	} | null;
+}) {
+	const breakEven = parseBreakEvenInputs(profile?.break_even_inputs);
+	const briefing = parseBriefingPreferences(profile?.briefing_preferences);
+	return (
+		<>
+			<SettingsForm locale={locale} profile={profile} />
+			{profile?.user_id ? (
+				<>
+					<BreakEvenSettings locale={locale} userId={profile.user_id} initial={breakEven} />
+					<BriefingConnect locale={locale} userId={profile.user_id} initial={briefing} />
+				</>
+			) : null}
+		</>
 	);
 }
