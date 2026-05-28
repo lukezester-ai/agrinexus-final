@@ -185,7 +185,7 @@ export default async function DashboardPage({ params }: PageProps) {
 				ha: `${f.hectares} ${locale === "bg" ? "ха" : "ha"}`,
 				crop: { bg: f.crop, en: f.crop },
 				stat: (0.5 + Math.random() * 0.4).toFixed(2), // Временно генериран NDVI
-				status: f.status || "healthy"
+				status: (f.status || "healthy") as "healthy" | "alert" | "ok"
 		  }))
 		: defaultFields;
 	return (
@@ -247,7 +247,7 @@ export default async function DashboardPage({ params }: PageProps) {
 										<div className="font-medium">{field.name} <span className="ml-1.5 text-[11px] font-normal text-ink/45">{field.ha}</span></div>
 										<div className="text-[11px] text-ink/55">{field.crop[locale === "bg" ? "bg" : "en"]}</div>
 										<div className="font-mono text-[11px] text-ink/70">{field.stat}</div>
-										<span className={`rounded px-2 py-px text-[10px] font-medium ${field.status === "healthy" ? "bg-forest-700/10 text-forest-700" : field.status === "alert" ? "bg-earth-600/15 text-harvest-700" : "bg-ink/[0.06] text-ink/50"}`}>{c.status[field.status]}</span>
+										<span className={`rounded px-2 py-px text-[10px] font-medium ${field.status === "healthy" ? "bg-forest-700/10 text-forest-700" : field.status === "alert" ? "bg-earth-600/15 text-harvest-700" : "bg-ink/[0.06] text-ink/50"}`}>{c.status[field.status as keyof typeof c.status]}</span>
 									</div>
 								))}
 							</div>
