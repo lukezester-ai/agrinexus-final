@@ -1,4 +1,5 @@
 import type { AppLocale } from "@/i18n/routing";
+import { fetchAgriNews } from "./news-fetcher";
 
 /** CBOT фючърси през Yahoo chart v8 (delayed, неофициално). */
 const DESK_TICKERS = [
@@ -179,4 +180,91 @@ export async function loadMarketDesk(locale: AppLocale): Promise<LiveDeskPayload
 		}
 	}
 	return { ...payload, deskNote };
+}
+
+export type MarketSignal = {
+	dir: "up" | "down" | "flat";
+	text: string;
+	sub: string;
+	impact: string;
+};
+
+export async function generateLiveMarketSignals(locale: AppLocale): Promise<MarketSignal[]> {
+	const key = process.env.MISTRAL_API_KEY?.trim();
+	
+	// Fallback/Mock data if no key is provided
+	const fallbackBg: MarketSignal[] = [
+		{ dir: "up", text: "Русия удължи квотите за износ на зърно", sub: "[NWS] 12 източника · публикувано 03:14 EET · корелация 0.74", impact: "+0.9%" },
+		{ dir: "up", text: "Индексът за суша в US Plains се повиши с 12 пункта", sub: "[WTR] NOAA + Sentinel-2 · корелация 0.68", impact: "+0.7%" },
+		{ dir: "up", text: "Еврото отслабна спрямо долара с 1.2% през нощта", sub: "[FIN] решение на ЕЦБ вече е в цената · корелация 0.55", impact: "+0.5%" },
+		{ dir: "flat", text: "Докладът USDA WASDE излиза утре", sub: "[NWS] исторически: 60% от движенията идват след публикация", impact: "±0.0%" },
+		{ dir: "down", text: "Аржентинската реколта е 3% над прогнозата", sub: "[SAT] Planet Labs imagery · корелация 0.62", impact: "−0.3%" },
+	];
+	
+	const fallbackEn: MarketSignal[] = [
+		{ dir: "up", text: "Russia extended grain export quotas", sub: "[NWS] 12 sources · published 03:14 EET · correlation 0.74", impact: "+0.9%" },
+		{ dir: "up", text: "US Plains drought index +12 points", sub: "[WTR] NOAA + Sentinel-2 · correlation 0.68", impact: "+0.7%" },
+		{ dir: "up", text: "EUR weaker vs USD by 1.2% overnight", sub: "[FIN] ECB rate decision priced in · correlation 0.55", impact: "+0.5%" },
+		{ dir: "flat", text: "USDA WASDE report tomorrow", sub: "[NWS] historical: 60% of moves happen post-release", impact: "±0.0%" },
+		{ dir: "down", text: "Argentine harvest 3% above forecast", sub: "[SAT] Planet Labs imagery · correlation 0.62", impact: "−0.3%" },
+	];
+
+	if (!key) return locale === "bg" ? fallbackBg : fallbackEn;
+
+	try {
+		const news = await fetchAgriNews();
+		if (!news || news.length === 0) return locale === "bg" ? fallbackBg : fallbackEn;
+
+		const model = process.env.MISTRAL_MARKET_NOTE_MODEL?.trim() || "mistral-small-latest";
+		const lang = locale === "bg" ? "Bulgarian" : "English";
+		
+		const system = `You are AgriNexus Market AI. Analyze these real-time news headlines and generate exactly 5 market signals for agricultural commodities (wheat, corn, soy). 
+Output format: JSON object with a single key "signals" containing an array of 5 objects:
+{
+  "signals": [
+    {
+      "dir": "up" | "down" | "flat",
+      "text": "The main headline or event (in ${lang})",
+      "sub": "[NWS] source name · brief logic",
+      "impact": "e.g. +1.2% or -0.5% or ±0.0%"
+    }
+  ]
+}
+Make them realistic based on the provided news. ONLY return valid JSON.`;
+
+		const user = "Latest News:\n" + news.map(n => `- ${n.title} (Source: ${n.source})`).join("\n");
+
+		const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${key}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				model,
+				temperature: 0.3,
+				response_format: { type: "json_object" },
+				messages: [
+					{ role: "system", content: system },
+					{ role: "user", content: user },
+				],
+			}),
+			signal: AbortSignal.timeout(25_000),
+		});
+
+		if (!res.ok) throw new Error(`Mistral error: ${res.statusText}`);
+
+		const data = await res.json();
+		const text = data.choices?.[0]?.message?.content?.trim();
+		const parsed = JSON.parse(text);
+		
+		if (parsed.signals && Array.isArray(parsed.signals) && parsed.signals.length > 0) {
+			return parsed.signals.slice(0, 5);
+		}
+		
+		return locale === "bg" ? fallbackBg : fallbackEn;
+	} catch (error) {
+		console.error('[generateLiveMarketSignals]', error);
+		return locale === "bg" ? fallbackBg : fallbackEn;
+	}
 }

@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/Hero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CTA, CTARow } from "@/components/CTA";
-import { loadMarketDesk } from "@/lib/market-live-desk";
+import { loadMarketDesk, generateLiveMarketSignals } from "@/lib/market-live-desk";
 import type { AppLocale } from "@/i18n/routing";
 
 export const revalidate = 180;
@@ -160,7 +160,7 @@ export default async function MarketPage({ params }: PageProps) {
 	const desk = await loadMarketDesk(locale as AppLocale);
 	const isBg = locale === "bg";
 	const c = isBg ? copy.bg : copy.en;
-	const pageSignals = isBg ? signals.bg : signals.en;
+	const pageSignals = await generateLiveMarketSignals(locale as AppLocale);
 	const pageMonths = isBg ? months.map((m, i) => ({ ...m, mo: bgMonths[i] })) : months;
 	const updated = new Date(desk.updatedAt);
 	const timeFmt = new Intl.DateTimeFormat(locale === "bg" ? "bg-BG" : "en-GB", {
