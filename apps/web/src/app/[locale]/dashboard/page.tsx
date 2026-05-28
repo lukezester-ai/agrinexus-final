@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { createClient } from "@/lib/supabase-server";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -11,7 +12,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 		: { title: "Dashboard", description: "Your farm, summarized. Daily briefing, agent activity, market positions." };
 }
 
-const fields = [
+// Резервни статични данни, ако потребителят все още няма свои полета
+const defaultFields = [
 	{ swatch: "#1f4d2c", name: "A-205", ha: "42 ha", crop: { en: "Wheat", bg: "Пшеница" }, stat: "0.84", status: "healthy" as const },
 	{ swatch: "#c4a86a", name: "A-204", ha: "87 ha", crop: { en: "Wheat", bg: "Пшеница" }, stat: "0.58", status: "alert" as const },
 	{ swatch: "#5a9968", name: "A-202", ha: "35 ha", crop: { en: "Sunflower", bg: "Слънчоглед" }, stat: "0.76", status: "healthy" as const },
@@ -172,6 +174,39 @@ export default async function DashboardPage({ params }: PageProps) {
 	const { locale } = await params;
 	setRequestLocale(locale);
 	const c = locale === "bg" ? copy.bg : copy.en;
+
+	const supabase = createClient();
+	const { data: { session } } = await supabase.auth.getSession();
+	
+	let profile = null;
+	let userFields = null;
+
+	if (session) {
+		const [{ data: pData }, { data: fData }] = await Promise.all([
+			supabase.from("farm_profiles").select("*").eq("user_id", session.user.id).single(),
+			supabase.from("fields").select("*").eq("user_id", session.user.id)
+		]);
+		profile = pData;
+		userFields = fData;
+	}
+
+	const userName = profile?.full_name || session?.user?.email?.split('@')[0] || "User";
+	const initials = userName.substring(0, 2).toUpperCase();
+	const userRegion = profile?.region || "Unknown";
+	const userHa = profile?.total_ha || "0";
+	const userMeta = `${userRegion} · ${userHa} ${locale === "bg" ? "ха" : "ha"}`;
+
+	// Ако потребителят има свои полета, ги ползваме, иначе показваме примерните (defaultFields)
+	const fields = userFields && userFields.length > 0 
+		? userFields.map((f: any, i: number) => ({
+				swatch: ["#1f4d2c", "#c4a86a", "#5a9968", "#97c459"][i % 4],
+				name: f.name,
+				ha: `${f.hectares} ${locale === "bg" ? "ха" : "ha"}`,
+				crop: { bg: f.crop, en: f.crop },
+				stat: (0.5 + Math.random() * 0.4).toFixed(2), // Временно генериран NDVI
+				status: f.status || "healthy"
+		  }))
+		: defaultFields;
 	const sideItems = {
 		daily: [
 			{ icon: "🏠", label: c.side.items.briefing, href: "/dashboard", active: true },
@@ -200,15 +235,15 @@ export default async function DashboardPage({ params }: PageProps) {
 				<SidebarGroup label={c.side.mesh} items={sideItems.mesh} />
 				<SidebarGroup label={c.side.more} items={sideItems.more} />
 				<div className="mt-auto flex items-center gap-2.5 rounded-[10px] bg-white/50 p-3 px-2">
-					<div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-harvest-500 to-earth-600 text-xs font-medium text-white">MP</div>
-					<div><div className="text-xs font-medium">Marko P.</div><div className="text-[10px] text-ink/50">{c.side.userMeta}</div></div>
+					<div className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-harvest-500 to-earth-600 text-xs font-medium text-white">{initials}</div>
+					<div><div className="text-xs font-medium">{userName}</div><div className="text-[10px] text-ink/50">{userMeta}</div></div>
 				</div>
 			</aside>
 
 			<main className="relative min-w-0 flex-1 px-6 py-5 pb-12 md:px-7">
 				<div className="mb-5 flex items-center justify-between">
 					<div>
-						<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.greeting} <em className="grad-text">Marko.</em></div>
+						<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.greeting} <em className="grad-text">{userName.split(' ')[0]}.</em></div>
 						<div className="mt-1 font-mono text-[11px] text-ink/50">{c.date}</div>
 					</div>
 					<div className="flex items-center gap-2">

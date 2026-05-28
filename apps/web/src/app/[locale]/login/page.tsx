@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import SocialLogin from "@/components/Auth/SocialLogin";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -52,22 +53,10 @@ export default async function LoginPage({ params }: PageProps) {
 			<p className="text-sm font-medium uppercase tracking-wide text-emerald-800">{c.kicker}</p>
 			<h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">{c.title}</h1>
 			<p className="mt-2 text-sm text-slate-600">
-				{c.body} <code className="rounded bg-slate-200 px-1">apps/backend</code> {c.bodyTail}
+				{c.body}
 			</p>
-			<div className="mt-8 space-y-4" role="group" aria-label={c.groupLabel}>
-				<label className="block text-sm font-medium text-slate-700">
-					{c.email}
-					<input
-						type="email"
-						name="email"
-						autoComplete="email"
-						className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm outline-none focus:border-emerald-600"
-						placeholder={c.placeholder}
-					/>
-				</label>
-				<button type="button" className="w-full rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white opacity-60" disabled>
-					{c.continue}
-				</button>
+			<div className="mt-8 flex justify-center" role="group" aria-label={c.groupLabel}>
+				<SocialLogin />
 			</div>
 			<p className="mt-8 text-sm">
 				<Link href="/" className="text-emerald-800 underline underline-offset-4">
