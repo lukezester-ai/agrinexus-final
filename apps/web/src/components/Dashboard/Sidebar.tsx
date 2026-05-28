@@ -78,11 +78,11 @@ export default function Sidebar({
 			{ icon: "💰", label: c.items.finance, href: "#" },
 		],
 		mesh: [
-			{ icon: "🤖", label: c.items.agents, href: "/agents", active: activePage === "agents", badge: "18" },
+			{ icon: "🤖", label: c.items.agents, href: "/agents", active: pathname === "/agents", badge: "18" },
 			{ icon: "💬", label: c.items.ask, href: "#" },
 		],
 		more: [
-			{ icon: "🎓", label: c.items.academy, href: "/academy", active: activePage === "academy" },
+			{ icon: "🎓", label: c.items.academy, href: "/academy", active: pathname === "/academy" },
 			{ icon: "⚙", label: c.items.settings, href: "#" },
 		],
 	};
