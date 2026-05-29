@@ -107,6 +107,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 24px; /* ensure equal spacing between nav items */
         }
 
         /* Clear visual break between brand wordmark and first nav link (e.g. Начало / Start) */
@@ -623,9 +624,22 @@
         }
 
         /* SVG Utilities */
-        .icon { width: 1em; height: 1em; fill: currentColor; }
-
-    
+        .icon,
+        .nav-icon {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+            display: inline-block;
+            transition: var(--transition);
+        }
+        .nav-icon:hover {
+            color: var(--gold);
+            transform: translateY(-1px);
+        }
+        .nav-icon.active {
+            color: var(--green);
+        }
+        
         /* Mobile Nav & Layout Fix */
         @media (max-width: 992px) {
             nav {
@@ -651,6 +665,13 @@
                 margin: 12px 0 !important;
                 width: 100%;
                 justify-content: center;
+            }
+            /* Ensure icons remain visible on mobile */
+            .icon,
+            .nav-icon {
+                width: 1.4em;
+                height: 1.4em;
+                visibility: visible;
             }
             body {
                 overflow-x: hidden;
