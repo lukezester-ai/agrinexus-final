@@ -1,20 +1,26 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Свързва папката с кирилица `Desktop\проект\agrinexus-final-main` с истинското репо под `Desktop\project\agrinexus-final-main` чрез directory junction (едни и същи файлове на диска).
+  Свързва папката с кирилица `Desktop\проект\agrinexus-final-main` с каноничното ASCII репо чрез directory junction.
 
 .DESCRIPTION
-  Често се появяват две копия: пълното репо е под ASCII пътя `project\`, а под `проект\` остава празна/стара папка или архив — тогава Cursor и инструментите „не виждат“ последния код.
+  По подразбиране целта е `Desktop\project\agrinexus-final-main` (пълното репо). Под `проект\` често остава празно/старо копие — тогава Cursor „не вижда“ последния код.
 
-  Затвори VS Code/Cursor, терминали и Explorer прозорци, отворени върху `...\проект\agrinexus-final-main`, после стартирай този скрипт от PowerShell:
+  Затвори VS Code/Cursor, терминали и Explorer прозорци, отворени върху `...\проект\agrinexus-final-main`, после от **корена на истинското репо**:
 
     powershell -ExecutionPolicy Bypass -File .\scripts\windows\link-cyrillic-desktop-folder.ps1
 
-  Ако преименуването не успее (файлът е заключен), затвори приложенията и пусни скрипта отново.
+  Друга цел (напр. `C:\Users\expre\Academy`):
+
+    powershell -ExecutionPolicy Bypass -File .\scripts\windows\link-cyrillic-desktop-folder.ps1 -CanonicalRepoRoot "C:\Users\expre\Academy"
 
 .NOTES
-  Junction не е git submodule — това е връзка на ниво Windows към същата директория. OneDrive може да се държи по-особено с junction; при проблем ползвай директно ASCII пътя или отвори репото от `project\...`.
+  Junction не е git submodule. OneDrive понякога се държи по-особено с junction; при проблем ползвай директно ASCII пътя.
 #>
+
+param(
+	[string]$CanonicalRepoRoot = $(Join-Path ([Environment]::GetFolderPath("Desktop")) "project\agrinexus-final-main")
+)
 
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
@@ -26,7 +32,7 @@ if (-not $desktop) {
 
 $parentCyrillic = Join-Path $desktop "проект"
 $linkPath = Join-Path $parentCyrillic "agrinexus-final-main"
-$targetPath = Join-Path $desktop "project\agrinexus-final-main"
+$targetPath = $CanonicalRepoRoot.TrimEnd("\")
 
 function Test-SameJunction {
 	param([string]$Path, [string]$ExpectedTarget)
@@ -44,7 +50,7 @@ Write-Host "Връзка (кирилица):   $linkPath"
 Write-Host ""
 
 if (-not (Test-Path -LiteralPath $targetPath)) {
-	Write-Error "Липсва целевата папка. Очаква се: $targetPath`nПремести репото там или редактирай `$targetPath в скрипта."
+	Write-Error "Липсва целевата папка. Очаква се: $targetPath`nПремести/клонирай репото там или подай -CanonicalRepoRoot."
 	exit 2
 }
 
@@ -83,5 +89,5 @@ if (Test-Path -LiteralPath $linkPath) {
 
 Write-Host "Създавам junction..."
 New-Item -ItemType Junction -Path $linkPath -Target $targetPath | Out-Null
-Write-Host "Готово. Пътят с кирилица вече сочи към същото репо като Desktop\project\agrinexus-final-main"
+Write-Host "Готово. Пътят с кирилица вече сочи към същото репо като $targetPath"
 exit 0

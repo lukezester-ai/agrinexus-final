@@ -30,3 +30,17 @@ B2B агро UI (FieldLot): токени, типография, Yellow Pages р�
 1. Нови **общи** компоненти → `agri-market-shared.css`.
 2. Само начало/агенти орбита/карти → `agri-marketing-supplement.css`.
 3. Не дублирай `@keyframes pulse` — тикерът ползва `pulse`; оркестраторът ползва `orch-ring` в supplement.
+
+## Next.js Academy (`apps/web`)
+
+Академията в това копие е **Next приложението** под `apps/web` (не само маркетинговите `academy.html` страници по-горе).
+
+- **Маршрути:** `/academy`, `/bg/academy`, каталог **`/academy/course/[slug]`**, лектор **`/academy/lecturer`**, лаборатория **`/academy/lab`**, карти **`/academy/maps`**, финален тест **`/academy/course/[slug]/test`** (`src/app/[locale]/academy/...`).
+- **Каталог курсове и EN:** `apps/web/src/content/academy-courses.ts`, `apps/web/src/content/academy-en.ts`; финални тестове: `apps/web/src/content/final-course-tests/`.
+- **Лекции (Markdown на диска):** `apps/web/public/lectures/courses/<slug>/` — виж **`apps/web/public/lectures/README.md`**.
+- **Мобилно:** `apps/mobile/app/academy/`.
+- **Продукт и архитектура (docs):** **`docs/ACADEMY_PRODUCT_VISION.md`**, **`docs/ACADEMY_ARCHITECTURE.md`**, **`docs/NAV-ACADEMY.md`**.
+
+## Локална работна папка
+
+Отваряй репото от **`C:\Users\expre\OneDrive\Desktop\project\agrinexus-final-main`** (или от **`C:\Users\expre\Academy`**, ако ползваш този clone) — виж **`docs/CANONICAL-WORKSPACE-BG.md`**, за да не се разминават пътища между Cursor и терминала.

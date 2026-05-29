@@ -2,13 +2,38 @@
 
 **An operating system that senses, thinks, acts.**
 
+Канонично GitHub репо (Academy / монорепо): **[roxsonltd-droid/ai-agri-academy](https://github.com/roxsonltd-droid/ai-agri-academy)**.
+
 AgriNexus is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
+
+## Quick links
+
+| Topic | Where |
+|--------|--------|
+| **GitHub (canonical repo)** | [github.com/roxsonltd-droid/ai-agri-academy](https://github.com/roxsonltd-droid/ai-agri-academy) |
+| **Локален корен (канонично, това копие)** | `C:\Users\expre\OneDrive\Desktop\project\agrinexus-final-main` — виж [`docs/CANONICAL-WORKSPACE-BG.md`](docs/CANONICAL-WORKSPACE-BG.md) и `Open-Academy-Terminal.cmd` |
+| **Архитектура & целеви стек** | [`docs/TARGET-ARCHITECTURE.md`](docs/TARGET-ARCHITECTURE.md) |
+| **Local dev** (Next + FastAPI + Expo + Docker) | [`docs/LOCAL-DEV.md`](docs/LOCAL-DEV.md) |
+| **Web app** | [`apps/web/README.md`](apps/web/README.md) |
+| **Mobile** | [`apps/mobile/README.md`](apps/mobile/README.md) |
+| **Backend (Python)** | [`apps/backend/README.md`](apps/backend/README.md) |
+| **Академия (продукт + навигация)** | [`docs/ACADEMY_PRODUCT_VISION.md`](docs/ACADEMY_PRODUCT_VISION.md), [`docs/ACADEMY_ARCHITECTURE.md`](docs/ACADEMY_ARCHITECTURE.md), [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) (§ Next.js Academy) |
+
+**Auth (Supabase):** когато `apps/web` е конфигуриран с `@supabase/ssr`, браузърният клиент и middleware държат сесията; локализиран вход: `/login` и `/bg/login` при зададени `NEXT_PUBLIC_SUPABASE_*`.
+
+**AI Tutor / LangGraph:** при наличен backend — `POST /api/tutor/graph` и свързаните маршрути в `docs/BACKEND_API.md` (ако са включени в това копие).
 
 **AI кошче:** временни чернови, фрагменти и еднократни артефакти от работа с ИИ — папка **`ai-trash/`** (съдържанието е в `.gitignore`, виж `ai-trash/README.md`). Правило за агентите: `.cursor/rules/ai-trash.mdc`.
 
-**Windows + кирилица в пътя:** ако имаш и `Desktop\проект\…` и `Desktop\project\…`, лесно се работи върху „грешното“ копие. Виж **`docs/WORKSPACE-CYRILLIC-PATH-BG.md`** и скрипта **`scripts/windows/link-cyrillic-desktop-folder.ps1`** (junction към едно репо).
+**Windows + кирилица в пътя:** ако имаш и `Desktop\проект\…` и `Desktop\project\…`, лесно се работи върху „грешното“ копие. Виж **`docs/WORKSPACE-CYRILLIC-PATH-BG.md`** и скрипта **`scripts/windows/link-cyrillic-desktop-folder.ps1`** (junction към ASCII репото по подразбиране).
 
 **Графичен слой:** споделени стилове в **`styles/agri-market-shared.css`** + **`styles/agri-marketing-supplement.css`** за начална/агенти; описание и таблица: **`docs/DESIGN-SYSTEM.md`**.
+
+## DevEx (монорепо `apps/*`)
+
+- **Pre-commit:** [Husky](https://typicode.github.io/husky/) + [lint-staged](https://github.com/lint-staged/lint-staged) — след `npm ci` в корена ESLint за стейджнати `apps/web/**/*.{ts,tsx}` (ако е конфигурирано).
+- **CI:** `.github/workflows/ci.yml` — според съдържанието в това копие (typecheck, web, mobile, backend, fieldlot).
+- **Секрети:** коренов [`.env.example`](.env.example) и `docs/LOCAL-DEV.md`.
 
 ## Project Structure & Core Pages
 

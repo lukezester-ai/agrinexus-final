@@ -1,5 +1,7 @@
 # Local development — Next.js + FastAPI + Postgres
 
+**Каноничен локален корен на това копие:** `C:\Users\expre\OneDrive\Desktop\project\agrinexus-final-main` (виж [`CANONICAL-WORKSPACE-BG.md`](./CANONICAL-WORKSPACE-BG.md)). Командите по-долу се изпълняват от корена на репото (където има `.git` и `package.json`).
+
 ## Option A — Docker (DB + API)
 
 From repo root:
