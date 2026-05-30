@@ -82,7 +82,7 @@ export function Nav({ active }: NavProps) {
 					<span className="truncate sm:max-w-none">AgriNexus</span>
 				</Link>
 
-				<div className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 text-[13px] lg:flex lg:gap-1">
+				<div className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 text-[13px] xl:flex lg:gap-1">
 					{keys.map((l) => {
 						const Icon = l.icon;
 						const isActive = active === l.navKey;
@@ -121,7 +121,7 @@ export function Nav({ active }: NavProps) {
 					</Link>
 					<button
 						type="button"
-						className="flex items-center justify-center rounded-lg p-1.5 text-ink/70 hover:bg-white/50 hover:text-ink lg:hidden"
+						className="flex items-center justify-center rounded-lg p-1.5 text-ink/70 hover:bg-white/50 hover:text-ink xl:hidden"
 						onClick={() => setIsOpen(!isOpen)}
 						aria-label="Toggle menu"
 					>
@@ -131,7 +131,7 @@ export function Nav({ active }: NavProps) {
 			</nav>
 
 			{isOpen && (
-				<div className="pointer-events-auto absolute inset-x-3 top-[calc(100%+0.5rem)] mx-auto max-w-5xl rounded-2xl border border-ink/[0.08] bg-paper/95 p-3 shadow-xl backdrop-blur-3xl sm:inset-x-4 lg:hidden">
+				<div className="pointer-events-auto absolute inset-x-3 top-[calc(100%+0.5rem)] mx-auto max-w-5xl rounded-2xl border border-ink/[0.08] bg-paper/95 p-3 shadow-xl backdrop-blur-3xl sm:inset-x-4 xl:hidden">
 					<div className="flex flex-col gap-1">
 						{keys.map((l) => {
 							const Icon = l.icon;
