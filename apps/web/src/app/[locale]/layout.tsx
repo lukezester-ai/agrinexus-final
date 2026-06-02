@@ -1,5 +1,5 @@
 import "../globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
@@ -31,6 +31,14 @@ const jetbrainsMono = JetBrains_Mono({
 
 const fontVariables = [spaceGrotesk.variable, fraunces.variable, jetbrainsMono.variable].join(" ");
 
+/** Next.js 15+: viewport must not live inside `metadata` / `generateMetadata`. */
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
+	viewportFit: "cover",
+};
+
 export function generateStaticParams() {
 	return routing.locales.map((locale) => ({ locale }));
 }
@@ -50,12 +58,6 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 
 	return {
 		metadataBase: new URL("https://agrinexus.io"),
-		viewport: {
-			width: "device-width",
-			initialScale: 1,
-			maximumScale: 1,
-			viewportFit: "cover",
-		},
 		title: {
 			default: t("titleDefault"),
 			template: t("titleTemplate"),
