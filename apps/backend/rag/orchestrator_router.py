@@ -49,3 +49,54 @@ async def orchestrator_chat(request: ChatRequest):
             "handledBy": "error",
             "lastRoute": "error"
         }
+
+class BriefingRequest(BaseModel):
+    location: str = "Плевен"
+    commodity: str = "wheat"
+    farmContext: Optional[List[FarmContext]] = []
+
+@router.post("/briefing")
+async def daily_briefing(request: BriefingRequest):
+    """Генерира сутрешен брифинг чрез координиране на 3 агента: Weather, Market и Agronomy."""
+    try:
+        # 1. Ask Weather Agent
+        w_state = {"messages": [HumanMessage(content=f"Какво е времето в {request.location} днес? Отговори кратко.")], "farm_context": ""}
+        w_res = graph.invoke(w_state)
+        weather_info = w_res["messages"][-1].content
+
+        # 2. Ask Market Agent
+        m_state = {"messages": [HumanMessage(content=f"Каква е цената на {request.commodity} днес? Отговори кратко.")], "farm_context": ""}
+        m_res = graph.invoke(m_state)
+        market_info = m_res["messages"][-1].content
+
+        # 3. Ask Agronomy Agent to summarize
+        farm_ctx_str = ""
+        if request.farmContext:
+            fields = [f"{f.hectares or '?'}ha {f.crop or ''}" for f in request.farmContext]
+            farm_ctx_str = ", ".join(fields)
+
+        prompt = f"""
+        Ти си Главен Агроном (Agronomy Agent). Подготви сутрешен брифинг за фермера.
+        Ето данните от другите агенти:
+        - Време ({request.location}): {weather_info}
+        - Пазари ({request.commodity}): {market_info}
+        
+        Направи кратко и стегнато резюме (до 3-4 изречения общо). 
+        Включи 1 изречение за времето, 1 за пазара и 1-2 изречения конкретен агрономически съвет (напр. дали е подходящо за пръскане, предвид вятъра/влажността, или дали да продава предвид цената).
+        """
+        
+        a_state = {
+            "messages": [HumanMessage(content=prompt)],
+            "farm_context": farm_ctx_str
+        }
+        # Force it to go to agronomy agent directly by bypassing orchestrator, or just let orchestrator route it.
+        # Orchestrator will route it to Agronomy because the prompt mentions "Агроном".
+        a_res = graph.invoke(a_state)
+        final_briefing = a_res["messages"][-1].content
+
+        return {
+            "briefing": final_briefing,
+            "handledBy": "Briefing System (Weather + Market + Agronomy)"
+        }
+    except Exception as e:
+        return {"error": str(e)}

@@ -30,22 +30,24 @@ llm = ChatMistralAI(model="mistral-large-latest", mistral_api_key=api_key, tempe
 
 # --- SYSTEM PROMPTS ---
 ORCHESTRATOR_SYSTEM = """Вие сте AgriNexus Orchestrator (Ръководител на мрежа от агенти).
-Имате 4 специализирани агента на разположение:
+Имате 5 специализирани агента на разположение:
 - "market": За въпроси относно цени, борси (CBOT/MATIF), продажби, hedge.
 - "weather": За въпроси относно прогноза за времето, подходящо време за пръскане или напояване.
-- "field": За въпроси относно състоянието на полетата, сателитни снимки (NDVI), болести и плевели.
+- "field": За въпроси относно състоянието на полетата, сателитни снимки (NDVI).
 - "academy": За въпроси, свързани с обучение, курсове, агрономически теории.
+- "agronomy": За въпроси, свързани с болести, плевели, торове, третиране с препарати и агрономически съвети.
 
 Ако потребителят задава въпрос, решете кой агент е най-подходящ да му отговори.
 Ако въпросът е просто поздрав или не изисква специален агент, отговорете с "FINISH".
-Връщайте САМО името на агента ("market", "weather", "field", "academy") или "FINISH". Няма нужда от обяснения.
+Връщайте САМО името на агента ("market", "weather", "field", "academy", "agronomy") или "FINISH". Няма нужда от обяснения.
 """
 
 AGENTS_PROMPTS = {
     "market": "Вие сте AgriNexus Market Agent. Анализирайте пазарите и давайте прогнози. Задължително използвайте инструмента за пазарни цени (get_real_market_prices). Винаги проверявайте текущото време с get_current_time, за да знаете коя е днешната дата.",
     "weather": "Вие сте AgriNexus Weather Agent. Давайте съвети за пръскане или напояване въз основа на реални метеорологични данни. Задължително използвайте инструмента за времето (get_current_weather), за да проверите локацията. Ако потребителят не е посочил град, попитайте го. Винаги проверявайте текущото време с get_current_time.",
     "field": "Вие сте AgriNexus Field Agent. Задължително проверете текущото време с get_current_time.",
-    "academy": "Вие сте AgriNexus Academy Agent. Отговаряйте на образователни въпроси и търсете информация в докладите с инструмента search_local_documents. Винаги проверявайте текущото време с get_current_time."
+    "academy": "Вие сте AgriNexus Academy Agent. Отговаряйте на образователни въпроси и търсете информация в докладите с инструмента search_local_documents. Винаги проверявайте текущото време с get_current_time.",
+    "agronomy": "Вие сте AgriNexus Agronomy Agent. Вие сте главен агроном. Давайте съвети за болести по културите, торене и третиране с препарати. Задължително проверявайте текущото време с get_current_time."
 }
 
 # --- NODES ---
@@ -65,7 +67,7 @@ def orchestrator_node(state: AgentState):
     decision = response.content.strip().lower()
     
     # Clean up the output in case the LLM was chatty
-    valid_agents = ["market", "weather", "field", "academy", "finish"]
+    valid_agents = ["market", "weather", "field", "academy", "agronomy", "finish"]
     next_agent = "FINISH"
     for agent in valid_agents:
         if agent in decision:
@@ -96,6 +98,7 @@ market_node = create_agent_node("market", [get_real_market_prices, get_current_t
 weather_node = create_agent_node("weather", [get_current_time, get_current_weather])
 field_node = create_agent_node("field", [get_current_time])
 academy_node = create_agent_node("academy", [get_current_time, search_local_documents])
+agronomy_node = create_agent_node("agronomy", [get_current_time])
 
 # --- EDGES ---
 def route_from_orchestrator(state: AgentState) -> str:
@@ -120,6 +123,7 @@ builder.add_node("market", market_node)
 builder.add_node("weather", weather_node)
 builder.add_node("field", field_node)
 builder.add_node("academy", academy_node)
+builder.add_node("agronomy", agronomy_node)
 
 # Tool Node handles all tools
 all_tools = [get_real_market_prices, get_current_time, search_local_documents, get_current_weather]
@@ -131,11 +135,12 @@ builder.add_conditional_edges("orchestrator", route_from_orchestrator, {
     "weather": "weather",
     "field": "field",
     "academy": "academy",
+    "agronomy": "agronomy",
     END: END
 })
 
 # Agents route to either tools or back to orchestrator
-for agent in ["market", "weather", "field", "academy"]:
+for agent in ["market", "weather", "field", "academy", "agronomy"]:
     builder.add_conditional_edges(agent, route_after_agent, {
         "tools": "tools",
         "orchestrator": "orchestrator"
