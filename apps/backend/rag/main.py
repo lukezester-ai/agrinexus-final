@@ -6,6 +6,7 @@ import uvicorn
 from tutor_router import router as tutor_router
 from voice_input import router as voice_router
 from api.webhooks import router as webhook_router
+from orchestrator_router import router as orchestrator_router
 
 # Инициализация на FastAPI приложението
 app = FastAPI(
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(tutor_router)
 app.include_router(voice_router)
 app.include_router(webhook_router, prefix="/api")
+app.include_router(orchestrator_router, prefix="/api")
 
 # --- Основни Endpoints за мониторинг ---
 

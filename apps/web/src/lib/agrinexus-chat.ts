@@ -109,6 +109,33 @@ export async function runAgrinexusChat(opts: {
 		};
 	}
 
+	// 1. Try the new Python LangGraph Orchestrator Backend
+	const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
+	try {
+		const res = await fetch(`${backendUrl}/api/orchestrator/chat`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ message, locale, farmContext: opts.farmContext }),
+			// Short timeout so we quickly fallback if backend is offline
+			signal: AbortSignal.timeout(15000) 
+		});
+
+		if (res.ok) {
+			const data = await res.json();
+			if (!data.error) {
+				return {
+					response: data.response,
+					handledBy: data.handledBy || "Оркестратор",
+					lastRoute: data.lastRoute || "GENERAL_RESPONSE",
+					traceId: data.traceId,
+				};
+			}
+		}
+	} catch (e) {
+		console.warn("[agrinexus-chat] Backend orchestrator unavailable, falling back to regex router", e);
+	}
+
+	// 2. Fallback to original Regex router and direct Mistral call
 	if (!isMistralConfigured()) {
 		const err =
 			locale === "bg"
