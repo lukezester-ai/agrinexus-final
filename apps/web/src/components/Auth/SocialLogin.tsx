@@ -4,13 +4,16 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { FcGoogle } from 'react-icons/fc';
 import { SiApple } from 'react-icons/si';
+import { useLocale } from 'next-intl';
 
 export default function SocialLogin() {
+  const locale = useLocale();
+
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/${locale}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -24,7 +27,7 @@ export default function SocialLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/${locale}/auth/callback`,
       },
     });
     if (error) console.error(error);
