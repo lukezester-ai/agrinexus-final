@@ -275,6 +275,29 @@ const server = createServer(async (req, res) => {
 		return;
 	}
 
+	if (pathname === '/api/config' && req.method === 'GET') {
+		const { default: handler } = await import('../api/config.ts');
+		const vReq = { method: 'GET', headers: req.headers };
+		let status = 200;
+		let body;
+		const vRes = {
+			status(c) {
+				status = c;
+				return vRes;
+			},
+			json(b) {
+				body = b;
+			},
+			setHeader() {
+				return vRes;
+			},
+			end() {},
+		};
+		await handler(vReq, vRes);
+		json(res, status, body);
+		return;
+	}
+
 	if (pathname === '/api/waitlist' && req.method === 'POST') {
 		const { submitFurrowWaitlist } = await import('../server/waitlist.ts');
 		const body = (await readBody(req)) || {};
@@ -312,6 +335,7 @@ const server = createServer(async (req, res) => {
 	let staticPath = pathname;
 	if (staticPath === '/agridirect') staticPath = '/agridirect/index.html';
 	if (staticPath === '/register') staticPath = '/register.html';
+	if (staticPath === '/login') staticPath = '/login.html';
 	if (staticPath === '/archive') staticPath = '/archive.html';
 	if (staticPath === '/analytics') staticPath = '/analytics.html';
 	if (staticPath === '/bg/analytics') staticPath = '/bg/analytics.html';
