@@ -9,6 +9,8 @@ try:
 except ImportError:
     yf = None
 
+import requests
+
 @tool
 def get_current_time() -> str:
     """Връща точните текущи дата и час, както и деня от седмицата."""
@@ -16,6 +18,43 @@ def get_current_time() -> str:
     days = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"]
     day_name = days[now.weekday()]
     return now.strftime(f"Днес е {day_name}, %Y-%m-%d %H:%M:%S")
+
+@tool
+def get_current_weather(location: str) -> str:
+    """Извлича реални метеорологични данни за даден град (напр. София, Плевен) чрез Open-Meteo API.
+    Връща температура, влажност, вятър и валежи.
+    """
+    try:
+        # 1. Geocoding
+        geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={location}&count=1&language=bg&format=json"
+        geo_res = requests.get(geo_url, timeout=5)
+        geo_data = geo_res.json()
+        
+        if not geo_data.get("results"):
+            # Try english if native fails
+            geo_url_en = f"https://geocoding-api.open-meteo.com/v1/search?name={location}&count=1&language=en&format=json"
+            geo_data = requests.get(geo_url_en, timeout=5).json()
+            if not geo_data.get("results"):
+                return f"Не можах да намеря координати за локация '{location}'."
+                
+        city = geo_data["results"][0]
+        lat, lon = city["latitude"], city["longitude"]
+        name = city.get("name", location)
+        
+        # 2. Weather
+        weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m&timezone=auto"
+        w_res = requests.get(weather_url, timeout=5)
+        w_data = w_res.json()
+        
+        current = w_data.get("current", {})
+        temp = current.get("temperature_2m", "?")
+        humidity = current.get("relative_humidity_2m", "?")
+        precip = current.get("precipitation", "?")
+        wind = current.get("wind_speed_10m", "?")
+        
+        return f"Времето в {name} (Lat: {lat:.2f}, Lon: {lon:.2f}):\n- Температура: {temp}°C\n- Относителна влажност: {humidity}%\n- Валежи: {precip} mm\n- Скорост на вятъра: {wind} km/h"
+    except Exception as e:
+        return f"Грешка при извличане на времето за {location}: {e}"
 
 @tool
 def get_real_market_prices(commodity: str) -> str:

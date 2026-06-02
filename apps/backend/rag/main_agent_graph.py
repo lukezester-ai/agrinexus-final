@@ -9,7 +9,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 # Import real tools
-from mcp_tools.real_tools import get_current_time, get_real_market_prices, search_local_documents
+from mcp_tools.real_tools import get_current_time, get_real_market_prices, search_local_documents, get_current_weather
 
 load_dotenv()
 
@@ -43,7 +43,7 @@ ORCHESTRATOR_SYSTEM = """Вие сте AgriNexus Orchestrator (Ръководи�
 
 AGENTS_PROMPTS = {
     "market": "Вие сте AgriNexus Market Agent. Анализирайте пазарите и давайте прогнози. Задължително използвайте инструмента за пазарни цени (get_real_market_prices). Винаги проверявайте текущото време с get_current_time, за да знаете коя е днешната дата.",
-    "weather": "Вие сте AgriNexus Weather Agent. За момента нямате инструмент за времето, но можете да отговаряте въз основа на знанията си. Винаги проверявайте текущото време с get_current_time.",
+    "weather": "Вие сте AgriNexus Weather Agent. Давайте съвети за пръскане или напояване въз основа на реални метеорологични данни. Задължително използвайте инструмента за времето (get_current_weather), за да проверите локацията. Ако потребителят не е посочил град, попитайте го. Винаги проверявайте текущото време с get_current_time.",
     "field": "Вие сте AgriNexus Field Agent. Задължително проверете текущото време с get_current_time.",
     "academy": "Вие сте AgriNexus Academy Agent. Отговаряйте на образователни въпроси и търсете информация в докладите с инструмента search_local_documents. Винаги проверявайте текущото време с get_current_time."
 }
@@ -93,7 +93,7 @@ def create_agent_node(agent_name: str, tools: list):
 
 # Create specific agent nodes with their respective tools
 market_node = create_agent_node("market", [get_real_market_prices, get_current_time, search_local_documents])
-weather_node = create_agent_node("weather", [get_current_time])
+weather_node = create_agent_node("weather", [get_current_time, get_current_weather])
 field_node = create_agent_node("field", [get_current_time])
 academy_node = create_agent_node("academy", [get_current_time, search_local_documents])
 
@@ -122,7 +122,7 @@ builder.add_node("field", field_node)
 builder.add_node("academy", academy_node)
 
 # Tool Node handles all tools
-all_tools = [get_real_market_prices, get_current_time, search_local_documents]
+all_tools = [get_real_market_prices, get_current_time, search_local_documents, get_current_weather]
 builder.add_node("tools", ToolNode(all_tools))
 
 builder.add_edge(START, "orchestrator")
