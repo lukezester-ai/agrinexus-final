@@ -1,4 +1,14 @@
 const MISTRAL_CHAT_URL = "https://api.mistral.ai/v1/chat/completions";
+import { Langfuse } from "langfuse-node";
+
+const langfuse = new Langfuse({
+	publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY || process.env.LANGFUSE_PUBLIC_KEY,
+	secretKey: process.env.LANGFUSE_SECRET_KEY,
+	baseUrl: process.env.NEXT_PUBLIC_LANGFUSE_HOST || process.env.LANGFUSE_HOST || "https://cloud.langfuse.com",
+});
+
+// Fallback logic to avoid failing if Langfuse isn't configured yet
+const isLangfuseConfigured = Boolean(process.env.LANGFUSE_SECRET_KEY);
 
 export function isMistralConfigured(): boolean {
 	return Boolean(process.env.MISTRAL_API_KEY?.trim());
@@ -12,6 +22,7 @@ export type MistralChatResult = {
 	text: string | null;
 	status: number;
 	error?: string;
+	traceId?: string;
 };
 
 export async function mistralChat(opts: {
@@ -28,6 +39,25 @@ export async function mistralChat(opts: {
 	}
 
 	const model = opts.model?.trim() || mistralModel("MISTRAL_MESH_MODEL");
+	
+	let traceId: string | undefined;
+	let generation: any;
+
+	if (isLangfuseConfigured) {
+		const trace = langfuse.trace({
+			name: "Mistral Chat",
+		});
+		traceId = trace.id;
+		generation = trace.generation({
+			name: "Mistral Completion",
+			model,
+			modelParameters: { temperature: opts.temperature, maxTokens: opts.maxTokens },
+			prompt: [
+				{ role: "system", content: opts.system },
+				{ role: "user", content: opts.user },
+			],
+		});
+	}
 
 	try {
 		const res = await fetch(MISTRAL_CHAT_URL, {
@@ -50,11 +80,17 @@ export async function mistralChat(opts: {
 
 		if (!res.ok) {
 			const body = await res.text().catch(() => "");
+			const errorMsg = body.slice(0, 120) || `HTTP ${res.status}`;
 			console.warn("[mistral]", res.status, body.slice(0, 200));
+			if (generation) {
+				generation.end({ level: "ERROR", statusMessage: errorMsg });
+				await langfuse.flushAsync();
+			}
 			return {
 				text: null,
 				status: res.status,
-				error: body.slice(0, 120) || `HTTP ${res.status}`,
+				error: errorMsg,
+				traceId,
 			};
 		}
 
@@ -62,10 +98,20 @@ export async function mistralChat(opts: {
 			choices?: { message?: { content?: string } }[];
 		};
 		const text = data.choices?.[0]?.message?.content?.trim() || null;
-		return { text, status: res.status };
+		
+		if (generation) {
+			generation.end({ output: text });
+			await langfuse.flushAsync();
+		}
+
+		return { text, status: res.status, traceId };
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		console.warn("[mistral]", msg);
-		return { text: null, status: 0, error: msg };
+		if (generation) {
+			generation.end({ level: "ERROR", statusMessage: msg });
+			await langfuse.flushAsync();
+		}
+		return { text: null, status: 0, error: msg, traceId };
 	}
 }

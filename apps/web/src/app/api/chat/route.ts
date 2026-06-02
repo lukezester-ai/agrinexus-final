@@ -34,5 +34,6 @@ export async function POST(req: NextRequest) {
 		handledBy: result.handledBy,
 		lastRoute: result.lastRoute,
 		error: result.error,
+		traceId: result.traceId,
 	});
 }

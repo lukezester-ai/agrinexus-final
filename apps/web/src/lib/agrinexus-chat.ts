@@ -96,6 +96,7 @@ export async function runAgrinexusChat(opts: {
 	handledBy: string;
 	lastRoute: ChatRoute;
 	error?: string;
+	traceId?: string;
 }> {
 	const locale = opts.locale ?? "bg";
 	const message = opts.message.trim();
@@ -155,5 +156,6 @@ export async function runAgrinexusChat(opts: {
 		handledBy: routeLabel(route, locale),
 		lastRoute: route,
 		error: result.error,
+		traceId: result.traceId,
 	};
 }

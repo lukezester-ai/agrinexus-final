@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ChatFeedback } from "./ChatFeedback";
 
 type ChatMessage = {
 	id: string;
 	role: "user" | "assistant";
 	text: string;
 	agent?: string;
+	traceId?: string;
 };
 
 type Props = {
@@ -83,6 +85,7 @@ export function AgriNexusChat({ locale, compact, mobileFill }: Props) {
 				response?: string;
 				handledBy?: string;
 				error?: string;
+				traceId?: string;
 			};
 			const reply =
 				typeof data.response === "string" && data.response
@@ -95,6 +98,7 @@ export function AgriNexusChat({ locale, compact, mobileFill }: Props) {
 					role: "assistant",
 					text: reply,
 					agent: data.handledBy,
+					traceId: data.traceId,
 				},
 			]);
 		} catch {
@@ -149,6 +153,9 @@ export function AgriNexusChat({ locale, compact, mobileFill }: Props) {
 								</p>
 							) : null}
 							<p className="m-0 whitespace-pre-wrap">{m.text}</p>
+							{m.role === "assistant" && m.traceId && (
+								<ChatFeedback traceId={m.traceId} />
+							)}
 						</div>
 					</div>
 				))}

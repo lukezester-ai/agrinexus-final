@@ -3,3 +3,4 @@ uvicorn[standard]>=0.32.1
 pydantic-settings>=2.6.1
 psycopg[binary]>=3.2.3
 PyJWT>=2.8.0
+langfuse>=2.54.0

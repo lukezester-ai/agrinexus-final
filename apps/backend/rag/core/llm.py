@@ -20,11 +20,19 @@ def get_llm():
                 return type('Obj', (object,), {'content': 'Плейсхолдър: Моля, добавете OPENAI_API_KEY в .env файла.'})()
         return DummyLLM()
         
+    try:
+        from langfuse.callback import CallbackHandler
+        langfuse_handler = CallbackHandler()
+        callbacks = [langfuse_handler]
+    except ImportError:
+        callbacks = []
+
     return ChatOpenAI(
         model="gpt-4o-mini",  
         temperature=0.2,      # Ниска температура (0.2) за консервативни, фактологични и точни агро-съвети
         api_key=api_key,
-        max_tokens=1500
+        max_tokens=1500,
+        callbacks=callbacks
     )
 
 # Глобална инстанция, която се импортира от агентите
