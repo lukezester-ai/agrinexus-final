@@ -55,7 +55,7 @@ export async function mistralChat(opts: {
 				temperature: opts.temperature ?? 0.35, 
 				maxTokens: opts.maxTokens ?? 280 
 			},
-			prompt: [
+			input: [
 				{ role: "system", content: opts.system },
 				{ role: "user", content: opts.user },
 			],
