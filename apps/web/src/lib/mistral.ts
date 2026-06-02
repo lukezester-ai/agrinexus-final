@@ -51,7 +51,10 @@ export async function mistralChat(opts: {
 		generation = trace.generation({
 			name: "Mistral Completion",
 			model,
-			modelParameters: { temperature: opts.temperature, maxTokens: opts.maxTokens },
+			modelParameters: { 
+				temperature: opts.temperature ?? 0.35, 
+				maxTokens: opts.maxTokens ?? 280 
+			},
 			prompt: [
 				{ role: "system", content: opts.system },
 				{ role: "user", content: opts.user },
