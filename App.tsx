@@ -2712,7 +2712,7 @@ export default function App() {
 					<h2>{tr.loginTitle}</h2>
 					<p className="muted">{tr.loginSubtitle}</p>
 					<div className="form-grid">
-						<input placeholder={tr.loginEmailPh} />
+						<input type="email" placeholder={tr.loginEmailPh} />
 						<input type="password" placeholder={tr.loginPasswordPh} />
 					</div>
 					<div style={{ marginTop: 12 }}>
