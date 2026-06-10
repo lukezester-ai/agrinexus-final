@@ -3,11 +3,11 @@ import { Langfuse } from "langfuse-node";
 
 const isLangfuseConfigured = Boolean(process.env.LANGFUSE_SECRET_KEY);
 
-const langfuse = new Langfuse({
+const langfuse = isLangfuseConfigured ? new Langfuse({
 	publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY || process.env.LANGFUSE_PUBLIC_KEY,
 	secretKey: process.env.LANGFUSE_SECRET_KEY,
 	baseUrl: process.env.NEXT_PUBLIC_LANGFUSE_HOST || process.env.LANGFUSE_HOST || "https://cloud.langfuse.com",
-});
+}) : null;
 
 export async function POST(req: NextRequest) {
 	if (!isLangfuseConfigured) {
@@ -24,14 +24,14 @@ export async function POST(req: NextRequest) {
 
 		// Submit score to Langfuse
 		// value: 1 for thumbs up, 0 for thumbs down
-		await langfuse.score({
+		await langfuse?.score({
 			traceId,
 			name: "user-feedback",
 			value,
 			comment,
 		});
 
-		await langfuse.flushAsync();
+		await langfuse?.flushAsync();
 
 		return NextResponse.json({ success: true });
 	} catch (error) {

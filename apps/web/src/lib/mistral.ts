@@ -1,14 +1,13 @@
 const MISTRAL_CHAT_URL = "https://api.mistral.ai/v1/chat/completions";
 import { Langfuse } from "langfuse-node";
 
-const langfuse = new Langfuse({
+const isLangfuseConfigured = Boolean(process.env.LANGFUSE_SECRET_KEY);
+const langfuse = isLangfuseConfigured ? new Langfuse({
 	publicKey: process.env.NEXT_PUBLIC_LANGFUSE_PUBLIC_KEY || process.env.LANGFUSE_PUBLIC_KEY,
 	secretKey: process.env.LANGFUSE_SECRET_KEY,
 	baseUrl: process.env.NEXT_PUBLIC_LANGFUSE_HOST || process.env.LANGFUSE_HOST || "https://cloud.langfuse.com",
-});
+}) : null;
 
-// Fallback logic to avoid failing if Langfuse isn't configured yet
-const isLangfuseConfigured = Boolean(process.env.LANGFUSE_SECRET_KEY);
 
 export function isMistralConfigured(): boolean {
 	return Boolean(process.env.MISTRAL_API_KEY?.trim());
@@ -43,7 +42,7 @@ export async function mistralChat(opts: {
 	let traceId: string | undefined;
 	let generation: any;
 
-	if (isLangfuseConfigured) {
+	if (isLangfuseConfigured && langfuse) {
 		const trace = langfuse.trace({
 			name: "Mistral Chat",
 		});
@@ -87,7 +86,7 @@ export async function mistralChat(opts: {
 			console.warn("[mistral]", res.status, body.slice(0, 200));
 			if (generation) {
 				generation.end({ level: "ERROR", statusMessage: errorMsg });
-				await langfuse.flushAsync();
+				await langfuse?.flushAsync();
 			}
 			return {
 				text: null,
@@ -104,7 +103,7 @@ export async function mistralChat(opts: {
 		
 		if (generation) {
 			generation.end({ output: text });
-			await langfuse.flushAsync();
+			await langfuse?.flushAsync();
 		}
 
 		return { text, status: res.status, traceId };
@@ -113,7 +112,7 @@ export async function mistralChat(opts: {
 		console.warn("[mistral]", msg);
 		if (generation) {
 			generation.end({ level: "ERROR", statusMessage: msg });
-			await langfuse.flushAsync();
+			await langfuse?.flushAsync();
 		}
 		return { text: null, status: 0, error: msg, traceId };
 	}
