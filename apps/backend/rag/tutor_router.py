@@ -4,8 +4,8 @@ from typing import Optional, Dict
 from .retriever import retriever
 from langchain_core.messages import HumanMessage
 
-from core.llm import llm
-from debate_graph import ask_with_debate
+from .core.llm import llm
+from .debate_graph import ask_with_debate
 
 router = APIRouter(prefix="/tutor", tags=["Academy Tutor"])
 

@@ -9,7 +9,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 # Import real tools
-from mcp_tools.real_tools import get_current_time, get_real_market_prices, search_local_documents, get_current_weather
+from .mcp_tools.real_tools import get_current_time, get_real_market_prices, search_local_documents, get_current_weather
 
 load_dotenv()
 

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agrinexus-backend-core"
+version = "0.1.0"
+description = "Universal AgriNexus backend core"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.6",
+  "uvicorn[standard]>=0.32.1",
+  "pydantic-settings>=2.6.1",
+  "psycopg[binary]>=3.2.3",
+  "PyJWT>=2.8.0",
+  "langfuse>=2.54.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
