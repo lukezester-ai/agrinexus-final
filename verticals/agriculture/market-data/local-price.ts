@@ -1,4 +1,4 @@
-import type { BreakEvenInputs } from "@/lib/break-even";
+import type { BreakEvenInputs } from "@agriculture/products/break-even";
 
 function formatEurShort(n: number, locale: string): string {
 	return new Intl.NumberFormat(locale === "bg" ? "bg-BG" : "en-GB", {

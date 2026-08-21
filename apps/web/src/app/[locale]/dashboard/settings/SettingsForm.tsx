@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { BreakEvenSettings } from "@/components/break-even/BreakEvenSettings";
 import { BriefingConnect } from "@/components/briefing/BriefingConnect";
-import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBreakEvenInputs } from "@agriculture/products/break-even";
 import { parseBriefingPreferences } from "@/lib/briefing-preferences";
 
 export default function SettingsForm({ 

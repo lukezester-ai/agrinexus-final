@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
-import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBreakEvenInputs } from "@agriculture/products/break-even";
 import { fetchLiveDeskPayload } from "@/lib/market-live-desk";
 import { buildWeeklyBriefingCard } from "@/lib/weekly-briefing";
 import type { AppLocale } from "@/i18n/routing";

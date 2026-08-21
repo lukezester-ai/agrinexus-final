@@ -4,13 +4,13 @@ import {
 	cbotPriceStrToEurPerTonne,
 	formatEur,
 	profitAtPrice,
-} from "@/lib/break-even";
+} from "@agriculture/products/break-even";
 import {
 	formatBasisEur,
 	formatBgn,
 	quoteToEurPerTonne,
 	resolveMarketEurPerTonne,
-} from "@/lib/local-price";
+} from "@agriculture/market-data/local-price";
 
 type Props = {
 	locale: string;

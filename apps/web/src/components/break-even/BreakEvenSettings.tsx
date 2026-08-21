@@ -10,8 +10,8 @@ import {
 	formatEur,
 	formatEurPerTonne,
 	totalCostEurPerHa,
-} from "@/lib/break-even";
-import { syncLegacyLocalPrice } from "@/lib/local-price";
+} from "@agriculture/products/break-even";
+import { syncLegacyLocalPrice } from "@agriculture/market-data/local-price";
 import { LocalPriceBuyers } from "@/components/break-even/LocalPriceBuyers";
 
 type Props = {

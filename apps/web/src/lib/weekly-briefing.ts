@@ -4,8 +4,8 @@ import {
 	cbotPriceStrToEurPerTonne,
 	formatEur,
 	profitAtPrice,
-} from "@/lib/break-even";
-import { formatBasisEur, resolveMarketEurPerTonne } from "@/lib/local-price";
+} from "@agriculture/products/break-even";
+import { formatBasisEur, resolveMarketEurPerTonne } from "@agriculture/market-data/local-price";
 import type { LiveDeskPayload, LiveDeskRow } from "@/lib/market-live-desk";
 
 export type BriefingCard = {

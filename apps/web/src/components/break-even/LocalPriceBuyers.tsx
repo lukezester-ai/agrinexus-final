@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { BreakEvenInputs } from "@/lib/break-even";
+import type { BreakEvenInputs } from "@agriculture/products/break-even";
 import {
 	BGN_PER_EUR,
 	computeBasisEurPerTonne,
@@ -12,8 +12,8 @@ import {
 	quoteToEurPerTonne,
 	type LocalBuyerQuote,
 	type PriceCurrency,
-} from "@/lib/local-price";
-import { formatEur } from "@/lib/break-even";
+} from "@agriculture/market-data/local-price";
+import { formatEur } from "@agriculture/products/break-even";
 
 type Props = {
 	locale: string;

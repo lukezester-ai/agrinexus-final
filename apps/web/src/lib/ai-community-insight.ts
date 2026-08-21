@@ -1,7 +1,7 @@
 import type { AppLocale } from "@/i18n/routing";
 import type { CommunityPost } from "@/lib/community";
 import { fetchLiveDeskPayload } from "@/lib/market-live-desk";
-import { cbotPriceStrToEurPerTonne } from "@/lib/break-even";
+import { cbotPriceStrToEurPerTonne } from "@agriculture/products/break-even";
 import { isMistralConfigured, mistralChat, mistralModel } from "@/lib/mistral";
 
 const AGENTS = [

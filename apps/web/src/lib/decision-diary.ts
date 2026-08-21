@@ -1,6 +1,6 @@
-import type { BreakEvenInputs } from "@/lib/break-even";
-import { cbotPriceStrToEurPerTonne, computeBreakEvenEurPerTonne, profitAtPrice } from "@/lib/break-even";
-import { quoteToEurPerTonne, resolveMarketEurPerTonne, type PriceCurrency } from "@/lib/local-price";
+import type { BreakEvenInputs } from "@agriculture/products/break-even";
+import { cbotPriceStrToEurPerTonne, computeBreakEvenEurPerTonne, profitAtPrice } from "@agriculture/products/break-even";
+import { quoteToEurPerTonne, resolveMarketEurPerTonne, type PriceCurrency } from "@agriculture/market-data/local-price";
 
 export const DIARY_STORAGE_KEY = "agrinexus_decision_diary_v1";
 

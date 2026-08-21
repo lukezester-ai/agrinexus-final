@@ -1,6 +1,6 @@
 import type { AppLocale } from "@/i18n/routing";
 import { parseBriefingPreferences, type BriefingPreferences } from "@/lib/briefing-preferences";
-import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBreakEvenInputs } from "@agriculture/products/break-even";
 import { fetchLiveDeskPayload } from "@/lib/market-live-desk";
 import { formatBriefingPlain, buildWeeklyBriefingCard } from "@/lib/weekly-briefing";
 import { sendTelegramMessage } from "@/lib/telegram-bot";

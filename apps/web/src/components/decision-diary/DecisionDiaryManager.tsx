@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import type { BreakEvenInputs } from "@/lib/break-even";
-import { formatEur } from "@/lib/break-even";
-import { formatBasisEur, quoteToEurPerTonne, type PriceCurrency } from "@/lib/local-price";
+import type { BreakEvenInputs } from "@agriculture/products/break-even";
+import { formatEur } from "@agriculture/products/break-even";
+import { formatBasisEur, quoteToEurPerTonne, type PriceCurrency } from "@agriculture/market-data/local-price";
 import {
 	buildMarketSnapshot,
 	type DecisionAction,

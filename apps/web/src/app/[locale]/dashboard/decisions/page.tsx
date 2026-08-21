@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import DecisionDiaryManager from "@/components/decision-diary/DecisionDiaryManager";
-import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBreakEvenInputs } from "@agriculture/products/break-even";
 import { parseDecisionRow, type DecisionDiaryEntry } from "@/lib/decision-diary";
 
 type PageProps = { params: Promise<{ locale: string }> };

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cbotPriceStrToEurPerTonne } from "@/lib/break-even";
+import { cbotPriceStrToEurPerTonne } from "@agriculture/products/break-even";
 import { fetchLiveDeskPayload } from "@/lib/market-live-desk";
 
 export const dynamic = "force-dynamic";

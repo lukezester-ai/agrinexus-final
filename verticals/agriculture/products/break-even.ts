@@ -1,4 +1,4 @@
-import { hydrateLocalBuyers, parseLocalBuyers, type LocalBuyerQuote } from "@/lib/local-price";
+import { hydrateLocalBuyers, parseLocalBuyers, type LocalBuyerQuote } from "@agriculture/market-data/local-price";
 
 /** ~36.74 bu per metric tonne (SRW wheat). */
 const BU_PER_TONNE = 36.7437;

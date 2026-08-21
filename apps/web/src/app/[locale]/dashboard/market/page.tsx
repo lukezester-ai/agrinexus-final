@@ -10,8 +10,8 @@ import {
 	formatEur,
 	parseBreakEvenInputs,
 	profitAtPrice,
-} from "@/lib/break-even";
-import { formatBasisEur, resolveMarketEurPerTonne } from "@/lib/local-price";
+} from "@agriculture/products/break-even";
+import { formatBasisEur, resolveMarketEurPerTonne } from "@agriculture/market-data/local-price";
 import { loadMarketDesk, generateLiveMarketSignals } from "@/lib/market-live-desk";
 import type { AppLocale } from "@/i18n/routing";
 

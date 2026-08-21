@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { BreakEvenProfitCard } from "@/components/break-even/BreakEvenProfitCard";
 import { DecisionDiaryTeaser } from "@/components/decision-diary/DecisionDiaryTeaser";
 import { createClient } from "@/lib/supabase-server";
-import { parseBreakEvenInputs } from "@/lib/break-even";
+import { parseBreakEvenInputs } from "@agriculture/products/break-even";
 import { parseDecisionRow, type DecisionDiaryEntry } from "@/lib/decision-diary";
 
 type PageProps = { params: Promise<{ locale: string }> };
