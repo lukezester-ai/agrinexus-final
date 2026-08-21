@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from core.llm import llm
+from .core.llm import llm
 
 router_prompt = ChatPromptTemplate.from_template("""
 Ти си Router Agent за AgriNexus Academy Tutor.
