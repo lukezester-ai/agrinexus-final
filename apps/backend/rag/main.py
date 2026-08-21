@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 # Импортираме нашите рутери от модулите, които създадохме
-from tutor_router import router as tutor_router
-from voice_input import router as voice_router
-from api.webhooks import router as webhook_router
-from orchestrator_router import router as orchestrator_router
+from .tutor_router import router as tutor_router
+from .voice_input import router as voice_router
+from .api.webhooks import router as webhook_router
+from .orchestrator_router import router as orchestrator_router
 
 # Инициализация на FastAPI приложението
 app = FastAPI(
@@ -58,4 +58,4 @@ async def health_check():
 if __name__ == "__main__":
     print("🚀 Стартиране на AgriNexus FastAPI сървъра...")
     # reload=True автоматично рестартира сървъра при промяна във файловете (удобно за dev)
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("rag.main:app", host="0.0.0.0", port=8000, reload=True)

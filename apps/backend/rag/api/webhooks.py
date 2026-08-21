@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
-from core.supabase_client import get_supabase_client
-from core.webhook_verifier import webhook_verifier
+from ..core.supabase_client import get_supabase_client
+from ..core.webhook_verifier import webhook_verifier
 
 router = APIRouter()
 

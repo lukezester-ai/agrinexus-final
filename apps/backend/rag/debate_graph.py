@@ -1,9 +1,9 @@
 from langgraph.graph import StateGraph, END
-from states.debate_state import DebateState
-from prompts import generate_prompt
+from .states.debate_state import DebateState
+from .prompts import generate_prompt
 from langchain_core.messages import AIMessage, HumanMessage
 
-from core.llm import llm
+from .core.llm import llm
 
 async def market_agent(state: DebateState):
     prompt = generate_prompt("market_intelligence", 

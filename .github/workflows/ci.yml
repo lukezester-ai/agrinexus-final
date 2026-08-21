@@ -37,4 +37,15 @@ jobs:
           cache-dependency-path: fieldlot/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - name: Start Fieldlot API for smoke tests
+        run: |
+          npm exec -- tsx server/dev-api.ts > /tmp/fieldlot-api.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8789/api/fieldlot-chat > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/fieldlot-api.log
+          exit 1
       - run: npm test

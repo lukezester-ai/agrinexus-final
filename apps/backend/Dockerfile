@@ -1,14 +1,19 @@
 FROM python:3.12-slim
 
-WORKDIR /app
+WORKDIR /workspace
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY apps/backend/pyproject.toml apps/backend/README.md /packages/core/
+COPY apps/backend/app /packages/core/app
+RUN pip install --no-cache-dir /packages/core
 
-COPY app ./app
+ARG INSTALL_AGRICULTURE=1
+COPY verticals/agriculture/python /packages/agriculture
+RUN if [ "$INSTALL_AGRICULTURE" = "1" ]; then pip install --no-cache-dir /packages/agriculture; fi
+
+WORKDIR /app
 
 EXPOSE 8000
 

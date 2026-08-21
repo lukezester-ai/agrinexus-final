@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from langchain_core.messages import HumanMessage
 
-from main_agent_graph import graph
+from .main_agent_graph import graph
 
 router = APIRouter(prefix="/orchestrator", tags=["Orchestrator"])
 

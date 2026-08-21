@@ -18,8 +18,8 @@ services:
 
   backend:
     build:
-      context: ./apps/backend/rag
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/backend/rag/Dockerfile
     ports:
       - "8000:8000"
     environment:
