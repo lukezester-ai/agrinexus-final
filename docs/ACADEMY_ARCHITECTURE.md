@@ -88,7 +88,7 @@ flowchart TB
 |-----------|-----|
 | Tutor handler | `api/academy-tutor.ts` |
 | LangGraph mesh | `api/chat.ts` |
-| Пазарен snapshot за LLM | `api/lib/market-snapshot.ts` |
+| Пазарен snapshot за LLM | `verticals/agriculture/market-data/market-snapshot.ts` |
 | Политика | `api/lib/agrinexus-policy.ts` |
 | Каталог | `data/academy-catalog.json` |
 | Клиент логика | `scripts/academy-hub.js` |

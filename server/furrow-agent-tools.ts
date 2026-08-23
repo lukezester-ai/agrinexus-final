@@ -3,7 +3,7 @@ import {
 	formatSignalsForAgent,
 	getFurrowMarketSignals,
 	refreshFurrowMarketSignals,
-} from './furrow-market-signals.js';
+} from '../verticals/agriculture/market-data/furrow-market-signals.js';
 import { submitFurrowWaitlist } from './waitlist.js';
 
 export type AgentActionRecord = { tool: string; ok: boolean; summary: string };

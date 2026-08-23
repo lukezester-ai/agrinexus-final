@@ -6,7 +6,7 @@ import {
 	type LabInputs,
 	CROP_LABELS,
 	runLabSimulation,
-} from "@/lib/academy-lab-simulation";
+} from "@agriculture/agronomy/academy-lab-simulation";
 
 const defaultInputs: LabInputs = {
 	crop: "wheat",
