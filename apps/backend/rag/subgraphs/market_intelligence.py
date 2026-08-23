@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from subgraph_state import SubgraphState
+from ..subgraph_state import SubgraphState
 from langchain_core.messages import HumanMessage, AIMessage
 import yfinance as yf
 from datetime import datetime
@@ -10,10 +10,7 @@ class DummyRetriever:
         return {"documents": [], "context": f"Контекст за Market Intelligence (Филтри: {filters})", "sources": []}
 retriever = DummyRetriever()
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from core.llm import llm
+from ..core.llm import llm
 
 def market_data_retrieve(state: SubgraphState):
     """Извлича пазарни данни + RAG"""

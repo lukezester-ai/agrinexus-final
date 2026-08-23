@@ -1,11 +1,8 @@
 from langchain_core.messages import AIMessage, HumanMessage
-from subgraph_state import SubgraphState
+from ..subgraph_state import SubgraphState
 from datetime import datetime
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from core.llm import llm
+from ..core.llm import llm
 
 def ask_for_clarification(state: SubgraphState):
     """Node, който задава уточняващи въпроси на потребителя"""

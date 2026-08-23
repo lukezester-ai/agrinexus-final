@@ -5,10 +5,10 @@ from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
 
 # Импортваме subgraphs и router
-from subgraphs.crop_expert import build_crop_expert_subgraph
-from subgraphs.market_intelligence import build_market_intelligence_subgraph
-from subgraphs.risk_weather import build_risk_weather_subgraph
-from router import llm_router
+from agrinexus_agriculture.agents.crop_expert import build_crop_expert_subgraph
+from .subgraphs.market_intelligence import build_market_intelligence_subgraph
+from agrinexus_agriculture.agents.risk_weather import build_risk_weather_subgraph
+from .router import llm_router
 
 crop_subgraph = build_crop_expert_subgraph()
 market_subgraph = build_market_intelligence_subgraph()

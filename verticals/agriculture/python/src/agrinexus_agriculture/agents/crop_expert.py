@@ -1,7 +1,5 @@
 from langgraph.graph import StateGraph, END
-from subgraph_state import SubgraphState
-import sys
-import os
+from rag.subgraph_state import SubgraphState
 
 # Плейсхолдър за retriever
 class DummyRetriever:
@@ -9,7 +7,7 @@ class DummyRetriever:
         return {"documents": [], "context": f"Контекст за Crop Expert (Филтри: {filters})"}
 retriever = DummyRetriever()
 
-from core.llm import llm
+from rag.core.llm import llm
 
 def crop_specific_retrieve(state: SubgraphState):
     filters = {"course": state.get("culture", "general"), "topic": "cultivation"}

@@ -1,20 +1,17 @@
 from langgraph.graph import StateGraph, END
-from subgraph_state import SubgraphState
+from rag.subgraph_state import SubgraphState
 from langchain_core.messages import HumanMessage, AIMessage
 from datetime import datetime
 from langgraph.checkpoint.memory import MemorySaver
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from nodes.clarification import ask_for_clarification
+from rag.nodes.clarification import ask_for_clarification
 
 class DummyRetriever:
     def get_context(self, question, filters, top_k):
         return {"documents": [], "context": f"Контекст за Risk/Weather (Филтри: {filters})", "sources": []}
 retriever = DummyRetriever()
 
-from core.llm import llm
+from rag.core.llm import llm
 
 def get_coordinates(region: str):
     # Връща координатите на България/София по подразбиране, докато се върже Geocoding API
