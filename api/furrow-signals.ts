@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getFurrowMarketSignals, refreshFurrowMarketSignals } from '../server/furrow-market-signals.js';
+import { getFurrowMarketSignals, refreshFurrowMarketSignals } from '../verticals/agriculture/market-data/furrow-market-signals.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 	res.setHeader('Content-Type', 'application/json; charset=utf-8');

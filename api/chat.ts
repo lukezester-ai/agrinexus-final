@@ -3,7 +3,7 @@ import { StateGraph, START, END, MemorySaver } from '@langchain/langgraph';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { AGN_POLICY } from './lib/agrinexus-policy.js';
 import { getChatMistral } from './lib/mistral-client.js';
-import { fetchMarketSnapshotForLlm } from './lib/market-snapshot.js';
+import { fetchMarketSnapshotForLlm } from '../verticals/agriculture/market-data/market-snapshot.js';
 import { checkRateLimit, clientIpFromVercelRequest } from './lib/rate-limit.js';
 
 type RouteKey =

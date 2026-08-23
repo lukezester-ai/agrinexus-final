@@ -75,7 +75,7 @@ The actual product from the inside. A calm, highly functional UI where the farme
 ## Implementation vs. product story
 
 - **“18 specialists”** on **`agents.html`** is a product map for agent families and autonomy levels. In this repository, the **executable** agent mesh is the **LangGraph** flow in `api/chat.ts` (orchestrator → analytics, market, weather, crop, field monitoring, operations, finance, compliance, sustainability, news, academy, and general agents) plus the separate **`POST /api/academy-tutor`** endpoint for the Academy pages.
-- **Market quotes** in the mesh and Academy use **Yahoo Finance** (delayed); the LLM must **not invent** prices when the snapshot is present (see `api/lib/market-snapshot.ts` and `api/lib/agrinexus-policy.ts`).
+- **Market quotes** in the mesh and Academy use **Yahoo Finance** (delayed); the LLM must **not invent** prices when the snapshot is present (see `verticals/agriculture/market-data/market-snapshot.ts` and `api/lib/agrinexus-policy.ts`).
 - **Fieldlot** (subfolder) has its own chat + RAG pipeline; `fieldlot/scripts/sync-gov-listings.ts` **fails the build** if `MISTRAL_API_KEY` is set but the semantic RAG index has **chunks and zero embeddings** (misconfigured embed step).
 
 ## Marketing site + Yahoo APIs (repo root)

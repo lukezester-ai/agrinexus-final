@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { AGN_POLICY } from './lib/agrinexus-policy.js';
 import { getChatMistral } from './lib/mistral-client.js';
-import { fetchMarketSnapshotForLlm } from './lib/market-snapshot.js';
+import { fetchMarketSnapshotForLlm } from '../verticals/agriculture/market-data/market-snapshot.js';
 import { checkRateLimit, clientIpFromVercelRequest } from './lib/rate-limit.js';
 
 function logJson(event: string, fields: Record<string, unknown>) {

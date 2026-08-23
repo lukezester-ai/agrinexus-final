@@ -133,7 +133,7 @@ const server = createServer(async (req, res) => {
 
 	if (pathname === '/api/furrow-signals') {
 		const { getFurrowMarketSignals, refreshFurrowMarketSignals } = await import(
-			'../server/furrow-market-signals.ts'
+			'../verticals/agriculture/market-data/furrow-market-signals.ts'
 		);
 		if (req.method === 'GET') {
 			const force = url.searchParams.get('force') === '1';

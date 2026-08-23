@@ -1,4 +1,4 @@
-import { yahooFinance } from '../yahoo-finance-client.js';
+import { yahooFinance } from '../../../api/yahoo-finance-client.js';
 
 type QuoteLike = {
 	symbol?: string;
