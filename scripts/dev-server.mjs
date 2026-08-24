@@ -98,7 +98,7 @@ const server = createServer(async (req, res) => {
 	}
 
 	if (pathname === '/api/furrow-chat') {
-		const { handleFurrowChatPost, isAnyLlmConfigured } = await import('../server/furrow-chat-handler.ts');
+		const { handleFurrowChatPost, isAnyLlmConfigured } = await import('../verticals/agriculture/ai/furrow-chat-handler.ts');
 
 		if (req.method === 'GET') {
 			json(res, 200, {

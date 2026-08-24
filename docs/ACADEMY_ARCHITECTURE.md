@@ -79,7 +79,7 @@ flowchart TB
 ```
 
 - **Идентичност и прогрес:** PostgreSQL (или еквивалент), отделно от статичните HTML.
-- **RAG:** одобрени документи + embeddings; политики в `api/lib/agrinexus-policy.ts` като отправна точка за текстови правила. Пълното описание на бъдещата RAG архитектура може да намерите в [ACADEMY_RAG_ARCHITECTURE.md](ACADEMY_RAG_ARCHITECTURE.md).
+- **RAG:** одобрени документи + embeddings; политики в `verticals/agriculture/ai/api-agrinexus-policy.ts` като отправна точка за текстови правила. Пълното описание на бъдещата RAG архитектура може да намерите в [ACADEMY_RAG_ARCHITECTURE.md](ACADEMY_RAG_ARCHITECTURE.md).
 - **Видео:** отделен доставчик; ключове и URL-и през backend, не хардкод в клиента.
 
 ## 5. Файлове за бърза навигация
@@ -89,7 +89,7 @@ flowchart TB
 | Tutor handler | `api/academy-tutor.ts` |
 | LangGraph mesh | `api/chat.ts` |
 | Пазарен snapshot за LLM | `verticals/agriculture/market-data/market-snapshot.ts` |
-| Политика | `api/lib/agrinexus-policy.ts` |
+| Политика | `verticals/agriculture/ai/api-agrinexus-policy.ts` |
 | Каталог | `data/academy-catalog.json` |
 | Клиент логика | `scripts/academy-hub.js` |
 | Dev сървър | `scripts/dev-server.mjs` |

@@ -1,6 +1,6 @@
-import { isAnyLlmConfigured, resolveTextChatUpstream } from './llm-upstream.js';
-import { WorkflowAgent } from './agent-workflow.js';
-import type { AgentActionRecord } from './agent-types.js';
+import { isAnyLlmConfigured, resolveTextChatUpstream } from '../../../server/llm-upstream.js';
+import { WorkflowAgent } from '../../../server/agent-workflow.js';
+import type { AgentActionRecord } from '../../../server/agent-types.js';
 
 export async function handleFurrowChatPost(
 	rawBody: unknown,
