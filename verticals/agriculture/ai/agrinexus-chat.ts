@@ -1,5 +1,5 @@
 import type { AppLocale } from "@/i18n/routing";
-import { AGN_POLICY } from "@/lib/agrinexus-policy";
+import { AGN_POLICY } from "./agrinexus-policy";
 import { fetchLiveDeskPayload } from "@/lib/market-live-desk";
 import { isMistralConfigured, mistralChat, mistralModel } from "@/lib/mistral";
 

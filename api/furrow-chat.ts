@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleFurrowChatPost, isAnyLlmConfigured } from '../server/furrow-chat-handler.js';
+import { handleFurrowChatPost, isAnyLlmConfigured } from '../verticals/agriculture/ai/furrow-chat-handler.js';
 
 export const config = {
 	maxDuration: 60,

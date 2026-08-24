@@ -1,4 +1,4 @@
-import { executeFurrowAgentTool, FURROW_AGENT_TOOLS } from './furrow-agent-tools.js';
+import { executeFurrowAgentTool, FURROW_AGENT_TOOLS } from '../verticals/agriculture/ai/furrow-agent-tools.js';
 import type { AgentActionRecord, AgentToolContext } from './agent-types.js';
 
 export class ToolsAgent {

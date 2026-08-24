@@ -1,4 +1,4 @@
-import { buildFurrowKnowledgeContext, getKnowledgeChunkIds } from './furrow-knowledge.js';
+import { buildFurrowKnowledgeContext, getKnowledgeChunkIds } from '../verticals/agriculture/ai/furrow-knowledge.js';
 import type { ChatMessage, FurrowChatTurn } from './agent-types.js';
 import { Redis } from '@upstash/redis';
 

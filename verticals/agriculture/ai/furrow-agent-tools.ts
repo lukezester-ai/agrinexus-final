@@ -1,10 +1,10 @@
-import { buildFurrowKnowledgeContext } from './furrow-knowledge.js';
+import { submitFurrowWaitlist } from '../../../server/waitlist.js';
 import {
 	formatSignalsForAgent,
 	getFurrowMarketSignals,
 	refreshFurrowMarketSignals,
-} from '../verticals/agriculture/market-data/furrow-market-signals.js';
-import { submitFurrowWaitlist } from './waitlist.js';
+} from '../market-data/furrow-market-signals.js';
+import { buildFurrowKnowledgeContext } from './furrow-knowledge.js';
 
 export type AgentActionRecord = { tool: string; ok: boolean; summary: string };
 export type AgentToolContext = { lang: 'en' | 'bg'; clientIp?: string | null };

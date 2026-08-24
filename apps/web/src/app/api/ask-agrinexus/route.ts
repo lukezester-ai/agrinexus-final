@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AppLocale } from "@/i18n/routing";
-import { runAgrinexusChat } from "@/lib/agrinexus-chat";
+import { runAgrinexusChat } from "@agriculture/ai/agrinexus-chat";
 
 export const dynamic = "force-dynamic";
 

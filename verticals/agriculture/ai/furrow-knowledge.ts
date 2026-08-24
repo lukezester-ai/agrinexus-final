@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 type Chunk = { id: string; text: string };
 
-const knowledgePath = join(dirname(fileURLToPath(import.meta.url)), '..', 'data', 'furrow-agent-knowledge.json');
+const knowledgePath = join(dirname(fileURLToPath(import.meta.url)), 'furrow-agent-knowledge.json');
 
 let cached: Chunk[] | null = null;
 
