@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { AppLocale } from "@/i18n/routing";
+import { parseAppLocale } from "@/i18n/routing";
 import {
 	generateCommunityAiInsight,
 	templateCommunityInsight,
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 		return NextResponse.json({ error: "Prompt required (max 2000 chars)" }, { status: 400 });
 	}
 
-	const locale: AppLocale = body.locale === "bg" ? "bg" : "en";
+	const locale = parseAppLocale(body.locale);
 
 	if (!isMistralConfigured()) {
 		return NextResponse.json(
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 				text: templateCommunityInsight(locale, prompt),
 				source: "template",
 				mistral: false,
-				hint: "Set MISTRAL_API_KEY on Vercel (Project → Settings → Environment Variables) for apps/web, then redeploy.",
+				hint: "Set MISTRAL_API_KEY on Vercel for apps/web, then redeploy.",
 			},
 			{ status: 200 },
 		);

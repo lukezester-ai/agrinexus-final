@@ -1,28 +1,12 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
-
-const copy = {
-	en: {
-		home: "Today",
-		fields: "Fields",
-		market: "Market",
-		ask: "Ask",
-		more: "More",
-	},
-	bg: {
-		home: "Днес",
-		fields: "Поля",
-		market: "Пазар",
-		ask: "Питай",
-		more: "Още",
-	},
-};
+import { productLocale, shellCopy } from "@/lib/product-ux-copy";
 
 type Tab = {
 	href: string;
 	icon: string;
-	labelKey: keyof (typeof copy)["en"];
+	labelKey: "radar" | "intents" | "askShort" | "more";
 	match: (path: string) => boolean;
 };
 
@@ -30,47 +14,44 @@ const tabs: Tab[] = [
 	{
 		href: "/dashboard",
 		icon: "🏠",
-		labelKey: "home",
+		labelKey: "radar",
 		match: (p) => p === "/dashboard" || p === "/",
 	},
 	{
-		href: "/dashboard/fields",
-		icon: "📋",
-		labelKey: "fields",
-		match: (p) => p.startsWith("/dashboard/fields"),
-	},
-	{
-		href: "/dashboard/market",
-		icon: "📈",
-		labelKey: "market",
-		match: (p) => p.startsWith("/dashboard/market"),
+		href: "/dashboard/intents",
+		icon: "◎",
+		labelKey: "intents",
+		match: (p) => p.startsWith("/dashboard/intents"),
 	},
 	{
 		href: "/dashboard/ask",
 		icon: "💬",
-		labelKey: "ask",
+		labelKey: "askShort",
 		match: (p) => p.startsWith("/dashboard/ask"),
+	},
+	{
+		href: "/dashboard/settings",
+		icon: "⚙",
+		labelKey: "more",
+		match: (p) => p.startsWith("/dashboard/settings"),
 	},
 	{
 		href: "/dashboard/more",
 		icon: "⋯",
 		labelKey: "more",
-		match: (p) =>
-			p.startsWith("/dashboard/more") ||
-			p.startsWith("/dashboard/settings") ||
-			p.startsWith("/dashboard/decisions"),
+		match: (p) => p.startsWith("/dashboard/more"),
 	},
 ];
 
 export function MobileBottomNav({ locale }: { locale: string }) {
-	const c = locale === "bg" ? copy.bg : copy.en;
+	const c = shellCopy[productLocale(locale)];
 	const pathname = usePathname() ?? "";
 
 	return (
 		<nav
 			className="fixed inset-x-0 bottom-0 z-50 border-t border-ink/[0.08] bg-paper/95 backdrop-blur-xl md:hidden"
 			style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
-			aria-label={locale === "bg" ? "Мобилна навигация" : "Mobile navigation"}
+			aria-label={c.navAria}
 		>
 			<div className="grid grid-cols-5">
 				{tabs.map((tab) => {

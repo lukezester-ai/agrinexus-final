@@ -45,7 +45,7 @@ const copy = {
 		agents: [
 			{ color: "#1f4d2c", text: "MarketAgent: detected ±2.1σ price move", tag: "MKT" },
 			{ color: "#5a9968", text: "NewsAgent: parsed 142 sources overnight", tag: "NWS" },
-			{ color: "#c4a86a", text: "FinanceAgent: break-even confirmed €184/t", tag: "FIN" },
+			{ color: "#c4a86a", text: "FinanceAgent: margin check passed", tag: "FIN" },
 			{ color: "#b87a3d", text: "WeatherAgent: dry US Plains, bullish bias", tag: "WTR" },
 		],
 		signals: [

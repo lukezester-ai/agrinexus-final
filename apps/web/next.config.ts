@@ -13,9 +13,13 @@ const nextConfig: NextConfig = {
 	outputFileTracingRoot: monorepoRoot,
 	/** Само в development: същия origin като Next → FastAPI (удобно за бъдещи client fetch). */
 	async rewrites() {
-		if (process.env.NODE_ENV !== "development") return [];
+		const radarSmoke = {
+			source: "/dev/radar-smoke",
+			destination: "/en/dev/radar-smoke",
+		};
+		if (process.env.NODE_ENV !== "development") return [radarSmoke];
 		const origin = (process.env.BACKEND_ORIGIN ?? "http://127.0.0.1:8000").replace(/\/$/, "");
-		return [{ source: "/api/py/:path*", destination: `${origin}/:path*` }];
+		return [radarSmoke, { source: "/api/py/:path*", destination: `${origin}/:path*` }];
 	},
 };
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { productLocale, shellCopy } from "@/lib/product-ux-copy";
 
 type Props = {
 	locale: string;
@@ -23,10 +25,11 @@ export function MobileDashboardHeader({ locale, userName, initials }: Props) {
 				<span className="text-sm font-medium">AgriNexus</span>
 			</Link>
 			<div className="flex items-center gap-2">
+				<LanguageSwitcher />
 				<Link
 					href="/dashboard/ask"
 					className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/[0.08] bg-white/70 text-base no-underline"
-					aria-label={locale === "bg" ? "Чат" : "Chat"}
+					aria-label={shellCopy[productLocale(locale)].chat}
 				>
 					💬
 				</Link>

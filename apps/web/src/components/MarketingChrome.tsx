@@ -9,8 +9,9 @@ import { Footer } from "@/components/Footer";
 export function MarketingChrome({ children }: { children: ReactNode }) {
 	const pathname = usePathname() ?? "";
 	const isDashboard = pathname.includes("/dashboard");
+	const isRadarSmoke = pathname.includes("/dev/radar-smoke");
 
-	if (isDashboard) {
+	if (isDashboard || isRadarSmoke) {
 		return <div className="flex min-h-screen flex-1 flex-col">{children}</div>;
 	}
 

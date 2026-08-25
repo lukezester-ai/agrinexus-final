@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { SettingsFormWithBreakEven } from "./SettingsForm";
+import SettingsForm from "./SettingsForm";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -30,8 +30,8 @@ export default async function SettingsPage({ params }: PageProps) {
 	const title = locale === "bg" ? "Настройки на профила" : "Profile Settings";
 	const subtitle =
 		locale === "bg"
-			? "Профил, себестойност, местни купувачи (€/лв) и Telegram briefing."
-			: "Profile, break-even, local buyers (EUR/BGN), and Telegram briefing.";
+			? "Профил на организацията в Universal Business Core."
+			: "Organization profile in Universal Business Core.";
 
 	return (
 		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12 max-w-2xl">
@@ -43,7 +43,7 @@ export default async function SettingsPage({ params }: PageProps) {
 			</div>
 
 			<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl p-5 md:p-7">
-				<SettingsFormWithBreakEven locale={locale} profile={profile} />
+				<SettingsForm locale={locale} profile={profile} />
 			</div>
 		</div>
 	);

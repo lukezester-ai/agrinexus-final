@@ -12,6 +12,8 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.capabilities import discover_capabilities
+
 
 def _cors_origins() -> list[str]:
 	raw = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
@@ -52,8 +54,18 @@ class TokenRequest(BaseModel):
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-	return {"status": "ok"}
+def health() -> dict[str, Any]:
+	return {
+		"status": "ok",
+		"capabilities": sorted(discover_capabilities()),
+	}
+
+
+@app.get("/runtime/langgraph")
+def runtime_langgraph() -> dict[str, str]:
+	from app.runtime import invoke_core
+
+	return {"runtime": "langgraph", "sample": invoke_core("ping")}
 
 
 @app.get("/health/db")

@@ -31,6 +31,13 @@ export function LanguageSwitcher() {
 			>
 				БГ
 			</button>
+			<button
+				type="button"
+				className={btn(locale === "ar")}
+				onClick={() => router.replace(pathname, { locale: "ar" })}
+			>
+				ع
+			</button>
 		</div>
 	);
 }
