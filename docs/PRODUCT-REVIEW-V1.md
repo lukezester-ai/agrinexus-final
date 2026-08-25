@@ -1,8 +1,6 @@
 # Product Experience / Visual Polish v1 — usability gate
 
-Status: **IN REVIEW**. Not complete. A working technical product is not enough to freeze this.
-
-The next proof must come from real users. Stop feature work on this branch until the five sessions are logged.
+Status: **BLOCKED** on production smoke of **Product Cutover / Rebrand v1** (`docs/PRODUCT-CUTOVER-V1.md` is FROZEN). Do not run the five sessions until the cutover PR is CI-green and production-smoked.
 
 **Pilot Readiness v1 stays BLOCKED.** Do not onboard real organizations in parallel.
 

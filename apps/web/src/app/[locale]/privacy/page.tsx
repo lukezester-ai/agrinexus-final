@@ -9,11 +9,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	return locale === "bg"
 		? {
 				title: "Поверителност",
-				description: "Кратка страница за поверителност в AgriNexus.",
+				description: "Кратка страница за поверителност.",
 			}
 		: {
 				title: "Privacy",
-				description: "Privacy placeholder for AgriNexus Next app.",
+				description: "Privacy placeholder.",
 			};
 }
 

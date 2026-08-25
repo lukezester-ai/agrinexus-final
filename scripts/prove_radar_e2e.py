@@ -68,7 +68,7 @@ def seed() -> None:
                 """
             )
             cur.execute(
-                "INSERT INTO organizations (id, name, owner_user_id) VALUES (%s, 'Farm A', %s), (%s, 'Farm B', %s)",
+                "INSERT INTO organizations (id, name, owner_user_id) VALUES (%s, 'Northbridge Trading', %s), (%s, 'Atlas Distribution', %s)",
                 (str(ORG_A), str(USER_A), str(ORG_B), str(USER_C)),
             )
             cur.execute(
@@ -263,7 +263,7 @@ def verify() -> None:
     if not rel_a or not rel_c:
         raise SystemExit("relationship missing from radar after accept")
     names_a = " ".join(filter(None, [rel_a[0].get("organization_a_name"), rel_a[0].get("organization_b_name")]))
-    if "Farm A" not in names_a or "Farm B" not in names_a:
+    if "Northbridge Trading" not in names_a or "Atlas Distribution" not in names_a:
         raise SystemExit(f"relationship should show both org names, got {names_a}")
     if rel_f:
         raise SystemExit("outsider must not see the relationship")

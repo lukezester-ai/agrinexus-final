@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { productLocale, shellCopy } from "@/lib/product-ux-copy";
+import { WORKING_PRODUCT_MARK, WORKING_PRODUCT_NAME } from "@/lib/product-identity";
 
 type Props = {
 	locale: string;
@@ -18,11 +19,11 @@ export function MobileDashboardHeader({ locale, userName, initials }: Props) {
 			className="sticky top-0 z-40 flex items-center justify-between border-b border-ink/[0.06] bg-paper/90 px-4 py-3 backdrop-blur-xl md:hidden"
 			style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
 		>
-			<Link href="/" className="flex items-center gap-2 no-underline text-ink">
+			<Link href="/dashboard" className="flex items-center gap-2 no-underline text-ink">
 				<span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient text-[11px] text-white">
-					✦
+					{WORKING_PRODUCT_MARK}
 				</span>
-				<span className="text-sm font-medium">AgriNexus</span>
+				<span className="text-sm font-medium">{WORKING_PRODUCT_NAME}</span>
 			</Link>
 			<div className="flex items-center gap-2">
 				<LanguageSwitcher />

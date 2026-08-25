@@ -69,7 +69,7 @@ def assert_acf_security(page, locale: str) -> None:
     board_f = page.locator('[data-testid="business-radar-board"]').inner_text()
     assert INTENT_HEADLINE not in board_f
     assert OPP_TITLE not in board_f
-    assert "Farm A" not in board_f and "Farm B" not in board_f
+    assert "Northbridge Trading" not in board_f and "Atlas Distribution" not in board_f
 
     open_role(page, "C", locale)
     page.locator('[data-testid="radar-item-candidate_match"]').wait_for()
@@ -150,18 +150,18 @@ def main() -> None:
         click_rpc(page, "radar-action-accept")
         page.locator('[data-testid="radar-item-relationship"]').wait_for(timeout=15000)
         rel_c = page.locator('[data-testid="radar-item-relationship"]').inner_text()
-        assert "Farm A" in rel_c and "Farm B" in rel_c
+        assert "Northbridge Trading" in rel_c and "Atlas Distribution" in rel_c
         print("C: accept via 010, relationship visible")
 
         open_role(page, "A")
         page.locator('[data-testid="radar-item-relationship"]').wait_for()
         rel_a = page.locator('[data-testid="radar-item-relationship"]').inner_text()
-        assert "Farm A" in rel_a and "Farm B" in rel_a
+        assert "Northbridge Trading" in rel_a and "Atlas Distribution" in rel_a
         print("A: relationship visible")
 
         open_role(page, "F")
         assert page.locator('[data-testid="radar-item-relationship"]').count() == 0
-        assert "Farm A" not in page.locator('[data-testid="business-radar-board"]').inner_text()
+        assert "Northbridge Trading" not in page.locator('[data-testid="business-radar-board"]').inner_text()
         print("F: no relationship, no identity leak")
 
         browser.close()

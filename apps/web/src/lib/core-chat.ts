@@ -24,7 +24,7 @@ export async function runCoreChat(opts: {
 
 	const lang = opts.locale === "ar" ? "Arabic" : opts.locale === "bg" ? "Bulgarian" : "English";
 	const result = await mistralChat({
-		system: `You are the Universal Business Core assistant. Reply in ${lang}. Be concise. You have no agriculture, academy, field, or commodity tools. Help with organization, membership, and generic business questions.`,
+		system: `You are the Core assistant. Reply in ${lang}. Be concise. Help with organization, membership, Business Intents, Radar, introductions, and relationships.`,
 		user: opts.message,
 		model: mistralModel("MISTRAL_CORE_MODEL"),
 		maxTokens: 320,
