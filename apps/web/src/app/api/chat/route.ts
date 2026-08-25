@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { AppLocale } from "@/i18n/routing";
-import { runAgrinexusChat } from "@agriculture/ai/agrinexus-chat";
+import { parseAppLocale } from "@/i18n/routing";
+import { runCoreChat } from "@/lib/core-chat";
 import { isMistralConfigured } from "@/lib/mistral";
 
 export const dynamic = "force-dynamic";
@@ -18,16 +18,13 @@ export async function POST(req: NextRequest) {
 	}
 
 	const message = typeof body.message === "string" ? body.message : "";
-	const locale: AppLocale = body.locale === "en" ? "en" : "bg";
-	const farmContext = Array.isArray(body.farmContext)
-		? (body.farmContext as { name?: string; hectares?: number; crop?: string }[])
-		: undefined;
+	const locale = parseAppLocale(body.locale);
 
 	if (!message.trim()) {
 		return NextResponse.json({ error: "Message is required" }, { status: 400 });
 	}
 
-	const result = await runAgrinexusChat({ message, locale, farmContext });
+	const result = await runCoreChat({ message, locale });
 
 	return NextResponse.json({
 		response: result.response,

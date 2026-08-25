@@ -1,35 +1,11 @@
 import "../globals.css";
 import type { Metadata, Viewport } from "next";
-import { Fraunces, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/MarketingChrome";
+import { WORKING_PRODUCT_NAME } from "@/lib/product-identity";
 import { routing } from "@/i18n/routing";
-
-const spaceGrotesk = Space_Grotesk({
-	subsets: ["latin", "latin-ext"],
-	weight: ["400", "500", "600", "700"],
-	variable: "--font-sans",
-	display: "swap",
-});
-
-const fraunces = Fraunces({
-	subsets: ["latin", "latin-ext"],
-	style: ["normal", "italic"],
-	weight: ["400"],
-	variable: "--font-fraunces",
-	display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-	subsets: ["latin", "latin-ext"],
-	weight: ["400", "500"],
-	variable: "--font-mono",
-	display: "swap",
-});
-
-const fontVariables = [spaceGrotesk.variable, fraunces.variable, jetbrainsMono.variable].join(" ");
 
 /** Next.js 15+: viewport must not live inside `metadata` / `generateMetadata`. */
 export const viewport: Viewport = {
@@ -51,7 +27,7 @@ type LayoutProps = {
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
 	const { locale } = await params;
 	if (!hasLocale(routing.locales, locale)) {
-		return { title: "AgriNexus" };
+		return { title: WORKING_PRODUCT_NAME };
 	}
 	setRequestLocale(locale);
 	const t = await getTranslations({ locale, namespace: "Metadata" });
@@ -64,13 +40,13 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 		},
 		description: t("description"),
 		keywords: t.raw("keywords"),
-		authors: [{ name: "AgriNexus" }],
+		authors: [{ name: WORKING_PRODUCT_NAME }],
 		openGraph: {
 			title: t("ogTitle"),
 			description: t("ogDescription"),
 			url: "https://agrinexus.io",
-			siteName: "AgriNexus",
-			locale: locale === "bg" ? "bg_BG" : "en_US",
+			siteName: WORKING_PRODUCT_NAME,
+			locale: locale === "ar" ? "ar_SA" : locale === "bg" ? "bg_BG" : "en_US",
 			type: "website",
 		},
 		twitter: {
@@ -91,7 +67,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 	const messages = await getMessages();
 
 	return (
-		<html lang={locale} className={fontVariables}>
+		<html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
 			<body className="min-h-screen font-sans">
 				<NextIntlClientProvider locale={locale} messages={messages}>
 					<div className="aurora" aria-hidden="true" />

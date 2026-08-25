@@ -21,19 +21,13 @@ export default async function DashboardLayout({
 
   const { data: profile } = await supabase
     .from('farm_profiles')
-    .select('*')
+    .select('full_name')
     .eq('user_id', session.user.id)
-    .single();
+    .maybeSingle();
 
-  if (!profile?.onboarding_completed) {
-    redirect('/onboarding');
-  }
-
-  const userName = profile?.full_name || session?.user?.email?.split('@')[0] || "User";
+  const userName = profile?.full_name || session.user.email?.split('@')[0] || "User";
   const initials = userName.substring(0, 2).toUpperCase();
-  const userRegion = profile?.region || "Unknown";
-  const userHa = profile?.total_ha || "0";
-  const userMeta = `${userRegion} · ${userHa} ${locale === "bg" ? "ха" : "ha"}`;
+  const userMeta = session.user.email ?? "";
 
   return (
     <div className="relative z-[2] flex min-h-screen bg-[#f6f3ec]">

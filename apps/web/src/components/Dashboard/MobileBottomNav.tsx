@@ -1,78 +1,53 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
-
-const copy = {
-	en: {
-		home: "Today",
-		fields: "Fields",
-		market: "Market",
-		ask: "Ask",
-		more: "More",
-	},
-	bg: {
-		home: "Днес",
-		fields: "Поля",
-		market: "Пазар",
-		ask: "Питай",
-		more: "Още",
-	},
-};
+import { productLocale, shellCopy } from "@/lib/product-ux-copy";
 
 type Tab = {
 	href: string;
 	icon: string;
-	labelKey: keyof (typeof copy)["en"];
+	labelKey: "radar" | "intents" | "opportunities" | "more";
 	match: (path: string) => boolean;
 };
 
 const tabs: Tab[] = [
 	{
 		href: "/dashboard",
-		icon: "🏠",
-		labelKey: "home",
-		match: (p) => p === "/dashboard" || p === "/",
+		icon: "◎",
+		labelKey: "radar",
+		match: (p) => p === "/dashboard",
 	},
 	{
-		href: "/dashboard/fields",
-		icon: "📋",
-		labelKey: "fields",
-		match: (p) => p.startsWith("/dashboard/fields"),
+		href: "/dashboard/intents",
+		icon: "◎",
+		labelKey: "intents",
+		match: (p) => p.startsWith("/dashboard/intents") || p.startsWith("/dashboard/onboarding"),
 	},
 	{
-		href: "/dashboard/market",
-		icon: "📈",
-		labelKey: "market",
-		match: (p) => p.startsWith("/dashboard/market"),
-	},
-	{
-		href: "/dashboard/ask",
-		icon: "💬",
-		labelKey: "ask",
-		match: (p) => p.startsWith("/dashboard/ask"),
+		href: "/dashboard/opportunities",
+		icon: "◎",
+		labelKey: "opportunities",
+		match: (p) => p.startsWith("/dashboard/opportunities"),
 	},
 	{
 		href: "/dashboard/more",
 		icon: "⋯",
 		labelKey: "more",
-		match: (p) =>
-			p.startsWith("/dashboard/more") ||
-			p.startsWith("/dashboard/settings") ||
-			p.startsWith("/dashboard/decisions"),
+		match: (p) => p.startsWith("/dashboard/more") || p.startsWith("/dashboard/settings") || p.startsWith("/dashboard/ask"),
 	},
 ];
 
 export function MobileBottomNav({ locale }: { locale: string }) {
-	const c = locale === "bg" ? copy.bg : copy.en;
+	const c = shellCopy[productLocale(locale)];
 	const pathname = usePathname() ?? "";
 
 	return (
 		<nav
 			className="fixed inset-x-0 bottom-0 z-50 border-t border-ink/[0.08] bg-paper/95 backdrop-blur-xl md:hidden"
 			style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
-			aria-label={locale === "bg" ? "Мобилна навигация" : "Mobile navigation"}
+			aria-label={c.navAria}
 		>
-			<div className="grid grid-cols-5">
+			<div className="grid grid-cols-4">
 				{tabs.map((tab) => {
 					const active = tab.match(pathname);
 					return (
@@ -86,9 +61,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
 							<span className="text-[20px] leading-none" aria-hidden>
 								{tab.icon}
 							</span>
-							<span
-								className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}
-							>
+							<span className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}>
 								{c[tab.labelKey]}
 							</span>
 						</Link>

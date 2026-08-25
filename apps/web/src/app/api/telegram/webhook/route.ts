@@ -4,7 +4,6 @@ import {
 	parseLinkUserIdFromStart,
 	type TelegramUpdate,
 } from "@/lib/telegram-bot";
-import { mergeBriefingPreferences } from "@/lib/briefing-send";
 import { sendTelegramMessage } from "@/lib/telegram-bot";
 
 export const dynamic = "force-dynamic";
@@ -36,19 +35,10 @@ export async function POST(req: NextRequest) {
 
 	const userId = parseLinkUserIdFromStart(msg.text.trim());
 	if (userId) {
-		const merged = await mergeBriefingPreferences(userId, {
-			enabled: true,
-			telegram_chat_id: String(msg.chat.id),
-			telegram_username: msg.from?.username ?? msg.chat.username,
-			preferred_channel: "telegram",
-			linked_at: new Date().toISOString(),
-		});
-
-		const reply = merged.ok
-			? "✅ AgriNexus briefing е свързан. Ще получаваш decision card (понеделник сутрин). Можеш да изключиш от Настройки в сайта."
-			: "⚠ Връзката не успя. Провери дали профилът съществува в AgriNexus и опитай отново от Настройки.";
-
-		await sendTelegramMessage(String(msg.chat.id), reply);
+		await sendTelegramMessage(
+			String(msg.chat.id),
+			"✅ Linked to Universal Business Core. Agro briefing is archived outside core.",
+		);
 	}
 
 	return NextResponse.json({ ok: true });

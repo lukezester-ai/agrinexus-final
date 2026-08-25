@@ -44,7 +44,9 @@ export default async function CommunityPage({ params }: PageProps) {
 		.map((row) => parseCommunityPost(row as Record<string, unknown>))
 		.filter((p): p is NonNullable<typeof p> => p != null);
 
-	const { posts: aiDigest, poweredByMistral } = await buildAiCommunityDigest(loc);
+	const digest = await buildAiCommunityDigest(loc);
+	const aiDigest = digest.posts;
+	const mistralOn = digest.poweredByMistral;
 
 	return (
 		<main className="mx-auto min-w-0 max-w-5xl px-6 py-12 sm:py-14">
@@ -53,7 +55,7 @@ export default async function CommunityPage({ params }: PageProps) {
 				initialPosts={farmerPosts}
 				aiDigest={aiDigest}
 				isLoggedIn={Boolean(session)}
-				mistralEnabled={poweredByMistral || isMistralConfigured()}
+				mistralEnabled={mistralOn || isMistralConfigured()}
 			/>
 		</main>
 	);
