@@ -12,6 +12,33 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	outputFileTracingRoot: monorepoRoot,
 	/** Само в development: същия origin като Next → FastAPI (удобно за бъдещи client fetch). */
+	async redirects() {
+		const locales = ["en", "bg", "ar"];
+		const legacy = ["academy", "market", "agents", "platform", "sponsors", "methodology", "fields", "community", "ask"];
+		const toHome = legacy.flatMap((slug) => [
+			{ source: `/${slug}`, destination: "/", permanent: false },
+			{ source: `/${slug}/:path*`, destination: "/", permanent: false },
+			...locales.map((locale) => ({
+				source: `/${locale}/${slug}`,
+				destination: `/${locale}`,
+				permanent: false,
+			})),
+			...locales.map((locale) => ({
+				source: `/${locale}/${slug}/:path*`,
+				destination: `/${locale}`,
+				permanent: false,
+			})),
+		]);
+		return [
+			...toHome,
+			{ source: "/onboarding", destination: "/dashboard/onboarding", permanent: false },
+			...locales.map((locale) => ({
+				source: `/${locale}/onboarding`,
+				destination: `/${locale}/dashboard/onboarding`,
+				permanent: false,
+			})),
+		];
+	},
 	async rewrites() {
 		const radarSmoke = {
 			source: "/dev/radar-smoke",

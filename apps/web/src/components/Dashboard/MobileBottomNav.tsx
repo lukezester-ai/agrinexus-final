@@ -6,40 +6,34 @@ import { productLocale, shellCopy } from "@/lib/product-ux-copy";
 type Tab = {
 	href: string;
 	icon: string;
-	labelKey: "radar" | "intents" | "askShort" | "more";
+	labelKey: "radar" | "intents" | "opportunities" | "more";
 	match: (path: string) => boolean;
 };
 
 const tabs: Tab[] = [
 	{
 		href: "/dashboard",
-		icon: "🏠",
+		icon: "◎",
 		labelKey: "radar",
-		match: (p) => p === "/dashboard" || p === "/",
+		match: (p) => p === "/dashboard",
 	},
 	{
 		href: "/dashboard/intents",
 		icon: "◎",
 		labelKey: "intents",
-		match: (p) => p.startsWith("/dashboard/intents"),
+		match: (p) => p.startsWith("/dashboard/intents") || p.startsWith("/dashboard/onboarding"),
 	},
 	{
-		href: "/dashboard/ask",
-		icon: "💬",
-		labelKey: "askShort",
-		match: (p) => p.startsWith("/dashboard/ask"),
-	},
-	{
-		href: "/dashboard/settings",
-		icon: "⚙",
-		labelKey: "more",
-		match: (p) => p.startsWith("/dashboard/settings"),
+		href: "/dashboard/opportunities",
+		icon: "◎",
+		labelKey: "opportunities",
+		match: (p) => p.startsWith("/dashboard/opportunities"),
 	},
 	{
 		href: "/dashboard/more",
 		icon: "⋯",
 		labelKey: "more",
-		match: (p) => p.startsWith("/dashboard/more"),
+		match: (p) => p.startsWith("/dashboard/more") || p.startsWith("/dashboard/settings") || p.startsWith("/dashboard/ask"),
 	},
 ];
 
@@ -53,7 +47,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
 			style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
 			aria-label={c.navAria}
 		>
-			<div className="grid grid-cols-5">
+			<div className="grid grid-cols-4">
 				{tabs.map((tab) => {
 					const active = tab.match(pathname);
 					return (
@@ -67,9 +61,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
 							<span className="text-[20px] leading-none" aria-hidden>
 								{tab.icon}
 							</span>
-							<span
-								className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}
-							>
+							<span className={`text-[10px] leading-tight ${active ? "font-semibold" : "font-medium"}`}>
 								{c[tab.labelKey]}
 							</span>
 						</Link>

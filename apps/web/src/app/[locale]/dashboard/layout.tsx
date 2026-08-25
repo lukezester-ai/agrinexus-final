@@ -19,8 +19,6 @@ export default async function DashboardLayout({
     redirect(`/${locale}/login`);
   }
 
-  // farm_profiles is leftover chrome, not an access gate. Auth + organization
-  // membership are enough to enter the dashboard.
   const { data: profile } = await supabase
     .from('farm_profiles')
     .select('full_name')
