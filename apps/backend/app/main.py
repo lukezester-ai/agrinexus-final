@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
@@ -22,14 +21,12 @@ def _cors_origins() -> list[str]:
 
 def _jwt_secret() -> str:
 	secret = os.getenv("JWT_SECRET", "").strip()
-	if not secret:
-		# Dev default — override in production.
-		return "agrinexus-dev-jwt-secret-change-me"
+	if len(secret) < 32 or secret == "agrinexus-dev-jwt-secret-change-me":
+		raise HTTPException(status_code=503, detail="authentication_not_configured")
 	return secret
 
 
 JWT_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 7
 
 
 @asynccontextmanager
@@ -87,17 +84,8 @@ def health_db() -> dict[str, Any]:
 
 @app.post("/auth/token")
 def create_access_token(body: TokenRequest) -> dict[str, str]:
-	"""Dev-friendly stub: issues a JWT for any plausible email (no password yet)."""
-	email = body.email.strip()
-	if "@" not in email or len(email) < 5:
-		raise HTTPException(status_code=400, detail="invalid_email")
-	now = datetime.now(timezone.utc)
-	exp = now + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
-	payload = {"sub": email, "iat": int(now.timestamp()), "exp": exp}
-	token = jwt.encode(payload, _jwt_secret(), algorithm=JWT_ALGORITHM)
-	if isinstance(token, bytes):
-		token = token.decode("utf-8")
-	return {"access_token": token, "token_type": "bearer"}
+	"""Fail closed until an identity-verifying authentication flow is implemented."""
+	raise HTTPException(status_code=501, detail="passwordless_token_stub_disabled")
 
 
 @app.get("/auth/me")
@@ -106,7 +94,7 @@ def auth_me(authorization: str | None = Header(default=None)) -> dict[str, str]:
 		raise HTTPException(status_code=401, detail="missing_bearer")
 	raw = authorization[7:].strip()
 	try:
-		payload = jwt.decode(raw, _jwt_secret(), algorithms=[JWT_ALGORITHM])
+		payload = jwt.decode(raw, _jwt_secret(), algorithms=[JWT_ALGORITHM], options={"require": ["exp", "sub"]})
 	except jwt.PyJWTError:
 		raise HTTPException(status_code=401, detail="invalid_token")
 	sub = payload.get("sub")
