@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from './lib/vercel-types.js';
 import { getFurrowMarketSignals, refreshFurrowMarketSignals } from '../verticals/agriculture/market-data/furrow-market-signals.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

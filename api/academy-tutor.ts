@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from './lib/vercel-types.js';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { AGN_POLICY } from '../verticals/agriculture/ai/api-agrinexus-policy.js';
 import { getChatMistral } from './lib/mistral-client.js';
