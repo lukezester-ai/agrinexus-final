@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from './lib/vercel-types.js';
 import { handleFurrowChatPost, isAnyLlmConfigured } from '../verticals/agriculture/ai/furrow-chat-handler.js';
 
 export const config = {

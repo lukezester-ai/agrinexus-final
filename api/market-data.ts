@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from './lib/vercel-types.js';
 import { yahooFinance } from './yahoo-finance-client.js';
 
 // Cache results for 15 minutes to avoid rate limits
