@@ -15,7 +15,6 @@ const VISIBILITIES = ["confidential", "network", "public"] as const;
 
 export function FirstIntentForm({
 	organizationId,
-	userId,
 	locale,
 }: {
 	organizationId: string;
@@ -44,21 +43,22 @@ export function FirstIntentForm({
 			return;
 		}
 
-		const { error: insertError } = await supabase.from("business_intents").insert({
-			organization_id: organizationId,
-			created_by: userId,
-			kind,
-			headline: text,
-			public_summary: text,
-			industry: industryValue,
-			target_markets,
-			visibility,
-			lifecycle: "active",
+		const { error: commandError } = await supabase.rpc("create_business_intent_v1", {
+			p_organization_id: organizationId,
+			p_kind: kind,
+			p_headline: text,
+			p_public_summary: text,
+			p_industry: industryValue,
+			p_target_markets: target_markets,
+			p_visibility: visibility,
+			p_initial_lifecycle: "active",
+			p_expires_at: null,
+			p_private_brief: null,
 		});
 
-		if (insertError) {
+		if (commandError) {
 			setSaving(false);
-			setError(insertError.message);
+			setError(commandError.message);
 			return;
 		}
 
