@@ -82,7 +82,6 @@ const copy = {
 export function IntentCreateForm({
 	locale,
 	organizationId,
-	userId,
 }: {
 	locale: string;
 	organizationId: string;
@@ -105,40 +104,23 @@ export function IntentCreateForm({
 		setSaving(true);
 		setError(null);
 		const target_markets = parseMarketList(markets);
-		const { data: intent, error: insertError } = await supabase
-			.from("business_intents")
-			.insert({
-				organization_id: organizationId,
-				created_by: userId,
-				kind,
-				headline: headline.trim(),
-				public_summary: publicSummary.trim(),
-				industry: industry.trim(),
-				target_markets,
-				visibility,
-				lifecycle,
-				expires_at: expires ? new Date(expires).toISOString() : null,
-			})
-			.select("id")
-			.single();
+		const { error: commandError } = await supabase.rpc("create_business_intent_v1", {
+			p_organization_id: organizationId,
+			p_kind: kind,
+			p_headline: headline.trim(),
+			p_public_summary: publicSummary.trim(),
+			p_industry: industry.trim(),
+			p_target_markets: target_markets,
+			p_visibility: visibility,
+			p_initial_lifecycle: lifecycle,
+			p_expires_at: expires ? new Date(expires).toISOString() : null,
+			p_private_brief: brief.trim() || null,
+		});
 
-		if (insertError || !intent?.id) {
+		if (commandError) {
 			setSaving(false);
-			setError(insertError?.message ?? "Save failed");
+			setError(commandError.message);
 			return;
-		}
-
-		if (brief.trim()) {
-			const { error: secretError } = await supabase.from("business_intent_secrets").insert({
-				intent_id: intent.id,
-				organization_id: organizationId,
-				private_brief: brief.trim(),
-			});
-			if (secretError) {
-				setSaving(false);
-				setError(secretError.message);
-				return;
-			}
 		}
 
 		router.push("/dashboard/intents");
