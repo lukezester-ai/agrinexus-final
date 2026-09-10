@@ -31,6 +31,8 @@ export async function mistralChat(opts: {
 	temperature?: number;
 	maxTokens?: number;
 	timeoutMs?: number;
+	jsonObject?: boolean;
+	telemetry?: boolean;
 }): Promise<MistralChatResult> {
 	const key = process.env.MISTRAL_API_KEY?.trim();
 	if (!key) {
@@ -42,7 +44,7 @@ export async function mistralChat(opts: {
 	let traceId: string | undefined;
 	let generation: any;
 
-	if (isLangfuseConfigured && langfuse) {
+	if (opts.telemetry !== false && isLangfuseConfigured && langfuse) {
 		const trace = langfuse.trace({
 			name: "Mistral Chat",
 		});
@@ -72,6 +74,7 @@ export async function mistralChat(opts: {
 				model,
 				temperature: opts.temperature ?? 0.35,
 				max_tokens: opts.maxTokens ?? 280,
+				...(opts.jsonObject ? { response_format: { type: "json_object" } } : {}),
 				messages: [
 					{ role: "system", content: opts.system },
 					{ role: "user", content: opts.user },
