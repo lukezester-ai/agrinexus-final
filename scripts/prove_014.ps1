@@ -52,6 +52,7 @@ $code = $LASTEXITCODE
 if ($code -ne 0) { exit $code }
 
 Invoke-SqlFile (Join-Path $root "migrations\014_matching_product_boundary.sql")
+Invoke-SqlFile (Join-Path $root "migrations\015_matching_command_boundary_hardening.sql")
 python -m pytest -q test_matching_product_boundary.py
 $code = $LASTEXITCODE
 if ($code -eq 0) { docker rm -f $container | Out-Null }
