@@ -11,6 +11,7 @@ import {
 	type IntentKind,
 	type IntentVisibility,
 } from "@/lib/business-intents";
+import type { IntentSuggestion } from "@/lib/ai-intent-assist";
 
 const copy = {
 	en: {
@@ -28,6 +29,13 @@ const copy = {
 		draft: "Save draft",
 		publish: "Activate",
 		saving: "Saving…",
+		assistTitle: "Draft with AI",
+		assistHint: "Describe the business need. Do not include confidential information. Nothing is saved automatically.",
+		assistPlaceholder: "We need a logistics partner for temperature-controlled deliveries in Germany and Romania…",
+		assistGenerate: "Generate suggestion",
+		assistGenerating: "Generating…",
+		assistApply: "Apply suggestion",
+		assistPreview: "Review before applying",
 		kinds: {
 			buy: "Buy",
 			sell: "Sell",
@@ -60,6 +68,13 @@ const copy = {
 		draft: "Чернова",
 		publish: "Активирай",
 		saving: "Запис…",
+		assistTitle: "Чернова с AI",
+		assistHint: "Опишете бизнес нуждата. Не включвайте поверителна информация. Нищо не се записва автоматично.",
+		assistPlaceholder: "Търсим логистичен партньор за температурно контролирани доставки в Германия и Румъния…",
+		assistGenerate: "Създай предложение",
+		assistGenerating: "Генериране…",
+		assistApply: "Приложи предложението",
+		assistPreview: "Преглед преди прилагане",
 		kinds: {
 			buy: "Покупка",
 			sell: "Продажба",
@@ -99,6 +114,42 @@ export function IntentCreateForm({
 	const [brief, setBrief] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [saving, setSaving] = useState(false);
+	const [assistText, setAssistText] = useState("");
+	const [assisting, setAssisting] = useState(false);
+	const [suggestion, setSuggestion] = useState<IntentSuggestion | null>(null);
+
+	async function generateSuggestion() {
+		setAssisting(true);
+		setSuggestion(null);
+		setError(null);
+		try {
+			const response = await fetch("/api/intents/assist", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ organizationId, sourceText: assistText, locale }),
+			});
+			const data = await response.json() as { suggestion?: IntentSuggestion; error?: string };
+			if (!response.ok || !data.suggestion) {
+				setError(data.error || "intent_assistant_failed");
+				return;
+			}
+			setSuggestion(data.suggestion);
+		} catch {
+			setError("intent_assistant_unavailable");
+		} finally {
+			setAssisting(false);
+		}
+	}
+
+	function applySuggestion() {
+		if (!suggestion) return;
+		setKind(suggestion.kind);
+		setHeadline(suggestion.headline);
+		setPublicSummary(suggestion.publicSummary);
+		setIndustry(suggestion.industry);
+		setMarkets(suggestion.targetMarkets.join(", "));
+		setSuggestion(null);
+	}
 
 	async function save(lifecycle: "draft" | "active") {
 		setSaving(true);
@@ -137,6 +188,38 @@ export function IntentCreateForm({
 				void save("draft");
 			}}
 		>
+			<section className="rounded-2xl border border-forest-700/15 bg-forest-50/60 p-4">
+				<h2 className="text-sm font-semibold text-ink">{t.assistTitle}</h2>
+				<p className="mt-1 text-xs text-ink/55">{t.assistHint}</p>
+				<textarea
+					className={`${field} mt-3`}
+					rows={3}
+					minLength={20}
+					maxLength={4000}
+					placeholder={t.assistPlaceholder}
+					value={assistText}
+					onChange={(e) => setAssistText(e.target.value)}
+				/>
+				<button
+					type="button"
+					disabled={assisting || assistText.trim().length < 20}
+					onClick={() => void generateSuggestion()}
+					className="mt-3 rounded-xl border border-forest-700/25 bg-white px-3 py-2 text-xs font-medium text-forest-800 disabled:opacity-50"
+				>
+					{assisting ? t.assistGenerating : t.assistGenerate}
+				</button>
+				{suggestion ? (
+					<div className="mt-3 rounded-xl border border-ink/10 bg-white/90 p-3 text-xs text-ink/70">
+						<p className="font-semibold text-ink">{t.assistPreview}</p>
+						<p className="mt-2"><strong>{suggestion.headline}</strong></p>
+						<p className="mt-1">{suggestion.publicSummary}</p>
+						<p className="mt-2 text-ink/50">{suggestion.kind} · {suggestion.industry} · {suggestion.targetMarkets.join(", ") || "—"}</p>
+						<button type="button" onClick={applySuggestion} className="mt-3 rounded-lg bg-forest-700 px-3 py-2 font-medium text-white">
+							{t.assistApply}
+						</button>
+					</div>
+				) : null}
+			</section>
 			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
 				{t.kind}
 				<select className={field} value={kind} onChange={(e) => setKind(e.target.value as IntentKind)}>
