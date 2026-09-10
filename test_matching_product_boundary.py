@@ -132,3 +132,4 @@ def test_privilege_contract_is_fail_closed():
             assert scalar(conn, "SELECT has_function_privilege('anon','public.run_matching_engine_v1()','execute')") is False
         assert scalar(conn, "SELECT has_function_privilege('authenticated','public.qualify_business_match(uuid)','execute')") is True
         assert scalar(conn, "SELECT has_table_privilege('authenticated','public.business_matches','insert')") is False
+        assert scalar(conn, "SELECT has_table_privilege('authenticated','public.business_matches','update')") is False
