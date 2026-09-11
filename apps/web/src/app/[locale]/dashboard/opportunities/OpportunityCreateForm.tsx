@@ -39,11 +39,9 @@ const copy = {
 export function OpportunityCreateForm({
 	locale,
 	organizationId,
-	userId,
 }: {
 	locale: string;
 	organizationId: string;
-	userId: string;
 }) {
 	const router = useRouter();
 	const t = locale === "bg" ? copy.bg : copy.en;
@@ -59,23 +57,21 @@ export function OpportunityCreateForm({
 	async function save(lifecycle: "draft" | "open") {
 		setSaving(true);
 		setError(null);
-		const { error: insertError } = await supabase.from("business_opportunities").insert({
-			organization_id: organizationId,
-			created_by: userId,
-			source_type: "manual",
-			source_ref: "ui",
-			title: title.trim(),
-			summary: summary.trim(),
-			industry: industry.trim(),
-			target_markets: parseMarketList(markets),
-			visibility,
-			lifecycle,
-			facets: { kind },
-			provenance: {},
+		const { error: commandError } = await supabase.rpc("create_business_opportunity_v1", {
+			p_organization_id: organizationId,
+			p_kind: kind,
+			p_title: title.trim(),
+			p_summary: summary.trim(),
+			p_industry: industry.trim(),
+			p_target_markets: parseMarketList(markets),
+			p_visibility: visibility,
+			p_initial_lifecycle: lifecycle,
+			p_expires_at: null,
+			p_private_brief: null,
 		});
-		if (insertError) {
+		if (commandError) {
 			setSaving(false);
-			setError(insertError.message);
+			setError(commandError.message);
 			return;
 		}
 		router.push("/dashboard/opportunities");
