@@ -29,3 +29,31 @@ export type BusinessOpportunity = {
 	created_at: string;
 	updated_at: string;
 };
+
+export type OpportunityWorkspaceMatch = {
+	id: string;
+	lifecycle: string;
+	score: number;
+	confidence: number;
+	reasons: Array<{ code: string; ok?: boolean; value?: number }>;
+	introductionStatus: string | null;
+	relationshipId: string | null;
+	relationshipStatus: string | null;
+};
+
+export type OpportunityWorkspaceEvent = {
+	id: string;
+	kind: string;
+	createdAt: string;
+	detail: string | null;
+};
+
+export type OpportunityWorkspace = {
+	opportunity: BusinessOpportunity;
+	isOwnerOrganization: boolean;
+	privateBrief: string | null;
+	recommendations: string[];
+	nextAction: string;
+	matches: OpportunityWorkspaceMatch[];
+	timeline: OpportunityWorkspaceEvent[];
+};

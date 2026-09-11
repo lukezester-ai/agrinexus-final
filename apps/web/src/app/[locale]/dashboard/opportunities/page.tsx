@@ -61,7 +61,9 @@ export default async function OpportunitiesPage({ params }: PageProps) {
 				<ul className="flex flex-col gap-2">
 					{opportunities.map((row) => (
 						<li key={row.id} className="rounded-2xl border border-ink/[0.06] bg-white/55 px-4 py-3.5">
-							<div className="text-sm font-medium text-ink">{row.title}</div>
+							<Link href={`/dashboard/opportunities/${row.id}`} className="text-sm font-medium text-ink no-underline hover:underline">
+								{row.title}
+							</Link>
 							<div className="mt-1 font-mono text-[10px] uppercase text-ink/45">
 								{row.visibility} · {row.lifecycle} · {row.source_type}
 							</div>
