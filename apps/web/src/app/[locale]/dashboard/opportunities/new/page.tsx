@@ -33,7 +33,7 @@ export default async function NewOpportunityPage({ params }: PageProps) {
 			{error || !organizationId ? (
 				<p className="text-sm text-red-800">{error ?? "Organization required"}</p>
 			) : (
-				<OpportunityCreateForm locale={locale} organizationId={organizationId} userId={session.user.id} />
+				<OpportunityCreateForm locale={locale} organizationId={organizationId} />
 			)}
 		</div>
 	);
