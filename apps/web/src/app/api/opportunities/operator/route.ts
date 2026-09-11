@@ -18,13 +18,24 @@ export async function POST(request: NextRequest) {
 	}
 
 	const opportunityId = typeof body.opportunityId === "string" ? body.opportunityId.trim() : "";
+	const matchId = typeof body.matchId === "string" ? body.matchId.trim() : "";
 	if (!UUID_PATTERN.test(opportunityId)) {
 		return NextResponse.json({ error: "invalid_opportunity" }, { status: 400 });
+	}
+	if (matchId && !UUID_PATTERN.test(matchId)) {
+		return NextResponse.json({ error: "invalid_match" }, { status: 400 });
 	}
 
 	const workspace = await loadOpportunityWorkspace(opportunityId);
 	if (!workspace) return NextResponse.json({ error: "not_found" }, { status: 404 });
 	if (!workspace.isOwnerOrganization) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+	if (matchId) {
+		const selectedMatch = workspace.matches.find((match) => match.id === matchId);
+		if (!selectedMatch) return NextResponse.json({ error: "match_not_found" }, { status: 404 });
+		if (selectedMatch.lifecycle !== "qualified" || selectedMatch.introductionStatus) {
+			return NextResponse.json({ error: "match_not_available_for_introduction" }, { status: 409 });
+		}
+	}
 	if (!isMistralConfigured()) {
 		return NextResponse.json({ error: "business_operator_not_configured" }, { status: 503 });
 	}
@@ -32,6 +43,7 @@ export async function POST(request: NextRequest) {
 	const result = await adviseBusinessOpportunity({
 		workspace,
 		locale: parseAppLocale(body.locale),
+		matchId: matchId || undefined,
 	});
 	if (!result.advice) {
 		return NextResponse.json({ error: "business_operator_failed" }, { status: 502 });
