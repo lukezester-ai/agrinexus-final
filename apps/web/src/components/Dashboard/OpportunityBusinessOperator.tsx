@@ -13,7 +13,7 @@ const copy = {
 
 export function OpportunityBusinessOperator({ opportunityId, locale, matches }: { opportunityId: string; locale: string; matches: OpportunityWorkspaceMatch[] }) {
 	const t = locale === "bg" ? copy.bg : copy.en;
-	const qualifiedMatches = matches.filter((match) => match.lifecycle === "qualified" && !match.introductionStatus);
+	const qualifiedMatches = matches.filter((match) => match.capabilities.canRequestIntroduction);
 	const [matchId, setMatchId] = useState(qualifiedMatches[0]?.id ?? "");
 	const [advice, setAdvice] = useState<BusinessOperatorAdvice | null>(null);
 	const [error, setError] = useState<string | null>(null);

@@ -15,12 +15,18 @@ const labels = {
 	bg: { back: "← Възможности", overview: "Какво се случва?", meaning: "Какво означава?", next: "Какво мога да направя сега?", matches: "Съвпадения", activity: "Развитие", private: "Поверителен контекст", missing: "Подобри възможността", noMatches: "Все още няма налични съвпадения.", noActivity: "Все още няма развитие.", trust: "Допустимо според текущата trust политика" },
 } as const;
 
+const eventLabels = {
+	en: { "opportunity.created": "Opportunity created", "opportunity.status_changed": "Opportunity status changed", match_created: "Match found", lifecycle_changed: "Match status changed", introduction_requested: "Introduction requested", introduction_accepted: "Introduction accepted", introduction_declined: "Introduction declined", opened: "Relationship created", reintroduced: "Relationship renewed" },
+	bg: { "opportunity.created": "Възможността е създадена", "opportunity.status_changed": "Статусът на възможността е променен", match_created: "Открито е съвпадение", lifecycle_changed: "Статусът на съвпадението е променен", introduction_requested: "Заявено е представяне", introduction_accepted: "Представянето е прието", introduction_declined: "Представянето е отказано", opened: "Създадена е бизнес връзка", reintroduced: "Бизнес връзката е подновена" },
+} as const;
+
 export default async function OpportunityWorkspacePage({ params }: PageProps) {
 	const { locale, id } = await params;
 	setRequestLocale(locale);
 	const workspace = await loadOpportunityWorkspace(id);
 	if (!workspace) notFound();
 	const t = locale === "bg" ? labels.bg : labels.en;
+	const events = locale === "bg" ? eventLabels.bg : eventLabels.en;
 	const { opportunity } = workspace;
 	return (
 		<div className="mx-auto max-w-4xl px-4 py-5 pb-12 md:px-7">
@@ -49,7 +55,7 @@ export default async function OpportunityWorkspacePage({ params }: PageProps) {
 
 			<section className="mt-8">
 				<h2 className="font-serif text-2xl text-ink">{t.activity}</h2>
-				{workspace.timeline.length ? <ol className="mt-4 border-l border-ink/10 pl-5">{workspace.timeline.map((event) => <li key={event.id} className="mb-4"><p className="text-sm font-medium text-ink">{event.kind.replaceAll("_", " ").replaceAll(".", " · ")}</p>{event.detail ? <p className="mt-1 text-xs text-ink/55">{event.detail}</p> : null}<time className="mt-1 block text-[11px] text-ink/35">{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.createdAt))}</time></li>)}</ol> : <p className="mt-3 text-sm text-ink/50">{t.noActivity}</p>}
+				{workspace.timeline.length ? <ol className="mt-4 border-l border-ink/10 pl-5">{workspace.timeline.map((event) => <li key={event.id} className="mb-4"><p className="text-sm font-medium text-ink">{events[event.kind as keyof typeof events] ?? event.kind.replaceAll("_", " ").replaceAll(".", " · ")}</p>{event.detail ? <p className="mt-1 text-xs text-ink/55">{event.detail}</p> : null}<time className="mt-1 block text-[11px] text-ink/35">{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.createdAt))}</time></li>)}</ol> : <p className="mt-3 text-sm text-ink/50">{t.noActivity}</p>}
 			</section>
 		</div>
 	);

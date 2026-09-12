@@ -6,6 +6,7 @@ import type {
 	OpportunityWorkspaceEvent,
 	OpportunityWorkspaceMatch,
 } from "@/lib/business-opportunities";
+import { NO_MATCH_CAPABILITIES, parseMatchCapabilities } from "@/lib/match-capabilities";
 
 type MatchRow = {
 	id: string;
@@ -65,7 +66,7 @@ export async function loadOpportunityWorkspace(id: string): Promise<OpportunityW
 
 	const rawMatches = (matchRows ?? []) as MatchRow[];
 	const matchIds = rawMatches.map((row) => row.id);
-	const [{ data: introductionRows }, { data: relationshipRows }, { data: matchEventRows }] =
+	const [{ data: introductionRows }, { data: relationshipRows }, { data: matchEventRows }, { data: capabilityRows }] =
 		matchIds.length > 0
 			? await Promise.all([
 					supabase
@@ -81,8 +82,10 @@ export async function loadOpportunityWorkspace(id: string): Promise<OpportunityW
 						.select("id, match_id, kind, from_lifecycle, to_lifecycle, created_at")
 						.in("match_id", matchIds)
 						.order("created_at", { ascending: false }),
+					supabase.rpc("business_match_capabilities", { p_match_ids: matchIds }),
 				])
-			: [{ data: [] }, { data: [] }, { data: [] }];
+			: [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+	const capabilities = parseMatchCapabilities(capabilityRows);
 
 	const introductions = new Map(
 		(introductionRows ?? []).map((row) => [String(row.match_id), String(row.status)]),
@@ -104,6 +107,7 @@ export async function loadOpportunityWorkspace(id: string): Promise<OpportunityW
 			introductionStatus: introductions.get(row.id) ?? null,
 			relationshipId: relationship?.id ?? null,
 			relationshipStatus: relationship?.status ?? null,
+			capabilities: capabilities[row.id] ?? NO_MATCH_CAPABILITIES,
 		};
 	});
 

@@ -35,6 +35,7 @@ export type RadarItem = {
 	organization_a_name: string | null;
 	organization_b_name: string | null;
 	reasons?: RadarReason[];
+	capabilities?: import("@/lib/match-capabilities").MatchCapabilities;
 };
 
 export const EMPTY_RADAR_SUMMARY: RadarSummary = {

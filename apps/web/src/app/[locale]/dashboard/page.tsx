@@ -11,6 +11,7 @@ import {
 	type RadarReason,
 } from "@/lib/business-radar";
 import { radarBoardCopy, productLocale } from "@/lib/product-ux-copy";
+import { NO_MATCH_CAPABILITIES, parseMatchCapabilities } from "@/lib/match-capabilities";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -55,19 +56,28 @@ export default async function DashboardPage({ params }: PageProps) {
 		...Object.values(introductionMatchIds),
 	];
 	let reasonsByMatchId: Record<string, RadarReason[]> = {};
+	let capabilitiesByMatchId = {} as ReturnType<typeof parseMatchCapabilities>;
 	if (matchIds.length > 0) {
-		const { data: reasonRows } = await supabase
-			.from("business_matches")
-			.select("id, reasons")
-			.in("id", matchIds);
+		const [{ data: reasonRows }, { data: capabilityRows }] = await Promise.all([
+			supabase.from("business_matches").select("id, reasons").in("id", matchIds),
+			supabase.rpc("business_match_capabilities", { p_match_ids: matchIds }),
+		]);
 		reasonsByMatchId = Object.fromEntries(
 			(reasonRows ?? []).map((row: { id: string; reasons: unknown }) => [
 				row.id,
 				parseMatchReasons(row.reasons),
 			]),
 		);
+		capabilitiesByMatchId = parseMatchCapabilities(capabilityRows);
 	}
-	const itemsWithReasons = attachMatchReasons(items, reasonsByMatchId, introductionMatchIds);
+	const itemsWithReasons = attachMatchReasons(items, reasonsByMatchId, introductionMatchIds).map((item) => {
+		const matchId = item.item_kind === "pending_introduction"
+			? introductionMatchIds[item.item_id]
+			: item.item_kind === "candidate_match" || item.item_kind === "qualified_match"
+				? item.item_id
+				: null;
+		return matchId ? { ...item, capabilities: capabilitiesByMatchId[matchId] ?? NO_MATCH_CAPABILITIES } : item;
+	});
 
 	const { count: activeIntentCount } = await supabase
 		.from("business_intents")

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 	if (matchId) {
 		const selectedMatch = workspace.matches.find((match) => match.id === matchId);
 		if (!selectedMatch) return NextResponse.json({ error: "match_not_found" }, { status: 404 });
-		if (selectedMatch.lifecycle !== "qualified" || selectedMatch.introductionStatus) {
+		if (!selectedMatch.capabilities.canRequestIntroduction) {
 			return NextResponse.json({ error: "match_not_available_for_introduction" }, { status: 409 });
 		}
 	}
