@@ -96,7 +96,17 @@ export function BusinessRadarBoard({
 
 	function actionsFor(item: RadarItem) {
 		const matchId = matchIdFor(item, introductionMatchIds);
-		if (item.item_kind === "candidate_match" && matchId) {
+		const responseActions = (id: string) => (
+			<div className="mt-3 flex flex-wrap gap-2">
+				<button type="button" data-testid="radar-action-accept" disabled={pending} onClick={() => runRpc("respond_business_match_introduction", { p_match_id: id, p_accept: true, p_note: "" })} className={secondaryAction}>
+					{pending ? c.working : c.accept}
+				</button>
+				<button type="button" data-testid="radar-action-decline" disabled={pending} onClick={() => runRpc("respond_business_match_introduction", { p_match_id: id, p_accept: false, p_note: "" })} className={quietAction}>
+					{c.decline}
+				</button>
+			</div>
+		);
+		if (item.item_kind === "candidate_match" && matchId && item.capabilities?.canQualify) {
 			return (
 				<div className="mt-3">
 					<button
@@ -112,15 +122,21 @@ export function BusinessRadarBoard({
 			);
 		}
 		if (item.item_kind === "pending_introduction") {
+			if (matchId && item.capabilities?.canRespondIntroduction) {
+				return responseActions(matchId);
+			}
 			return (
 				<p className="mt-3 rounded-lg bg-harvest-50 px-3 py-2 text-[13px] leading-snug text-harvest-700">
 					{c.waiting}
 				</p>
 			);
 		}
-		if (item.item_kind === "qualified_match" && matchId) {
+		if (item.item_kind === "qualified_match" && matchId && item.capabilities?.canRespondIntroduction) {
+			return responseActions(matchId);
+		}
+		if (item.item_kind === "qualified_match" && matchId && item.capabilities?.canRequestIntroduction) {
 			return (
-				<div className="mt-3 flex flex-wrap gap-2">
+				<div className="mt-3">
 					<button
 						type="button"
 						data-testid="radar-action-request"
@@ -131,36 +147,6 @@ export function BusinessRadarBoard({
 						className={primaryAction}
 					>
 						{pending ? c.working : c.request}
-					</button>
-					<button
-						type="button"
-						data-testid="radar-action-accept"
-						disabled={pending}
-						onClick={() =>
-							runRpc("respond_business_match_introduction", {
-								p_match_id: matchId,
-								p_accept: true,
-								p_note: "",
-							})
-						}
-						className={secondaryAction}
-					>
-						{c.accept}
-					</button>
-					<button
-						type="button"
-						data-testid="radar-action-decline"
-						disabled={pending}
-						onClick={() =>
-							runRpc("respond_business_match_introduction", {
-								p_match_id: matchId,
-								p_accept: false,
-								p_note: "",
-							})
-						}
-						className={quietAction}
-					>
-						{c.decline}
 					</button>
 				</div>
 			);

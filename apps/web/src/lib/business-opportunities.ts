@@ -39,6 +39,7 @@ export type OpportunityWorkspaceMatch = {
 	introductionStatus: string | null;
 	relationshipId: string | null;
 	relationshipStatus: string | null;
+	capabilities: import("@/lib/match-capabilities").MatchCapabilities;
 };
 
 export type OpportunityWorkspaceEvent = {
