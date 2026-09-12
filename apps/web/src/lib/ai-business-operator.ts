@@ -56,8 +56,10 @@ export function parseBusinessOperatorAdvice(raw: string): BusinessOperatorAdvice
 export async function adviseBusinessOpportunity(opts: {
 	workspace: OpportunityWorkspace;
 	locale: AppLocale;
+	matchId?: string;
 }): Promise<BusinessOperatorResult> {
 	const { opportunity, matches } = opts.workspace;
+	const selectedMatch = opts.matchId ? matches.find((match) => match.id === opts.matchId) : undefined;
 	const language = opts.locale === "bg" ? "Bulgarian" : opts.locale === "ar" ? "Arabic" : "English";
 	const safeContext = {
 		opportunity: {
@@ -69,7 +71,7 @@ export async function adviseBusinessOpportunity(opts: {
 			visibility: opportunity.visibility,
 			lifecycle: opportunity.lifecycle,
 		},
-		matches: matches.slice(0, 5).map((match) => ({
+		matches: (selectedMatch ? [selectedMatch] : matches.slice(0, 5)).map((match) => ({
 			lifecycle: match.lifecycle,
 			score: match.score,
 			confidence: match.confidence,
@@ -82,7 +84,7 @@ export async function adviseBusinessOpportunity(opts: {
 	};
 
 	const result = await mistralChat({
-		system: `You are the AI Business Operator inside Universal Business Core. Analyze one concrete business opportunity and its authorized, public-safe match signals. Write in ${language}. Return only one JSON object with exactly these keys: assessment, missing_data, match_insights, risks, next_actions, introduction_draft. assessment is a concise explanation. The four list fields contain short strings. introduction_draft is either a professional draft message or null. Never invent prices, quantities, certifications, company identities, legal claims, probabilities, or facts not present in the input. A match score is criteria alignment, not deal probability. Do not claim that you executed an action. Do not instruct the user to bypass authorization, lifecycle, audit, trust, or introduction controls. If there is no qualified match, introduction_draft must be null. Prefer specific, economically useful recommendations over generic advice.`,
+		system: `You are the AI Business Operator inside Universal Business Core. Analyze one concrete business opportunity and its authorized, public-safe match signals. Write in ${language}. Return only one JSON object with exactly these keys: assessment, missing_data, match_insights, risks, next_actions, introduction_draft. assessment is a concise explanation. The four list fields contain short strings. introduction_draft is either a professional draft message or null. Never invent prices, quantities, certifications, company identities, legal claims, probabilities, or facts not present in the input. A match score is criteria alignment, not deal probability. Do not claim that you executed an action. Do not instruct the user to bypass authorization, lifecycle, audit, trust, or introduction controls. Only produce an introduction_draft when the supplied match is qualified and has no introduction status. Address the counterparty generically because its identity remains hidden. Prefer specific, economically useful recommendations over generic advice.`,
 		user: JSON.stringify(safeContext),
 		model: mistralModel("MISTRAL_BUSINESS_OPERATOR_MODEL", "mistral-small-latest"),
 		temperature: 0.1,

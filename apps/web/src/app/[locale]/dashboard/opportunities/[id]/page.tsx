@@ -38,7 +38,7 @@ export default async function OpportunityWorkspacePage({ params }: PageProps) {
 				<p className="mt-2 text-base font-medium text-ink">{workspace.nextAction}</p>
 				{workspace.recommendations.length ? <div className="mt-4"><p className="text-sm font-medium text-ink">{t.missing}</p><ul className="mt-2 list-disc pl-5 text-sm text-ink/65">{workspace.recommendations.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
 			</section>
-			{workspace.isOwnerOrganization ? <OpportunityBusinessOperator opportunityId={opportunity.id} locale={locale} /> : null}
+			{workspace.isOwnerOrganization ? <OpportunityBusinessOperator opportunityId={opportunity.id} locale={locale} matches={workspace.matches} /> : null}
 
 			{workspace.privateBrief ? <section className="mt-5 rounded-2xl border border-ink/[0.07] bg-white/60 p-5"><h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{t.private}</h2><p className="mt-2 text-sm text-ink/65">{workspace.privateBrief}</p></section> : null}
 
