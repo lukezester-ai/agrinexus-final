@@ -6,6 +6,7 @@ import { ensureUserOrganization } from "@/lib/ensure-organization";
 import type { BusinessIntent } from "@/lib/business-intents";
 import { listCopy, glossary, productLocale } from "@/lib/product-ux-copy";
 import { journeyLead, journeyPage, journeyTitle, primaryAction } from "@/components/Dashboard/journey-ui";
+import { LifecycleActionButton } from "@/components/Dashboard/LifecycleActionButton";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -42,6 +43,15 @@ export default async function IntentsPage({ params }: PageProps) {
 		: { data: [] as BusinessIntent[] };
 
 	const intents = (rows ?? []) as BusinessIntent[];
+	const { data: membership } = organizationId
+		? await supabase
+				.from("organization_memberships")
+				.select("role")
+				.eq("organization_id", organizationId)
+				.eq("user_id", session.user.id)
+				.maybeSingle()
+		: { data: null };
+	const role = membership?.role as string | undefined;
 
 	return (
 		<div className={journeyPage}>
@@ -85,6 +95,15 @@ export default async function IntentsPage({ params }: PageProps) {
 								{intent.industry}
 								{intent.target_markets.length ? ` · ${intent.target_markets.join(", ")}` : ""}
 							</div>
+							{["draft", "active", "paused"].includes(intent.lifecycle) &&
+							(role === "owner" || role === "admin" || (role === "member" && intent.created_by === session.user.id)) ? (
+								<LifecycleActionButton
+									fn="transition_business_intent_v1"
+									args={{ p_intent_id: intent.id, p_target_lifecycle: "withdrawn" }}
+									label="Withdraw"
+									confirmMessage="Withdraw this business intent? This action is audited."
+								/>
+							) : null}
 						</li>
 					))}
 				</ul>

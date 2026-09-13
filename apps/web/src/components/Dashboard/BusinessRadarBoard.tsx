@@ -154,6 +154,24 @@ export function BusinessRadarBoard({
 		if (item.item_kind === "open_opportunity") {
 			return <p className="mt-3 text-[13px] capitalize text-ink/55">{item.status ?? "open"}</p>;
 		}
+		if (item.item_kind === "relationship" && item.status === "active" && item.capabilities?.canManageRelationship) {
+			return (
+				<div className="mt-3">
+					<button
+						type="button"
+						disabled={pending}
+						onClick={() => {
+							if (window.confirm("Close this business relationship? This action is audited.")) {
+								runRpc("close_business_relationship", { p_relationship_id: item.item_id });
+							}
+						}}
+						className={quietAction}
+					>
+						{pending ? c.working : "Close relationship"}
+					</button>
+				</div>
+			);
+		}
 		return null;
 	}
 
