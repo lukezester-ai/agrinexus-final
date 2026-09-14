@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import type { RadarItem } from "@/lib/business-radar";
 import { isRadarMatchKind, matchPercent, matchStrength, positiveReasonCodes } from "@/lib/business-radar";
 import { glossary, matchCardCopy, productLocale } from "@/lib/product-ux-copy";
+import { TrustEligibilitySignal } from "@/components/Dashboard/TrustEligibilitySignal";
 
 const WHY_CODES = ["industry_match", "target_market_overlap", "kind_compatibility"] as const;
 
@@ -95,6 +96,7 @@ export function RadarMatchCard({
 					</p>
 				</div>
 			) : null}
+			{isRadarMatchKind(item.item_kind) ? <TrustEligibilitySignal locale={locale} /> : null}
 
 			<div className="mt-5 border-t border-ink/[0.06] pt-4">
 				<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{c.next}</p>
