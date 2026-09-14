@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
 import type { RadarItem } from "@/lib/business-radar";
 import { isRadarMatchKind, matchPercent, matchStrength, positiveReasonCodes } from "@/lib/business-radar";
 import { glossary, matchCardCopy, productLocale } from "@/lib/product-ux-copy";
@@ -57,7 +58,9 @@ export function RadarMatchCard({
 			data-testid={`radar-item-${item.item_kind}`}
 		>
 			<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{c.found}</p>
-			<h3 className="mt-1.5 text-[17px] font-semibold leading-snug tracking-[-0.015em] text-ink">{title}</h3>
+			<h3 className="mt-1.5 text-[17px] font-semibold leading-snug tracking-[-0.015em] text-ink">
+				{isRelationship ? <Link href={`/dashboard/relationships/${item.item_id}`} className="text-ink no-underline hover:text-forest-700 hover:underline">{title}</Link> : title}
+			</h3>
 			{item.safe_summary ? <p className="mt-1.5 text-[14px] leading-relaxed text-ink/58">{item.safe_summary}</p> : null}
 
 			{percent != null && strengthLabel ? (
