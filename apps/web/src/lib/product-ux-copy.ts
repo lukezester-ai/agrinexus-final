@@ -263,6 +263,7 @@ export const shellCopy = {
 		start: "Get started",
 		intents: "Intents",
 		opportunities: "Opportunities",
+		notifications: "Notifications",
 		ask: "Ask",
 		askShort: "Ask",
 		chat: "Chat",
@@ -271,6 +272,7 @@ export const shellCopy = {
 		navAria: "Mobile navigation",
 		moreTitle: "More",
 		moreItems: [
+			{ href: "/dashboard/notifications", icon: "●", label: "Notifications", sub: "Business actions waiting for review" },
 			{ href: "/dashboard/onboarding", icon: "◎", label: "Get started", sub: "Create your first Business Intent" },
 			{ href: "/dashboard", icon: "◎", label: "Radar", sub: "Candidates, introductions, relationships" },
 			{ href: "/dashboard/intents", icon: "◎", label: "Intents", sub: "Structured demand and supply" },
@@ -288,6 +290,7 @@ export const shellCopy = {
 		start: "Начало",
 		intents: "Намерения",
 		opportunities: "Възможности",
+		notifications: "Известия",
 		ask: "Питай",
 		askShort: "Питай",
 		chat: "Чат",
@@ -296,6 +299,7 @@ export const shellCopy = {
 		navAria: "Мобилна навигация",
 		moreTitle: "Още",
 		moreItems: [
+			{ href: "/dashboard/notifications", icon: "●", label: "Известия", sub: "Бизнес действия, които чакат преглед" },
 			{ href: "/dashboard/onboarding", icon: "◎", label: "Начало", sub: "Създай първото бизнес намерение" },
 			{ href: "/dashboard", icon: "◎", label: "Радар", sub: "Кандидати, представяния, връзки" },
 			{ href: "/dashboard/intents", icon: "◎", label: "Намерения", sub: "Структурирано търсене и предлагане" },
@@ -313,6 +317,7 @@ export const shellCopy = {
 		start: "ابدأ",
 		intents: "النيات",
 		opportunities: "الفرص",
+		notifications: "الإشعارات",
 		ask: "اسأل",
 		askShort: "اسأل",
 		chat: "محادثة",
@@ -321,6 +326,7 @@ export const shellCopy = {
 		navAria: "التنقل للجوال",
 		moreTitle: "المزيد",
 		moreItems: [
+			{ href: "/dashboard/notifications", icon: "●", label: "الإشعارات", sub: "إجراءات أعمال تنتظر المراجعة" },
 			{ href: "/dashboard/onboarding", icon: "◎", label: "ابدأ", sub: "أنشئ أول نية أعمال" },
 			{ href: "/dashboard", icon: "◎", label: "الرادار", sub: "مرشحون، تقديمات، علاقات" },
 			{ href: "/dashboard/intents", icon: "◎", label: "النيات", sub: "طلب وعرض منظّمان" },

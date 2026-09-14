@@ -30,17 +30,20 @@ export default function Sidebar({
 	initials,
 	userName,
 	userMeta,
+	unreadNotifications,
 }: {
 	locale: string;
 	initials: string;
 	userName: string;
 	userMeta: string;
+	unreadNotifications: number;
 }) {
 	const c = shellCopy[productLocale(locale)];
 	const pathname = usePathname();
 
 	const items = [
 		{ icon: "◎", label: c.radar, href: "/dashboard", active: pathname === "/dashboard" },
+		{ icon: "●", label: unreadNotifications ? `${c.notifications} (${unreadNotifications})` : c.notifications, href: "/dashboard/notifications", active: pathname.startsWith("/dashboard/notifications") },
 		{ icon: "◎", label: c.intents, href: "/dashboard/intents", active: pathname.startsWith("/dashboard/intents") },
 		{ icon: "◎", label: c.opportunities, href: "/dashboard/opportunities", active: pathname.startsWith("/dashboard/opportunities") },
 		{ icon: "◎", label: c.start, href: "/dashboard/onboarding", active: pathname.startsWith("/dashboard/onboarding") },

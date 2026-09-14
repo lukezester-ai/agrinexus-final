@@ -5,7 +5,7 @@ Set-Location $root
 $container = "agrinexus-018-gate"
 $password = "password"
 $db = "ubc_test"
-$port = "55444"
+$port = "60444"
 
 function Invoke-SqlFile([string]$path) {
     Write-Host "SQL $path"
@@ -64,6 +64,10 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Invoke-SqlFile (Join-Path $root "migrations\018_introduction_actor_capabilities.sql")
 python -m pytest -q test_introduction_actor_capabilities.py
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+Invoke-SqlFile (Join-Path $root "migrations\019_notification_return_loop.sql")
+python -m pytest -q test_notification_return_loop.py
 $code = $LASTEXITCODE
 
 if ($code -eq 0) {

@@ -28,6 +28,8 @@ export default async function DashboardLayout({
   const userName = profile?.full_name || session.user.email?.split('@')[0] || "User";
   const initials = userName.substring(0, 2).toUpperCase();
   const userMeta = session.user.email ?? "";
+  const { data: notificationRows } = await supabase.rpc('business_return_loop_items');
+  const unreadNotifications = (notificationRows ?? []).filter((row: { is_unread?: boolean }) => row.is_unread === true).length;
 
   return (
     <div className="relative z-[2] flex min-h-screen bg-[#f6f3ec]">
@@ -36,9 +38,10 @@ export default async function DashboardLayout({
         initials={initials} 
         userName={userName} 
         userMeta={userMeta} 
+        unreadNotifications={unreadNotifications}
       />
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <MobileDashboardHeader locale={locale} userName={userName} initials={initials} />
+        <MobileDashboardHeader locale={locale} userName={userName} initials={initials} unreadNotifications={unreadNotifications} />
         <main className="relative min-w-0 flex-1 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-0">
           {children}
         </main>
