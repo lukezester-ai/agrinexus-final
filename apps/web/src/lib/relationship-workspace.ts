@@ -45,13 +45,9 @@ export async function loadRelationshipWorkspace(id: string): Promise<Relationshi
 	if (error || !relationshipRow) return null;
 
 	const relationship = relationshipRow as RelationshipRow;
-	const [{ data: radarRow }, { data: eventRows }, { data: capabilityRows }] = await Promise.all([
-		supabase
-			.from("business_radar_items")
-			.select("organization_a_name, organization_b_name")
-			.eq("item_kind", "relationship")
-			.eq("item_id", id)
-			.maybeSingle(),
+	const [{ data: organizationAName }, { data: organizationBName }, { data: eventRows }, { data: capabilityRows }] = await Promise.all([
+		supabase.rpc("radar_party_organization_name", { p_organization_id: relationship.organization_a }),
+		supabase.rpc("radar_party_organization_name", { p_organization_id: relationship.organization_b }),
 		supabase
 			.from("business_relationship_events")
 			.select("id, kind, created_at")
@@ -69,9 +65,9 @@ export async function loadRelationshipWorkspace(id: string): Promise<Relationshi
 		startedAt: relationship.started_at,
 		lastInteractionAt: relationship.last_interaction_at,
 		organizationAName:
-			typeof radarRow?.organization_a_name === "string" ? radarRow.organization_a_name : "Organization A",
+			typeof organizationAName === "string" ? organizationAName : "Organization A",
 		organizationBName:
-			typeof radarRow?.organization_b_name === "string" ? radarRow.organization_b_name : "Organization B",
+			typeof organizationBName === "string" ? organizationBName : "Organization B",
 		canManage: relationshipCapabilities.canManageRelationship,
 		events: (eventRows ?? []).map((row) => ({
 			id: String(row.id),
