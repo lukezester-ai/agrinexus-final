@@ -9,9 +9,10 @@ type Props = {
 	locale: string;
 	userName: string;
 	initials: string;
+	unreadNotifications: number;
 };
 
-export function MobileDashboardHeader({ locale, userName, initials }: Props) {
+export function MobileDashboardHeader({ locale, userName, initials, unreadNotifications }: Props) {
 	const firstName = userName.split(/\s+/)[0] || userName;
 
 	return (
@@ -26,6 +27,9 @@ export function MobileDashboardHeader({ locale, userName, initials }: Props) {
 				<span className="text-sm font-medium">{WORKING_PRODUCT_NAME}</span>
 			</Link>
 			<div className="flex items-center gap-2">
+				<Link href="/dashboard/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-full border border-ink/[0.08] bg-white/70 text-sm no-underline" aria-label={shellCopy[productLocale(locale)].notifications}>
+					●{unreadNotifications ? <span className="absolute -end-1 -top-1 min-w-4 rounded-full bg-harvest-600 px-1 text-center text-[9px] text-white">{unreadNotifications}</span> : null}
+				</Link>
 				<LanguageSwitcher />
 				<Link
 					href="/dashboard/ask"
