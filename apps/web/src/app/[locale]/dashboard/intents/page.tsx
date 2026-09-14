@@ -79,7 +79,7 @@ export default async function IntentsPage({ params }: PageProps) {
 							className="rounded-2xl border border-ink/[0.08] bg-white px-5 py-4 shadow-[0_1px_2px_rgba(10,10,10,0.04)]"
 						>
 							<div className="flex flex-wrap items-baseline gap-2">
-								<span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{intent.headline}</span>
+								<Link href={`/dashboard/intents/${intent.id}`} className="text-[15px] font-semibold tracking-[-0.01em] text-ink hover:text-forest-700 hover:underline">{intent.headline}</Link>
 								{intent.visibility === "confidential" ? (
 									<span className="rounded-full bg-harvest-50 px-2 py-0.5 text-[11px] font-medium text-harvest-700">
 										{g.confidential}
