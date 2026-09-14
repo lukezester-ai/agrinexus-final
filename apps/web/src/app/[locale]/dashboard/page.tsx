@@ -55,6 +55,19 @@ export default async function DashboardPage({ params }: PageProps) {
 			.map((item) => item.item_id),
 		...Object.values(introductionMatchIds),
 	];
+	const relationshipItems = items.filter((item) => item.item_kind === "relationship");
+	const relationshipMatchIds: Record<string, string> = {};
+	if (relationshipItems.length > 0) {
+		const { data: relationships } = await supabase
+			.from("business_relationships")
+			.select("id, origin_match_id")
+			.in("id", relationshipItems.map((item) => item.item_id));
+		Object.assign(
+			relationshipMatchIds,
+			Object.fromEntries((relationships ?? []).map((row: { id: string; origin_match_id: string }) => [row.id, row.origin_match_id])),
+		);
+		matchIds.push(...Object.values(relationshipMatchIds));
+	}
 	let reasonsByMatchId: Record<string, RadarReason[]> = {};
 	let capabilitiesByMatchId = {} as ReturnType<typeof parseMatchCapabilities>;
 	if (matchIds.length > 0) {
@@ -76,7 +89,8 @@ export default async function DashboardPage({ params }: PageProps) {
 			: item.item_kind === "candidate_match" || item.item_kind === "qualified_match"
 				? item.item_id
 				: null;
-		return matchId ? { ...item, capabilities: capabilitiesByMatchId[matchId] ?? NO_MATCH_CAPABILITIES } : item;
+		const effectiveMatchId = matchId ?? (item.item_kind === "relationship" ? relationshipMatchIds[item.item_id] : null);
+		return effectiveMatchId ? { ...item, capabilities: capabilitiesByMatchId[effectiveMatchId] ?? NO_MATCH_CAPABILITIES } : item;
 	});
 
 	const { count: activeIntentCount } = await supabase

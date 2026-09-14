@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase-server";
 import { ensureUserOrganization } from "@/lib/ensure-organization";
 import type { BusinessOpportunity } from "@/lib/business-opportunities";
 import { listCopy, productLocale } from "@/lib/product-ux-copy";
+import { LifecycleActionButton } from "@/components/Dashboard/LifecycleActionButton";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -37,6 +38,15 @@ export default async function OpportunitiesPage({ params }: PageProps) {
 				.order("created_at", { ascending: false })
 		: { data: [] as BusinessOpportunity[] };
 	const opportunities = (rows ?? []) as BusinessOpportunity[];
+	const { data: membership } = organizationId
+		? await supabase
+				.from("organization_memberships")
+				.select("role")
+				.eq("organization_id", organizationId)
+				.eq("user_id", session.user.id)
+				.maybeSingle()
+		: { data: null };
+	const role = membership?.role as string | undefined;
 	return (
 		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12">
 			<div className="mb-6 flex items-end justify-between gap-4">
@@ -67,6 +77,15 @@ export default async function OpportunitiesPage({ params }: PageProps) {
 							<div className="mt-1 font-mono text-[10px] uppercase text-ink/45">
 								{row.visibility} · {row.lifecycle} · {row.source_type}
 							</div>
+							{row.source_type === "manual" && ["draft", "open", "paused", "pursuing"].includes(row.lifecycle) &&
+							(role === "owner" || role === "admin" || (role === "member" && row.created_by === session.user.id)) ? (
+								<LifecycleActionButton
+									fn="transition_business_opportunity_v1"
+									args={{ p_opportunity_id: row.id, p_target_lifecycle: "withdrawn" }}
+									label="Withdraw"
+									confirmMessage="Withdraw this business opportunity? This action is audited."
+								/>
+							) : null}
 						</li>
 					))}
 				</ul>

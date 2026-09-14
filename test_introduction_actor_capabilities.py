@@ -112,6 +112,20 @@ def test_capabilities_follow_actor_and_lifecycle(auth_conn):
     assert scalar(auth_conn, "SELECT count(*) FROM business_relationships WHERE origin_match_id=%s", (str(match_id),)) == 1
     assert scalar(auth_conn, "SELECT count(*) FROM business_match_events WHERE match_id=%s AND kind IN ('introduction_requested','introduction_accepted')", (str(match_id),)) == 2
 
+    relationship_id = scalar(
+        auth_conn,
+        "SELECT id FROM business_relationships WHERE origin_match_id=%s",
+        (str(match_id),),
+    )
+    scalar(auth_conn, "SELECT (public.close_business_relationship(%s)).id", (str(relationship_id),))
+    assert scalar(auth_conn, "SELECT status FROM business_relationships WHERE id=%s", (str(relationship_id),)) == "closed"
+    assert scalar(
+        auth_conn,
+        "SELECT count(*) FROM business_relationship_events WHERE relationship_id=%s AND kind='closed'",
+        (str(relationship_id),),
+    ) == 1
+    assert capability(auth_conn, match_id) == (False, False, False, False)
+
 
 def test_viewer_and_outsider_receive_no_actions(auth_conn):
     match_id, _ = create_match(auth_conn)
