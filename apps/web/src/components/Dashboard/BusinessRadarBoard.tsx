@@ -91,8 +91,10 @@ export function BusinessRadarBoard({
 
 	const primaryItems = sortPrimary(items, introductionMatchIds);
 	const secondaryItems = items.filter((item) => SECONDARY_ORDER.includes(item.item_kind));
-	const attention =
-		summary.candidate_matches + summary.qualified_matches + summary.pending_introductions;
+	// The summary counts lifecycle rows, while the board intentionally suppresses a
+	// qualified row once the same match has a pending introduction. Report the
+	// actionable cards the user can actually review, not the pre-deduplication sum.
+	const attention = primaryItems.length;
 
 	function actionsFor(item: RadarItem) {
 		const matchId = matchIdFor(item, introductionMatchIds);
