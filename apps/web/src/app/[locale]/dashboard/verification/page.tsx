@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase-server";
 import { VerificationRequestForm } from "./VerificationRequestForm";
+import { Link } from "@/i18n/navigation";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -71,6 +72,7 @@ export default async function VerificationPage({ params }: PageProps) {
 		.order("created_at", { ascending: false })
 		.limit(1)
 		.maybeSingle();
+	const { data: isReviewer } = await supabase.rpc("is_verification_reviewer_v1");
 
 	const status = (verification?.status ?? "none") as keyof typeof t.states;
 	const organizationRelation = membership.organizations as unknown as { name?: string } | null;
@@ -82,6 +84,7 @@ export default async function VerificationPage({ params }: PageProps) {
 			<header className="mb-6">
 				<h1 className="font-serif text-3xl tracking-[-0.02em]">{t.title}</h1>
 				<p className="mt-2 max-w-2xl text-sm text-ink/60">{t.lead}</p>
+				{isReviewer === true ? <Link href="/dashboard/verification/review" className="mt-3 inline-flex text-sm font-medium text-forest-800 underline">Open review queue</Link> : null}
 			</header>
 			<section className="mb-5 rounded-2xl border border-ink/10 bg-white/65 p-5">
 				<p className="text-xs uppercase tracking-[0.08em] text-ink/45">{t.organization}</p>
