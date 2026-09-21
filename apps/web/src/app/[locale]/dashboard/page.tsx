@@ -74,7 +74,13 @@ export default async function DashboardPage({ params }: PageProps) {
 		.select("id", { count: "exact", head: true })
 		.eq("lifecycle", "active");
 
-	const loadError = summaryError?.message || itemsError?.message || null;
+	const rawError = summaryError?.message || itemsError?.message || null;
+	const copy = radarBoardCopy[productLocale(locale)];
+	const loadError = rawError
+		? /does not exist|schema cache|business_radar/i.test(rawError)
+			? copy.unavailableSchema
+			: copy.unavailable
+		: null;
 
 	return (
 		<BusinessRadarBoard

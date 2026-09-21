@@ -4,6 +4,8 @@ Status: **BLOCKED** on production smoke of **Product Cutover / Rebrand v1** (`do
 
 **Pilot Readiness v1 stays BLOCKED.** Do not onboard real organizations in parallel.
 
+Polish bar (frozen): **Core is a business decision desk, not a social network.** Every surface must help understand an opportunity, evaluate relevance, control confidentiality, or take the next business action. Social engagement mechanics are out of scope. Do not “fix” usability with a feed, profile vanity, follows, likes, or comments. Decision path: What do I need? → What did the system find? → Why is it relevant? → What is safe to reveal? → What action should I take?
+
 ## Session discipline
 
 Do **not** explain the platform during the session. Give the scenario below and observe.

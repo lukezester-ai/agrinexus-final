@@ -46,7 +46,8 @@ export const radarBoardCopy = {
 	en: {
 		title: "Business Radar",
 		lead: "When a compatible opportunity exists, you will see why it fits, what stays confidential, and the next safe step.",
-		unavailable: "Radar is not available on this database yet. Apply migration 012.",
+		unavailable: "Radar could not load. Try again.",
+		unavailableSchema: "Radar is not available on this database yet. Apply migration 012.",
 		emptyPrimary: "No matches need your action yet.",
 		looking:
 			"Your Business Intent is active. The system is looking for compatible opportunities — nothing to review yet.",
@@ -68,7 +69,8 @@ export const radarBoardCopy = {
 	bg: {
 		title: "Бизнес радар",
 		lead: "Когато има съвместима възможност, ще видиш защо пасва, какво остава поверително и кое е следващото безопасно действие.",
-		unavailable: "Радарът още не е наличен в тази база. Приложи миграция 012.",
+		unavailable: "Радарът не можа да се зареди. Опитай отново.",
+		unavailableSchema: "Радарът още не е наличен в тази база. Приложи миграция 012.",
 		emptyPrimary: "Няма съвпадения, които чакат действие.",
 		looking:
 			"Бизнес намерението е активно. Системата търси съвместими възможности — още няма какво да прегледаш.",
@@ -90,7 +92,8 @@ export const radarBoardCopy = {
 	ar: {
 		title: "رادار الأعمال",
 		lead: "عندما توجد فرصة متوافقة، سترى سبب الملاءمة، وما يبقى سريًا، والخطوة الآمنة التالية.",
-		unavailable: "الرادار غير متاح في هذه القاعدة بعد. طبّق الترحيل 012.",
+		unavailable: "تعذر تحميل الرادار. حاول مرة أخرى.",
+		unavailableSchema: "الرادار غير متاح في هذه القاعدة بعد. طبّق الترحيل 012.",
 		emptyPrimary: "لا توجد مطابقات تحتاج إلى إجراء منك بعد.",
 		looking: "نية الأعمال نشطة. يبحث النظام عن فرص متوافقة — لا يوجد شيء للمراجعة بعد.",
 		startIntent: "أنشئ أول نية أعمال",
