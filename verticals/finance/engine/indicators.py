@@ -13,6 +13,20 @@ def quantize(value: Decimal) -> Decimal:
     return value.quantize(QUANTUM, rounding=ROUND_HALF_UP)
 
 
+def ema(closes: list[Decimal], period: int) -> list[Decimal | None]:
+    points: list[Decimal | None] = [None] * len(closes)
+    if len(closes) < period or period < 2:
+        return points
+    seed = sum(closes[:period], Decimal("0")) / Decimal(period)
+    points[period - 1] = quantize(seed)
+    multiplier = Decimal(2) / Decimal(period + 1)
+    previous = seed
+    for index in range(period, len(closes)):
+        previous = (closes[index] - previous) * multiplier + previous
+        points[index] = quantize(previous)
+    return points
+
+
 def sma(closes: list[Decimal], period: int) -> list[Decimal | None]:
     points: list[Decimal | None] = []
     for index in range(len(closes)):
