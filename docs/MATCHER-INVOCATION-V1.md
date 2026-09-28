@@ -36,12 +36,11 @@ Triggers enqueue only when the row is matchable (`active` / `open`, visibility c
 
 ## Worker
 
-Not an HTTP handler. Process:
+Not an HTTP handler. From the repo root:
 
 ```text
-cd apps/backend
 $env:MATCHER_DATABASE_URL="postgresql://postgres.<project_ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres"
-python -m app.matching_worker
+python verticals/b2b/python/matching_worker.py
 ```
 
 Use the **Session pooler** (`pooler.supabase.com:5432`), not `db.<project>.supabase.co` (IPv6-only on many Windows hosts) and not a URI with an empty password (`postgres://postgres:@...`).

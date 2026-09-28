@@ -4,7 +4,7 @@ Polls matching_jobs with FOR UPDATE SKIP LOCKED, then calls
 public.run_matching_engine_v1(). Browser and app_user never invoke the engine.
 
 Env: MATCHER_DATABASE_URL (preferred) or DATABASE_URL.
-Run: python -m app.matching_worker
+Run from the repo root: python verticals/b2b/python/matching_worker.py
 """
 
 from __future__ import annotations
