@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
-import { parseMarketList } from "@/lib/business-intents";
+import { parseMarketList } from "../../../../../../../verticals/b2b/web/business-intents";
 import {
 	OPPORTUNITY_KINDS,
 	OPPORTUNITY_VISIBILITIES,
 	type OpportunityKind,
 	type OpportunityVisibility,
-} from "@/lib/business-opportunities";
+} from "../../../../../../../verticals/b2b/web/business-opportunities";
 
 const copy = {
 	en: {

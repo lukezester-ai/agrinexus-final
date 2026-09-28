@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase";
-import type { RadarItem, RadarItemKind, RadarSummary } from "@/lib/business-radar";
+import type { RadarItem, RadarItemKind, RadarSummary } from "../../../../../verticals/b2b/web/business-radar";
 import { RadarMatchCard } from "@/components/Dashboard/RadarMatchCard";
 import { radarBoardCopy, productLocale } from "@/lib/product-ux-copy";
 import {

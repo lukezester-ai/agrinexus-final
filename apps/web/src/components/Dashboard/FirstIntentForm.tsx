@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import {
 	INDUSTRY_SUGGESTIONS,
 	parseMarketList,
-} from "@/lib/business-intents";
+} from "../../../../../verticals/b2b/web/business-intents";
 import { onboardingCopy, productLocale } from "@/lib/product-ux-copy";
 import { alertError, fieldControl, primaryAction } from "@/components/Dashboard/journey-ui";
 

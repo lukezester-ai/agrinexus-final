@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUserOrganization } from "@/lib/ensure-organization";
-import type { BusinessOpportunity } from "@/lib/business-opportunities";
+import type { BusinessOpportunity } from "../../../../../../../verticals/b2b/web/business-opportunities";
 import { listCopy, productLocale } from "@/lib/product-ux-copy";
 
 type PageProps = { params: Promise<{ locale: string }> };

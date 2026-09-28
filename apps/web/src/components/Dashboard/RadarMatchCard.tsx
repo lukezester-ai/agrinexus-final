@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { RadarItem } from "@/lib/business-radar";
-import { isRadarMatchKind, matchPercent, matchStrength, positiveReasonCodes } from "@/lib/business-radar";
+import type { RadarItem } from "../../../../../verticals/b2b/web/business-radar";
+import { isRadarMatchKind, matchPercent, matchStrength, positiveReasonCodes } from "../../../../../verticals/b2b/web/business-radar";
 import { glossary, matchCardCopy, productLocale } from "@/lib/product-ux-copy";
 
 const WHY_CODES = ["industry_match", "target_market_overlap", "kind_compatibility"] as const;
