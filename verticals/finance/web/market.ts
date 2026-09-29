@@ -7,6 +7,8 @@ export const FINANCE_MARKET_COMMANDS = [
 	"finance_create_watchlist",
 	"finance_add_watchlist_instrument",
 	"finance_remove_watchlist_instrument",
+	"finance_create_screener",
+	"finance_run_screener",
 ] as const;
 
 export const FINANCE_TIMEFRAMES = ["1m", "5m", "15m", "1h", "1d", "1w"] as const;
