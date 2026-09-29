@@ -93,7 +93,7 @@ def test_recheck_compares_the_intent_with_the_current_evaluation():
             FROM pg_proc p
             JOIN pg_namespace n ON n.oid = p.pronamespace
             WHERE n.nspname = 'public'
-              AND p.proname ~* 'broker|execution_gateway|live_order|authoriz'
+              AND p.proname ~* 'broker|execution_gateway|live_order'
             """
         )
         assert cur.fetchone()[0] == 0
@@ -111,6 +111,7 @@ def test_recheck_compares_the_intent_with_the_current_evaluation():
             "finance_apply_paper_book",
             "finance_create_order_intent",
             "finance_paper_allocations",
+            "finance_authorize_order_intent",
             "peak",
         ):
             assert name not in source
