@@ -55,6 +55,23 @@ def _bars() -> list[dict]:
     return bars
 
 
+def _approve_book(cur, book_id) -> None:
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_proc p
+            JOIN pg_namespace n ON n.oid = p.pronamespace
+            WHERE n.nspname = 'public'
+              AND p.proname = 'finance_approve_strategy_result'
+        )
+        """
+    )
+    if cur.fetchone()[0]:
+        cur.execute("SELECT public.finance_approve_strategy_result(%s)", (book_id,))
+        cur.fetchone()
+
+
 def _assert_book(cur, book_id, expected) -> None:
     cur.execute(
         """
@@ -218,6 +235,7 @@ def test_spec_book_matches_python_and_posts_paper():
                 (ORG_A, "Open book", 100000),
             )
             portfolio_id = cur.fetchone()[0]
+            _approve_book(cur, open_book)
             cur.execute("SELECT public.finance_apply_paper_book(%s, %s)", (portfolio_id, open_book))
             assert cur.fetchone()[0] == expected_open.stats.paper_pnl
             cur.execute(
