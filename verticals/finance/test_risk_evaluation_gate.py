@@ -120,7 +120,6 @@ def test_policy_evaluation_uses_existing_metrics_and_does_not_touch_approval():
         )
         approval = cur.fetchone()[0]
         assert "finance_evaluate_risk_policy" not in approval
-        assert "finance_risk_evaluations" not in approval
         cur.execute("TRUNCATE public.organizations CASCADE")
         cur.execute(
             "INSERT INTO public.organizations (id, name, owner_user_id) VALUES (%s, 'Fund A', %s), (%s, 'Fund B', %s)",

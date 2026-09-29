@@ -10,7 +10,7 @@ from engine.book import run_spec_book
 from engine.copilot import compile_model_output
 from engine.fixture import fixture_closes
 from engine.test_copilot import SENTENCE
-from test_book_gate import _assert_book
+from test_book_gate import _allow_evaluation, _assert_book
 from test_integration_gate import (
     ORG_A,
     ORG_B,
@@ -253,6 +253,9 @@ def test_paper_requires_a_human_approval_of_the_result_digests():
             assert cur.fetchone()[0] == 0
 
             as_user(member, USER_B)
+            _allow_evaluation(cur, member_book)
+            _allow_evaluation(cur, admin_book)
+            _allow_evaluation(cur, owner_book)
             cur.execute("SELECT public.finance_approve_strategy_result(%s)", (member_book,))
             member_approval = cur.fetchone()[0]
             as_user(member, USER_ADMIN)
