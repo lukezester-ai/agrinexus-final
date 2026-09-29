@@ -15,7 +15,7 @@ from engine.fixture import fixture_closes
 from engine.snapshot import market_snapshot
 from engine.test_book import ALWAYS_LONG
 from engine.test_screener import PRICE_RULE
-from test_book_gate import _assert_book
+from test_book_gate import _approve_book, _assert_book
 
 SUPER_DSN = os.environ.get("DB_URL_SUPERUSER")
 APP_DSN = os.environ.get("DB_URL_APPUSER")
@@ -294,6 +294,7 @@ def test_snapshot_feeds_the_existing_strategy_engine():
                 (ORG_A, "Open book", 100000),
             )
             open_portfolio = cur.fetchone()[0]
+            _approve_book(cur, open_book)
             cur.execute("SELECT public.finance_apply_paper_book(%s, %s)", (open_portfolio, open_book))
             assert cur.fetchone()[0] == opened.stats.paper_pnl
             cur.execute(
@@ -307,6 +308,7 @@ def test_snapshot_feeds_the_existing_strategy_engine():
                 (ORG_A, "Closed book", 100000),
             )
             portfolio_id = cur.fetchone()[0]
+            _approve_book(cur, held[0])
             cur.execute("SELECT public.finance_apply_paper_book(%s, %s)", (portfolio_id, held[0]))
             assert cur.fetchone()[0] == expected.stats.paper_pnl
             cur.execute(
