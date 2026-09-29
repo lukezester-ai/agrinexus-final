@@ -18,6 +18,7 @@ PERIODS = {
     "volatility": (2, 200),
 }
 SCALARS = {"close", "volume"}
+KIND_ORDER = ("sma", "ema", "rsi", "momentum", "volatility")
 MAX_DEPTH = 3
 MAX_COMPARISONS = 8
 
@@ -32,6 +33,11 @@ def validate_screener(spec: dict) -> dict:
     if spec.get("version") != 1 or isinstance(spec.get("version"), bool):
         raise ScreenerSpecError("screener spec is invalid")
     return {"version": 1, "where": _group(spec["where"], 1, [0])}
+
+
+def referenced_periods(spec: dict) -> tuple[tuple[str, int], ...]:
+    checked = validate_screener(spec)
+    return _referenced_periods(checked["where"])
 
 
 def screen(universe: list[ScreenerSeries], spec: dict) -> ScreenerResult:
@@ -115,6 +121,24 @@ def _operand(node: object) -> dict:
     if bounds is None or isinstance(value, bool) or not isinstance(value, int) or not bounds[0] <= value <= bounds[1]:
         raise ScreenerSpecError("screener spec is invalid")
     return {key: value}
+
+
+def _referenced_periods(node: dict) -> tuple[tuple[str, int], ...]:
+    found: set[tuple[str, int]] = set()
+
+    def walk(current: dict) -> None:
+        if "all" in current or "any" in current:
+            key = "all" if "all" in current else "any"
+            for child in current[key]:
+                walk(child)
+            return
+        for side in ("left", "right"):
+            key, value = next(iter(current[side].items()))
+            if key in PERIODS:
+                found.add((key, value))
+
+    walk(node)
+    return tuple(sorted(found, key=lambda item: (KIND_ORDER.index(item[0]), item[1])))
 
 
 def _eval(node: dict, series: ScreenerSeries, cache: dict) -> bool:
