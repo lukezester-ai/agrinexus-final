@@ -134,6 +134,8 @@ export function HomeFlow({ locale }: { locale: string }) {
 
 const stageButton =
 	"block border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40";
+const stageButtonOpen =
+	"block border border-white/40 px-4 py-5 text-sm text-white no-underline";
 
 function Stage({ stage }: { stage: Copy["stages"][number] }) {
 	return (
@@ -169,12 +171,18 @@ export function DirectionPage({
 	title,
 	chain,
 	boundary,
+	lead,
+	points,
+	current,
 }: {
 	locale: string;
 	kicker: string;
 	title: string;
 	chain: ChainStep[];
 	boundary: string[];
+	lead?: string;
+	points?: { label: string; detail: string }[];
+	current?: string;
 }) {
 	const c = copy[productLocale(locale)];
 	return (
@@ -184,13 +192,19 @@ export function DirectionPage({
 					{kicker}
 				</Link>
 				<h1 className="mt-4 text-4xl font-light text-white md:text-5xl">{title}</h1>
+				{lead ? <p className="mt-6 max-w-xl text-sm leading-6 text-white/70">{lead}</p> : null}
 				<ol className="mt-16 flex max-w-xl flex-col border-s border-white/15 ps-8">
 					{chain.map((item) => {
 						const step = chainStep(item);
+						const open = Boolean(step.href && step.href === current);
 						return (
 							<li key={step.label} className="py-3">
 								{step.href ? (
-									<Link href={step.href} className={stageButton}>
+									<Link
+										href={step.href}
+										className={open ? stageButtonOpen : stageButton}
+										aria-current={open ? "page" : undefined}
+									>
 										{step.label}
 									</Link>
 								) : (
@@ -200,6 +214,16 @@ export function DirectionPage({
 						);
 					})}
 				</ol>
+				{points && points.length > 0 ? (
+					<dl className="mt-12 max-w-xl border-t border-white/10">
+						{points.map((point) => (
+							<div key={point.label} className="grid gap-1 border-b border-white/10 py-4 sm:grid-cols-[9rem_1fr] sm:gap-6">
+								<dt className="text-[11px] tracking-[0.16em] text-white/45">{point.label}</dt>
+								<dd className="text-sm leading-6 text-white/80">{point.detail}</dd>
+							</div>
+						))}
+					</dl>
+				) : null}
 				<div className="mt-12 max-w-xl space-y-2 text-sm text-[#e2b657]">
 					{boundary.map((line) => (
 						<p key={line}>{line}</p>
