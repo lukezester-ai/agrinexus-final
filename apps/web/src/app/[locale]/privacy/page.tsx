@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { PublicShell } from "@/components/public/public-site";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
@@ -36,14 +37,16 @@ export default async function PrivacyPage({ params }: PageProps) {
 	const c = locale === "bg" ? copy.bg : copy.en;
 
 	return (
-		<main className="mx-auto max-w-2xl px-8 py-16 text-ink">
-			<h1 className="text-2xl font-semibold">{c.title}</h1>
-			<p className="mt-4 text-sm text-ink/70">{c.body}</p>
-			<p className="mt-8">
-				<Link href="/" className="text-forest-700 underline underline-offset-4">
-					{c.back}
-				</Link>
-			</p>
-		</main>
+		<PublicShell locale={locale}>
+			<main className="mx-auto max-w-2xl px-8 py-16 text-white">
+				<h1 className="text-3xl font-light">{c.title}</h1>
+				<p className="mt-4 text-sm text-white/70">{c.body}</p>
+				<p className="mt-8">
+					<Link href="/" className="text-white/70 no-underline hover:text-white">
+						{c.back}
+					</Link>
+				</p>
+			</main>
+		</PublicShell>
 	);
 }

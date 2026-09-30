@@ -1,10 +1,10 @@
 {
 	"Metadata": {
-		"titleDefault": "Core — Confidential business matching",
-		"titleTemplate": "%s — Core",
-		"description": "Say what you are looking for. Meet the other side only when both agree. Intent, Opportunity, Match, Introduction, Relationship.",
-		"keywords": ["business matching", "business intent", "confidential introduction", "business radar"],
-		"ogTitle": "Core — Confidential business matching",
-		"ogDescription": "Intent → Opportunity → Match → Introduction. Identity stays hidden until both sides agree."
+		"titleDefault": "AGRI NEXUS — Universal Business Core",
+		"titleTemplate": "%s — AGRI NEXUS",
+		"description": "From business intent to governed decision. Business intelligence and decision infrastructure. Live execution is blocked.",
+		"keywords": ["agri nexus", "universal business core", "business radar", "finance intelligence"],
+		"ogTitle": "AGRI NEXUS — Universal Business Core",
+		"ogDescription": "From business intent to governed decision. Live execution is blocked."
 	}
 }
