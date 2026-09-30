@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { SiteNav } from "@/components/site-nav";
 import { Footer } from "@/components/Footer";
+import { isPublicPath } from "@/components/public/public-site";
 
 /** Marketing shell (nav + footer). Skipped on dashboard routes — they use mobile bottom nav. */
 export function MarketingChrome({ children }: { children: ReactNode }) {
@@ -11,7 +12,7 @@ export function MarketingChrome({ children }: { children: ReactNode }) {
 	const isDashboard = pathname.includes("/dashboard");
 	const isRadarSmoke = pathname.includes("/dev/radar-smoke");
 
-	if (isDashboard || isRadarSmoke) {
+	if (isDashboard || isRadarSmoke || isPublicPath(pathname)) {
 		return <div className="flex min-h-screen flex-1 flex-col">{children}</div>;
 	}
 
