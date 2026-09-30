@@ -10,23 +10,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	return locale === "bg"
 		? {
 				title: "Поверителност",
-				description: "Кратка страница за поверителност.",
+				description: "Как публичните страници и акаунтът в радара пазят въведеното.",
 			}
 		: {
 				title: "Privacy",
-				description: "Privacy placeholder.",
+				description: "How the public pages and a radar account handle what you enter.",
 			};
 }
 
 const copy = {
 	en: {
 		title: "Privacy",
-		body: "This is a short placeholder page so footer links work. Replace with your real privacy policy.",
+		body: "The public pages can be read without an account. A radar account stores the organization profile and the business records you enter. The site does not ask for brokerage credentials.",
 		back: "← Home",
 	},
 	bg: {
 		title: "Поверителност",
-		body: "Това е кратка временна страница, за да работят връзките във footer-а. Замени я с реалната политика за поверителност, когато текстът е готов.",
+		body: "Публичните страници се четат без акаунт. Акаунтът в радара пази профила на организацията и бизнес записите, които въвеждаш. Сайтът не иска брокерски данни за достъп.",
 		back: "← Начало",
 	},
 };
