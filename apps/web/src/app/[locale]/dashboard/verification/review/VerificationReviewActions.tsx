@@ -32,13 +32,13 @@ export function VerificationReviewActions({ verificationId }: { verificationId: 
 
 	return (
 		<div className="mt-4 flex flex-col gap-3">
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				Review reason
-				<textarea className="rounded-xl border border-ink/10 bg-white/80 px-3 py-2 text-sm" rows={3} maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} />
+				<textarea className="border border-white/15 bg-transparent px-3 py-2 text-sm text-white" rows={3} maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} />
 			</label>
 			{error ? <p className="text-sm text-red-800" role="alert">{error}</p> : null}
 			<div className="flex gap-2">
-				<button type="button" disabled={pending} onClick={() => void review("approved")} className="rounded-xl bg-forest-700 px-4 py-2 text-sm text-white disabled:opacity-50">Approve</button>
+				<button type="button" disabled={pending} onClick={() => void review("approved")} className="border border-white/15 px-4 py-2 text-sm text-white/85 disabled:opacity-50">Approve</button>
 				<button type="button" disabled={pending} onClick={() => void review("rejected")} className="rounded-xl border border-red-200 px-4 py-2 text-sm text-red-700 disabled:opacity-50">Reject</button>
 			</div>
 		</div>

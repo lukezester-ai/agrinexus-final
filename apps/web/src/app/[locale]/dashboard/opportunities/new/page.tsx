@@ -26,8 +26,8 @@ export default async function NewOpportunityPage({ params }: PageProps) {
 	);
 	const isBg = locale === "bg";
 	return (
-		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12">
-			<h1 className="mb-6 font-serif text-2xl text-ink md:text-[26px]">
+		<div className="mx-auto w-full max-w-[720px] px-6 py-16 md:px-10">
+			<h1 className="mb-8 text-4xl font-light text-white">
 				{isBg ? "Нова бизнес възможност" : "New business opportunity"}
 			</h1>
 			{error || !organizationId ? (

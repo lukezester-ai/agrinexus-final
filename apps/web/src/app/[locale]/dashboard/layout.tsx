@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   const unreadNotifications = (notificationRows ?? []).filter((row: { is_unread?: boolean }) => row.is_unread === true).length;
 
   return (
-    <div className="relative z-[2] flex min-h-screen bg-[#f6f3ec]">
+    <div className="relative z-[2] flex min-h-screen bg-[#141618] text-white">
       <Sidebar 
         locale={locale} 
         initials={initials} 

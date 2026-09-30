@@ -76,17 +76,17 @@ export function FirstIntentForm({
 			}}
 		>
 			<fieldset className="flex flex-col gap-2">
-				<legend className="mb-1 text-[13px] font-semibold text-ink">{c.kindLegend}</legend>
+				<legend className="mb-1 text-[13px] font-semibold text-white">{c.kindLegend}</legend>
 				{KINDS.map((value) => (
 					<label
 						key={value}
 						className={`flex cursor-pointer flex-col rounded-2xl border px-4 py-3 ${
 							kind === value
-								? "border-forest-600 bg-white shadow-[0_1px_2px_rgba(10,10,10,0.04)]"
-								: "border-ink/10 bg-white/70"
+								? "border-white/40"
+								: "border-white/15"
 						}`}
 					>
-						<span className="flex items-center gap-2.5 text-[15px] font-medium text-ink">
+						<span className="flex items-center gap-2.5 text-[15px] font-medium text-white">
 							<input
 								type="radio"
 								name="kind"
@@ -97,12 +97,12 @@ export function FirstIntentForm({
 							/>
 							{c.kinds[value].label}
 						</span>
-						<span className="ps-7 pt-1 text-[13px] leading-snug text-ink/50">{c.kinds[value].hint}</span>
+						<span className="ps-7 pt-1 text-[13px] leading-snug text-white/50">{c.kinds[value].hint}</span>
 					</label>
 				))}
 			</fieldset>
 
-			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-white">
 				{c.industry}
 				<input
 					className={fieldControl}
@@ -119,7 +119,7 @@ export function FirstIntentForm({
 				</datalist>
 			</label>
 
-			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-white">
 				{c.markets}
 				<input
 					className={fieldControl}
@@ -128,10 +128,10 @@ export function FirstIntentForm({
 					onChange={(e) => setMarkets(e.target.value)}
 					placeholder={c.marketsPlaceholder}
 				/>
-				<span className="font-normal text-[13px] leading-snug text-ink/45">{c.marketsHint}</span>
+				<span className="font-normal text-[13px] leading-snug text-white/45">{c.marketsHint}</span>
 			</label>
 
-			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-white">
 				{c.visibility}
 				<select
 					className={fieldControl}
@@ -146,7 +146,7 @@ export function FirstIntentForm({
 				</select>
 			</label>
 
-			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
+			<label className="flex flex-col gap-1.5 text-[13px] font-semibold text-white">
 				{c.description}
 				<textarea
 					className={fieldControl}
@@ -156,7 +156,7 @@ export function FirstIntentForm({
 					onChange={(e) => setDescription(e.target.value)}
 					placeholder={c.descriptionPlaceholder}
 				/>
-				<span className="font-normal text-[13px] leading-snug text-ink/45">{c.descriptionHint}</span>
+				<span className="font-normal text-[13px] leading-snug text-white/45">{c.descriptionHint}</span>
 			</label>
 
 			{error ? (

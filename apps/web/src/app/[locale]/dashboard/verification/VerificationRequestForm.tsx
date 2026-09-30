@@ -78,28 +78,28 @@ export function VerificationRequestForm({ locale, organizationId }: { locale: st
 		router.refresh();
 	}
 
-	const field = "w-full rounded-xl border border-ink/10 bg-white/80 px-3 py-2.5 text-sm outline-none focus:border-forest-500";
+	const field = "w-full border border-white/15 bg-transparent px-3 py-2.5 text-sm text-white outline-none focus:border-white/40";
 	return (
 		<form className="flex max-w-xl flex-col gap-4" onSubmit={submit}>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.registrationCountry}
 				<input className={field} value={registrationCountry} onChange={(event) => setRegistrationCountry(event.target.value)} placeholder="BG" maxLength={8} required />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.registrationNumber}
 				<input className={field} value={registrationNumber} onChange={(event) => setRegistrationNumber(event.target.value)} maxLength={80} required />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.website}
 				<input className={field} type="url" value={website} onChange={(event) => setWebsite(event.target.value)} placeholder="https://example.com" maxLength={240} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.note}
 				<textarea className={field} rows={3} value={note} onChange={(event) => setNote(event.target.value)} maxLength={500} />
 			</label>
 			{error ? <p className="text-sm text-red-800">{error}</p> : null}
 			{success ? <p className="text-sm text-semantic-success">{t.success}</p> : null}
-			<button type="submit" disabled={submitting} className="rounded-xl bg-forest-700 px-4 py-2.5 text-[13px] font-medium text-white disabled:opacity-50">
+			<button type="submit" disabled={submitting} className="border border-white/15 px-4 py-2.5 text-[13px] text-white/85 disabled:opacity-50 hover:border-white/40">
 				{submitting ? t.submitting : t.submit}
 			</button>
 		</form>

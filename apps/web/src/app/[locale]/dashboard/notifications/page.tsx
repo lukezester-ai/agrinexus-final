@@ -19,9 +19,9 @@ export default async function NotificationsPage({ params }: PageProps) {
 			: { eyebrow: "Return to action", title: "Notifications", lead: "Only concrete business actions — no feed and no noise.", unavailable: "Notifications are not available on this database yet." };
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-5 pb-12 md:px-7">
-			<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{copy.eyebrow}</p>
-			<h1 className="mt-2 font-serif text-3xl text-ink">{copy.title}</h1>
-			<p className="mt-3 text-sm leading-relaxed text-ink/60">{copy.lead}</p>
+			<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/40">{copy.eyebrow}</p>
+			<h1 className="mt-2 font-light text-3xl text-white">{copy.title}</h1>
+			<p className="mt-3 text-sm leading-relaxed text-white/60">{copy.lead}</p>
 			{error ? <p className="mt-4 rounded-xl border border-semantic-alert/25 bg-[#FBF4F4] px-3.5 py-3 text-sm text-semantic-alert">{copy.unavailable}</p> : <NotificationInbox items={items} locale={locale} />}
 		</div>
 	);

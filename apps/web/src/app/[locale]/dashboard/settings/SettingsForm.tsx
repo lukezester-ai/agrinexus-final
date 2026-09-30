@@ -29,26 +29,26 @@ export default function SettingsForm({ locale, profile }: { locale: string; prof
 	};
 
 	if (!profile?.user_id) {
-		return <p className="text-sm text-ink/60">{fullName || "—"}</p>;
+		return <p className="text-sm text-white/60">{fullName || "—"}</p>;
 	}
 
 	return (
 		<form onSubmit={handleSave} className="flex flex-col gap-5">
 			<div className="flex flex-col gap-1.5">
-				<label className="text-xs font-medium text-ink/70">{c.nameLabel}</label>
+				<label className="text-xs text-white/70">{c.nameLabel}</label>
 				<input
 					type="text"
 					value={fullName}
 					onChange={(e) => setFullName(e.target.value)}
 					placeholder={c.namePlaceholder}
-					className="rounded-xl border border-ink/10 bg-white/50 px-4 py-2.5 text-sm outline-none transition-colors focus:border-forest-500 focus:bg-white"
+					className="border border-white/15 bg-transparent px-4 py-2.5 text-sm text-white outline-none focus:border-white/40"
 					required
 				/>
 			</div>
 			<button
 				type="submit"
 				disabled={loading}
-				className="mt-2 flex w-full items-center justify-center rounded-xl bg-forest-700 px-4 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+				className="mt-2 flex w-full items-center justify-center border border-white/15 px-4 py-2.5 text-[13px] text-white/85 hover:border-white/40 disabled:opacity-50"
 			>
 				{loading ? c.saving : c.save}
 			</button>

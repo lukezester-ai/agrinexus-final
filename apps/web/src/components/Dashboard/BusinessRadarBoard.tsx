@@ -128,7 +128,7 @@ export function BusinessRadarBoard({
 				return responseActions(matchId);
 			}
 			return (
-				<p className="mt-3 rounded-lg bg-harvest-50 px-3 py-2 text-[13px] leading-snug text-harvest-700">
+				<p className="mt-3 border border-white/15 px-3 py-2 text-[13px] leading-snug text-white/70">
 					{c.waiting}
 				</p>
 			);
@@ -154,7 +154,7 @@ export function BusinessRadarBoard({
 			);
 		}
 		if (item.item_kind === "open_opportunity") {
-			return <p className="mt-3 text-[13px] capitalize text-ink/55">{item.status ?? "open"}</p>;
+			return <p className="mt-3 text-[13px] capitalize text-white/55">{item.status ?? "open"}</p>;
 		}
 		if (item.item_kind === "relationship" && item.status === "active" && item.capabilities?.canManageRelationship) {
 			return (
@@ -187,7 +187,7 @@ export function BusinessRadarBoard({
 			<h1 className={journeyTitle}>{c.title}</h1>
 			<p className={journeyLead}>{c.lead}</p>
 			{e2e ? (
-				<p className="mt-3 font-mono text-xs text-ink/50" data-testid="radar-e2e-role">
+				<p className="mt-3 font-mono text-xs text-white/45" data-testid="radar-e2e-role">
 					role {e2e.role}
 				</p>
 			) : null}
@@ -203,12 +203,12 @@ export function BusinessRadarBoard({
 			) : null}
 
 			<p className={journeyFact} data-testid="radar-priority-line">
-				<span className="font-semibold text-ink">{attention}</span> {c.needsAttention}
-				<span className="text-ink/25" aria-hidden>
+				<span className="text-white">{attention}</span> {c.needsAttention}
+				<span className="text-white/25" aria-hidden>
 					·
 				</span>
 				{summary.active_relationships} {c.relationships}
-				<span className="text-ink/25" aria-hidden>
+				<span className="text-white/25" aria-hidden>
 					·
 				</span>
 				{summary.open_opportunities} {c.opportunities}
@@ -224,7 +224,7 @@ export function BusinessRadarBoard({
 							</p>
 						) : (
 							<>
-								<p className="text-[14px] text-ink/50">{c.emptyPrimary}</p>
+								<p className="text-sm text-white/55">{c.emptyPrimary}</p>
 								{e2e ? null : (
 									<Link href="/dashboard/onboarding" className={`${primaryAction} mt-4`}>
 										{c.startIntent}
@@ -248,9 +248,9 @@ export function BusinessRadarBoard({
 			</section>
 
 			<section className="mt-11" data-testid="radar-section-secondary">
-				<h2 className={`${journeySectionTitle} text-ink/70`}>{c.secondary}</h2>
+				<h2 className={journeySectionTitle}>{c.secondary}</h2>
 				{secondaryItems.length === 0 ? (
-					<p className="mt-3 text-[14px] text-ink/40">{c.emptySecondary}</p>
+					<p className="mt-3 text-sm text-white/45">{c.emptySecondary}</p>
 				) : (
 					<ul className="mt-4 flex flex-col gap-4">
 						{secondaryItems.map((item) => (
