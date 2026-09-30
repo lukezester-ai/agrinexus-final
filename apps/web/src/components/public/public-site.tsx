@@ -21,42 +21,42 @@ const copy: Record<"en" | "bg" | "ar", Copy> = {
 		line: "From business intent to governed decision.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Intent" },
-			{ id: "intelligence", title: "Business Intelligence" },
+			{ id: "intent", title: "Intent", href: "/business-radar/intent" },
+			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP" },
+			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
 		],
 	},
 	bg: {
 		line: "От бизнес намерение към управлявано решение.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Намерение" },
-			{ id: "intelligence", title: "Business Intelligence" },
+			{ id: "intent", title: "Намерение", href: "/business-radar/intent" },
+			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP" },
+			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
 		],
 	},
 	ar: {
 		line: "From business intent to governed decision.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Intent" },
-			{ id: "intelligence", title: "Business Intelligence" },
+			{ id: "intent", title: "Intent", href: "/business-radar/intent" },
+			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP" },
+			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
 		],
 	},
 };
@@ -65,6 +65,7 @@ export function isPublicPath(pathname: string): boolean {
 	return (
 		pathname === "/" ||
 		pathname.startsWith("/business-radar") ||
+		pathname.startsWith("/business-intelligence") ||
 		pathname.startsWith("/finance-intelligence") ||
 		pathname.startsWith("/strategy-copilot") ||
 		pathname.startsWith("/risk-governance") ||
@@ -125,7 +126,11 @@ export function HomeFlow({ locale }: { locale: string }) {
 				<Stage stage={byId.copilot} />
 				<Stage stage={byId.risk} />
 				<Stage stage={byId.safety} />
-				<li className="pt-2 text-sm tracking-[0.18em] text-[#e2b657]">{byId.stop.title}</li>
+				<li className="pt-2">
+					<Link href={byId.stop.href ?? "/execution-safety/stop"} className="inline-block text-sm tracking-[0.18em] text-[#e2b657] no-underline hover:text-white">
+						{byId.stop.title}
+					</Link>
+				</li>
 			</ol>
 			<Link href="/execution-safety" className="mt-10 inline-block text-sm tracking-[0.14em] text-[#e2b657] no-underline hover:text-white">
 				{c.blocked}
@@ -176,6 +181,7 @@ export function DirectionPage({
 	lead,
 	points,
 	current,
+	enter,
 }: {
 	locale: string;
 	kicker: string;
@@ -185,6 +191,7 @@ export function DirectionPage({
 	lead?: string;
 	points?: { label: string; detail: string }[];
 	current?: string;
+	enter?: { label: string; href: string };
 }) {
 	const c = copy[productLocale(locale)];
 	return (
@@ -225,6 +232,11 @@ export function DirectionPage({
 							</div>
 						))}
 					</dl>
+				) : null}
+				{enter ? (
+					<Link href={enter.href} className={`${stageButton} mt-10 max-w-xl`}>
+						{enter.label}
+					</Link>
 				) : null}
 				<div className="mt-12 max-w-xl space-y-2 text-sm text-[#e2b657]">
 					{boundary.map((line) => (
