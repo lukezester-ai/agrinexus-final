@@ -180,7 +180,9 @@ export function DirectionPage({
 	return (
 		<PublicShell locale={locale}>
 			<main className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
-				<p className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">{kicker}</p>
+				<Link href="/" className="text-[11px] tracking-[0.22em] text-[#8fbf9a] no-underline hover:text-white">
+					{kicker}
+				</Link>
 				<h1 className="mt-4 text-4xl font-light text-white md:text-5xl">{title}</h1>
 				<ol className="mt-16 flex max-w-xl flex-col border-s border-white/15 ps-8">
 					{chain.map((item) => {
@@ -203,7 +205,9 @@ export function DirectionPage({
 						<p key={line}>{line}</p>
 					))}
 				</div>
-				<p className="mt-10 text-sm tracking-[0.14em] text-[#e2b657]">{c.blocked}</p>
+				<Link href="/execution-safety" className="mt-10 inline-block text-sm tracking-[0.14em] text-[#e2b657] no-underline hover:text-white">
+					{c.blocked}
+				</Link>
 			</main>
 		</PublicShell>
 	);
