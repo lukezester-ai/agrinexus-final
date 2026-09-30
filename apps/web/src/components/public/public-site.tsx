@@ -109,6 +109,28 @@ export function PublicShell({ locale, children }: { locale: string; children: Re
 	);
 }
 
+const stageButton =
+	"block border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40";
+const stageButtonOpen =
+	"block border border-white/40 px-4 py-5 text-sm text-white no-underline";
+
+function FlowArrow() {
+	return (
+		<div aria-hidden className="py-3 text-center text-sm text-white/30">
+			↓
+		</div>
+	);
+}
+
+function FlowCard({ href, title }: { href: string; title: string }) {
+	return (
+		<Link href={href} className={`${stageButton} flex items-center justify-between gap-4`}>
+			<span>{title}</span>
+			<span aria-hidden>→</span>
+		</Link>
+	);
+}
+
 export function HomeFlow({ locale }: { locale: string }) {
 	const c = copy[productLocale(locale)];
 	const byId = Object.fromEntries(c.stages.map((stage) => [stage.id, stage]));
@@ -116,53 +138,29 @@ export function HomeFlow({ locale }: { locale: string }) {
 		<main className="mx-auto max-w-6xl px-6 py-16 md:px-10 md:py-24">
 			<p className="text-[11px] tracking-[0.22em] text-white/45">BUSINESS INTELLIGENCE & DECISION INFRASTRUCTURE</p>
 			<h1 className="mt-6 max-w-3xl text-4xl font-light leading-tight text-white md:text-6xl">{c.line}</h1>
-			<ol className="mt-20 flex max-w-xl flex-col gap-0 border-s border-white/15 ps-8">
-				<Stage stage={byId.intent} />
-				<Stage stage={byId.intelligence} />
-				<li className="grid gap-6 py-4 md:grid-cols-2">
-					<StageCard stage={byId.radar} />
-					<StageCard stage={byId.finance} />
-				</li>
-				<Stage stage={byId.copilot} />
-				<Stage stage={byId.risk} />
-				<Stage stage={byId.safety} />
-				<li className="pt-2">
-					<Link href={byId.stop.href ?? "/execution-safety/stop"} className="inline-block text-sm tracking-[0.18em] text-[#e2b657] no-underline hover:text-white">
-						{byId.stop.title}
-					</Link>
-				</li>
-			</ol>
-			<Link href="/execution-safety" className="mt-10 inline-block text-sm tracking-[0.14em] text-[#e2b657] no-underline hover:text-white">
-				{c.blocked}
-			</Link>
+			<div className="mt-20 max-w-xl">
+				<p className="text-sm text-white/55">{byId.intent.title}</p>
+				<FlowArrow />
+				<p className="text-[11px] tracking-[0.22em] text-white/45">BUSINESS INTELLIGENCE</p>
+				<FlowArrow />
+				<div className="grid gap-4 sm:grid-cols-2">
+					<FlowCard href="/business-radar" title={byId.radar.title} />
+					<FlowCard href="/finance-intelligence" title={byId.finance.title} />
+				</div>
+				<FlowArrow />
+				<FlowCard href="/strategy-copilot" title={byId.copilot.title} />
+				<FlowArrow />
+				<FlowCard href="/risk-governance" title={byId.risk.title} />
+				<FlowArrow />
+				<FlowCard href="/execution-safety" title={byId.safety.title} />
+				<FlowArrow />
+				<p className="text-sm tracking-[0.18em] text-[#e2b657]">{byId.stop.title}</p>
+				<div className="mt-4 border border-[#e2b657]/40 px-4 py-5" role="status">
+					<p className="text-sm tracking-[0.14em] text-[#e2b657]">{c.blocked}</p>
+					<p className="mt-2 text-sm text-white/70">Production transmission: NO</p>
+				</div>
+			</div>
 		</main>
-	);
-}
-
-const stageButton =
-	"block border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40";
-const stageButtonOpen =
-	"block border border-white/40 px-4 py-5 text-sm text-white no-underline";
-
-function Stage({ stage }: { stage: Copy["stages"][number] }) {
-	return (
-		<li className="py-3">
-			{stage.href ? (
-				<Link href={stage.href} className={stageButton}>
-					{stage.title}
-				</Link>
-			) : (
-				<span className="text-sm text-white/85">{stage.title}</span>
-			)}
-		</li>
-	);
-}
-
-function StageCard({ stage }: { stage: Copy["stages"][number] }) {
-	return (
-		<Link href={stage.href ?? "/"} className={stageButton}>
-			{stage.title}
-		</Link>
 	);
 }
 
