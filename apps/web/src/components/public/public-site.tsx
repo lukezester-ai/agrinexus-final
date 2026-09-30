@@ -132,16 +132,18 @@ export function HomeFlow({ locale }: { locale: string }) {
 	);
 }
 
+const stageButton =
+	"block border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40";
+
 function Stage({ stage }: { stage: Copy["stages"][number] }) {
-	const body = <span className="text-sm text-white/85">{stage.title}</span>;
 	return (
 		<li className="py-3">
 			{stage.href ? (
-				<Link href={stage.href} className="text-white/85 no-underline hover:text-white">
+				<Link href={stage.href} className={stageButton}>
 					{stage.title}
 				</Link>
 			) : (
-				body
+				<span className="text-sm text-white/85">{stage.title}</span>
 			)}
 		</li>
 	);
@@ -149,10 +151,16 @@ function Stage({ stage }: { stage: Copy["stages"][number] }) {
 
 function StageCard({ stage }: { stage: Copy["stages"][number] }) {
 	return (
-		<Link href={stage.href ?? "/"} className="border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40">
+		<Link href={stage.href ?? "/"} className={stageButton}>
 			{stage.title}
 		</Link>
 	);
+}
+
+type ChainStep = string | { label: string; href?: string };
+
+function chainStep(step: ChainStep): { label: string; href?: string } {
+	return typeof step === "string" ? { label: step } : step;
 }
 
 export function DirectionPage({
@@ -165,7 +173,7 @@ export function DirectionPage({
 	locale: string;
 	kicker: string;
 	title: string;
-	chain: string[];
+	chain: ChainStep[];
 	boundary: string[];
 }) {
 	const c = copy[productLocale(locale)];
@@ -175,11 +183,20 @@ export function DirectionPage({
 				<p className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">{kicker}</p>
 				<h1 className="mt-4 text-4xl font-light text-white md:text-5xl">{title}</h1>
 				<ol className="mt-16 flex max-w-xl flex-col border-s border-white/15 ps-8">
-					{chain.map((step) => (
-						<li key={step} className="py-3 text-sm text-white/85">
-							{step}
-						</li>
-					))}
+					{chain.map((item) => {
+						const step = chainStep(item);
+						return (
+							<li key={step.label} className="py-3">
+								{step.href ? (
+									<Link href={step.href} className={stageButton}>
+										{step.label}
+									</Link>
+								) : (
+									<span className="text-sm text-white/85">{step.label}</span>
+								)}
+							</li>
+						);
+					})}
 				</ol>
 				<div className="mt-12 max-w-xl space-y-2 text-sm text-[#e2b657]">
 					{boundary.map((line) => (
