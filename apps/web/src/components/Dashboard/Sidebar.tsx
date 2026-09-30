@@ -48,7 +48,7 @@ export default function Sidebar({
 
 	return (
 		<aside className="sticky top-0 hidden h-screen w-[220px] flex-shrink-0 flex-col gap-8 border-e border-white/10 bg-[#141618] px-4 py-6 md:flex">
-			<Link href="/dashboard" className="px-2 text-white no-underline">
+			<Link href="/" className="px-2 text-white no-underline">
 				<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">AGRI NEXUS</div>
 				<div className="mt-1 text-sm text-white/90">Universal Business Core</div>
 			</Link>
