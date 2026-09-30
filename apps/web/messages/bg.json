@@ -1,10 +1,10 @@
 {
 	"Metadata": {
-		"titleDefault": "Core — Поверително бизнес съпоставяне",
-		"titleTemplate": "%s — Core",
-		"description": "Кажете какво търсите. Другата страна се вижда само при взаимно съгласие. Намерение, възможност, съвпадение, представяне, връзка.",
-		"keywords": ["бизнес съпоставяне", "бизнес намерение", "поверително представяне", "бизнес радар"],
-		"ogTitle": "Core — Поверително бизнес съпоставяне",
-		"ogDescription": "Намерение → Възможност → Съвпадение → Представяне. Идентичността остава скрита, докато и двете страни не се съгласят."
+		"titleDefault": "AGRI NEXUS — Universal Business Core",
+		"titleTemplate": "%s — AGRI NEXUS",
+		"description": "От бизнес намерение към управлявано решение. Инфраструктура за business intelligence и решения. Live execution е блокиран.",
+		"keywords": ["agri nexus", "universal business core", "бизнес радар", "finance intelligence"],
+		"ogTitle": "AGRI NEXUS — Universal Business Core",
+		"ogDescription": "От бизнес намерение към управлявано решение. Live execution е блокиран."
 	}
 }
