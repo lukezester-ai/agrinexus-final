@@ -19,7 +19,7 @@ export function MobileDashboardHeader({ locale, userName, initials, unreadNotifi
 			className="sticky top-0 z-40 flex items-center justify-between border-b border-white/10 bg-[#141618] px-4 py-3 md:hidden"
 			style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
 		>
-			<Link href="/dashboard" className="no-underline">
+			<Link href="/" className="no-underline">
 				<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">AGRI NEXUS</div>
 			</Link>
 			<div className="flex items-center gap-3">
