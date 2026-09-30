@@ -127,7 +127,9 @@ export function HomeFlow({ locale }: { locale: string }) {
 				<Stage stage={byId.safety} />
 				<li className="pt-2 text-sm tracking-[0.18em] text-[#e2b657]">{byId.stop.title}</li>
 			</ol>
-			<p className="mt-10 text-sm tracking-[0.14em] text-[#e2b657]">{c.blocked}</p>
+			<Link href="/execution-safety" className="mt-10 inline-block text-sm tracking-[0.14em] text-[#e2b657] no-underline hover:text-white">
+				{c.blocked}
+			</Link>
 		</main>
 	);
 }

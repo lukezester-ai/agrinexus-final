@@ -12,7 +12,12 @@ export default async function StrategyCopilotPage({ params }: { params: Promise<
 			locale={locale}
 			kicker="AGRI NEXUS"
 			title="AI Strategy Copilot"
-			chain={["Human idea", "Specification", "Validation", "Canonical strategy"]}
+			chain={[
+				{ label: "Human idea", href: "/strategy-copilot/human-idea" },
+				{ label: "Specification", href: "/strategy-copilot/specification" },
+				{ label: "Validation", href: "/strategy-copilot/validation" },
+				{ label: "Canonical strategy", href: "/strategy-copilot/canonical-strategy" },
+			]}
 			boundary={["AI translates and validates the investment idea.", "AI does not decide execution."]}
 		/>
 	);

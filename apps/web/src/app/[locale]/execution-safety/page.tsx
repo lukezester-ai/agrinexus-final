@@ -12,7 +12,14 @@ export default async function ExecutionSafetyPage({ params }: { params: Promise<
 			locale={locale}
 			kicker="AGRI NEXUS"
 			title="Execution Safety"
-			chain={["Authorization", "Safety controls", "Dispatch contract", "External result", "Reconciliation", "STOP"]}
+			chain={[
+				{ label: "Authorization", href: "/execution-safety/authorization" },
+				{ label: "Safety controls", href: "/execution-safety/safety-controls" },
+				{ label: "Dispatch contract", href: "/execution-safety/dispatch-contract" },
+				{ label: "External result", href: "/execution-safety/external-result" },
+				{ label: "Reconciliation", href: "/execution-safety/reconciliation" },
+				{ label: "STOP", href: "/execution-safety/stop" },
+			]}
 			boundary={[
 				"LIVE EXECUTION: BLOCKED",
 				"No broker connection.",
