@@ -78,7 +78,7 @@ export function OpportunityCreateForm({
 		router.refresh();
 	}
 
-	const field = "w-full rounded-xl border border-ink/10 bg-white/80 px-3 py-2 text-sm";
+	const field = "w-full border border-white/15 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-white/40";
 	return (
 		<form
 			className="flex max-w-xl flex-col gap-4"
@@ -87,7 +87,7 @@ export function OpportunityCreateForm({
 				void save("draft");
 			}}
 		>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.kind}
 				<select className={field} value={kind} onChange={(e) => setKind(e.target.value as OpportunityKind)}>
 					{OPPORTUNITY_KINDS.map((k) => (
@@ -97,23 +97,23 @@ export function OpportunityCreateForm({
 					))}
 				</select>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.title}
 				<input className={field} required value={title} onChange={(e) => setTitle(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.summary}
 				<textarea className={field} rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.industry}
 				<input className={field} required value={industry} onChange={(e) => setIndustry(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.markets}
 				<input className={field} value={markets} onChange={(e) => setMarkets(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.visibility}
 				<select
 					className={field}
@@ -136,7 +136,7 @@ export function OpportunityCreateForm({
 					type="button"
 					disabled={saving}
 					onClick={() => void save("open")}
-					className="rounded-xl bg-forest-700 px-4 py-2.5 text-[13px] text-white"
+					className="border border-white/15 px-4 py-2.5 text-[13px] text-white/85 hover:border-white/40"
 				>
 					{saving ? t.saving : t.publish}
 				</button>

@@ -65,8 +65,8 @@ export default async function IntentsPage({ params }: PageProps) {
 				</Link>
 			</div>
 			{intents.length === 0 ? (
-				<div className="rounded-2xl border border-ink/[0.07] bg-white px-5 py-5">
-					<p className="text-[15px] text-ink/55">{c.noIntents}</p>
+				<div className="border border-white/15 px-5 py-5">
+					<p className="text-sm text-white/55">{c.noIntents}</p>
 					<Link href="/dashboard/onboarding" className={`${primaryAction} mt-4`}>
 						{c.firstIntent}
 					</Link>
@@ -76,22 +76,24 @@ export default async function IntentsPage({ params }: PageProps) {
 					{intents.map((intent) => (
 						<li
 							key={intent.id}
-							className="rounded-2xl border border-ink/[0.08] bg-white px-5 py-4 shadow-[0_1px_2px_rgba(10,10,10,0.04)]"
+							className="border border-white/15 px-5 py-4"
 						>
 							<div className="flex flex-wrap items-baseline gap-2">
-								<Link href={`/dashboard/intents/${intent.id}`} className="text-[15px] font-semibold tracking-[-0.01em] text-ink hover:text-forest-700 hover:underline">{intent.headline}</Link>
+								<Link href={`/dashboard/intents/${intent.id}`} className="text-[15px] text-white no-underline hover:text-white/70">
+									{intent.headline}
+								</Link>
 								{intent.visibility === "confidential" ? (
-									<span className="rounded-full bg-harvest-50 px-2 py-0.5 text-[11px] font-medium text-harvest-700">
+									<span className="border border-[#e2b657]/50 px-2 py-0.5 text-[11px] text-[#e2b657]">
 										{g.confidential}
 									</span>
 								) : (
-									<span className="text-[11px] uppercase tracking-wide text-ink/40">{intent.visibility}</span>
+									<span className="text-[11px] uppercase tracking-wide text-white/45">{intent.visibility}</span>
 								)}
-								<span className="font-mono text-[10px] uppercase tracking-wide text-ink/40">
+								<span className="font-mono text-[10px] uppercase tracking-wide text-white/45">
 									{intent.kind} · {intent.lifecycle}
 								</span>
 							</div>
-							<div className="mt-1.5 text-[13px] text-ink/55">
+							<div className="mt-1.5 text-[13px] text-white/55">
 								{intent.industry}
 								{intent.target_markets.length ? ` · ${intent.target_markets.join(", ")}` : ""}
 							</div>

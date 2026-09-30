@@ -178,7 +178,7 @@ export function IntentCreateForm({
 		router.refresh();
 	}
 
-	const field = "w-full rounded-xl border border-ink/10 bg-white/80 px-3 py-2 text-sm text-ink outline-none focus:border-forest-600";
+	const field = "w-full border border-white/15 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-white/40";
 
 	return (
 		<form
@@ -188,9 +188,9 @@ export function IntentCreateForm({
 				void save("draft");
 			}}
 		>
-			<section className="rounded-2xl border border-forest-700/15 bg-forest-50/60 p-4">
-				<h2 className="text-sm font-semibold text-ink">{t.assistTitle}</h2>
-				<p className="mt-1 text-xs text-ink/55">{t.assistHint}</p>
+			<section className="border border-white/15 p-4">
+				<h2 className="text-sm text-white">{t.assistTitle}</h2>
+				<p className="mt-1 text-xs text-white/55">{t.assistHint}</p>
 				<textarea
 					className={`${field} mt-3`}
 					rows={3}
@@ -204,23 +204,23 @@ export function IntentCreateForm({
 					type="button"
 					disabled={assisting || assistText.trim().length < 20}
 					onClick={() => void generateSuggestion()}
-					className="mt-3 rounded-xl border border-forest-700/25 bg-white px-3 py-2 text-xs font-medium text-forest-800 disabled:opacity-50"
+					className="mt-3 border border-white/15 px-3 py-2 text-xs text-white/85 disabled:opacity-50 hover:border-white/40"
 				>
 					{assisting ? t.assistGenerating : t.assistGenerate}
 				</button>
 				{suggestion ? (
-					<div className="mt-3 rounded-xl border border-ink/10 bg-white/90 p-3 text-xs text-ink/70">
-						<p className="font-semibold text-ink">{t.assistPreview}</p>
+					<div className="mt-3 border border-white/15 p-3 text-xs text-white/70">
+						<p className="text-white">{t.assistPreview}</p>
 						<p className="mt-2"><strong>{suggestion.headline}</strong></p>
 						<p className="mt-1">{suggestion.publicSummary}</p>
-						<p className="mt-2 text-ink/50">{suggestion.kind} · {suggestion.industry} · {suggestion.targetMarkets.join(", ") || "—"}</p>
-						<button type="button" onClick={applySuggestion} className="mt-3 rounded-lg bg-forest-700 px-3 py-2 font-medium text-white">
+						<p className="mt-2 text-white/50">{suggestion.kind} · {suggestion.industry} · {suggestion.targetMarkets.join(", ") || "—"}</p>
+						<button type="button" onClick={applySuggestion} className="mt-3 border border-white/15 px-3 py-2 text-white/85 hover:border-white/40">
 							{t.assistApply}
 						</button>
 					</div>
 				) : null}
 			</section>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.kind}
 				<select className={field} value={kind} onChange={(e) => setKind(e.target.value as IntentKind)}>
 					{INTENT_KINDS.map((k) => (
@@ -230,16 +230,16 @@ export function IntentCreateForm({
 					))}
 				</select>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.headline}
 				<input className={field} required value={headline} onChange={(e) => setHeadline(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.summary}
 				<textarea className={field} rows={3} value={publicSummary} onChange={(e) => setPublicSummary(e.target.value)} />
-				<span className="font-normal text-ink/45">{t.summaryHint}</span>
+				<span className="font-normal text-white/45">{t.summaryHint}</span>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.industry}
 				<input
 					className={field}
@@ -254,12 +254,12 @@ export function IntentCreateForm({
 					))}
 				</datalist>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.markets}
 				<input className={field} placeholder="BG, RO, DE" value={markets} onChange={(e) => setMarkets(e.target.value)} />
-				<span className="font-normal text-ink/45">{t.marketsHint}</span>
+				<span className="font-normal text-white/45">{t.marketsHint}</span>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.visibility}
 				<select
 					className={field}
@@ -273,21 +273,21 @@ export function IntentCreateForm({
 					))}
 				</select>
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.expires}
 				<input className={field} type="date" value={expires} onChange={(e) => setExpires(e.target.value)} />
 			</label>
-			<label className="flex flex-col gap-1.5 text-xs font-medium text-ink/70">
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
 				{t.brief}
 				<textarea className={field} rows={4} value={brief} onChange={(e) => setBrief(e.target.value)} />
-				<span className="font-normal text-ink/45">{t.briefHint}</span>
+				<span className="font-normal text-white/45">{t.briefHint}</span>
 			</label>
 			{error ? <p className="text-sm text-red-800">{error}</p> : null}
 			<div className="flex gap-2">
 				<button
 					type="submit"
 					disabled={saving}
-					className="rounded-xl border border-ink/15 bg-white/80 px-4 py-2.5 text-[13px] font-medium text-ink disabled:opacity-50"
+					className="border border-white/15 px-4 py-2.5 text-[13px] text-white/85 disabled:opacity-50"
 				>
 					{saving ? t.saving : t.draft}
 				</button>
@@ -295,7 +295,7 @@ export function IntentCreateForm({
 					type="button"
 					disabled={saving}
 					onClick={() => void save("active")}
-					className="rounded-xl bg-forest-700 px-4 py-2.5 text-[13px] font-medium text-white disabled:opacity-50"
+					className="border border-white/15 px-4 py-2.5 text-[13px] text-white/85 hover:border-white/40 disabled:opacity-50"
 				>
 					{saving ? t.saving : t.publish}
 				</button>

@@ -7,17 +7,11 @@ import { TrustEligibilitySignal } from "@/components/Dashboard/TrustEligibilityS
 
 const WHY_CODES = ["industry_match", "target_market_overlap", "kind_compatibility"] as const;
 
-function cardTone(item: RadarItem, confidential: boolean): string {
-	if (item.item_kind === "relationship") {
-		return "border-forest-200 bg-forest-50/40";
-	}
+function cardTone(item: RadarItem): string {
 	if (item.item_kind === "pending_introduction") {
-		return "border-harvest-200 bg-harvest-50/35";
+		return "border-[#e2b657]/50";
 	}
-	if (confidential) {
-		return "border-ink/[0.08] bg-white";
-	}
-	return "border-ink/[0.08] bg-white";
+	return "border-white/15";
 }
 
 export function RadarMatchCard({
@@ -55,23 +49,29 @@ export function RadarMatchCard({
 
 	return (
 		<li
-			className={`rounded-2xl border px-5 py-5 shadow-[0_1px_2px_rgba(10,10,10,0.04)] ${cardTone(item, confidential)}`}
+			className={`border px-5 py-5 ${cardTone(item)}`}
 			data-testid={`radar-item-${item.item_kind}`}
 		>
-			<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{c.found}</p>
-			<h3 className="mt-1.5 text-[17px] font-semibold leading-snug tracking-[-0.015em] text-ink">
-				{isRelationship ? <Link href={`/dashboard/relationships/${item.item_id}`} className="text-ink no-underline hover:text-forest-700 hover:underline">{title}</Link> : title}
+			<p className="text-[11px] tracking-[0.18em] text-white/45">{c.found}</p>
+			<h3 className="mt-1.5 text-[17px] font-light leading-snug text-white">
+				{isRelationship ? (
+					<Link href={`/dashboard/relationships/${item.item_id}`} className="text-white no-underline hover:text-white/70">
+						{title}
+					</Link>
+				) : (
+					title
+				)}
 			</h3>
-			{item.safe_summary ? <p className="mt-1.5 text-[14px] leading-relaxed text-ink/58">{item.safe_summary}</p> : null}
+			{item.safe_summary ? <p className="mt-1.5 text-sm leading-relaxed text-white/70">{item.safe_summary}</p> : null}
 
 			{percent != null && strengthLabel ? (
-				<div className="mt-5 border-t border-ink/[0.06] pt-4">
-					<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{c.why}</p>
-					<p className="mt-2 font-serif text-[1.45rem] leading-none tracking-[-0.02em] text-ink" data-testid="radar-match-strength">
+				<div className="mt-5 border-t border-white/10 pt-4">
+					<p className="text-[11px] tracking-[0.18em] text-white/45">{c.why}</p>
+					<p className="mt-2 text-2xl font-light leading-none text-white" data-testid="radar-match-strength">
 						{strengthLabel}
 					</p>
-					<p className="mt-2 text-[14px] text-ink/55" data-testid="radar-criteria-alignment">
-						<span dir="ltr" className="inline-block tabular-nums font-medium text-ink">
+					<p className="mt-2 text-sm text-white/55" data-testid="radar-criteria-alignment">
+						<span dir="ltr" className="inline-block tabular-nums text-white">
 							{percent}%
 						</span>{" "}
 						{c.criteriaAlignment}
@@ -79,7 +79,7 @@ export function RadarMatchCard({
 					{reasons.length > 0 ? (
 						<ul className="mt-3 flex flex-col gap-1">
 							{reasons.map((label) => (
-								<li key={label} className="text-[14px] leading-snug text-ink/68" data-testid="radar-reason">
+								<li key={label} className="text-sm leading-snug text-white/70" data-testid="radar-reason">
 									{label}
 								</li>
 							))}
@@ -89,19 +89,19 @@ export function RadarMatchCard({
 			) : null}
 
 			{confidential ? (
-				<div className="mt-5 rounded-xl border border-harvest-200/80 bg-harvest-50/70 px-3.5 py-3">
-					<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-harvest-700">{c.hidden}</p>
-					<p className="mt-1.5 text-[14px] leading-relaxed text-ink/70" data-testid="radar-confidential">
-						<span className="font-semibold text-ink">{g.confidential}.</span> {c.confidentialBody}
+				<div className="mt-5 border border-white/15 px-3.5 py-3">
+					<p className="text-[11px] tracking-[0.18em] text-[#e2b657]">{c.hidden}</p>
+					<p className="mt-1.5 text-sm leading-relaxed text-white/70" data-testid="radar-confidential">
+						<span className="text-white">{g.confidential}.</span> {c.confidentialBody}
 					</p>
 				</div>
 			) : null}
 			{isRadarMatchKind(item.item_kind) ? <TrustEligibilitySignal locale={locale} /> : null}
 
-			<div className="mt-5 border-t border-ink/[0.06] pt-4">
-				<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40">{c.next}</p>
+			<div className="mt-5 border-t border-white/10 pt-4">
+				<p className="text-[11px] tracking-[0.18em] text-white/45">{c.next}</p>
 				{isRelationship && item.status ? (
-					<p className="mt-2 text-[13px] font-medium capitalize text-forest-700">{item.status}</p>
+					<p className="mt-2 text-[13px] capitalize text-white/80">{item.status}</p>
 				) : null}
 				{actions}
 			</div>

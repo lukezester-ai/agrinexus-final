@@ -48,33 +48,26 @@ export default async function OpportunitiesPage({ params }: PageProps) {
 		: { data: null };
 	const role = membership?.role as string | undefined;
 	return (
-		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12">
-			<div className="mb-6 flex items-end justify-between gap-4">
+		<div className="mx-auto w-full max-w-[720px] px-6 py-16 md:px-10 md:py-24">
+			<div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 				<div>
-					<h1 className="font-serif text-2xl text-ink md:text-[26px]">
-						{c.oppsTitle}
-					</h1>
-					<p className="mt-2 max-w-xl text-sm text-ink/60">
-						{c.oppsLead}
-					</p>
+					<h1 className="text-4xl font-light text-white md:text-5xl">{c.oppsTitle}</h1>
+					<p className="mt-4 max-w-xl text-sm text-white/70">{c.oppsLead}</p>
 				</div>
-				<Link
-					href="/dashboard/opportunities/new"
-					className="rounded-xl bg-forest-700 px-4 py-2.5 text-[13px] font-medium text-white no-underline"
-				>
+				<Link href="/dashboard/opportunities/new" className="border border-white/15 px-4 py-3 text-sm text-white/85 no-underline hover:border-white/40">
 					{c.newOpp}
 				</Link>
 			</div>
 			{opportunities.length === 0 ? (
-				<p className="text-sm text-ink/50">{c.noOpps}</p>
+				<p className="text-sm text-white/55">{c.noOpps}</p>
 			) : (
-				<ul className="flex flex-col gap-2">
+				<ul className="flex flex-col gap-3">
 					{opportunities.map((row) => (
-						<li key={row.id} className="rounded-2xl border border-ink/[0.06] bg-white/55 px-4 py-3.5">
-							<Link href={`/dashboard/opportunities/${row.id}`} className="text-sm font-medium text-ink no-underline hover:underline">
+						<li key={row.id} className="border border-white/15 px-4 py-4">
+							<Link href={`/dashboard/opportunities/${row.id}`} className="text-sm text-white no-underline hover:text-white/70">
 								{row.title}
 							</Link>
-							<div className="mt-1 font-mono text-[10px] uppercase text-ink/45">
+							<div className="mt-1 font-mono text-[10px] uppercase text-white/45">
 								{row.visibility} · {row.lifecycle} · {row.source_type}
 							</div>
 							{row.source_type === "manual" && ["draft", "open", "paused", "pursuing"].includes(row.lifecycle) &&

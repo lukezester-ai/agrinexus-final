@@ -26,12 +26,12 @@ export default async function SettingsPage({ params }: PageProps) {
 	const { data: profile } = await supabase.from("farm_profiles").select("user_id, full_name").eq("user_id", session.user.id).maybeSingle();
 
 	return (
-		<div className="px-4 py-4 pb-6 md:px-7 md:py-5 md:pb-12 max-w-2xl">
-			<div className="mb-6">
-				<div className="font-serif text-2xl font-normal leading-[1.1] tracking-[-0.015em] md:text-[26px]">{c.settingsTitle}</div>
-				<div className="mt-1.5 text-sm text-ink/60">{c.settingsLead}</div>
+		<div className="mx-auto w-full max-w-[720px] px-6 py-16 md:px-10">
+			<div className="mb-8">
+				<div className="text-4xl font-light text-white">{c.settingsTitle}</div>
+				<div className="mt-4 text-sm text-white/70">{c.settingsLead}</div>
 			</div>
-			<div className="overflow-hidden rounded-2xl border border-white/70 bg-white/55 backdrop-blur-xl p-5 md:p-7">
+			<div className="border border-white/15 p-5 md:p-7">
 				<SettingsForm locale={locale} profile={profile} />
 			</div>
 		</div>

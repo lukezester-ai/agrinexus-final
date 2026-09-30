@@ -43,7 +43,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
 
 	return (
 		<nav
-			className="fixed inset-x-0 bottom-0 z-50 border-t border-ink/[0.08] bg-paper/95 backdrop-blur-xl md:hidden"
+			className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#141618] md:hidden"
 			style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
 			aria-label={c.navAria}
 		>
@@ -55,7 +55,7 @@ export function MobileBottomNav({ locale }: { locale: string }) {
 							key={tab.href}
 							href={tab.href}
 							className={`flex flex-col items-center gap-0.5 py-2.5 no-underline transition-colors ${
-								active ? "text-forest-800" : "text-ink/45"
+								active ? "text-white" : "text-white/45"
 							}`}
 						>
 							<span className="text-[20px] leading-none" aria-hidden>

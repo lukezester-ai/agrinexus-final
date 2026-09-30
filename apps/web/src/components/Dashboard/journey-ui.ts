@@ -1,34 +1,34 @@
 /** Visual tokens for the proven product journey only. Do not use on legacy chrome. */
 
 export const journeyPage =
-	"mx-auto w-full max-w-[720px] px-4 py-5 pb-8 md:px-8 md:py-8 md:pb-14";
+	"mx-auto w-full max-w-[720px] px-6 py-16 md:px-10 md:py-24";
 
 export const journeyKicker =
-	"text-[11px] font-medium uppercase tracking-[0.14em] text-ink/40";
+	"text-[11px] tracking-[0.22em] text-[#8fbf9a]";
 
-export const journeyTitle = "mt-2 font-serif text-[1.65rem] leading-tight tracking-[-0.02em] text-ink md:text-[1.85rem]";
+export const journeyTitle = "mt-4 text-4xl font-light leading-tight text-white md:text-5xl";
 
-export const journeyLead = "mt-3 max-w-xl text-[15px] leading-relaxed text-ink/62";
+export const journeyLead = "mt-4 max-w-xl text-sm leading-relaxed text-white/70";
 
-export const journeySectionTitle = "text-[13px] font-semibold tracking-[-0.01em] text-ink";
+export const journeySectionTitle = "text-[11px] tracking-[0.18em] text-white/45";
 
 export const journeyFact =
-	"mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[13px] text-ink/55";
+	"mt-10 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-white/70";
 
 export const primaryAction =
-	"inline-flex min-h-11 items-center justify-center rounded-xl bg-forest-700 px-4 text-[13px] font-medium text-white no-underline shadow-[0_1px_0_rgba(14,40,24,0.2)] disabled:opacity-50";
+	"inline-flex min-h-11 items-center justify-center border border-white/15 px-4 py-3 text-sm text-white/85 no-underline hover:border-white/40 disabled:opacity-50";
 
 export const secondaryAction =
-	"inline-flex min-h-11 items-center justify-center rounded-xl border border-ink/12 bg-white px-4 text-[13px] font-medium text-ink disabled:opacity-50";
+	"inline-flex min-h-11 items-center justify-center border border-white/15 px-4 py-3 text-sm text-white/70 disabled:opacity-50 hover:border-white/40";
 
 export const quietAction =
-	"inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-[13px] font-medium text-ink/55 hover:bg-ink/[0.04] disabled:opacity-50";
+	"inline-flex min-h-11 items-center justify-center px-4 py-3 text-sm text-white/45 hover:text-white disabled:opacity-50";
 
 export const fieldControl =
-	"w-full rounded-xl border border-ink/12 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-forest-600";
+	"w-full border border-white/15 bg-transparent px-3.5 py-2.5 text-sm text-white outline-none transition-colors focus:border-white/40";
 
 export const alertError =
-	"mt-4 rounded-xl border border-semantic-alert/25 bg-[#FBF4F4] px-3.5 py-3 text-sm text-semantic-alert";
+	"mt-4 border border-[#e2b657]/40 px-3.5 py-3 text-sm text-[#e2b657]";
 
 export const waitingPanel =
-	"mt-4 max-w-xl rounded-2xl border border-ink/[0.07] bg-white px-4 py-4 text-[15px] leading-relaxed text-ink/65";
+	"mt-4 max-w-xl border border-white/15 px-4 py-4 text-sm leading-relaxed text-white/70";

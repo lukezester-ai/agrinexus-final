@@ -82,19 +82,19 @@ export default async function VerificationPage({ params }: PageProps) {
 	return (
 		<div className="mx-auto max-w-3xl px-4 py-6 md:px-7 md:py-8">
 			<header className="mb-6">
-				<h1 className="font-serif text-3xl tracking-[-0.02em]">{t.title}</h1>
-				<p className="mt-2 max-w-2xl text-sm text-ink/60">{t.lead}</p>
+				<h1 className="font-light text-3xl tracking-[-0.02em]">{t.title}</h1>
+				<p className="mt-2 max-w-2xl text-sm text-white/60">{t.lead}</p>
 				{isReviewer === true ? <Link href="/dashboard/verification/review" className="mt-3 inline-flex text-sm font-medium text-forest-800 underline">Open review queue</Link> : null}
 			</header>
-			<section className="mb-5 rounded-2xl border border-ink/10 bg-white/65 p-5">
-				<p className="text-xs uppercase tracking-[0.08em] text-ink/45">{t.organization}</p>
+			<section className="mb-5 border border-white/15 p-5">
+				<p className="text-xs uppercase tracking-[0.08em] text-white/45">{t.organization}</p>
 				<p className="mt-1 text-lg font-medium">{organizationRelation?.name ?? "—"}</p>
-				<p className="mt-4 text-xs uppercase tracking-[0.08em] text-ink/45">{t.status}</p>
+				<p className="mt-4 text-xs uppercase tracking-[0.08em] text-white/45">{t.status}</p>
 				<p className="mt-1 font-medium">{t.states[status]}</p>
-				{message ? <p className="mt-3 text-sm text-ink/65">{message}</p> : null}
+				{message ? <p className="mt-3 text-sm text-white/65">{message}</p> : null}
 			</section>
 			{canRequest ? (
-				<section className="rounded-2xl border border-ink/10 bg-white/65 p-5">
+				<section className="border border-white/15 p-5">
 					<VerificationRequestForm locale={locale} organizationId={membership.organization_id} />
 				</section>
 			) : null}
