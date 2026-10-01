@@ -7,6 +7,7 @@ from engine.production_result import (
     classify_observation,
     outcome_class,
     payload_digest,
+    recheck_production_limit,
     reconcile_result,
     record_dispatch,
     record_external_result,
@@ -103,6 +104,18 @@ def test_client_cannot_supply_a_result():
     for document in (None, [], {"external_result": "filled"}, {"sent": True}, {"success": True}):
         with pytest.raises(ProductionResultError):
             validate_result_command(document)
+
+
+def test_recheck_compares_the_snapshot_with_the_current_ceiling():
+    recheck_production_limit(1, 10000)
+    recheck_production_limit(1, 10000, order_limit=1, exposure_limit=10000)
+    recheck_production_limit(1, 10000, order_limit=2, exposure_limit=20000)
+    with pytest.raises(ProductionResultError, match="production limit re-check denied"):
+        recheck_production_limit(1, 10000, order_limit=0, exposure_limit=10000)
+    with pytest.raises(ProductionResultError, match="production limit re-check denied"):
+        recheck_production_limit(1, 10000, order_limit=1, exposure_limit=9999)
+    dispatch = record_dispatch("1" * 32, kill_switch=False)
+    assert dispatch == {"execution_identity": "1" * 32, "admitted": False, "sent": False, "live_permitted": False}
 
 
 def test_production_result_does_not_send():
