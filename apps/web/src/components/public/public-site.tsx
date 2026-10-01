@@ -21,42 +21,42 @@ const copy: Record<"en" | "bg" | "ar", Copy> = {
 		line: "From business intent to governed decision.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Intent", href: "/business-radar/intent" },
-			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
+			{ id: "intent", title: "Intent" },
+			{ id: "intelligence", title: "Business Intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
+			{ id: "stop", title: "STOP" },
 		],
 	},
 	bg: {
 		line: "От бизнес намерение към управлявано решение.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Намерение", href: "/business-radar/intent" },
-			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
+			{ id: "intent", title: "Намерение" },
+			{ id: "intelligence", title: "Business Intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
+			{ id: "stop", title: "STOP" },
 		],
 	},
 	ar: {
 		line: "From business intent to governed decision.",
 		blocked: "LIVE EXECUTION: BLOCKED",
 		stages: [
-			{ id: "intent", title: "Intent", href: "/business-radar/intent" },
-			{ id: "intelligence", title: "Business Intelligence", href: "/business-intelligence" },
+			{ id: "intent", title: "Intent" },
+			{ id: "intelligence", title: "Business Intelligence" },
 			{ id: "radar", title: "Business Radar", href: "/business-radar" },
 			{ id: "finance", title: "Finance Intelligence", href: "/finance-intelligence" },
 			{ id: "copilot", title: "AI Strategy Copilot", href: "/strategy-copilot" },
 			{ id: "risk", title: "Risk & Governance", href: "/risk-governance" },
 			{ id: "safety", title: "Execution Safety", href: "/execution-safety" },
-			{ id: "stop", title: "STOP", href: "/execution-safety/stop" },
+			{ id: "stop", title: "STOP" },
 		],
 	},
 };
@@ -109,10 +109,16 @@ export function PublicShell({ locale, children }: { locale: string; children: Re
 	);
 }
 
+const CAPABILITY_HREFS = new Set([
+	"/business-radar",
+	"/finance-intelligence",
+	"/strategy-copilot",
+	"/risk-governance",
+	"/execution-safety",
+]);
+
 const stageButton =
 	"block border border-white/15 px-4 py-5 text-sm text-white/85 no-underline hover:border-white/40";
-const stageButtonOpen =
-	"block border border-white/40 px-4 py-5 text-sm text-white no-underline";
 
 function FlowArrow() {
 	return (
@@ -124,9 +130,9 @@ function FlowArrow() {
 
 function FlowCard({ href, title }: { href: string; title: string }) {
 	return (
-		<Link href={href} className={`${stageButton} flex items-center justify-between gap-4`}>
+		<Link href={href} data-interactive="true" className={`${stageButton} flex items-center justify-between gap-4`}>
 			<span>{title}</span>
-			<span aria-hidden>→</span>
+			<span className="text-[10px] tracking-[0.16em] text-white/55">OPEN</span>
 		</Link>
 	);
 }
@@ -139,9 +145,9 @@ export function HomeFlow({ locale }: { locale: string }) {
 			<p className="text-[11px] tracking-[0.22em] text-white/45">BUSINESS INTELLIGENCE & DECISION INFRASTRUCTURE</p>
 			<h1 className="mt-6 max-w-3xl text-4xl font-light leading-tight text-white md:text-6xl">{c.line}</h1>
 			<div className="mt-20 max-w-xl">
-				<p className="text-sm text-white/55">{byId.intent.title}</p>
+				<p data-interactive="false" className="text-sm text-white/55">{byId.intent.title}</p>
 				<FlowArrow />
-				<p className="text-[11px] tracking-[0.22em] text-white/45">BUSINESS INTELLIGENCE</p>
+				<p data-interactive="false" className="text-[11px] tracking-[0.22em] text-white/45">BUSINESS INTELLIGENCE</p>
 				<FlowArrow />
 				<div className="grid gap-4 sm:grid-cols-2">
 					<FlowCard href="/business-radar" title={byId.radar.title} />
@@ -154,7 +160,7 @@ export function HomeFlow({ locale }: { locale: string }) {
 				<FlowArrow />
 				<FlowCard href="/execution-safety" title={byId.safety.title} />
 				<FlowArrow />
-				<p className="text-sm tracking-[0.18em] text-[#e2b657]">{byId.stop.title}</p>
+				<p data-interactive="false" className="text-sm tracking-[0.18em] text-[#e2b657]">{byId.stop.title}</p>
 				<div className="mt-4 border border-[#e2b657]/40 px-4 py-5" role="status">
 					<p className="text-sm tracking-[0.14em] text-[#e2b657]">{c.blocked}</p>
 					<p className="mt-2 text-sm text-white/70">Production transmission: NO</p>
@@ -203,20 +209,30 @@ export function DirectionPage({
 				<ol className="mt-16 flex max-w-xl flex-col border-s border-white/15 ps-8">
 					{chain.map((item) => {
 						const step = chainStep(item);
-						const open = Boolean(step.href && step.href === current);
+						const here = Boolean(current && step.href === current);
+						if (step.href && CAPABILITY_HREFS.has(step.href)) {
+							return (
+								<li key={step.label} className="py-3">
+									<FlowCard href={step.href} title={step.label} />
+								</li>
+							);
+						}
+						const isStop = step.label === "STOP";
 						return (
 							<li key={step.label} className="py-3">
-								{step.href ? (
-									<Link
-										href={step.href}
-										className={open ? stageButtonOpen : stageButton}
-										aria-current={open ? "page" : undefined}
-									>
-										{step.label}
-									</Link>
-								) : (
-									<span className="text-sm text-white/85">{step.label}</span>
-								)}
+								<p
+									data-interactive="false"
+									aria-current={here ? "step" : undefined}
+									className={
+										isStop
+											? "text-sm tracking-[0.18em] text-[#e2b657]"
+											: here
+												? "text-sm text-white"
+												: "text-sm text-white/85"
+									}
+								>
+									{step.label}
+								</p>
 							</li>
 						);
 					})}
@@ -241,9 +257,9 @@ export function DirectionPage({
 						<p key={line}>{line}</p>
 					))}
 				</div>
-				<Link href="/execution-safety" className="mt-10 inline-block text-sm tracking-[0.14em] text-[#e2b657] no-underline hover:text-white">
+				<p role="status" data-interactive="false" className="mt-10 text-sm tracking-[0.14em] text-[#e2b657]">
 					{c.blocked}
-				</Link>
+				</p>
 			</main>
 		</PublicShell>
 	);
