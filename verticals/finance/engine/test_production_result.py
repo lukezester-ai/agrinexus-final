@@ -78,6 +78,27 @@ def test_kill_switch_and_digest_change_block_the_result():
     ) != digest
 
 
+def test_kill_switch_stops_a_new_external_result_and_keeps_the_stored_one():
+    recorded = record_external_result("1" * 32)
+    assert record_external_result("1" * 32, recorded, kill_switch=True) is recorded
+    with pytest.raises(ProductionResultError, match="kill switch"):
+        record_external_result("1" * 32, kill_switch=True)
+    facts = _facts()
+    digest = payload_digest(
+        facts["execution_identity"],
+        facts["instrument"],
+        facts["side"],
+        facts["quantity"],
+        facts["authorization_digest"],
+        facts["contract_digest"],
+    )
+    stored = {**facts, "payload_digest": digest, "external_result": "unobserved"}
+    reconciled = reconcile_result(stored, stored)
+    assert reconcile_result(stored, stored, reconciled, kill_switch=True) is reconciled
+    with pytest.raises(ProductionResultError, match="kill switch"):
+        reconcile_result(stored, stored, kill_switch=True)
+
+
 def test_client_cannot_supply_a_result():
     for document in (None, [], {"external_result": "filled"}, {"sent": True}, {"success": True}):
         with pytest.raises(ProductionResultError):

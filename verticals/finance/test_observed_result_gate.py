@@ -372,16 +372,16 @@ def test_observed_result_is_one_record_and_does_not_send():
                 (open_contract,),
             )
             cur.fetchone()
-            late_id = _observe(cur, late_contract, "filled")
+            cur.execute("SAVEPOINT late_result")
+            with pytest.raises(psycopg2.Error) as late_result:
+                _observe(cur, late_contract, "filled")
+            assert "production kill switch is engaged" in _error_text(late_result.value)
+            cur.execute("ROLLBACK TO SAVEPOINT late_result")
             cur.execute(
-                """
-                SELECT external_result, success, admitted, sent, live_permitted
-                FROM public.finance_observed_production_results
-                WHERE id = %s
-                """,
-                (late_id,),
+                "SELECT count(*) FROM public.finance_observed_production_results WHERE dispatch_id = %s",
+                (late_dispatch,),
             )
-            assert cur.fetchone() == ("filled", True, False, False, False)
+            assert cur.fetchone()[0] == 0
             cur.execute("SAVEPOINT killed_dispatch")
             with pytest.raises(psycopg2.Error) as killed_dispatch:
                 _dispatch(cur, hold_contract)
@@ -391,7 +391,7 @@ def test_observed_result_is_one_record_and_does_not_send():
             cur.execute("SELECT count(*) FROM public.finance_production_dispatches")
             assert cur.fetchone()[0] == 6
             cur.execute("SELECT count(*) FROM public.finance_observed_production_results")
-            assert cur.fetchone()[0] == 6
+            assert cur.fetchone()[0] == 5
             cur.execute("SELECT count(*) FROM public.finance_production_external_results")
             assert cur.fetchone()[0] == 0
             cur.execute("SELECT count(*) FROM public.finance_live_boundaries")

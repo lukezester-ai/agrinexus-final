@@ -33,12 +33,19 @@ def outcome_class(result: str) -> str:
     return "unknown"
 
 
-def record_observed_result(execution_identity: str, observation: str, existing: dict | None = None) -> dict:
+def record_observed_result(
+    execution_identity: str,
+    observation: str,
+    existing: dict | None = None,
+    kill_switch: bool = False,
+) -> dict:
     classified = classify_observed_result(observation)
     if existing is not None:
         if existing.get("execution_identity") != execution_identity or existing.get("external_result") != classified:
             raise ObservedResultError("production result does not match")
         return existing
+    if kill_switch:
+        raise ObservedResultError("production kill switch is engaged")
     return {
         "execution_identity": execution_identity,
         "external_result": classified,
@@ -50,7 +57,12 @@ def record_observed_result(execution_identity: str, observation: str, existing: 
     }
 
 
-def reconcile_observed_result(stored: dict, current: dict) -> dict:
+def reconcile_observed_result(
+    stored: dict,
+    current: dict,
+    existing: dict | None = None,
+    kill_switch: bool = False,
+) -> dict:
     for key in (
         "execution_identity",
         "instrument",
@@ -64,6 +76,12 @@ def reconcile_observed_result(stored: dict, current: dict) -> dict:
             raise ObservedResultError("production result does not match")
     if stored["external_result"] == "unknown" and stored["success"]:
         raise ObservedResultError("production result does not match")
+    if existing is not None:
+        if existing.get("execution_identity") != stored["execution_identity"]:
+            raise ObservedResultError("production result does not match")
+        return existing
+    if kill_switch:
+        raise ObservedResultError("production kill switch is engaged")
     if stored["external_result"] == "filled":
         comparison = "matched"
     elif stored["external_result"] == "rejected":
