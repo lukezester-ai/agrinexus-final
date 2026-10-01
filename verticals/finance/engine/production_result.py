@@ -57,6 +57,11 @@ def payload_digest(
     return hashlib.md5(encoded.encode("utf-8")).hexdigest()
 
 
+def recheck_production_limit(quantity, exposure, order_limit=1, exposure_limit=10000):
+    if quantity > order_limit or exposure > exposure_limit:
+        raise ProductionResultError("production limit re-check denied")
+
+
 def record_dispatch(execution_identity: str, kill_switch: bool, existing: dict | None = None) -> dict:
     if kill_switch:
         raise ProductionResultError("production kill switch is engaged")
