@@ -72,7 +72,17 @@ def record_dispatch(execution_identity: str, kill_switch: bool, existing: dict |
     }
 
 
-def record_external_result(execution_identity: str) -> dict:
+def record_external_result(
+    execution_identity: str,
+    existing: dict | None = None,
+    kill_switch: bool = False,
+) -> dict:
+    if existing is not None:
+        if existing.get("execution_identity") != execution_identity or existing.get("external_result") != "unobserved":
+            raise ProductionResultError("production result does not match")
+        return existing
+    if kill_switch:
+        raise ProductionResultError("production kill switch is engaged")
     return {
         "execution_identity": execution_identity,
         "external_result": "unobserved",
@@ -81,7 +91,12 @@ def record_external_result(execution_identity: str) -> dict:
     }
 
 
-def reconcile_result(stored: dict, current: dict) -> dict:
+def reconcile_result(
+    stored: dict,
+    current: dict,
+    existing: dict | None = None,
+    kill_switch: bool = False,
+) -> dict:
     for key in (
         "execution_identity",
         "instrument",
@@ -95,6 +110,12 @@ def reconcile_result(stored: dict, current: dict) -> dict:
             raise ProductionResultError("production result does not match")
     if stored["external_result"] != "unobserved" or result_is_success(stored["external_result"]):
         raise ProductionResultError("production result does not match")
+    if existing is not None:
+        if existing.get("execution_identity") != stored["execution_identity"]:
+            raise ProductionResultError("production result does not match")
+        return existing
+    if kill_switch:
+        raise ProductionResultError("production kill switch is engaged")
     return {
         "execution_identity": stored["execution_identity"],
         "comparison": "unresolved",

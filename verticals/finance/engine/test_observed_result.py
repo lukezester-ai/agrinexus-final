@@ -57,6 +57,21 @@ def test_unknown_is_not_success_and_a_mismatch_is_rejected():
         record_observed_result("1" * 32, "unknown", record_observed_result("1" * 32, "filled"))
 
 
+def test_kill_switch_stops_a_new_observation_and_keeps_the_stored_one():
+    stored = record_observed_result("1" * 32, "filled")
+    assert record_observed_result("1" * 32, "filled", stored, kill_switch=True) is stored
+    with pytest.raises(ObservedResultError, match="kill switch"):
+        record_observed_result("1" * 32, "filled", kill_switch=True)
+    reconciled = reconcile_observed_result(_stored("filled"), _stored("filled"))
+    assert reconcile_observed_result(_stored("filled"), _stored("filled"), reconciled, kill_switch=True) is reconciled
+    with pytest.raises(ObservedResultError, match="kill switch"):
+        reconcile_observed_result(_stored("filled"), _stored("filled"), kill_switch=True)
+    changed = _stored("filled")
+    changed["quantity"] = "2.000000"
+    with pytest.raises(ObservedResultError, match="does not match"):
+        reconcile_observed_result(_stored("filled"), changed, kill_switch=True)
+
+
 def test_client_cannot_supply_an_observation_body():
     for document in (None, [], {"external_result": "filled"}, {"sent": True}):
         with pytest.raises(ObservedResultError):
