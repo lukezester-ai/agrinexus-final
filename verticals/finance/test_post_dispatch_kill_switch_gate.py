@@ -290,6 +290,7 @@ def test_engaged_switch_stops_a_later_result_without_changing_the_stored_one():
             assert cur.fetchone()[0] == "matched"
             cur.execute("SELECT count(*) FROM public.finance_production_kill_switches WHERE organization_id = %s", (ORG_B,))
             assert cur.fetchone()[0] == 0
+            as_user(member, USER_B)
             cur.execute(
                 """
                 SELECT external_result, success, admitted, sent, live_permitted
