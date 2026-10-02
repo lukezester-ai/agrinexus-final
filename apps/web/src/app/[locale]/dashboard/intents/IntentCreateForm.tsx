@@ -10,7 +10,7 @@ import {
 	parseMarketList,
 	type IntentKind,
 	type IntentVisibility,
-} from "@/lib/business-intents";
+} from "../../../../../../../verticals/b2b/web/business-intents";
 
 const copy = {
 	en: {

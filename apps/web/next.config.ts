@@ -6,11 +6,17 @@ import { fileURLToPath } from "url";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** Monorepo root (repo contains root + `apps/web` lockfiles — avoids Next tracing warning). */
-const monorepoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+const monorepoRoot = path.join(webRoot, "..", "..");
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	outputFileTracingRoot: monorepoRoot,
+	webpack: (config) => {
+		// verticals/b2b is outside this package. Resolve its npm imports from the web install.
+		config.resolve.modules = [path.join(webRoot, "node_modules"), ...(config.resolve.modules ?? [])];
+		return config;
+	},
 	/** Само в development: същия origin като Next → FastAPI (удобно за бъдещи client fetch). */
 	async redirects() {
 		const locales = ["en", "bg", "ar"];

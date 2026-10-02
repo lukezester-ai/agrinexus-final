@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { BusinessRadarBoard } from "@/components/Dashboard/BusinessRadarBoard";
-import { EMPTY_RADAR_SUMMARY } from "@/lib/business-radar";
+import { EMPTY_RADAR_SUMMARY } from "../../../../../../../verticals/b2b/web/business-radar";
 import {
 	assertRadarE2ESecret,
 	isRadarE2EEnabled,
 	loadRadarForRole,
 	parseRadarE2ERole,
-} from "@/lib/radar-e2e";
+} from "../../../../../../../verticals/b2b/web/radar-e2e";
 
 export const dynamic = "force-dynamic";
 

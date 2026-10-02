@@ -1,10 +1,10 @@
-# AgriNexus 🌾
+# Business Radar 🌾
 
 **An operating system that senses, thinks, acts.**
 
 Канонично GitHub репо (Academy / монорепо): **[roxsonltd-droid/ai-agri-academy](https://github.com/roxsonltd-droid/ai-agri-academy)**.
 
-AgriNexus is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
+Business Radar is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
 
 ## Quick links
 

@@ -9,7 +9,7 @@ import {
 	parseRadarSummary,
 	type RadarItem,
 	type RadarReason,
-} from "@/lib/business-radar";
+} from "../../../../../../verticals/b2b/web/business-radar";
 import { radarBoardCopy, productLocale } from "@/lib/product-ux-copy";
 
 type PageProps = { params: Promise<{ locale: string }> };

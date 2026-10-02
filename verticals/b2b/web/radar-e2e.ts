@@ -7,7 +7,7 @@ import {
 	type RadarItem,
 	type RadarReason,
 	type RadarSummary,
-} from "@/lib/business-radar";
+} from "./business-radar";
 
 export const RADAR_E2E_ROLES = {
 	A: "11111111-1111-1111-1111-111111111111",

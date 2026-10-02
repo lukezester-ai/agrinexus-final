@@ -4,7 +4,7 @@ import {
 	isRadarE2EEnabled,
 	parseRadarE2ERole,
 	runRadarDomainAction,
-} from "@/lib/radar-e2e";
+} from "../../../../../../../verticals/b2b/web/radar-e2e";
 
 export const dynamic = "force-dynamic";
 

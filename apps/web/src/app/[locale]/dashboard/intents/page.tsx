@@ -3,7 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { ensureUserOrganization } from "@/lib/ensure-organization";
-import type { BusinessIntent } from "@/lib/business-intents";
+import type { BusinessIntent } from "../../../../../../../verticals/b2b/web/business-intents";
 import { listCopy, glossary, productLocale } from "@/lib/product-ux-copy";
 import { journeyLead, journeyPage, journeyTitle, primaryAction } from "@/components/Dashboard/journey-ui";
 
