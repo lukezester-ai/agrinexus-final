@@ -10,7 +10,7 @@ from engine.book import run_spec_book
 from engine.copilot import compile_model_output
 from engine.fixture import fixture_closes
 from engine.test_copilot import SENTENCE
-from test_book_gate import _assert_book
+from test_book_gate import _approve_book, _assert_book
 from test_integration_gate import (
     ORG_A,
     ORG_B,
@@ -206,6 +206,7 @@ def test_compiled_strategy_matches_the_manual_strategy():
                 (ORG_A, "Compiled book", 100000),
             )
             compiled_portfolio = cur.fetchone()[0]
+            _approve_book(cur, compiled_book)
             cur.execute(
                 "SELECT public.finance_apply_paper_book(%s, %s)",
                 (compiled_portfolio, compiled_book),
@@ -216,6 +217,7 @@ def test_compiled_strategy_matches_the_manual_strategy():
                 (ORG_A, "Manual book", 100000),
             )
             manual_portfolio = cur.fetchone()[0]
+            _approve_book(cur, manual_row[0])
             cur.execute(
                 "SELECT public.finance_apply_paper_book(%s, %s)",
                 (manual_portfolio, manual_row[0]),

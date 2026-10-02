@@ -55,6 +55,73 @@ def _bars() -> list[dict]:
     return bars
 
 
+def _allow_evaluation(cur, book_id):
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_proc p
+            JOIN pg_namespace n ON n.oid = p.pronamespace
+            WHERE n.nspname = 'public'
+              AND p.proname = 'finance_evaluate_risk_policy'
+        )
+        """
+    )
+    if not cur.fetchone()[0]:
+        return None
+    cur.execute(
+        """
+        SELECT books.organization_id, strategies.name, instruments.symbol
+        FROM public.finance_spec_books books
+        JOIN public.finance_strategies strategies ON strategies.id = books.strategy_id
+        JOIN public.finance_instruments instruments ON instruments.id = strategies.instrument_id
+        WHERE books.id = %s
+        """,
+        (book_id,),
+    )
+    org_id, name, symbol = cur.fetchone()
+    document = {
+        "max_risk_per_position": 1,
+        "max_exposure": 1000000,
+        "max_drawdown": 1,
+        "max_concurrent_positions": 1,
+        "allowed_instruments": [symbol],
+        "allowed_strategies": [name],
+        "forbidden_actions": [],
+    }
+    cur.execute(
+        "SELECT public.finance_create_risk_policy(%s, %s::jsonb)",
+        (org_id, json.dumps(document)),
+    )
+    policy_id = cur.fetchone()[0]
+    cur.execute("SELECT public.finance_evaluate_risk_policy(%s, %s)", (policy_id, book_id))
+    evaluation_id = cur.fetchone()[0]
+    cur.execute(
+        "SELECT accepted FROM public.finance_risk_evaluations WHERE id = %s",
+        (evaluation_id,),
+    )
+    assert cur.fetchone()[0] is True
+    return evaluation_id
+
+
+def _approve_book(cur, book_id) -> None:
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_proc p
+            JOIN pg_namespace n ON n.oid = p.pronamespace
+            WHERE n.nspname = 'public'
+              AND p.proname = 'finance_approve_strategy_result'
+        )
+        """
+    )
+    if cur.fetchone()[0]:
+        _allow_evaluation(cur, book_id)
+        cur.execute("SELECT public.finance_approve_strategy_result(%s)", (book_id,))
+        cur.fetchone()
+
+
 def _assert_book(cur, book_id, expected) -> None:
     cur.execute(
         """
@@ -218,6 +285,7 @@ def test_spec_book_matches_python_and_posts_paper():
                 (ORG_A, "Open book", 100000),
             )
             portfolio_id = cur.fetchone()[0]
+            _approve_book(cur, open_book)
             cur.execute("SELECT public.finance_apply_paper_book(%s, %s)", (portfolio_id, open_book))
             assert cur.fetchone()[0] == expected_open.stats.paper_pnl
             cur.execute(
