@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import uuid
@@ -70,8 +71,24 @@ def super_conn():
 
 
 def as_user(conn, user_id):
+    """Bind the session the way PostgREST does for a Supabase JWT.
+
+    request.jwt.claim.sub is what auth.uid() reads. The claims JSON is the
+    same payload. request.jwt.claims.sub is only the local helper's GUC.
+    """
+    sub = str(user_id)
+    claims = json.dumps({"sub": sub, "role": "authenticated", "aud": "authenticated"})
     with conn.cursor() as cur:
-        cur.execute("SELECT set_config('request.jwt.claims.sub', %s, true)", (str(user_id),))
+        cur.execute(
+            """
+            SELECT
+                set_config('request.jwt.claims.sub', %s, true),
+                set_config('request.jwt.claim.sub', %s, true),
+                set_config('request.jwt.claims', %s, true)
+            """,
+            (sub, sub, claims),
+        )
+        cur.fetchone()
 
 
 def scalar(conn, sql, params=()):

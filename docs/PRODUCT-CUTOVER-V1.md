@@ -8,6 +8,25 @@ Do not redesign this surface. Usability 4/5 stays blocked until this freeze is c
 
 Working product name: **Core** (`apps/web/src/lib/product-identity.ts`). Final brand is not chosen.
 
+## Product surface (frozen filter)
+
+**Core is a business decision desk, not a social network.**
+
+Every product surface must help a business user understand an opportunity, evaluate relevance, control confidentiality, or take the next business action. Social engagement mechanics are out of scope.
+
+This is the filter for every future UX decision. If a feature starts to look like a feed, profile vanity, follows, likes, comments, or social activity without a direct business purpose — it does not belong in Core.
+
+Every screen must lead to a decision:
+
+What do I need? → What did the system find? → Why is it relevant? → What is safe to reveal? → What action should I take?
+
+- **Radar** is a business inbox.
+- **Match Card** is a decision card.
+- **Confidential** is disclosure control.
+- **Introduction** is the result of a mutual business decision.
+
+Visual Polish may improve density and readability. It must not turn the product into a LinkedIn or Facebook model.
+
 ## Public structure
 
 HOME → What are you looking for? → Business Intent → Matching → Business Radar → Introduction → Relationship
