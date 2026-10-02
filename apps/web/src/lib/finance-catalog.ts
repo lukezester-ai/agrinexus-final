@@ -4,6 +4,7 @@ export const FINANCE_CATALOG = [
 	{ name: "read_screeners", surface: "intelligence", group: "read", fields: [] },
 	{ name: "read_strategies", surface: "intelligence", group: "read", fields: [] },
 	{ name: "read_books", surface: "intelligence", group: "read", fields: [] },
+	{ name: "read_performance", surface: "intelligence", group: "read", fields: [] },
 	{ name: "read_policies", surface: "governance", group: "read", fields: [] },
 	{ name: "read_evaluations", surface: "governance", group: "read", fields: [] },
 	{ name: "read_approvals", surface: "governance", group: "read", fields: [] },

@@ -26,6 +26,14 @@ assert.throws(
 	() => prepareFinanceCall("engage_kill_switch", { contract_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", disengage: true }),
 	FinanceAllowlistError,
 );
+const performance = prepareFinanceCall("read_performance", {});
+assert.match(performance.sql, /^SELECT /);
+assert.equal(performance.sql.includes("finance_performance_stats"), true);
+assert.equal(performance.params.length, 0);
+assert.throws(
+	() => prepareFinanceCall("read_performance", { organization_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }),
+	FinanceAllowlistError,
+);
 const limit = prepareFinanceCall("set_production_limit", {
 	organization_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 	limit: { order_limit: 1, exposure_limit: 10000 },

@@ -32,6 +32,7 @@ export const FINANCE_OPERATIONS: FinanceOperation[] = [
 	{ name: "read_screeners", surface: "intelligence", group: "read", sql: "SELECT id, organization_id, name FROM public.finance_screeners ORDER BY name", fields: [] },
 	{ name: "read_strategies", surface: "intelligence", group: "read", sql: "SELECT id, organization_id, instrument_id, name FROM public.finance_strategies ORDER BY name", fields: [] },
 	{ name: "read_books", surface: "intelligence", group: "read", sql: "SELECT id, organization_id, strategy_id, market_value, result_digest FROM public.finance_spec_books", fields: [] },
+	{ name: "read_performance", surface: "intelligence", group: "read", sql: "SELECT book_id, organization_id, trade_count, win_count, loss_count, win_rate, avg_trade, gross_profit, gross_loss, profit_factor, closed_pnl, paper_pnl, ending_equity, total_return, max_drawdown, peak_equity, max_drawdown_bars FROM public.finance_performance_stats", fields: [] },
 	{ name: "read_policies", surface: "governance", group: "read", sql: "SELECT id, organization_id, policy_digest FROM public.finance_risk_policies", fields: [] },
 	{ name: "read_evaluations", surface: "governance", group: "read", sql: "SELECT id, organization_id, policy_id, book_id, accepted, evaluation_digest FROM public.finance_risk_evaluations", fields: [] },
 	{ name: "read_approvals", surface: "governance", group: "read", sql: "SELECT id, organization_id, book_id, specification_digest, strategy_digest, backtest_digest, risk_digest FROM public.finance_strategy_approvals", fields: [] },

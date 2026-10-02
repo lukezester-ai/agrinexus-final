@@ -96,6 +96,7 @@ export function FinanceDesk({ organizationId, organizationError }: { organizatio
 	const [validated, setValidated] = useState(false);
 	const [bookId, setBookId] = useState("");
 	const [paper, setPaper] = useState("");
+	const [analytics, setAnalytics] = useState<Array<{ key: string; line: string }>>([]);
 	const [allowedInstruments, setAllowedInstruments] = useState("");
 	const [allowedStrategies, setAllowedStrategies] = useState("");
 	const [forbidLong, setForbidLong] = useState(false);
@@ -364,6 +365,55 @@ export function FinanceDesk({ organizationId, organizationError }: { organizatio
 					</Primary>
 				) : null}
 				{paper ? <Note>{paper}</Note> : null}
+			</Card>
+
+			<Card title="Finance Analytics">
+				<Note>Recorded paper figures for this organization. Nothing here sends an order.</Note>
+				<Primary
+					disabled={!ready || busy}
+					onClick={() =>
+						run(async () => {
+							const [stats, books, strategies, instruments, evaluations] = await Promise.all([
+								governed("read_performance", {}),
+								governed("read_books", {}),
+								governed("read_strategies", {}),
+								governed("read_instruments", {}),
+								governed("read_evaluations", {}),
+							]);
+							const lines = stats
+								.map((stat) => {
+									const book = books.find((row) => row.id === stat.book_id);
+									const strategy = strategies.find((row) => row.id === book?.strategy_id);
+									const instrument = instruments.find((row) => row.id === strategy?.instrument_id);
+									const evaluation = evaluations.find((row) => row.book_id === stat.book_id);
+									const name = typeof strategy?.name === "string" ? strategy.name : "Recorded strategy";
+									const symbol = typeof instrument?.symbol === "string" ? instrument.symbol : "Recorded instrument";
+									const factor = stat.profit_factor == null ? "empty" : String(stat.profit_factor);
+									const evaluationText =
+										evaluation?.accepted === true
+											? `accepted. Digest ${String(evaluation.evaluation_digest ?? "")}`
+											: evaluation
+												? `withheld. Digest ${String(evaluation.evaluation_digest ?? "")}`
+												: "withheld";
+									const strategyId = typeof book?.strategy_id === "string" ? book.strategy_id : String(stat.book_id ?? "");
+									return {
+										key: strategyId,
+										line: [
+											`${name} · ${symbol}`,
+											`Market value ${String(book?.market_value ?? "")}. Paper P&L ${String(stat.paper_pnl ?? "")}. Drawdown ${String(stat.max_drawdown ?? "")}.`,
+											`Ending equity ${String(stat.ending_equity ?? "")}. Return ${String(stat.total_return ?? "")}. Trades ${String(stat.trade_count ?? "")}. Win rate ${String(stat.win_rate ?? "")}. Profit factor ${factor}.`,
+											`Result digest ${String(book?.result_digest ?? "")}. Evaluation ${evaluationText}.`,
+										].join(" "),
+									};
+								})
+								.sort((left, right) => left.key.localeCompare(right.key));
+							setAnalytics(lines);
+						})
+					}
+				>
+					Show recorded analytics
+				</Primary>
+				{analytics.length === 0 ? <Note>Recorded analytics appear here after they are loaded.</Note> : analytics.map((item) => <Note key={item.key}>{item.line}</Note>)}
 			</Card>
 
 			<Card title="Risk & Governance">
