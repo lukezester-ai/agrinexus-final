@@ -1,0 +1,14 @@
+---
+description: Core UI follows DESIGN.md — ledger, withheld name, forest action, harvest STOP
+globs: apps/web/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Core design
+
+When changing visual UI under `apps/web`, read `DESIGN.md` and follow `.cursor/skills/core-design/SKILL.md`.
+
+- Ledger paper, ink, one forest action, harvest only for the withheld name and the live-execution STOP.
+- Map colors onto existing Tailwind keys. Do not add a new accent in a component.
+- Leave the public dark shell alone while Visual Polish v1 is blocked (`docs/PRODUCT-REVIEW-V1.md`).
+- Do not apply this look to `fieldlot/` or `styles/agri-market-*.css`.
