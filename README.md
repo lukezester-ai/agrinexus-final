@@ -2,7 +2,7 @@
 
 **An operating system that senses, thinks, acts.**
 
-Канонично GitHub репо (Academy / монорепо): **[roxsonltd-droid/ai-agri-academy](https://github.com/roxsonltd-droid/ai-agri-academy)**.
+Канонично GitHub репо (Academy / монорепо): **[lukezester-ai/agrinexus-final](https://github.com/lukezester-ai/agrinexus-final)**.
 
 AgriNexus is a complete infrastructure for modern farming. It replaces the traditional "black box AI" with a transparent, explainable ecosystem of specialized agents that help farmers make data-driven decisions.
 
@@ -10,7 +10,7 @@ AgriNexus is a complete infrastructure for modern farming. It replaces the tradi
 
 | Topic | Where |
 |--------|--------|
-| **GitHub (canonical repo)** | [github.com/roxsonltd-droid/ai-agri-academy](https://github.com/roxsonltd-droid/ai-agri-academy) |
+| **GitHub (canonical repo)** | [github.com/lukezester-ai/agrinexus-final](https://github.com/lukezester-ai/agrinexus-final) |
 | **Локален корен (канонично, това копие)** | `C:\Users\expre\OneDrive\Desktop\project\agrinexus-final-main` — виж [`docs/CANONICAL-WORKSPACE-BG.md`](docs/CANONICAL-WORKSPACE-BG.md) и `Open-Academy-Terminal.cmd` |
 | **Архитектура & целеви стек** | [`docs/TARGET-ARCHITECTURE.md`](docs/TARGET-ARCHITECTURE.md) |
 | **Local dev** (Next + FastAPI + Expo + Docker) | [`docs/LOCAL-DEV.md`](docs/LOCAL-DEV.md) |
