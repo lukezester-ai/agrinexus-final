@@ -1,3 +1,3 @@
-# agrinexus-final
+# AgriNexus
 
-[Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/lukezester-ai/agrinexus-final)
+This repository branch has been cleared of the legacy web application and its Node API. The former canonical-repository reference has also been removed. No application code is currently maintained on this branch.
