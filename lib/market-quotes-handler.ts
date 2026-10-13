@@ -1,5 +1,5 @@
-import { uniqueInstrumentSymbols } from './market-instruments';
-import { fetchStooqBatch, type StooqRow } from './stooq-fetch';
+import { uniqueInstrumentSymbols } from './market-instruments.js';
+import { fetchStooqBatch, type StooqRow } from './stooq-fetch.js';
 
 export type MarketQuotePayload = {
 	symbol: string;

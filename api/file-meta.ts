@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleFileMetaPost } from '../lib/leads-handler';
-import { vercelJsonBody } from '../lib/vercel-json-body';
+import { handleFileMetaPost } from '../lib/leads-handler.js';
+import { vercelJsonBody } from '../lib/vercel-json-body.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
