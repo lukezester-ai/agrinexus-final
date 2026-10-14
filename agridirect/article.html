@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Furrow Markets · статия</title>
+    <style>
+      :root {
+        --bg: #faf7f0;
+        --text: #1a1a1a;
+        --muted: #6b6760;
+        --accent: #b97f15;
+        --border: rgba(26, 26, 26, 0.12);
+        --radius: 12px;
+        --font: "DM Sans", "Segoe UI", system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+      }
+      header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+      }
+      header a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 1.25rem 1.5rem 2.5rem;
+      }
+      .summary {
+        white-space: pre-wrap;
+        color: var(--muted);
+        margin: 1rem 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        font-size: 0.92rem;
+      }
+      th,
+      td {
+        padding: 0.55rem 0.65rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background: rgba(185, 127, 21, 0.08);
+        font-weight: 600;
+      }
+      .err {
+        color: #b8412c;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="./index.html">← Архив статии</a>
+    </header>
+    <main>
+      <h1 id="title"></h1>
+      <p id="sub" style="color: var(--muted); font-size: 0.9rem"></p>
+      <div id="summary" class="summary"></div>
+      <h2 style="font-size: 1rem; margin-top: 1.5rem">Извлечени цени</h2>
+      <div id="table-wrap"></div>
+      <p id="err" class="err" hidden></p>
+    </main>
+    <script>
+      (async function () {
+        const params = new URLSearchParams(location.search);
+        const id = params.get("id");
+        const errEl = document.getElementById("err");
+        if (!id) {
+          errEl.hidden = false;
+          errEl.textContent = "Липсва параметър id.";
+          return;
+        }
+        try {
+          const res = await fetch("./data/articles-export.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("Неуспешно зареждане на articles-export.json");
+          const data = await res.json();
+          const row = (data.items || []).find(function (x) {
+            return (x.article || {}).id === id;
+          });
+          if (!row) {
+            errEl.hidden = false;
+            errEl.textContent = "Статията не е намерена в архива.";
+            return;
+          }
+          const a = row.article || {};
+          const prices = row.prices || [];
+          document.getElementById("title").textContent =
+            (a.title ? a.title + " · " : "") + (a.sourceName || "—");
+          document.getElementById("sub").textContent = [
+            a.publishedDate,
+            a.parsedAt && a.parsedAt.slice(0, 10),
+            a.extractionConfidence && "увереност: " + a.extractionConfidence,
+            a.sourceUrl,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          document.getElementById("summary").textContent = a.summary || "—";
+          const wrap = document.getElementById("table-wrap");
+          if (!prices.length) {
+            wrap.innerHTML = "<p style='color:var(--muted)'>Няма записани цени за тази статия.</p>";
+            return;
+          }
+          wrap.innerHTML =
+            "<table><thead><tr><th>Дата</th><th>Продукт</th><th>Цена</th><th>Тип</th><th>Δ седм.</th></tr></thead><tbody>" +
+            prices
+              .map(function (p) {
+                return (
+                  "<tr><td>" +
+                  esc(p.publishedDate || "—") +
+                  "</td><td>" +
+                  esc(p.product) +
+                  "</td><td>" +
+                  esc(p.price + " " + p.currency + "/" + p.unit) +
+                  "</td><td>" +
+                  esc(p.priceType || "—") +
+                  "</td><td>" +
+                  (p.weeklyChange == null ? "—" : esc(String(p.weeklyChange)) + "%") +
+                  "</td></tr>"
+                );
+              })
+              .join("") +
+            "</tbody></table>";
+        } catch (e) {
+          errEl.hidden = false;
+          errEl.textContent = e.message || String(e);
+        }
+      })();
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+    </script>
+  </body>
+</html>

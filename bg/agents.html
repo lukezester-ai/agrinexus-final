@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Агенти — AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+    <link rel="stylesheet" href="../styles/agri-marketing-supplement.css">
+</head>
+<body>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus
+    </a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Начало (Академия)</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Каталог</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-main, #111);">Агенти (архив)</a>
+    </div>
+    
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+        <a href="../agents.html" style="color: inherit; text-decoration: none;">EN</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="agents.html" style="color: var(--text-main, #111); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">BG</a>
+    </div>
+</nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Осемнадесет специалисти.<br>Едно мислещо стопанство.</h1>
+            <p>AgriNexus не е един изкуствен интелект. Това е координиран екип от експертни агенти, всеки в своята област, които заедно управляват вашата операция.</p>
+        </section>
+
+        <!-- STATS -->
+        <div class="stats-strip">
+            <div class="stat-item">
+                <div class="stat-value">18</div>
+                <div class="stat-label">Специализирани агенти</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Нива на автономност</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~340</div>
+                <div class="stat-label">Решения / ден</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Проследими логове</div>
+            </div>
+        </div>
+
+        <!-- MESH VISUALIZATION -->
+        <div class="mesh-container">
+            <div class="mesh-bg"></div>
+            
+            <div class="orbit orbit-3">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(0deg) translateY(-300px) rotate(0deg);">PLN</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(72deg) translateY(-300px) rotate(-72deg);">SAT</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(144deg) translateY(-300px) rotate(-144deg);">FLT</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(216deg) translateY(-300px) rotate(-216deg);">MKT</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(288deg) translateY(-300px) rotate(-288deg);">LRN</div>
+            </div>
+
+            <div class="orbit orbit-2">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(45deg) translateY(-225px) rotate(-45deg);">SED</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(135deg) translateY(-225px) rotate(-135deg);">DIS</div>
+                <div class="satellite-agent sat-gold" style="transform: translate(-50%, -50%) rotate(225deg) translateY(-225px) rotate(-225px);">LAB</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(315deg) translateY(-225px) rotate(-315deg);">NWS</div>
+            </div>
+
+            <div class="orbit orbit-1">
+                <div class="satellite-agent sat-green" style="transform: translate(-50%, -50%) rotate(30deg) translateY(-150px) rotate(-30deg);">IRR</div>
+                <div class="satellite-agent sat-moss" style="transform: translate(-50%, -50%) rotate(120deg) translateY(-150px) rotate(-120deg);">WED</div>
+                <div class="satellite-agent sat-terra" style="transform: translate(-50%, -50%) rotate(210deg) translateY(-150px) rotate(-210deg);">FIN</div>
+                <div class="satellite-agent sat-char" style="transform: translate(-50%, -50%) rotate(300deg) translateY(-150px) rotate(-300deg);">CNV</div>
+            </div>
+
+            <div class="orchestrator">ORC</div>
+        </div>
+
+        <!-- SECTIONS -->
+
+        <!-- 01: Crop Lifecycle -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Жизнен цикъл на културата</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">PLN</div>
+                    <div class="agent-code">PLN</div>
+                </div>
+                <div class="agent-name">Планиране</div>
+                <div class="agent-alias">Архитектът</div>
+                <div class="agent-desc">Проектира сеитоборот и цели за добив въз основа на исторически полеви данни.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">SED</div>
+                    <div class="agent-code">SED</div>
+                </div>
+                <div class="agent-name">Сеене</div>
+                <div class="agent-alias">Сеялът</div>
+                <div class="agent-desc">Изчислява оптимална дълбочина и гъстота на семената на квадратен метър.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">IRR</div>
+                    <div class="agent-code">IRR</div>
+                </div>
+                <div class="agent-name">Напояване</div>
+                <div class="agent-alias">Хидрологът</div>
+                <div class="agent-desc">Управлява валози и капково напояване според хипер-локални сензори за влага.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-green">
+                <div class="card-top">
+                    <div class="agent-icon">NUT</div>
+                    <div class="agent-code">NUT</div>
+                </div>
+                <div class="agent-name">Торене</div>
+                <div class="agent-alias">Химикът</div>
+                <div class="agent-desc">Предписва торене с променлива норма за максимален добив спрямо разхода.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 02: Monitoring & Detection -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Мониторинг и откриване</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">SAT</div>
+                    <div class="agent-code">SAT</div>
+                </div>
+                <div class="agent-name">Сателит</div>
+                <div class="agent-alias">Окото</div>
+                <div class="agent-desc">Обработва изображения Sentinel-2 и Planet за NDVI и жизненост на културата.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+            
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">DIS</div>
+                    <div class="agent-code">DIS</div>
+                </div>
+                <div class="agent-name">Болести</div>
+                <div class="agent-alias">Патологът</div>
+                <div class="agent-desc">Открива ранни признаци на септориоза, ръжда и мана преди да се разпространят.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L1 ADVISOR</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WED</div>
+                    <div class="agent-code">WED</div>
+                </div>
+                <div class="agent-name">Плевели</div>
+                <div class="agent-alias">Разузнавачът</div>
+                <div class="agent-desc">Разпознава инвазивни видове чрез дронови снимки и полеви камери.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-moss">
+                <div class="card-top">
+                    <div class="agent-icon">WTH</div>
+                    <div class="agent-code">WTH</div>
+                </div>
+                <div class="agent-name">Времето</div>
+                <div class="agent-alias">Метеорологът</div>
+                <div class="agent-desc">Прогнозира микроклиматични промени и издава предупреждения за слана и градушка.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: Operations -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Операции</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">FLT</div>
+                    <div class="agent-code">FLT</div>
+                </div>
+                <div class="agent-name">Флот</div>
+                <div class="agent-alias">Диспечерът</div>
+                <div class="agent-desc">Маршрутизира трактори и комбайни, за да намали престой и гориво.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">LAB</div>
+                    <div class="agent-code">LAB</div>
+                </div>
+                <div class="agent-name">Труд</div>
+                <div class="agent-alias">Бригадирът</div>
+                <div class="agent-desc">Разпределя ежедневни задачи на екипа по приоритет и местоположение.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-gold">
+                <div class="card-top">
+                    <div class="agent-icon">INV</div>
+                    <div class="agent-code">INV</div>
+                </div>
+                <div class="agent-name">Склад</div>
+                <div class="agent-alias">Квартирмайсторът</div>
+                <div class="agent-desc">Следи силози, резервоари за гориво и семена с предупреждения преди изчерпване.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 04: Business & Compliance -->
+        <div class="section-header">
+            <span class="section-num">04</span>
+            <h2 class="section-title">Бизнес и съответствие</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">MKT</div>
+                    <div class="agent-code">MKT</div>
+                </div>
+                <div class="agent-name">Пазар</div>
+                <div class="agent-alias">ИИ аналитик</div>
+                <div class="agent-desc">Поддържа Market Intelligence и лаборатория за графики; обяснява забавени фючърси и волатилност през мрежата от агенти (<code style="font-size:12px">POST /api/chat</code>). Графиките на сайта използват същия снимък от Yahoo.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">NWS</div>
+                    <div class="agent-code">NWS</div>
+                </div>
+                <div class="agent-name">Новини</div>
+                <div class="agent-alias">Аналитикът</div>
+                <div class="agent-desc">Сканира глобални геополитически новини за смущения във веригата на доставки.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CMP</div>
+                    <div class="agent-code">CMP</div>
+                </div>
+                <div class="agent-name">Съответствие</div>
+                <div class="agent-alias">Ревизорът</div>
+                <div class="agent-desc">Автоматично попълва формуляри за CAP субсидии и следва регулаторните изисквания.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L3 AUTO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">CRB</div>
+                    <div class="agent-code">CRB</div>
+                </div>
+                <div class="agent-name">Въглерод</div>
+                <div class="agent-alias">Екологът</div>
+                <div class="agent-desc">Изчислява секвестриран въглерод за търговия с кредити на зелени пазари.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-terra">
+                <div class="card-top">
+                    <div class="agent-icon">FIN</div>
+                    <div class="agent-code">FIN</div>
+                </div>
+                <div class="agent-name">Финанси</div>
+                <div class="agent-alias">Финансов директор</div>
+                <div class="agent-desc">Управлява паричен поток, фактури и ROI анализ по поле.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip"></div><div class="pip"></div>
+                    </div>
+                    <span class="level-label">L2 CO-PILOT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 05: Meta Layer -->
+        <div class="section-header">
+            <span class="section-num">05</span>
+            <h2 class="section-title">Мета слой</h2>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">ORC</div>
+                    <div class="agent-code">ORC</div>
+                </div>
+                <div class="agent-name">Оркестратор</div>
+                <div class="agent-alias">Диригентът</div>
+                <div class="agent-desc">Синтезира данни от всички останали агенти, за да разреши конфликти и финализира решения.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">CNV</div>
+                    <div class="agent-code">CNV</div>
+                </div>
+                <div class="agent-name">Разговор</div>
+                <div class="agent-alias">Интерфейсът</div>
+                <div class="agent-desc">Превежда сложните системни решения в ясен текст и глас.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+
+            <div class="agent-card family-char">
+                <div class="card-top">
+                    <div class="agent-icon">LRN</div>
+                    <div class="agent-code">LRN</div>
+                </div>
+                <div class="agent-name">Обучение</div>
+                <div class="agent-alias">Ученият</div>
+                <div class="agent-desc">Актуализира локални модели според резултатите от минали действия във вашето стопанство.</div>
+                <div class="autonomy-level">
+                    <div class="pips">
+                        <div class="pip active"></div><div class="pip active"></div><div class="pip active"></div><div class="pip active"></div>
+                    </div>
+                    <span class="level-label">L4 AUTONOMOUS</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTONOMY LADDER -->
+        <div class="ladder-section">
+            <div class="ladder-header">
+                <h2>Вие контролирате автономността.</h2>
+                <p style="color: var(--text-muted);">Задайте граници за всеки агент. Увеличавайте доверието постепенно.</p>
+            </div>
+            <div class="ladder-grid">
+                <div class="ladder-step" style="border-color: var(--green);">
+                    <h3>L1 · Съветник</h3>
+                    <p>Агентът анализира данни и предлага действия. Вие изпълнявате всяка стъпка ръчно.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--moss);">
+                    <h3>L2 · Копилот</h3>
+                    <p>Агентът изготвя пълен план за действие. Нужно е едно потвърждение от вас за старт.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--gold);">
+                    <h3>L3 · Автопилот</h3>
+                    <p>Агентът изпълнява рутинни действия автоматично, но ви уведомява при висок риск.</p>
+                </div>
+                <div class="ladder-step" style="border-color: var(--terracotta);">
+                    <h3>L4 · Автономен</h3>
+                    <p>Агентът управлява цялата област самостоятелно. Всички действия се записват за преглед.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h2>Вижте агентите си в действие във вашето стопанство.</h2>
+            <div class="btn-group">
+                <a href="#" class="btn btn-primary">Започнете безплатен пробен период</a>
+                <a href="#" class="btn btn-outline">Прочетете документацията</a>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

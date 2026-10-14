@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "materials": [
+    {
+      "id": "ukraine-harvest",
+      "title": "Ukraine harvest & war — market context",
+      "summary": "Long-read on Black Sea flows, logistics, and price risk for EU growers.",
+      "tags": ["market", "grain", "logistics", "black sea", "war", "export"],
+      "type": "article",
+      "href": "ukraine-harvest-war.html",
+      "lang": "en"
+    },
+    {
+      "id": "egypt-en",
+      "title": "Egypt agriculture — oasis & desert fields (EN)",
+      "summary": "Regional crop systems, water stress, and trade angles.",
+      "tags": ["mena", "water", "crops", "trade", "egypt"],
+      "type": "article",
+      "href": "egypt-fields-desert-oasis-2026.html",
+      "lang": "en"
+    },
+    {
+      "id": "egypt-ru",
+      "title": "Египет — полета и оазиси (RU)",
+      "summary": "Анализ на напояване и култури в пустинен контекст.",
+      "tags": ["mena", "вода", "египет", "жито"],
+      "type": "article",
+      "href": "egypt-fields-desert-oasis-2026-ru.html",
+      "lang": "bg"
+    },
+    {
+      "id": "corn-global",
+      "title": "Global corn producers — who moves the price?",
+      "summary": "Export parity, stocks-to-use, and hedging vocabulary for farmers.",
+      "tags": ["corn", "futures", "usda", "export", "hedge"],
+      "type": "article",
+      "href": "global-corn-producers-analysis-en.html",
+      "lang": "en"
+    },
+    {
+      "id": "france-en",
+      "title": "France agriculture snapshot (EN)",
+      "summary": "CAP, structure of farms, and regional strengths.",
+      "tags": ["eu", "cap", "france", "policy", "subsidy"],
+      "type": "article",
+      "href": "france-agriculture-analysis-en.html",
+      "lang": "en"
+    },
+    {
+      "id": "tomato-2026",
+      "title": "Tomato harvest 2026 — planning & risk",
+      "summary": "Seasonal labour, contracts, and greenhouse vs open field.",
+      "tags": ["vegetables", "labour", "contracts", "tomato", "harvest"],
+      "type": "article",
+      "href": "tomato-harvest-2026.html",
+      "lang": "en"
+    },
+    {
+      "id": "archive",
+      "title": "Article archive",
+      "summary": "All long-form AgriNexus pieces in one index.",
+      "tags": ["archive", "library", "reading", "list"],
+      "type": "article",
+      "href": "archive.html",
+      "lang": "en"
+    },
+    {
+      "id": "agridirect",
+      "title": "AgriDirect — partner articles",
+      "summary": "Curated partner / field reporting hub.",
+      "tags": ["partner", "field", "reports", "agridirect"],
+      "type": "article",
+      "href": "agridirect/index.html",
+      "lang": "en"
+    },
+    {
+      "id": "market-intel",
+      "title": "Market Intelligence desk",
+      "summary": "Delayed CBOT-style view with wheat/corn chart and ticker.",
+      "tags": ["market", "futures", "wheat", "corn", "chart", "ticker"],
+      "type": "article",
+      "href": "market-intelligence.html",
+      "lang": "en"
+    },
+    {
+      "id": "analytics-lab",
+      "title": "Analytics Lab — multi-commodity chart",
+      "summary": "30-day closes, simple volatility scan, planning checklist.",
+      "tags": ["analytics", "volatility", "cbot", "chart", "soy", "oil"],
+      "type": "article",
+      "href": "analytics.html",
+      "lang": "en"
+    },
+    {
+      "id": "fao-resources",
+      "title": "FAO — Family farming resources",
+      "summary": "Official multilingual guides, tools, and policy notes (external).",
+      "tags": ["fao", "guide", "policy", "family farm", "download", "pdf"],
+      "type": "link",
+      "href": "https://www.fao.org/family-farming/resources/",
+      "lang": "en"
+    },
+    {
+      "id": "course-soil",
+      "title": "Course: Soil & Crop Fundamentals",
+      "summary": "On-site course shell (Path 01) — structured modules.",
+      "tags": ["course", "soil", "crop", "learning", "path"],
+      "type": "article",
+      "href": "course.html",
+      "lang": "en"
+    }
+  ],
+  "visualLessons": [
+    {
+      "id": "vid-ndvi",
+      "title": "NDVI for crop monitoring (YouTube search)",
+      "summary": "Opens filtered results for reputable explainers on vegetation indices.",
+      "href": "https://www.youtube.com/results?search_query=NDVI+agriculture+tutorial",
+      "thumb": "linear-gradient(135deg, #376331, #1a2e1d)",
+      "lang": "en"
+    },
+    {
+      "id": "vid-soil-health",
+      "title": "Soil health basics (YouTube search)",
+      "summary": "Cover crops, organic matter, and compaction — starter playlist search.",
+      "href": "https://www.youtube.com/results?search_query=soil+health+farming+basics",
+      "thumb": "linear-gradient(135deg, #779c2a, #2c2825)",
+      "lang": "en"
+    },
+    {
+      "id": "vid-futures",
+      "title": "Reading futures for farmers (YouTube search)",
+      "summary": "Basis, contract months, and elevator bids — educational videos.",
+      "href": "https://www.youtube.com/results?search_query=futures+markets+explained+for+farmers",
+      "thumb": "linear-gradient(135deg, #d4a32a, #c24933)",
+      "lang": "en"
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+/* Furrow Analyst — chat widget (FT-inspired) */
+.furrow-chat-fab {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 9000;
+	padding: 12px 18px;
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	background: #1a1a1a;
+	color: #faf7f0;
+	border: 1px solid #1a1a1a;
+	border-radius: 2px;
+	cursor: pointer;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.furrow-chat-fab:hover {
+	background: #8a5e10;
+	border-color: #8a5e10;
+}
+
+.furrow-chat-panel {
+	position: fixed;
+	right: 20px;
+	bottom: 72px;
+	z-index: 9001;
+	width: min(400px, calc(100vw - 32px));
+	max-height: min(560px, calc(100vh - 100px));
+	display: none;
+	flex-direction: column;
+	background: #faf7f0;
+	border: 1px solid #d8d2c4;
+	border-top: 3px solid #1a1a1a;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+	font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.furrow-chat-panel.open {
+	display: flex;
+}
+
+.furrow-chat-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 14px;
+	border-bottom: 1px solid #d8d2c4;
+	background: #fff;
+}
+
+.furrow-chat-head strong {
+	font-family: "Source Serif 4", Georgia, serif;
+	font-size: 16px;
+	color: #1a1a1a;
+}
+
+.furrow-chat-status {
+	display: block;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #4a7c3a;
+	margin-top: 2px;
+}
+
+.furrow-chat-status.is-offline {
+	color: #b8412c;
+}
+
+.furrow-chat-close {
+	background: none;
+	border: none;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #6b6760;
+}
+
+.furrow-chat-msgs {
+	flex: 1;
+	overflow-y: auto;
+	padding: 12px 14px;
+	min-height: 200px;
+	max-height: 340px;
+}
+
+.furrow-chat-msgs .msg {
+	margin-bottom: 10px;
+	padding: 10px 12px;
+	border-radius: 2px;
+	font-size: 14px;
+	line-height: 1.45;
+	max-width: 92%;
+	white-space: pre-wrap;
+}
+
+.furrow-chat-msgs .msg.user {
+	margin-left: auto;
+	background: #1a1a1a;
+	color: #faf7f0;
+}
+
+.furrow-chat-msgs .msg.assistant {
+	background: #fff;
+	border: 1px solid #d8d2c4;
+	color: #1a1a1a;
+	font-family: "Source Serif 4", Georgia, serif;
+}
+
+.furrow-chat-quick {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 0 14px 8px;
+}
+
+.furrow-chat-quick button {
+	font-size: 10px;
+	padding: 5px 8px;
+	border: 1px solid #d8d2c4;
+	background: #fff;
+	color: #1a1a1a;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.furrow-chat-quick button:hover {
+	border-color: #8a5e10;
+	color: #8a5e10;
+}
+
+.furrow-chat-foot {
+	display: flex;
+	gap: 8px;
+	padding: 10px 14px 14px;
+	border-top: 1px solid #d8d2c4;
+	background: #fff;
+}
+
+.furrow-chat-foot textarea {
+	flex: 1;
+	resize: none;
+	padding: 10px;
+	border: 1px solid #1a1a1a;
+	font-family: inherit;
+	font-size: 14px;
+	min-height: 44px;
+}
+
+.furrow-chat-send {
+	padding: 10px 14px;
+	background: #1a1a1a;
+	color: #faf7f0;
+	border: none;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.furrow-chat-send:disabled {
+	opacity: 0.5;
+}
+
+.furrow-chat-hint {
+	font-size: 10px;
+	color: #a8a39a;
+	padding: 0 14px 8px;
+	margin: 0;
+}
+
+.furrow-chat-panel--offline .furrow-chat-foot textarea {
+	opacity: 0.6;
+}

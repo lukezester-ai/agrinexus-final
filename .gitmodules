@@ -1,0 +1,3 @@
+[submodule "fieldlot"]
+	path = fieldlot
+	url = https://github.com/lukezester-ai/fieldlot.git

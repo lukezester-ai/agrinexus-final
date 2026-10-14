@@ -1,0 +1,32 @@
+{
+	"chunks": [
+		{
+			"id": "about",
+			"text": "Furrow Markets is global agricultural market intelligence by Nexus Group. Launch summer 2026. Bloomberg-grade analysis at roughly 1/10 the price of Reuters/Bloomberg. AI-drafted, human-edited. English and Russian."
+		},
+		{
+			"id": "pricing",
+			"text": "Planned tiers: Free ($0) — last 7 days of Daily Briefs, weekly newsletter, limited archive. Pro ($39/mo) — full archive, daily digest, weekly deep dives, no ads. Premium ($149/mo) — monthly outlooks, custom price alerts, AI Q&A, PDF export. Enterprise ($499+) — API, custom reports, white-label."
+		},
+		{
+			"id": "coverage",
+			"text": "Markets: grains, oilseeds, livestock, dairy, softs (coffee, sugar, cocoa), fertilizer. Regions: Black Sea (Russia, Ukraine, Kazakhstan), EU, Americas, Asia, MENA. Sources: USDA, FAO, EU Agri-Markets, APK-Inform, SovEcon, Zerno Online, CBOT delayed quotes, trade press RSS."
+		},
+		{
+			"id": "disclaimer",
+			"text": "Furrow content is for information only — not investment advice, trading recommendations, or solicitation. Verify prices with official sources before business decisions."
+		},
+		{
+			"id": "waitlist",
+			"text": "Early access waitlist: founding subscribers get locked-in pricing. Subscribe on the homepage form or ask the agent to submit_waitlist with name, email, and interest (grains, livestock, dairy, softs, fertilizer, all)."
+		},
+		{
+			"id": "sample",
+			"text": "Demo homepage shows sample wheat analysis (Black Sea export tax, CBOT levels). Full product will publish Daily Briefs, weekly deep dives, and monthly outlooks after launch."
+		},
+		{
+			"id": "live_signals",
+			"text": "Pre-launch site offers delayed CBOT corn/wheat/soy and Baltic Dry via get_market_signals (Yahoo Finance, unofficial, ~15 min cache). Always disclaimer: not investment advice. Ticker on homepage updates from same API when deployed on Vercel or npm run dev."
+		}
+	]
+}

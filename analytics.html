@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Analytics Lab - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/agri-market-shared.css">
+</head>
+<body>
+
+    <div class="ticker-wrap">
+        <div class="ticker-pulse"></div>
+        <div class="ticker-label">LIVE MARKETS <span style="opacity:0.65;font-weight:400">(Yahoo, delayed)</span></div>
+        <div class="ticker-items" id="agn-live-ticker">
+            <div class="tick"><span class="tick-name">LOADING</span> <span class="tick-price">…</span></div>
+            <div class="tick"><span class="tick-name">LOADING</span> <span class="tick-price">…</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <nav>
+            <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+                <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+                AgriNexus Academy
+            </a>
+            <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+                <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Start</a>
+                <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Library</a>
+                <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Lab</a>
+                <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Models</a>
+                <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Archive</a>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+                <a href="analytics.html" style="color: var(--text-main, #111); text-decoration: none;">EN</a>
+                <span style="opacity: 0.3;">|</span>
+                <a href="bg/analytics.html" style="color: inherit; text-decoration: none;">BG</a>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <h1>Analytics desk.</h1>
+            <p style="font-size: 20px; color: var(--text-muted); max-width: 720px; margin: 0 auto;">Same terminal look as Market Intelligence — multi-commodity closes, simple volatility cues, and a planning checklist. <strong>Not trading advice.</strong> Data: delayed Yahoo futures (USD).</p>
+            <div style="max-width: 720px; margin: 28px auto 0; padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); text-align: left; font-size: 14px; color: var(--text-muted); line-height: 1.55;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); margin-bottom: 8px; letter-spacing: 0.06em;">AI STEWARD — ANL (FIN-ANL)</div>
+                <strong style="color: var(--text-main);">Who runs what:</strong> the charts and anomaly lines on this page are <strong>deterministic</strong> (your browser + <code style="font-size:12px">/api/market-history</code>). The <strong>AI Analytics</strong> agent answers questions in the <strong>LangGraph mesh</strong> via <code style="font-size:12px">POST /api/chat</code> (route <code style="font-size:12px">ANALYTICS_AGENT</code>) using the same delayed Yahoo snapshot as Market Intelligence — configure <code style="font-size:12px">MISTRAL_API_KEY</code>; optional <code style="font-size:12px">MISTRAL_ANALYTICS_AGENT_MODEL</code> overrides the model for this desk.
+            </div>
+        </section>
+
+        <div class="terminal-container analytics-split">
+            <div class="terminal-left">
+                <div class="term-header">
+                    <div>
+                        <div style="font-family: 'JetBrains Mono', monospace; color: #999; margin-bottom: 8px;">CBOT FUTURES — 30D CLOSE</div>
+                        <div class="an-chart-shell">
+                            <canvas id="multiChart"></canvas>
+                            <div id="chart-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;">LOADING SERIES…</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="term-info-boxes">
+                    <div class="term-box">
+                        <div class="term-box-label">DATA STATUS</div>
+                        <div class="term-box-val" id="data-status">—</div>
+                    </div>
+                    <div class="term-box">
+                        <div class="term-box-label">BLENDED TREND (30D)</div>
+                        <div class="term-box-val" id="blend-trend">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="terminal-right">
+                <div class="signal-title">STATISTICAL ANOMALY SCAN</div>
+                <div class="signal-stack" id="anomaly-stack"></div>
+                <div class="signal-synthesis">
+                    <p id="synth-line">Building summary from price paths…</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Brief synthesis & harvest read</h2>
+        </div>
+        <div class="data-cards" style="margin-bottom: 48px;">
+            <div class="data-card">
+                <div class="data-card-num">01 <span>summary</span></div>
+                <h3>Desk view</h3>
+                <p style="color:var(--text-muted);font-size:15px;margin-bottom:12px;" id="card-summary">—</p>
+                <div class="data-tags" id="card-tags"></div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">02 <span>crop year</span></div>
+                <h3>Expected crop economics</h3>
+                <p style="color:var(--text-muted);font-size:15px;" id="card-harvest">Illustrative framing only — tie to your own yields, costs, and local basis with your advisor.</p>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">03 <span>next season</span></div>
+                <h3>Forward year</h3>
+                <p style="color:var(--text-muted);font-size:15px;" id="card-forward">—</p>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Strategy building blocks</h2>
+        </div>
+        <div class="timeline-wrap">
+            <div class="timeline-cells analytics-timeline-cells">
+                <div class="t-cell highlight-green">
+                    <div class="t-cell-label">Break-even</div>
+                    <div class="t-cell-val">Lock €/t</div>
+                    <div class="t-cell-sub">Know floor before hedging or forward sales.</div>
+                </div>
+                <div class="t-cell">
+                    <div class="t-cell-label">Windows</div>
+                    <div class="t-cell-val">Seasonality</div>
+                    <div class="t-cell-sub">Map historical weak/strong months vs. your cashflow.</div>
+                </div>
+                <div class="t-cell highlight-gold">
+                    <div class="t-cell-label">Liquidity</div>
+                    <div class="t-cell-val">Volume</div>
+                    <div class="t-cell-sub">Avoid illiquid contracts when rolling hedges.</div>
+                </div>
+                <div class="t-cell">
+                    <div class="t-cell-label">Weather book</div>
+                    <div class="t-cell-val">Risk layer</div>
+                    <div class="t-cell-sub">Track regional drought/frost indices — not a forecast here.</div>
+                </div>
+            </div>
+            <div class="expected-box" style="margin-top: 24px;">
+                <div>
+                    <div style="font-size:12px;opacity:0.8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Next step</div>
+                    <div style="font-size:20px;font-weight:500;">Pair this desk with <a href="market-intelligence.html" style="color:var(--gold);">Market Intelligence</a> and your agronomist.</div>
+                </div>
+                <a href="dashboard.html" class="btn" style="background:var(--gold);color:#1a1a1a;">Open dashboard</a>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2>Evidence first.<br>Same AgriNexus skin.</h2>
+            <div style="margin-top: 40px;">
+                <a href="market-intelligence.html" class="btn">Back to Market Intelligence</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const SYMBOLS = [
+            { sym: 'ZW=F', label: 'Wheat', color: '#D4AF37' },
+            { sym: 'ZC=F', label: 'Corn', color: '#3a8a30' },
+            { sym: 'ZS=F', label: 'Soy', color: '#7eb8da' },
+            { sym: 'ZL=F', label: 'Oil', color: '#cc4e36' }
+        ];
+
+        function std(arr) {
+            const m = arr.reduce((a,b)=>a+b,0)/arr.length;
+            return Math.sqrt(arr.map(x => (x-m)*(x-m)).reduce((a,b)=>a+b,0)/arr.length);
+        }
+
+        function dailyReturns(prices) {
+            const r = [];
+            for (let i = 1; i < prices.length; i++) r.push((prices[i]-prices[i-1])/prices[i-1]);
+            return r;
+        }
+
+        function mergeSeries(list) {
+            const dates = new Set();
+            list.forEach(({ data }) => data.forEach(d => dates.add(d.date)));
+            const labels = [...dates].sort();
+            return { labels, list };
+        }
+
+        let multiChart = null;
+
+        async function loadAll() {
+            const loadEl = document.getElementById('chart-loading');
+            loadEl.style.display = 'flex';
+            const hist = await Promise.all(SYMBOLS.map(async ({ sym }) => {
+                try {
+                    const r = await fetch('/api/market-history?symbol=' + encodeURIComponent(sym));
+                    const j = await r.json();
+                    return { sym, data: j.data || [], isFallback: j.isFallback };
+                } catch (e) {
+                    return { sym, data: [], err: true };
+                }
+            }));
+
+            const { labels, list } = mergeSeries(hist.map(h => ({ data: h.data })));
+            const datasets = SYMBOLS.map((meta, i) => {
+                const row = hist[i];
+                const map = new Map(row.data.map(d => [d.date, d.price]));
+                return {
+                    label: meta.label,
+                    data: labels.map(d => map.has(d) ? map.get(d) : null),
+                    borderColor: meta.color,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.35,
+                    pointRadius: 0,
+                    spanGaps: true
+                };
+            });
+
+            const ctx = document.getElementById('multiChart').getContext('2d');
+            if (multiChart) multiChart.destroy();
+            multiChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255,255,255,0.75)', font: { family: 'JetBrains Mono', size: 11 } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(20,20,20,0.92)',
+                            titleColor: '#fff',
+                            bodyColor: '#ddd',
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: 'rgba(255,255,255,0.45)', maxTicksLimit: 8, font: { family: 'JetBrains Mono', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                            ticks: { color: 'rgba(255,255,255,0.45)', font: { family: 'JetBrains Mono', size: 10 } }
+                        }
+                    }
+                }
+            });
+            loadEl.style.display = 'none';
+
+            const fb = hist.some(h => h.isFallback);
+            document.getElementById('data-status').textContent = fb ? 'Fallback / partial' : 'Live Yahoo (delayed)';
+
+            const trends = hist.map((h, i) => {
+                const p = h.data.map(d => d.price);
+                if (p.length < 3) return SYMBOLS[i].label + ': n/a';
+                const a = p.slice(0, Math.floor(p.length/3)).reduce((x,y)=>x+y,0) / Math.floor(p.length/3);
+                const b = p.slice(-Math.floor(p.length/3)).reduce((x,y)=>x+y,0) / Math.floor(p.length/3);
+                const dir = b > a * 1.01 ? '↑' : b < a * 0.99 ? '↓' : '→';
+                return SYMBOLS[i].label + ' ' + dir;
+            });
+            document.getElementById('blend-trend').textContent = trends.join(' · ');
+
+            const stack = document.getElementById('anomaly-stack');
+            stack.innerHTML = '';
+            hist.forEach((h, i) => {
+                const p = h.data.map(d => d.price);
+                if (p.length < 5) return;
+                const r = dailyReturns(p);
+                const v = std(r);
+                const last3 = (p[p.length-1]-p[p.length-3]) / p[p.length-3];
+                let txt = 'Volatility near median for window.';
+                let pips = '<div class="s-pip"></div><div class="s-pip"></div><div class="s-pip"></div>';
+                if (v > 0.025) { txt = 'Elevated daily volatility vs. rest of window — watch spreads & liquidity.'; pips = '<div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip"></div>'; }
+                if (last3 < -0.04) { txt = 'Sharp 3-session drawdown on closes — stress-test cashflow if replicated at farm gate.'; pips = '<div class="s-pip active-red"></div><div class="s-pip active-red"></div><div class="s-pip"></div>'; }
+                stack.innerHTML += '<div class="signal-item"><div class="signal-meta"><span class="signal-src">' + SYMBOLS[i].label.toUpperCase() + '</span><span>STATS</span></div><div class="signal-text">' + txt + '</div><div class="signal-strength">' + pips + '</div></div>';
+            });
+
+            const up = trends.filter(t => t.includes('↑')).length;
+            const down = trends.filter(t => t.includes('↓')).length;
+            document.getElementById('synth-line').textContent = 'Desk synthesis: ' + up + ' series showing short-window strength, ' + down + ' softer. Use for timing conversations — not a recommendation to buy or sell.';
+            document.getElementById('card-summary').textContent = 'Futures paths are a risk thermometer, not a crop forecast. Combine with local basis and your own tonnage.';
+            document.getElementById('card-forward').textContent = 'For the upcoming crop year, stress-test budgets against the weaker leg in this 30-day window and keep rollover dates on your calendar.';
+            const tags = document.getElementById('card-tags');
+            tags.innerHTML = '<span class="data-tag">Delayed data</span><span class="data-tag">CBOT</span><span class="data-tag">Volatility</span><span class="data-tag">Checklist</span>';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAll().catch(console.error);
+            (async function ticker() {
+                const el = document.getElementById('agn-live-ticker');
+                if (!el) return;
+                try {
+                    const res = await fetch('/api/market-data');
+                    const j = await res.json();
+                    const rows = Array.isArray(j.data) ? j.data : [];
+                    if (!rows.length) return;
+                    const one = rows.map(function (d) {
+                        var nm = (d.name || d.symbol || '').split(' ')[0].slice(0, 14).toUpperCase();
+                        var pr = d.price != null ? Number(d.price).toFixed(2) : '—';
+                        var cur = d.currency || '';
+                        var pct = d.changePercent != null ? Number(d.changePercent) : 0;
+                        var up = pct >= 0;
+                        var cls = up ? 'tick-up' : 'tick-down';
+                        var sign = pct >= 0 ? '+' : '';
+                        return '<div class="tick"><span class="tick-name">' + nm + '</span> <span class="tick-price">' + pr + ' ' + cur + '</span> <span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span></div>';
+                    }).join('');
+                    el.innerHTML = one + one;
+                } catch (e) { /* keep placeholder */ }
+            })();
+        });
+    </script>
+</body>
+</html>

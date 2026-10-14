@@ -1,0 +1,174 @@
+/* Russian Egypt longread — editorial layout (scoped via body.egypt-ru-longread) */
+body.egypt-ru-longread {
+	font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+	line-height: 1.6;
+	color: #1e2a3a;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #f9fafb;
+}
+
+body.egypt-ru-longread .article-footer {
+	margin-top: 2rem;
+}
+
+body.egypt-ru-longread .egypt-ru-container {
+	background: white;
+	border-radius: 24px;
+	padding: 40px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+body.egypt-ru-longread .egypt-ru-container h1 {
+	font-size: 2.2rem;
+	color: #0f3b2c;
+	border-left: 5px solid #c29b4b;
+	padding-left: 20px;
+	margin-top: 0;
+	margin-bottom: 0.5rem;
+}
+
+body.egypt-ru-longread .subhead {
+	font-size: 1.1rem;
+	color: #4b6a5c;
+	margin-bottom: 2rem;
+	border-bottom: 1px solid #e2e8f0;
+	padding-bottom: 1rem;
+}
+
+body.egypt-ru-longread .egypt-ru-container h2 {
+	font-size: 1.6rem;
+	color: #1f5e44;
+	margin-top: 2rem;
+	margin-bottom: 1rem;
+	padding-bottom: 0.3rem;
+	border-bottom: 2px solid #e9d6b0;
+}
+
+body.egypt-ru-longread .egypt-ru-container h3 {
+	font-size: 1.3rem;
+	color: #2c5f4a;
+	margin-top: 1.5rem;
+	margin-bottom: 0.75rem;
+}
+
+body.egypt-ru-longread .highlight {
+	background: #fef9e6;
+	padding: 1.2rem;
+	border-left: 4px solid #d4a373;
+	border-radius: 12px;
+	margin: 1.5rem 0;
+	font-weight: 500;
+}
+
+body.egypt-ru-longread .egypt-ru-container table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.5rem 0;
+	background: white;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body.egypt-ru-longread .egypt-ru-container th {
+	background-color: #eef2f0;
+	color: #1f3d34;
+	padding: 12px 16px;
+	text-align: left;
+	font-weight: 600;
+}
+
+body.egypt-ru-longread .egypt-ru-container td {
+	padding: 10px 16px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body.egypt-ru-longread .egypt-ru-container ul,
+body.egypt-ru-longread .egypt-ru-container ol {
+	margin: 1rem 0;
+	padding-left: 1.5rem;
+}
+
+body.egypt-ru-longread .egypt-ru-container li {
+	margin: 0.5rem 0;
+}
+
+body.egypt-ru-longread .fact-badge {
+	background: #eaf7f0;
+	border-radius: 40px;
+	padding: 4px 12px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #0f5c3e;
+	display: inline-block;
+	margin-right: 8px;
+}
+
+body.egypt-ru-longread .insight-box {
+	background: #f0f4fa;
+	border-radius: 20px;
+	padding: 1.5rem;
+	margin: 2rem 0;
+	border: 1px solid #cbdde6;
+}
+
+body.egypt-ru-longread .insight-box h4 {
+	margin-top: 0;
+	font-size: 1.2rem;
+	color: #004d73;
+}
+
+body.egypt-ru-longread .egypt-ru-container hr {
+	margin: 2rem 0;
+	border: none;
+	height: 1px;
+	background: linear-gradient(to right, #e2e8f0, transparent);
+}
+
+body.egypt-ru-longread .footer-note {
+	font-size: 0.85rem;
+	color: #5b6e8c;
+	text-align: center;
+	margin-top: 2rem;
+	padding-top: 1rem;
+	border-top: 1px solid #e2e8f0;
+}
+
+@media (max-width: 680px) {
+	body.egypt-ru-longread .egypt-ru-container {
+		padding: 20px;
+	}
+
+	body.egypt-ru-longread .egypt-ru-container h1 {
+		font-size: 1.8rem;
+	}
+
+	body.egypt-ru-longread .egypt-ru-container table,
+	body.egypt-ru-longread .egypt-ru-container thead,
+	body.egypt-ru-longread .egypt-ru-container tbody,
+	body.egypt-ru-longread .egypt-ru-container th,
+	body.egypt-ru-longread .egypt-ru-container td,
+	body.egypt-ru-longread .egypt-ru-container tr {
+		display: block;
+	}
+
+	body.egypt-ru-longread .egypt-ru-container th {
+		display: none;
+	}
+
+	body.egypt-ru-longread .egypt-ru-container td {
+		border: none;
+		position: relative;
+		padding-left: 50%;
+	}
+
+	body.egypt-ru-longread .egypt-ru-container td:before {
+		content: attr(data-label);
+		position: absolute;
+		left: 16px;
+		width: 45%;
+		font-weight: 600;
+	}
+}

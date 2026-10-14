@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="bg">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Furrow Markets · статичен индекс на статии</title>
+    <style>
+      :root {
+        --bg: #faf7f0;
+        --text: #1a1a1a;
+        --muted: #6b6760;
+        --accent: #b97f15;
+        --border: rgba(26, 26, 26, 0.12);
+        --radius: 12px;
+        --font: "DM Sans", "Segoe UI", system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+      header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      header p {
+        margin: 0.35rem 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      header a {
+        color: var(--accent);
+      }
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+      .meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 1rem;
+      }
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      a.card {
+        display: block;
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: #fff;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 2px 10px rgba(26, 26, 26, 0.06);
+      }
+      a.card:hover {
+        border-color: var(--accent);
+      }
+      a.card h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.05rem;
+      }
+      a.card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .err {
+        color: #b8412c;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Furrow Markets · статичен индекс</h1>
+      <p>
+        Част от <strong>Furrow Markets</strong>: статичен списък на статии (JSON + прости страници). Редакционните лонгридове са в
+        <a href="/archive">архива</a>
+        · <a href="/">Начало</a>
+      </p>
+    </header>
+    <main>
+      <p id="meta" class="meta"></p>
+      <div id="list" class="list"></div>
+      <p id="err" class="err" hidden></p>
+    </main>
+    <script>
+      (async function () {
+        const metaEl = document.getElementById("meta");
+        const listEl = document.getElementById("list");
+        const errEl = document.getElementById("err");
+        try {
+          const res = await fetch("./data/articles-export.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("Неуспешно зареждане на articles-export.json");
+          const data = await res.json();
+          metaEl.textContent =
+            "Обновено: " +
+            (data.generatedAt || "—").slice(0, 19).replace("T", " ") +
+            " UTC · записи: " +
+            (data.count ?? (data.items || []).length);
+          const items = data.items || [];
+          if (!items.length) {
+            listEl.innerHTML =
+              "<p class='err'>Няма статии. Локално пуснете <code>npm run sync:agridirect</code> или синхрон от продукцията (виж agridirect/README.md).</p>";
+            return;
+          }
+          listEl.innerHTML = items
+            .map(function (row) {
+              const a = row.article || {};
+              const id = a.id || "";
+              const title = (a.title ? a.title + " · " : "") + (a.sourceName || "—");
+              const sum = (a.summary || "—").slice(0, 220);
+              const sub = [a.publishedDate, a.parsedAt && a.parsedAt.slice(0, 10), (row.prices || []).length + " цени"]
+                .filter(Boolean)
+                .join(" · ");
+              return (
+                '<a class="card" href="./article.html?id=' +
+                encodeURIComponent(id) +
+                '"><h2>' +
+                escapeHtml(title) +
+                "</h2><p>" +
+                escapeHtml(sum) +
+                "</p><p style='margin-top:0.4rem;font-size:0.82rem'>" +
+                escapeHtml(sub) +
+                "</p></a>"
+              );
+            })
+            .join("");
+        } catch (e) {
+          errEl.hidden = false;
+          errEl.textContent = e.message || String(e);
+        }
+      })();
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
+  </body>
+</html>

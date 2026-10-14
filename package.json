@@ -1,0 +1,34 @@
+{
+	"name": "furrow-markets-site",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "node --import tsx scripts/dev-server.mjs",
+		"dev:web": "npm --prefix apps/web run dev",
+		"dev:mobile": "npm --prefix apps/mobile run start",
+		"dev:backend": "cd apps/backend && python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
+		"compose:up": "docker compose up --build",
+		"compose:down": "docker compose down",
+		"serve": "npx --yes serve . -p 3456",
+		"sync:agridirect": "node scripts/sync-agridirect-articles.mjs",
+		"build:egypt": "node scripts/build-egypt-article.mjs",
+		"build:egypt:ru": "node scripts/build-egypt-article-ru.mjs",
+		"typecheck": "tsc --noEmit",
+		"check:fieldlot-rag": "node scripts/check-fieldlot-rag.mjs",
+		"ci": "npm run typecheck && node scripts/check-fieldlot-rag.mjs"
+	},
+	"dependencies": {
+		"@langchain/core": "^1.1.48",
+		"@langchain/langgraph": "^1.3.2",
+		"@langchain/mistralai": "^1.1.0",
+		"@upstash/redis": "^1.38.0",
+		"dotenv": "^17.4.2",
+		"marked": "^18.0.4",
+		"yahoo-finance2": "^3.14.1"
+	},
+	"devDependencies": {
+		"@types/node": "24.13.3",
+		"tsx": "^4.19.3",
+		"typescript": "^5.7.3"
+	}
+}

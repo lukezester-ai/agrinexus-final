@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Course: Soil Fundamentals - AgriNexus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=PT+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #faf7f0;
+            --surface: #ffffff;
+            --text-main: #2c2825;
+            --text-muted: #736b60;
+            --border: rgba(44, 40, 37, 0.1);
+            --green: #376331;
+            --gold: #d4a32a;
+            --blue: #3273a8;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Nav */
+        nav {
+            padding: 16px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        /* Main Layout */
+        .layout {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(212, 163, 42, 0.05);
+        }
+
+        .module-list {
+            list-style: none;
+            padding: 16px;
+        }
+
+        .module-item {
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .module-item:hover { background: rgba(0,0,0,0.02); }
+        .module-item.active { background: var(--text-main); color: white; }
+        .module-item.active .m-desc { color: rgba(255,255,255,0.7); }
+        
+        .m-icon {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 10px; font-weight: 600; flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .module-item.completed .m-icon {
+            background: var(--green); border-color: var(--green); color: white;
+        }
+
+        /* Content Area */
+        .content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: var(--bg-color);
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto 40px;
+            background: #000;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .lesson-text {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Quiz Section */
+        .quiz-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 40px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .quiz-option {
+            padding: 16px 24px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-option:hover { border-color: var(--gold); background: rgba(212, 163, 42, 0.05); }
+        .quiz-option.correct { background: rgba(55, 99, 49, 0.1); border-color: var(--green); color: var(--green); }
+        .quiz-option.wrong { background: rgba(194, 73, 51, 0.1); border-color: var(--terracotta); color: var(--terracotta); }
+
+        @media (max-width: 768px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 30vh; }
+            .content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 18px;">
+            <div style="width: 8px; height: 8px; background-color: var(--green); border-radius: 50%;"></div>
+            AgriNexus Academy
+        </a>
+        <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13px; font-weight: 500;">
+            <a href="index.html" style="text-decoration: none; color: var(--text-muted);">Start</a>
+            <a href="academy.html" style="text-decoration: none; color: var(--text-main);">Library</a>
+            <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted);">Lab</a>
+            <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted);">Models</a>
+            <a href="agents.html" style="text-decoration: none; color: var(--text-muted); font-size: 12px; opacity: 0.9;">Archive</a>
+            <span style="opacity: 0.35;">|</span>
+            <a href="academy.html" style="text-decoration: none; color: var(--text-muted);">EN</a>
+            <a href="bg/academy.html" style="text-decoration: none; color: var(--text-muted);">BG</a>
+        </div>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted); font-size: 14px; margin-left: auto;">← Back to Library</a>
+    </nav>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="course-header">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); margin-bottom: 8px; text-transform: uppercase;">Learning Path 01</div>
+                <h2 style="font-family: 'PT Serif', serif; font-size: 24px;">Soil & Crop Fundamentals</h2>
+                <div style="margin-top: 16px; background: var(--border); height: 4px; border-radius: 2px; overflow: hidden;">
+                    <div id="overall-progress" style="width: 25%; height: 100%; background: var(--green); transition: width 0.5s;"></div>
+                </div>
+            </div>
+            
+            <ul class="module-list">
+                <li class="module-item completed">
+                    <div class="m-icon">✓</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">1. The Living Soil</div>
+                        <div class="m-desc" style="font-size: 12px; color: var(--text-muted);">Microbiome basics</div>
+                    </div>
+                </li>
+                <li class="module-item active" id="mod-2">
+                    <div class="m-icon" id="icon-2">2</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">2. Reading NPK Values</div>
+                        <div class="m-desc" style="font-size: 12px;">Understanding your reports</div>
+                    </div>
+                </li>
+                <li class="module-item" style="opacity: 0.5; cursor: not-allowed;">
+                    <div class="m-icon">3</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">3. Organic Matter</div>
+                        <div class="m-desc" style="font-size: 12px;">Building long-term wealth</div>
+                    </div>
+                </li>
+                <li class="module-item" style="opacity: 0.5; cursor: not-allowed;">
+                    <div class="m-icon">4</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">4. Capillary Action</div>
+                        <div class="m-desc" style="font-size: 12px;">Water retention mastery</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="lesson-text">
+                <h1 style="font-family: 'PT Serif', serif; font-size: 40px; margin-bottom: 16px;">Reading NPK Values like a Pro</h1>
+                <p style="font-size: 18px; color: var(--text-muted); margin-bottom: 32px;">Don't rely blindly on agronomy reports. Understanding Nitrogen, Phosphorus, and Potassium balance is the foundation of optimizing your yield and reducing fertilizer costs.</p>
+            </div>
+
+            <!-- Video Player -->
+            <div class="video-container">
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/QhTGAy810m0?controls=1&rel=0&modestbranding=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <!-- Quiz -->
+            <div class="lesson-text">
+                <div class="quiz-card" id="quiz-section">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold); margin-bottom: 8px;">KNOWLEDGE CHECK</div>
+                    <h3 style="font-size: 20px; margin-bottom: 24px;">Which macronutrient is primarily responsible for strong root growth and disease resistance?</h3>
+                    
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px;">A</div>
+                        Nitrogen (N)
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, true)" id="correct-opt">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px;">B</div>
+                        Phosphorus (P)
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px;">C</div>
+                        Potassium (K)
+                    </div>
+                    <div class="quiz-option" onclick="checkAnswer(this, false)">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px;">D</div>
+                        Calcium (Ca)
+                    </div>
+
+                    <div id="quiz-feedback" style="margin-top: 24px; padding: 16px; border-radius: 8px; display: none; font-weight: 500;"></div>
+                </div>
+            </div>
+            
+            <div style="height: 100px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let answered = false;
+
+        function checkAnswer(el, isCorrect) {
+            if (answered) return;
+            
+            const feedback = document.getElementById('quiz-feedback');
+            
+            if (isCorrect) {
+                el.classList.add('correct');
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(55, 99, 49, 0.1)';
+                feedback.style.color = 'var(--green)';
+                feedback.innerHTML = '✨ <strong>Correct!</strong> Phosphorus stimulates early root development and speeds up maturity. <br><br> <button class="btn" style="margin-top: 16px; padding: 8px 16px; background: var(--green); color: white; border: none; border-radius: 6px; cursor: pointer;">Proceed to Next Module →</button>';
+                
+                // Mark module completed in sidebar
+                document.getElementById('icon-2').textContent = '✓';
+                document.getElementById('mod-2').classList.add('completed');
+                document.getElementById('overall-progress').style.width = '50%';
+                
+                answered = true;
+            } else {
+                el.classList.add('wrong');
+                feedback.style.display = 'block';
+                feedback.style.background = 'rgba(194, 73, 51, 0.1)';
+                feedback.style.color = 'var(--terracotta)';
+                feedback.innerHTML = 'Incorrect. Try again! Hint: Nitrogen is for leaves, Potassium is for overall health.';
+                
+                setTimeout(() => {
+                    el.classList.remove('wrong');
+                    feedback.style.display = 'none';
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.local
+.vercel
+
+# IDE
+.idea/
+
+# Next.js app
+apps/web/.next/
+apps/web/node_modules/
+*.tsbuildinfo
+
+# Python backend
+apps/backend/.venv/
+apps/backend/venv/
+apps/backend/**/__pycache__/
+
+# Единно AI кошче — временни файлове, чернови, фрагменти (не се комитват)
+ai-trash/**
+!ai-trash/README.md

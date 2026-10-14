@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Аграрна академия · AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+    <link rel="stylesheet" href="../styles/agri-marketing-supplement.css">
+    <style>
+        .agn-ac-wrap { max-width: 760px; margin: 0 auto 56px; }
+        .agn-ac-card {
+            background: var(--surface, #fafafa);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+        .agn-ac-card h2 { margin: 0 0 10px; font-size: 1.35rem; }
+        .agn-ac-card p { margin: 0 0 14px; color: var(--text-muted, #666); line-height: 1.55; }
+        .agn-ac-details details {
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .agn-ac-details summary { cursor: pointer; font-weight: 600; color: var(--text-main, #111); }
+        .agn-model-picks { margin: 16px 0 8px; display: flex; flex-direction: column; gap: 10px; }
+        .agn-model-picks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 15px; line-height: 1.45; }
+        .agn-model-picks input { margin-top: 4px; flex-shrink: 0; }
+        .agn-model-expl { display: none; margin-top: 12px; padding: 14px 16px; border-radius: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.12); line-height: 1.55; color: var(--text-muted, #555); font-size: 15px; }
+        .agn-model-expl.is-on { display: block; }
+        .agn-ac-self { margin-top: 16px; padding: 16px; border-radius: 10px; background: rgba(45, 90, 39, 0.06); border: 1px dashed rgba(45, 90, 39, 0.35); }
+        .agn-ac-foot { text-align: center; font-size: 13px; color: var(--text-muted, #888); padding: 24px 12px 48px; }
+        .agn-ac-foot a { color: inherit; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+                <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+                AgriNexus Academy
+            </a>
+            <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+                <a href="index.html" style="text-decoration: none; color: var(--text-main, #111);">Начало</a>
+                <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Каталог</a>
+                <a href="#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Лаборатория</a>
+                <a href="#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Модели</a>
+                <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;" title="По-ранна маркетинг страница">Архив</a>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; color: var(--text-muted, #999);">
+                <a href="../index.html" style="color: inherit; text-decoration: none;">EN</a>
+                <span style="opacity: 0.3;">|</span>
+                <a href="index.html" style="color: var(--text-main, #111); text-decoration: none;">BG</a>
+            </div>
+        </nav>
+
+        <section class="hero" style="padding-bottom: 32px;">
+            <h1 style="max-width: 22ch;">Аграрна академия</h1>
+            <p style="max-width: 52ch;">Учебен слой към AgriNexus: навигация на български, каталог с търсене и наставник за упражнения. Статии и анализи в момента са предимно на английски (коренът на сайта); преводите и новите текстове се добавят постепенно — без твърдение за „пълна“ библиотека на български.</p>
+            <div class="btn-group" style="margin-top: 20px;">
+                <a href="academy.html" class="btn btn-primary" style="text-decoration: none;">Към каталога и наставника</a>
+                <a href="#compare" class="btn btn-outline" style="text-decoration: none;">Пример с две рамки</a>
+            </div>
+        </section>
+
+        <div class="agn-ac-wrap" id="library">
+            <div class="agn-ac-card">
+                <h2>Каталог</h2>
+                <p>Връзки към страници и статии от сайта, търсене по тема и наставник. Отворете каталога — ако линк води към английски материал, това е съзнателно, докато няма българска версия.</p>
+                <a href="academy.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex;">Отвори каталога</a>
+            </div>
+        </div>
+
+        <div class="agn-ac-wrap" id="lab">
+            <div class="agn-ac-card">
+                <h2>Лаборатория · място за опити</h2>
+                <p>Тук не се изпълняват сделки. Ползвайте наставника, за да натоварите формулировки и да четете забавен пазарен снимък само като учебен пример; по-късно — отделна песочница по пътна карта.</p>
+                <a href="academy.html#agn-academy-tutor" class="btn btn-outline" style="text-decoration: none; display: inline-flex;">Към наставника</a>
+            </div>
+        </div>
+
+        <div class="agn-ac-wrap agn-ac-details" id="compare">
+            <div class="agn-ac-card">
+                <h2>Практически пример · два модела, една задача</h2>
+                <p style="margin-bottom: 12px;"><strong>Задача:</strong> До две седмици е жътвата и касата е стегната. Приоритет ли е да заключите цена сега, или да чакате по-добър базис?</p>
+                <p style="margin-bottom: 4px; font-size: 14px; color: var(--text-muted, #666);">Изберете рамка (можете да сменяте по всяко време):</p>
+                <div class="agn-model-picks" role="radiogroup" aria-label="Сравнение на модели">
+                    <label><input type="radio" name="agnModel" value="a" /> <span><strong>Модел А</strong> — „продай, когато ти олекне“ след дълъг сезон; тръгнете от най-добрата оферта днес и безубитъка си, преди да звъннете на елеватор.</span></label>
+                    <label><input type="radio" name="agnModel" value="b" /> <span><strong>Модел Б</strong> — „първо базис и пренос“; сравнете локалната цена със стойност от фючърси плюс разход за склад; чакайте само ако очакваният базисен плюс надхвърля риска от склад и оставащите дни с пари в каса.</span></label>
+                </div>
+                <div id="agn-model-expl-a" class="agn-model-expl"><strong>Защо А може да ви се стори правилен:</strong> пази съня и паниката от касов поток. Рискът е да продадете в най-слабия емоционален прозорец. Ако изберете А, следващата стъпка е да запишете две числа, без които не търгувате: безубитък €/т и минимално приемлива оферта.</div>
+                <div id="agn-model-expl-b" class="agn-model-expl"><strong>Защо Б може да ви се стори правилен:</strong> вкарва пазарната структура в историята. Рискът е да надцените възстановяването на базиса, докато сметките чукат. Ако изберете Б, следващата стъпка е да оцените дни „каса до нула“ и празнината в базиса спрямо миналия сезон за същата календарна седмица.</div>
+                <div class="agn-ac-self">
+                    <strong>Убедете се сами</strong>
+                    <p style="margin: 8px 0 0; color: var(--text-muted, #666);">След избор прочетете кратката бележка по-долу — после попитайте дали <em>другият</em> модел би променил първото ви действие. Няма табло с точки; навикът е да сменяте лещите преди да се ангажирате.</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="agn-ac-foot">По-ранна продуктова страница (агенти): <a href="agents.html">agents.html</a></p>
+    </div>
+    <script>
+        (function () {
+            var radios = document.querySelectorAll('input[name="agnModel"]');
+            var ea = document.getElementById('agn-model-expl-a');
+            var eb = document.getElementById('agn-model-expl-b');
+            if (!radios.length || !ea || !eb) return;
+            function show(v) {
+                ea.classList.toggle('is-on', v === 'a');
+                eb.classList.toggle('is-on', v === 'b');
+            }
+            radios.forEach(function (r) {
+                r.addEventListener('change', function () {
+                    if (r.checked) show(r.value);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

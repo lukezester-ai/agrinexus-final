@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>AgriNexus Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/agri-market-shared.css">
+    <link rel="stylesheet" href="styles/agri-marketing-supplement.css">
+    <style>
+        .agn-ac-wrap { max-width: 760px; margin: 0 auto 56px; }
+        .agn-ac-card {
+            background: var(--surface, #fafafa);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+        .agn-ac-card h2 { margin: 0 0 10px; font-size: 1.35rem; }
+        .agn-ac-card p { margin: 0 0 14px; color: var(--text-muted, #666); line-height: 1.55; }
+        .agn-ac-details details {
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .agn-ac-details summary { cursor: pointer; font-weight: 600; color: var(--text-main, #111); }
+        .agn-ac-self { margin-top: 16px; padding: 16px; border-radius: 10px; background: rgba(45, 90, 39, 0.06); border: 1px dashed rgba(45, 90, 39, 0.35); }
+        .agn-ac-foot { text-align: center; font-size: 13px; color: var(--text-muted, #888); padding: 24px 12px 48px; }
+        .agn-ac-foot a { color: inherit; }
+        .agn-model-picks { margin: 16px 0 8px; display: flex; flex-direction: column; gap: 10px; }
+        .agn-model-picks label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 15px; line-height: 1.45; }
+        .agn-model-picks input { margin-top: 4px; flex-shrink: 0; }
+        .agn-model-expl { display: none; margin-top: 12px; padding: 14px 16px; border-radius: 10px; background: #fff; border: 1px solid rgba(0,0,0,0.12); line-height: 1.55; color: var(--text-muted, #555); font-size: 15px; }
+        .agn-model-expl.is-on { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+                <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+                AgriNexus Academy
+            </a>
+            <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+                <a href="index.html" style="text-decoration: none; color: var(--text-main, #111);">Start</a>
+                <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Library</a>
+                <a href="#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Lab</a>
+                <a href="#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Models</a>
+                <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;" title="Earlier marketing page">Archive</a>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; color: var(--text-muted, #999);">
+                <a href="index.html" style="color: var(--text-main, #111); text-decoration: none;">EN</a>
+                <span style="opacity: 0.3;">|</span>
+                <a href="bg/index.html" style="color: inherit; text-decoration: none;">BG</a>
+            </div>
+        </nav>
+
+        <section class="hero" style="padding-bottom: 32px;">
+            <h1 style="max-width: 18ch;">A clean academy site.<br>Convince yourself.</h1>
+            <p style="max-width: 52ch;">This home is only the learning layer: a library, a safe place to try ideas, and practical examples where two mental models answer the same task—so you judge the trade-offs, not the slogan.</p>
+            <div class="btn-group" style="margin-top: 20px;">
+                <a href="academy.html" class="btn btn-primary" style="text-decoration: none;">Open full library &amp; Tutor</a>
+                <a href="#compare" class="btn btn-outline" style="text-decoration: none;">Try a side-by-side</a>
+            </div>
+        </section>
+
+        <div class="agn-ac-wrap" id="library">
+            <div class="agn-ac-card">
+                <h2>Library</h2>
+                <p>Articles, PDFs, video paths, and the Academy Tutor—everything in one long-form page with search.</p>
+                <a href="academy.html" class="btn btn-primary" style="text-decoration: none; display: inline-flex;">Go to library</a>
+            </div>
+        </div>
+
+        <div class="agn-ac-wrap" id="lab">
+            <div class="agn-ac-card">
+                <h2>Lab · space for experiments</h2>
+                <p>No trades are executed here. Use the Tutor to stress-test wording, read delayed market snapshots as teaching props, and come back when you want a deeper sandbox (on the roadmap).</p>
+                <a href="academy.html#agn-academy-tutor" class="btn btn-outline" style="text-decoration: none; display: inline-flex;">Jump to Tutor</a>
+            </div>
+        </div>
+
+        <div class="agn-ac-wrap agn-ac-details" id="compare">
+            <div class="agn-ac-card">
+                <h2>Practical example · two models, one task</h2>
+                <p style="margin-bottom: 12px;"><strong>Task:</strong> Harvest is two weeks away and cash is tight. Do you prioritise locking a price now or waiting for basis to improve?</p>
+                <p style="margin-bottom: 4px; font-size: 14px; color: var(--text-muted, #666);">Pick a lens (switch anytime):</p>
+                <div class="agn-model-picks" role="radiogroup" aria-label="Compare models">
+                    <label><input type="radio" name="agnModel" value="a" /> <span><strong>Model A</strong> — “sell when you feel relief” after a long season; start from today’s best bid and your break-even before calling the elevator.</span></label>
+                    <label><input type="radio" name="agnModel" value="b" /> <span><strong>Model B</strong> — “basis and carry first”; compare local bid to futures-implied value and storage cost; only wait if expected basis gain beats storage risk and your cash runway.</span></label>
+                </div>
+                <div id="agn-model-expl-a" class="agn-model-expl"><strong>Why A can feel right:</strong> It protects sleep and cash-flow panic. The risk is selling into the weakest emotional window. If you choose A, your next step is to write two numbers you will not trade without: break-even €/t and minimum acceptable bid.</div>
+                <div id="agn-model-expl-b" class="agn-model-expl"><strong>Why B can feel right:</strong> It forces the market structure into the story. The risk is overestimating basis recovery while bills are due. If you choose B, your next step is to estimate days-of-cash-left and the basis gap vs last season at the same calendar week.</div>
+                <div class="agn-ac-self">
+                    <strong>Convince yourself</strong>
+                    <p style="margin: 8px 0 0; color: var(--text-muted, #666);">After you pick, read the short note that appears—then ask whether the <em>other</em> model would change your first action. No scoreboard; the habit is toggling lenses before you commit.</p>
+                </div>
+            </div>
+        </div>
+
+        <p class="agn-ac-foot">Earlier product story (agents mesh): <a href="agents.html">agents.html</a></p>
+    </div>
+    <script>
+        (function () {
+            var radios = document.querySelectorAll('input[name="agnModel"]');
+            var ea = document.getElementById('agn-model-expl-a');
+            var eb = document.getElementById('agn-model-expl-b');
+            if (!radios.length || !ea || !eb) return;
+            function show(v) {
+                ea.classList.toggle('is-on', v === 'a');
+                eb.classList.toggle('is-on', v === 'b');
+            }
+            radios.forEach(function (r) {
+                r.addEventListener('change', function () {
+                    if (r.checked) show(r.value);
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

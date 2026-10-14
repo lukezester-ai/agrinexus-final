@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Платформа — AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+    <style>
+        :root {
+            --bg-body: #fcfcf9;
+            --bg-card: #f5f4ed;
+            --bg-row: #ebe9df;
+            --text-main: #111111;
+            --text-muted: #777777;
+            
+            --c-sense: #447a54;
+            --c-think: #9cb574;
+            --c-act: #c98852;
+            --c-line: #c2d4c0;
+            
+            --border-light: rgba(0,0,0,0.06);
+            --border-dark: #111111;
+            
+            --radius-full: 9999px;
+            --radius-card: 32px;
+            --radius-row: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle gradient glow in background */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle at top right, rgba(201,136,82,0.1), rgba(156,181,116,0.05), transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVBAR */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--c-sense);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(68,122,84,0.3);
+        }
+
+        .breadcrumbs {
+            font-size: 15px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .breadcrumbs strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .btn-join {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-full);
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 500;
+            font-size: 15px;
+            background: transparent;
+            transition: all 0.2s;
+        }
+
+        .btn-join:hover {
+            background: var(--text-main);
+            color: #fff;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            position: relative;
+        }
+
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 80px;
+            font-weight: 500;
+            letter-spacing: -2.5px;
+            line-height: 1.05;
+            margin-bottom: 32px;
+        }
+
+        .c-sense { color: var(--c-sense); }
+        .c-think { color: var(--c-think); }
+        .c-act { color: var(--c-act); }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .scroll-down {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-body);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 40px auto 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+        }
+
+        /* ARCHITECTURE CARD */
+        .arch-section {
+            padding-bottom: 120px;
+        }
+
+        .arch-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 60px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .arch-row {
+            /* background: var(--bg-row); removed to create single field */
+            border-radius: var(--radius-row);
+            padding: 40px 32px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 40px;
+        }
+
+        .arch-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .row-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: var(--c-sense);
+            width: 140px;
+            flex-shrink: 0;
+        }
+
+        .row-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            width: 100px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .nodes-container {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 40px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .nodes-think {
+            justify-content: space-around;
+        }
+
+        .node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .node-icon-wrapper {
+            width: 72px;
+            height: 72px;
+            background: var(--bg-body);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 5;
+            transition: transform 0.2s ease;
+        }
+
+        /* Inner ring — must not steal clicks from the <a> */
+        .node-icon-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1.5px solid var(--c-sense);
+            border-radius: 50%;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Special Central Node */
+        .node-center .node-icon-wrapper {
+            width: 90px;
+            height: 90px;
+            border: 2px solid var(--border-dark);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .node-center .node-icon-wrapper::after {
+            display: none;
+        }
+
+        .node-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .node-center .node-label {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Clickable platform nodes (cards → real sections / apps) */
+        a.node {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 20px;
+            padding: 10px 12px;
+            margin: -10px -12px;
+            transition: transform 0.2s ease, background 0.2s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(68, 122, 84, 0.15);
+        }
+        a.node:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+        a.node:hover .node-icon-wrapper {
+            transform: scale(1.06);
+        }
+        a.node svg {
+            pointer-events: none;
+        }
+        a.node:focus-visible {
+            outline: 2px solid var(--c-sense);
+            outline-offset: 3px;
+        }
+        a.node.node-center:focus-visible {
+            outline-color: var(--c-think);
+        }
+        .arch-row:nth-child(4) a.node:focus-visible {
+            outline-color: var(--c-act);
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* SVG BACKGROUND CONNECTIONS */
+        .svg-connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .conn-line {
+            fill: none;
+            stroke: var(--c-line);
+            stroke-width: 1.5;
+            opacity: 0.8;
+        }
+
+    
+        /* Mobile Nav & Layout Fix */
+        @media (max-width: 992px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 16px !important;
+                justify-content: center !important;
+                text-align: center;
+            }
+            nav > a.logo {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 8px;
+            }
+            nav > div {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px !important;
+                width: 100%;
+            }
+            nav > div[style*="margin-left: auto"] {
+                margin: 12px 0 !important;
+                width: 100%;
+                justify-content: center;
+            }
+            body {
+                overflow-x: hidden;
+            }
+            .container {
+                max-width: 100%;
+                padding: 0 16px;
+            }
+        }
+
+    
+        /* Comprehensive Mobile Layout Fixes */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            /* General Typography & Hero */
+            .hero { padding: 60px 0 30px !important; }
+            .hero h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+            .hero p { font-size: 16px !important; }
+            
+            /* Index (Agents) specific */
+            .stats-strip { 
+                flex-wrap: wrap !important; 
+                gap: 24px !important; 
+                padding: 24px 0 !important; 
+                margin-bottom: 40px !important;
+            }
+            .stat-item { width: 40%; }
+            .mesh-container { height: 400px !important; margin-bottom: 60px !important; }
+            .orbit { display: none; /* Hide orbits on mobile to avoid overflow and clutter */ }
+            .ladder-grid { grid-template-columns: 1fr !important; }
+            
+            /* Platform specific */
+            .arch-card { padding: 24px 16px !important; }
+            .arch-row { 
+                flex-direction: column !important; 
+                align-items: center !important; 
+                padding: 24px 16px !important;
+                gap: 24px !important;
+            }
+            .row-label, .row-meta { 
+                width: 100% !important; 
+                text-align: center !important; 
+            }
+            .nodes-container { 
+                flex-wrap: wrap !important; 
+                justify-content: center !important; 
+                gap: 24px !important; 
+            }
+            .integrations-grid { grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+            .foundation-grid { grid-template-columns: 1fr !important; }
+            
+            /* Market Intelligence specific */
+            .ticker-strip { width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; }
+            .engine-grid, .signal-grid { grid-template-columns: 1fr !important; }
+            .split-hero { flex-direction: column !important; }
+            
+            /* Academy specific */
+            .hero.split { flex-direction: column !important; }
+            .reading-layout { flex-direction: column !important; }
+            .paths-grid, .fresh-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+            
+            /* Dashboard specific */
+            .dashboard-layout { flex-direction: column !important; }
+            .sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); padding: 16px !important; }
+            .dash-grid { grid-template-columns: 1fr !important; }
+        }
+
+    
+        @media (max-width: 768px) {
+            .mesh-container { display: none !important; } /* Hide complex animations on mobile to save space */
+            .stats-strip { flex-direction: column !important; align-items: center; }
+            .stat-item { width: 100% !important; margin-bottom: 24px; }
+            .split-hero { flex-direction: column !important; }
+            .nodes-container { flex-direction: column !important; }
+            .hero h1 { font-size: 28px !important; }
+        }
+        </style>
+</head>
+<body>
+
+    <nav class="container" style="display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px 0;">
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus Academy
+    </a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 15px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Начало</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Каталог</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Лаборатория</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #777); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #777)'">Модели</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #777); font-size: 13px; opacity: 0.9;">Архив</a>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; color: var(--text-muted, #999);">
+        <a href="../platform.html" style="color: inherit; text-decoration: none;">EN</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="platform.html" style="color: var(--text-main, #111); text-decoration: none;">BG</a>
+    </div>
+</nav>
+
+    <header class="hero container">
+        <div class="eyebrow">// PLATFORM</div>
+        <h1>Операционна система,<br>която <span class="c-sense">усеща</span>, <span class="c-think">мисли</span> и <span class="c-act">действа</span>.</h1>
+        <p>Три слоя, една нервна система. Сензорите хранят мозъка, мозъкът командва „ръцете“. Всеки сигнал е проследим, всяко действие — обратимо.</p>
+        
+        <a href="#platform-architecture" class="scroll-down" aria-label="Превъртете към архитектурата на платформата" title="Архитектура">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+        </a>
+    </header>
+
+    <div class="container" style="margin: -24px auto 48px; padding: 0 24px;">
+        <div style="max-width: 920px; margin: 0 auto; padding: 20px 24px; background: var(--bg-card); border-radius: var(--radius-row); border: 1px solid var(--border-light); text-align: center; font-size: 16px; line-height: 1.55; color: var(--text-muted);">
+            <strong style="color: var(--text-main); font-weight: 600;">Научете стека, после го свържете.</strong>
+            <a href="academy.html" style="color: var(--c-sense); font-weight: 600; text-decoration: none; margin-left: 6px;">Отворете Академията</a>
+            <span style="opacity: 0.45;"> — </span>
+            четива, наставник и материали следват същата карта Възприятие → Мислене → Действие като по-долу.
+        </div>
+    </div>
+
+    <section id="platform-architecture" class="arch-section container">
+        <div class="arch-card">
+            
+            <!-- SVG Connections -->
+            <svg class="svg-connections" preserveAspectRatio="none">
+            </svg>
+
+            <!-- ROW 1: SENSE -->
+            <div class="arch-row">
+                <div class="row-label">01 . SENSE</div>
+                <div class="nodes-container">
+                    <a href="market-intelligence.html" class="node" title="Пазарна аналитика — сигнали и контекст">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
+                                <rect x="2" y="8" width="20" height="8" rx="2"></rect>
+                                <circle cx="12" cy="12" r="2"></circle>
+                            </svg>
+                        </div>
+                        <div class="node-label">Сателити</div>
+                    </a>
+                    <a href="../fieldlot/index.html" class="node" title="Fieldlot — каталог техника и полета">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                            </svg>
+                        </div>
+                        <div class="node-label">IoT сензори</div>
+                    </a>
+                    <a href="../agridirect/index.html" class="node" title="AgriDirect — новини и пазар">
+                        <div class="node-icon-wrapper">
+                            <!-- Small green dot top center of this circle as seen in design -->
+                            <div style="position:absolute; top:-2px; width:6px; height:6px; background:var(--c-sense); border-radius:50%; z-index:10; pointer-events:none;"></div>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
+                                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                                <path d="M7 8h10"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Новини и пазари</div>
+                    </a>
+                    <a href="dashboard.html" class="node" title="Табло — полеви отчети">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-sense)" stroke-width="1.5">
+                                <rect x="7" y="3" width="10" height="18" rx="2"></rect>
+                                <path d="M11 17h2"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Полеви отчети</div>
+                    </a>
+                </div>
+                <div class="row-meta">събиране на данни</div>
+            </div>
+
+            <!-- ROW 2: THINK -->
+            <div class="arch-row">
+                <div class="row-label" style="color: var(--c-think);">02 . THINK</div>
+                <div class="nodes-container nodes-think">
+                    <a href="../register.html" class="node" title="Регистрация — достъп до езерото от данни">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
+                                <ellipse cx="12" cy="5" rx="7" ry="3"></ellipse>
+                                <path d="M5 5v14c0 1.66 3.13 3 7 3s7-1.34 7-3V5"></path>
+                                <path d="M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Езеро от данни</div>
+                    </a>
+                    
+                    <a href="index.html" class="node node-center" title="Агенти — мрежа за оркестрация">
+                        <div class="node-icon-wrapper">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M12 9V4"></path>
+                                <path d="M12 20v-5"></path>
+                                <path d="M9 12H4"></path>
+                                <path d="M20 12h-5"></path>
+                                <circle cx="12" cy="3" r="1" fill="var(--c-think)"></circle>
+                                <circle cx="12" cy="21" r="1" fill="var(--c-think)"></circle>
+                                <circle cx="3" cy="12" r="1" fill="var(--c-think)"></circle>
+                                <circle cx="21" cy="12" r="1" fill="var(--c-think)"></circle>
+                            </svg>
+                        </div>
+                        <div class="node-label">Мрежа от агенти</div>
+                    </a>
+                    
+                    <a href="academy.html" class="node" title="Академия — курсове и грамотност за модели">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-think)" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="8"></circle>
+                                <path d="M12 8v4l3 3"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Модели</div>
+                    </a>
+                </div>
+                <div class="row-meta">анализ</div>
+            </div>
+
+            <!-- ROW 3: ACT -->
+            <div class="arch-row" style="margin-bottom: 0;">
+                <div class="row-label" style="color: var(--c-act);">03 . ACT</div>
+                <div class="nodes-container nodes-think">
+                    <a href="dashboard.html" class="node" title="Табло — дневен брифинг и сигнали">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                <path d="M9 10h6"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Дневен брифинг</div>
+                    </a>
+                    
+                    <a href="agents.html" class="node" title="Агенти — автоматизация">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </div>
+                        <div class="node-label">Автоматични действия</div>
+                    </a>
+                    
+                    <a href="https://www.agrinexuslaw.com/" target="_blank" rel="noopener noreferrer" class="node" title="AgriNexus.Law — мобилно PWA (нов раздел)">
+                        <div class="node-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--c-act)" stroke-width="1.5">
+                                <rect x="5" y="2" width="14" height="20" rx="2"></rect>
+                                <path d="M12 18h.01"></path>
+                            </svg>
+                        </div>
+                        <div class="node-label">Мобилно и глас</div>
+                    </a>
+                </div>
+                <div class="row-meta">изпълнение</div>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        function drawConnections() {
+            const svg = document.querySelector('.svg-connections');
+            if (!svg) return;
+            svg.innerHTML = '';
+            
+            const rows = document.querySelectorAll('.arch-row');
+            if (rows.length < 3) return;
+            
+            const senseWrappers = rows[0].querySelectorAll('.node-icon-wrapper');
+            const thinkWrappers = rows[1].querySelectorAll('.node-icon-wrapper');
+            const actWrappers = rows[2].querySelectorAll('.node-icon-wrapper');
+            
+            if (!thinkWrappers[1]) return;
+            const centerNode = thinkWrappers[1];
+            
+            const archCard = document.querySelector('.arch-card');
+            const cardRect = archCard.getBoundingClientRect();
+            
+            function getCenter(el) {
+                const rect = el.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2 - cardRect.left,
+                    y: rect.top + rect.height / 2 - cardRect.top
+                };
+            }
+            
+            const centerPos = getCenter(centerNode);
+            
+            function drawCurve(startEl, endEl) {
+                const start = getCenter(startEl);
+                const end = getCenter(endEl);
+                
+                const cp1x = start.x;
+                const cp1y = start.y + (end.y - start.y) / 2;
+                const cp2x = end.x;
+                const cp2y = start.y + (end.y - start.y) / 2;
+                
+                
+                const pathId = 'path-' + Math.random().toString(36).substr(2, 9);
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('id', pathId);
+                path.setAttribute('d', `M ${start.x},${start.y} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${end.x},${end.y}`);
+                path.setAttribute('class', 'conn-line');
+                svg.appendChild(path);
+                
+                // Add animated particle
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('r', '4');
+                // Use a generic active color for the dot
+                dot.setAttribute('fill', '#6b8e23');
+                
+                const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+                // Randomize duration slightly so they don't all move identically
+                const dur = (Math.random() * 2 + 2).toFixed(1);
+                animate.setAttribute('dur', dur + 's');
+                animate.setAttribute('repeatCount', 'indefinite');
+                
+                const mpath = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+                mpath.setAttribute('href', '#' + pathId);
+                
+                animate.appendChild(mpath);
+                dot.appendChild(animate);
+                svg.appendChild(dot);
+
+            }
+            
+            senseWrappers.forEach(node => drawCurve(node, centerNode));
+            actWrappers.forEach(node => drawCurve(centerNode, node));
+        }
+        
+        window.addEventListener('resize', drawConnections);
+        window.addEventListener('load', drawConnections);
+        // Sometimes fonts/layout shifts right after parse
+        setTimeout(drawConnections, 100);
+        drawConnections();
+    </script>
+</body>
+</html>

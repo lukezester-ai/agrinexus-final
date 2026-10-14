@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Пазарна аналитика — AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+</head>
+<body>
+
+    <!-- LIVE TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker-pulse"></div>
+        <div class="ticker-label">ПАЗАРИ НА ЖИВО <span style="opacity:0.65;font-weight:400">(Yahoo, закъснение)</span></div>
+        <div class="ticker-delay-note" style="font-size:10px;color:#888;margin-left:12px;max-width:360px;line-height:1.35;">Пазарни цени със закъснение ~15 мин (CBOT, ZW=F / ZC=F). Подходящи за форуърд решения, не за интрадей търговия.</div>
+        <div class="ticker-items" id="agn-live-ticker">
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+            <div class="tick"><span class="tick-name">SUNFLOWER</span> <span class="tick-price">€412.00</span> <span class="tick-down">-1.2%</span></div>
+            <div class="tick"><span class="tick-name">RAPESEED</span> <span class="tick-price">€465.75</span> <span class="tick-up">+3.1%</span></div>
+            <div class="tick"><span class="tick-name">BARLEY</span> <span class="tick-price">€210.00</span> <span class="tick-down">-0.5%</span></div>
+            <div class="tick"><span class="tick-name">SOY</span> <span class="tick-price">€430.50</span> <span class="tick-up">+1.5%</span></div>
+            <!-- Duplicate for seamless loop -->
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus Academy
+    </a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Начало</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Каталог</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Лаборатория</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Модели</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Архив</a>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+        <a href="../market-intelligence.html" style="color: inherit; text-decoration: none;">EN</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="market-intelligence.html" style="color: var(--text-main, #111); text-decoration: none;">BG</a>
+    </div>
+</nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Търгувайте реколтата като хедж фонд.</h1>
+            <p style="font-size: 20px; color: var(--text-muted); max-width: 600px; margin: 0 auto;">Без продажби на интуиция. Институционална пазарна аналитика, настроена към нулевата ви точка и добива на стопанството.</p>
+        </section>
+
+        <!-- MAIN TERMINAL -->
+        <div class="terminal-container">
+            <div class="terminal-left">
+                <div class="term-header">
+                    <div>
+                        <div style="font-family: 'JetBrains Mono', monospace; color: #999; margin-bottom: 8px;">MATIF MILLING WHEAT (SEP 26)</div>
+                        <div class="term-price-main">
+                            <span id="mi-price-int">246</span><span id="mi-price-dec" style="font-size: 32px; color: #999;">.50</span>
+                            <span class="term-delta" id="mi-price-delta">+0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="term-chart-area">
+                    <div class="mi-chart-toolbar">
+                        <button type="button" class="mi-chart-tab active" id="mi-tab-wheat">Пшеница</button>
+                        <button type="button" class="mi-chart-tab" id="mi-tab-corn">Кукуруза</button>
+                    </div>
+                    <div class="mi-chart-shell">
+                        <canvas id="marketChart"></canvas>
+                        <div id="chart-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;background:rgba(30,30,30,0.4);">ЗАРЕЖДАНЕ…</div>
+                    </div>
+                </div>
+
+                <div class="term-info-boxes">
+                    <div class="term-box">
+                        <div class="term-box-label">ПРОГНОЗНА ЦЕЛ (СЕП)</div>
+                        <div class="term-box-val" style="color: var(--gold);">€268 <span style="font-size: 14px; color: #666;">±€14</span></div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">
+                            СИЛЕН СИГНАЛ
+                            <details style="display:inline-block;margin-left:4px;vertical-align:middle;">
+                                <summary style="cursor:pointer;list-style:none;display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border-radius:50%;border:1px solid #666;font-size:10px;font-weight:600;color:#aaa;">?</summary>
+                                <div style="position:absolute;z-index:20;margin-top:6px;max-width:300px;padding:10px 12px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:11px;line-height:1.45;color:#444;box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+                                    <strong style="display:block;margin-bottom:4px;color:#111;">Как смятаме увереността</strong>
+                                    Отразява колко силно се подреждат сигналите (пазар, новини, метео, валута). Силен при съгласие; смесен или слаб при противоречие. Ориентир, не гаранция.
+                                    <a href="methodology.html" style="display:block;margin-top:8px;color:#2d5a27;">Пълна методология →</a>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <div class="term-box">
+                        <div class="term-box-label">ВАШАТА НУЛЕВА ТОЧКА</div>
+                        <div class="term-box-val">€184 <span style="font-size: 14px; color: #666;">/ ТОН</span></div>
+                        <div style="font-size: 12px; color: var(--green-bright); margin-top: 8px;">ПОТЕНЦИАЛНА ПЕЧАЛБА: +€84/т</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terminal-right">
+                <div class="signal-title">СТОЙКА СИГНАЛИ (ПОСЛ. 12Ч)</div>
+                
+                <div class="signal-stack">
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">НАСТРОЕНИЕ</span>
+                            <span>06:30</span>
+                        </div>
+                        <div class="signal-text">Темпът на износ от Черно море се забавя заради логистични теснини.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">САТЕЛИТ</span>
+                            <span>06:15</span>
+                        </div>
+                        <div class="signal-text">Състоянието на US зимна пшеница е понижено с 2% под оценките.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip active-green"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">FX</span>
+                            <span>05:30</span>
+                        </div>
+                        <div class="signal-text">EUR/USD падна до 1,072, което подобрява конкурентоспособността на износа от ЕС.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">USDA</span>
+                            <span>04:00</span>
+                        </div>
+                        <div class="signal-text">Докладът WASDE сочи леко по-високи глобални крайни запаси.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-red"></div><div class="s-pip active-red"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-synthesis">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(58,138,48,0.7); margin-bottom: 4px;">СИНТЕЗ НА ОРКЕСТРАТОРА</div>
+                    <p>Нетен сигнал: +2,0% бичи наклон, положителен в 4 от последните 5 сесии.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 01: OPTIMAL SELLING WINDOW -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Оптимален прозорец за продажба</h2>
+        </div>
+        <div class="timeline-wrap">
+            <div class="timeline-bar">
+                <div class="t-seg t-past"></div>
+                <div class="t-seg t-now"></div>
+                <div class="t-seg t-hold1"></div>
+                <div class="t-seg t-sep"></div>
+                <div class="t-seg t-hold2"></div>
+            </div>
+            <div class="timeline-cells">
+                <div class="t-cell">
+                    <div class="t-cell-label">МИНАЛО</div>
+                    <div class="t-cell-val" style="color: var(--text-muted);">0%</div>
+                </div>
+                <div class="t-cell highlight-green">
+                    <div class="t-cell-label" style="color: var(--green);">ПРОДАЙ СЕГА (30%)</div>
+                    <div class="t-cell-val">144т @ €246</div>
+                    <div class="t-cell-sub">Осигури базова печалба</div>
+                </div>
+                <div class="t-cell highlight-gold" style="grid-column: span 2;">
+                    <div class="t-cell-label" style="color: var(--gold);">ПРОДАЙ СЕП (50%) + ЗАДРЪЖ (20%)</div>
+                    <div class="t-cell-val">240т @ €268 <span style="font-weight: 300; margin: 0 8px;">|</span> 96т @ €275-290</div>
+                    <div class="t-cell-sub">Максимизирайте възхода в пиковия прозорец на целта</div>
+                </div>
+            </div>
+            
+            <div class="expected-box">
+                <div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999; margin-bottom: 8px;">ОЧАКВАНИ ПРИХОДИ (СТРАТЕГИЯ С РАЗДЕЛЯНЕ)</div>
+                    <div style="font-size: 32px; font-weight: 500;">€127,920</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 18px; color: var(--green-bright);">+€8,640</div>
+                    <div style="font-size: 13px; color: #999; margin-top: 4px;">спрямо еднократна продажба днес</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #888; margin: 14px 0 0; line-height: 1.45; max-width: 720px;">Информативна прогноза, не е инвестиционен или търговски съвет. Решенията за продажба и хеджиране са изцяло твои.</p>
+        </div>
+
+        <!-- 02: DATA INPUTS -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Входни данни</h2>
+        </div>
+        <div class="data-cards">
+            <div class="data-card">
+                <div class="data-card-num">42 <span>ИЗТОЧНИКА</span></div>
+                <h3>Борси и макро</h3>
+                <div class="data-tags">
+                    <span class="data-tag">CBOT</span>
+                    <span class="data-tag">MATIF</span>
+                    <span class="data-tag">USDA</span>
+                    <span class="data-tag">ECB FX</span>
+                    <span class="data-tag">BRENT</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">38 <span>ИЗТОЧНИКА</span></div>
+                <h3>Алтернативни данни</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Sentinel-2</span>
+                    <span class="data-tag">AIS кораби</span>
+                    <span class="data-tag">Пристанищни силози</span>
+                    <span class="data-tag">Метео модели</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">120+ <span>ИЗТОЧНИКА</span></div>
+                <h3>Новини и настроение</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Reuters</span>
+                    <span class="data-tag">Bloomberg</span>
+                    <span class="data-tag">Регионална преса</span>
+                    <span class="data-tag">Агро форуми</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: THREE PILLARS -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Три стълба на убеденост</h2>
+        </div>
+        <div class="pillars-grid">
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                </svg>
+                <h3>Вероятностни прогнози</h3>
+                <p>Не предвиждаме едно число. Симулираме 10 000 пазарни пътеки, за да получите интервали на доверие, на които реално можете да разчитате.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <h3>Обясними сигнали</h3>
+                <p>Без магия в черна кутия. Всяка препоръка се проследява до конкретни новини, време или борсови данни — знаете „защо“.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h3>Риск и хедж</h3>
+                <p>Стратегията е съобразена с вашите разходи в стопанството — защитавате базовата си линия, докато улавяте възхода.</p>
+            </div>
+        </div>
+
+        <!-- ROI PROOF -->
+        <div class="roi-section">
+            <div class="roi-left">
+                <h2>Средният фермер печели +€18 на тон само от по-добър тайминг.</h2>
+                <p>Без нова техника. Без нови култури. Продавате това, което вече имате, когато пазарът най-много го търси. При 500 т операция това са €9 000 допълнително на сезон.</p>
+            </div>
+            <div class="roi-right">
+                <div class="roi-stat">
+                    <div class="roi-stat-val">+€18/т</div>
+                    <div class="roi-stat-label">СРЕДНА ПРЕМИЯ</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">82%</div>
+                    <div class="roi-stat-label">ТОЧНОСТ НА ПРОГНОЗА</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">6x</div>
+                    <div class="roi-stat-label">ОПРЕСНЯВАНИЯ/ЧАС</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">€0</div>
+                    <div class="roi-stat-label">ЦЕНА ЗА ФЕРМЕРИ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL CTA -->
+        <div class="cta-section">
+            <h2>Спри продажбите на интуиция.<br>Започни да продаваш с доказателства.</h2>
+            <div style="margin-top: 40px;">
+                <a href="#" class="btn">Първи брифинг утре в 06:42</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let marketChart = null;
+
+        function setMiTabActive(isWheat) {
+            const w = document.getElementById('mi-tab-wheat');
+            const c = document.getElementById('mi-tab-corn');
+            if (w) w.classList.toggle('active', isWheat);
+            if (c) c.classList.toggle('active', !isWheat);
+        }
+
+        function formatPriceParts(n) {
+            const v = Math.abs(Number(n));
+            const intPart = Math.floor(v);
+            const dec = (v % 1).toFixed(2).slice(1);
+            return { intPart, dec };
+        }
+
+        async function loadChart(symbol) {
+            const loadEl = document.getElementById('chart-loading');
+            const canvas = document.getElementById('marketChart');
+            if (!loadEl || !canvas) return;
+
+            loadEl.style.display = 'flex';
+            loadEl.textContent = 'ЗАРЕЖДАНЕ…';
+
+            const isWheat = symbol === 'ZW=F';
+            setMiTabActive(isWheat);
+
+            try {
+                const res = await fetch('/api/market-history?symbol=' + encodeURIComponent(symbol));
+                const result = await res.json();
+                const rows = Array.isArray(result.data) ? result.data : [];
+                if (!rows.length) throw new Error('no data');
+
+                const labels = rows.map(function (d) { return d.date; });
+                const dataPoints = rows.map(function (d) { return d.price; });
+
+                const neonColor = isWheat ? '#D4AF37' : '#3a8a30';
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+                gradient.addColorStop(0, isWheat ? 'rgba(212, 175, 55, 0.4)' : 'rgba(58, 138, 48, 0.4)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                if (marketChart) marketChart.destroy();
+
+                marketChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: isWheat ? 'Пшеница (close)' : 'Кукуруза (close)',
+                            data: dataPoints,
+                            borderColor: neonColor,
+                            backgroundColor: gradient,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#fff',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(20, 20, 20, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: neonColor,
+                                titleFont: { family: 'JetBrains Mono', size: 12 },
+                                bodyFont: { family: 'JetBrains Mono', size: 14 },
+                                padding: 12,
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false, color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: 'rgba(255,255,255,0.4)',
+                                    font: { family: 'JetBrains Mono', size: 10 },
+                                    maxTicksLimit: 6
+                                }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: 'rgba(255,255,255,0.4)',
+                                    font: { family: 'JetBrains Mono', size: 10 },
+                                    callback: function (value) {
+                                        return value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                loadEl.style.display = 'none';
+
+                const latest = dataPoints[dataPoints.length - 1];
+                const prev = dataPoints[dataPoints.length - 2] !== undefined ? dataPoints[dataPoints.length - 2] : latest;
+                const diff = latest - prev;
+                const pct = prev !== 0 ? (diff / prev) * 100 : 0;
+                const parts = formatPriceParts(latest);
+                const intEl = document.getElementById('mi-price-int');
+                const decEl = document.getElementById('mi-price-dec');
+                const deltaEl = document.getElementById('mi-price-delta');
+                if (intEl) intEl.textContent = String(parts.intPart);
+                if (decEl) decEl.textContent = parts.dec;
+                if (deltaEl) {
+                    deltaEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2) + ' (' + (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%)';
+                    deltaEl.style.color = diff >= 0 ? 'var(--green-bright)' : 'var(--terracotta)';
+                }
+            } catch (err) {
+                console.error('Chart error:', err);
+                loadEl.style.display = 'flex';
+                loadEl.textContent = '[НЯМА ДАННИ]';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('mi-tab-wheat')?.addEventListener('click', function () { loadChart('ZW=F'); });
+            document.getElementById('mi-tab-corn')?.addEventListener('click', function () { loadChart('ZC=F'); });
+            loadChart('ZW=F');
+            (async function loadTicker() {
+                const el = document.getElementById('agn-live-ticker');
+                if (!el) return;
+                try {
+                    const res = await fetch('/api/market-data');
+                    const j = await res.json();
+                    const rows = Array.isArray(j.data) ? j.data : [];
+                    if (!rows.length) return;
+                    const one = rows.map(function (d) {
+                        var nm = (d.name || d.symbol || '').split(' ')[0].slice(0, 14).toUpperCase();
+                        var pr = d.price != null ? Number(d.price).toFixed(2) : '—';
+                        var cur = d.currency || '';
+                        var pct = d.changePercent != null ? Number(d.changePercent) : 0;
+                        var up = pct >= 0;
+                        var cls = up ? 'tick-up' : 'tick-down';
+                        var sign = pct >= 0 ? '+' : '';
+                        return '<div class="tick"><span class="tick-name">' + nm + '</span> <span class="tick-price">' + pr + ' ' + cur + '</span> <span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span></div>';
+                    }).join('');
+                    el.innerHTML = one + one;
+                } catch (e) { console.warn('ticker', e); }
+            })();
+        });
+    </script>
+    
+</body>
+</html>

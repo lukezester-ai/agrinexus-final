@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Market Intelligence - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/agri-market-shared.css">
+</head>
+<body>
+
+    <!-- LIVE TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker-pulse"></div>
+        <div class="ticker-label">LIVE MARKETS <span style="opacity:0.65;font-weight:400">(Yahoo, delayed)</span></div>
+        <div class="ticker-delay-note" style="font-size:10px;color:#888;margin-left:12px;max-width:320px;line-height:1.35;">Market prices delayed ~15 min (CBOT, ZW=F / ZC=F). Suitable for forward decisions, not intraday trading.</div>
+        <div class="ticker-items" id="agn-live-ticker">
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+            <div class="tick"><span class="tick-name">SUNFLOWER</span> <span class="tick-price">€412.00</span> <span class="tick-down">-1.2%</span></div>
+            <div class="tick"><span class="tick-name">RAPESEED</span> <span class="tick-price">€465.75</span> <span class="tick-up">+3.1%</span></div>
+            <div class="tick"><span class="tick-name">BARLEY</span> <span class="tick-price">€210.00</span> <span class="tick-down">-0.5%</span></div>
+            <div class="tick"><span class="tick-name">SOY</span> <span class="tick-price">€430.50</span> <span class="tick-up">+1.5%</span></div>
+            <!-- Duplicate for seamless loop -->
+            <div class="tick"><span class="tick-name">WHEAT</span> <span class="tick-price">€246.50</span> <span class="tick-up">+2.4%</span></div>
+            <div class="tick"><span class="tick-name">CORN</span> <span class="tick-price">€198.25</span> <span class="tick-up">+0.8%</span></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus Academy
+    </a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Start</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Library</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Lab</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Models</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Archive</a>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+        <a href="market-intelligence.html" style="color: var(--text-main, #111); text-decoration: none;">EN</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="bg/market-intelligence.html" style="color: inherit; text-decoration: none;">BG</a>
+    </div>
+</nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <h1>Trade your harvest like a hedge fund.</h1>
+            <p style="font-size: 20px; color: var(--text-muted); max-width: 600px; margin: 0 auto;">No more selling on a hunch. Get institutional-grade market intelligence, tailored specifically to your farm's break-even metrics.</p>
+        </section>
+
+        <!-- MAIN TERMINAL -->
+        <div class="terminal-container">
+            <div class="terminal-left">
+                <div class="term-header">
+                    <div>
+                        <div style="font-family: 'JetBrains Mono', monospace; color: #999; margin-bottom: 8px;">MATIF MILLING WHEAT (SEP 26)</div>
+                        <div class="term-price-main">
+                            <span id="mi-price-int">246</span><span id="mi-price-dec" style="font-size: 32px; color: #999;">.50</span>
+                            <span class="term-delta" id="mi-price-delta">+0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="term-chart-area">
+                    <div class="mi-chart-toolbar">
+                        <button type="button" class="mi-chart-tab active" id="mi-tab-wheat">Wheat</button>
+                        <button type="button" class="mi-chart-tab" id="mi-tab-corn">Corn</button>
+                    </div>
+                    <div class="mi-chart-shell">
+                        <canvas id="marketChart"></canvas>
+                        <div id="chart-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;background:rgba(30,30,30,0.4);">LOADING…</div>
+                    </div>
+                </div>
+
+                <div class="term-info-boxes">
+                    <div class="term-box">
+                        <div class="term-box-label">FORECAST TARGET (SEP)</div>
+                        <div class="term-box-val" style="color: var(--gold);">€268 <span style="font-size: 14px; color: #666;">±€14</span></div>
+                        <div style="font-size: 12px; color: #999; margin-top: 8px;">
+                            STRONG SIGNAL
+                            <details style="display:inline-block;margin-left:4px;vertical-align:middle;">
+                                <summary style="cursor:pointer;list-style:none;display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border-radius:50%;border:1px solid #666;font-size:10px;font-weight:600;color:#aaa;">?</summary>
+                                <div style="position:absolute;z-index:20;margin-top:6px;max-width:280px;padding:10px 12px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:11px;line-height:1.45;color:#444;box-shadow:0 8px 24px rgba(0,0,0,0.12);">
+                                    <strong style="display:block;margin-bottom:4px;color:#111;">How we estimate confidence</strong>
+                                    Shows how aligned today's signals are (market, news, weather, FX). Strong when they agree; mixed or weak when they conflict. Judgment aid, not a guarantee.
+                                    <a href="methodology.html" style="display:block;margin-top:8px;color:#2d5a27;">Full methodology →</a>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                    <div class="term-box">
+                        <div class="term-box-label">YOUR BREAK-EVEN</div>
+                        <div class="term-box-val">€184 <span style="font-size: 14px; color: #666;">/ TONNE</span></div>
+                        <div style="font-size: 12px; color: var(--green-bright); margin-top: 8px;">POTENTIAL PROFIT: +€84/t</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="terminal-right">
+                <div class="signal-title">SIGNAL STACK (LAST 12H)</div>
+                
+                <div class="signal-stack">
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">SENTIMENT</span>
+                            <span>06:30</span>
+                        </div>
+                        <div class="signal-text">Black Sea export pace slowing down due to logistics bottlenecks.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">SATELLITE</span>
+                            <span>06:15</span>
+                        </div>
+                        <div class="signal-text">US Winter wheat conditions downgraded 2% below estimates.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip active-green"></div><div class="s-pip active-green"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">FX RATE</span>
+                            <span>05:30</span>
+                        </div>
+                        <div class="signal-text">EUR/USD dropped to 1.072, increasing EU export competitiveness.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-green"></div><div class="s-pip"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+
+                    <div class="signal-item">
+                        <div class="signal-meta">
+                            <span class="signal-src">USDA</span>
+                            <span>04:00</span>
+                        </div>
+                        <div class="signal-text">WASDE report indicates slightly higher global ending stocks.</div>
+                        <div class="signal-strength">
+                            <div class="s-pip active-red"></div><div class="s-pip active-red"></div><div class="s-pip"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-synthesis">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(58,138,48,0.7); margin-bottom: 4px;">ORCHESTRATOR SYNTHESIS</div>
+                    <p>Net signal: +2.0% bullish bias, holding positive for 4 of the last 5 sessions.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 01: OPTIMAL SELLING WINDOW -->
+        <div class="section-header">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Optimal selling window</h2>
+        </div>
+        <div class="timeline-wrap">
+            <div class="timeline-bar">
+                <div class="t-seg t-past"></div>
+                <div class="t-seg t-now"></div>
+                <div class="t-seg t-hold1"></div>
+                <div class="t-seg t-sep"></div>
+                <div class="t-seg t-hold2"></div>
+            </div>
+            <div class="timeline-cells">
+                <div class="t-cell">
+                    <div class="t-cell-label">PAST</div>
+                    <div class="t-cell-val" style="color: var(--text-muted);">0%</div>
+                </div>
+                <div class="t-cell highlight-green">
+                    <div class="t-cell-label" style="color: var(--green);">SELL NOW (30%)</div>
+                    <div class="t-cell-val">144t @ €246</div>
+                    <div class="t-cell-sub">Secure baseline profit</div>
+                </div>
+                <div class="t-cell highlight-gold" style="grid-column: span 2;">
+                    <div class="t-cell-label" style="color: var(--gold);">SELL SEP (50%) + HOLD (20%)</div>
+                    <div class="t-cell-val">240t @ €268 <span style="font-weight: 300; margin: 0 8px;">|</span> 96t @ €275-290</div>
+                    <div class="t-cell-sub">Maximize upside during peak target window</div>
+                </div>
+            </div>
+            
+            <div class="expected-box">
+                <div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #999; margin-bottom: 8px;">EXPECTED REVENUE (SPLIT STRATEGY)</div>
+                    <div style="font-size: 32px; font-weight: 500;">€127,920</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 18px; color: var(--green-bright);">+€8,640</div>
+                    <div style="font-size: 13px; color: #999; margin-top: 4px;">vs. one-shot sale today</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #888; margin: 14px 0 0; line-height: 1.45; max-width: 720px;">Informational forecast only — not investment or trading advice. Selling and hedging decisions are entirely yours.</p>
+        </div>
+
+        <!-- 02: DATA INPUTS -->
+        <div class="section-header">
+            <span class="section-num">02</span>
+            <h2 class="section-title">Data inputs</h2>
+        </div>
+        <div class="data-cards">
+            <div class="data-card">
+                <div class="data-card-num">42 <span>SOURCES</span></div>
+                <h3>Exchanges & Macro</h3>
+                <div class="data-tags">
+                    <span class="data-tag">CBOT</span>
+                    <span class="data-tag">MATIF</span>
+                    <span class="data-tag">USDA</span>
+                    <span class="data-tag">ECB FX</span>
+                    <span class="data-tag">BRENT</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">38 <span>SOURCES</span></div>
+                <h3>Alternative Data</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Sentinel-2</span>
+                    <span class="data-tag">AIS Shipping</span>
+                    <span class="data-tag">Port Silos</span>
+                    <span class="data-tag">Weather Models</span>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-card-num">120+ <span>SOURCES</span></div>
+                <h3>News & Sentiment</h3>
+                <div class="data-tags">
+                    <span class="data-tag">Reuters</span>
+                    <span class="data-tag">Bloomberg</span>
+                    <span class="data-tag">Regional Press</span>
+                    <span class="data-tag">Agri Forums</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 03: THREE PILLARS -->
+        <div class="section-header">
+            <span class="section-num">03</span>
+            <h2 class="section-title">Three pillars of conviction</h2>
+        </div>
+        <div class="pillars-grid">
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                </svg>
+                <h3>Probabilistic forecasts</h3>
+                <p>We don't predict a single number. We simulate 10,000 market paths to give you confidence intervals you can actually trust.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <h3>Explainable signals</h3>
+                <p>No black box magic. Every recommendation is traced back to specific news, weather, or exchange data so you know the 'why'.</p>
+            </div>
+            <div class="pillar">
+                <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <h3>Risk & hedge</h3>
+                <p>Your strategy is tailored to your unique farm costs, ensuring you protect your baseline while capturing upside.</p>
+            </div>
+        </div>
+
+        <!-- ROI PROOF -->
+        <div class="roi-section">
+            <div class="roi-left">
+                <h2>An average farmer earns +€18 per tonne just from better timing.</h2>
+                <p>No new machinery. No new crops. Just selling what you already have, exactly when the market needs it most. For a standard 500t operation, that's €9,000 extra per season.</p>
+            </div>
+            <div class="roi-right">
+                <div class="roi-stat">
+                    <div class="roi-stat-val">+€18/t</div>
+                    <div class="roi-stat-label">AVG PREMIUM</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">82%</div>
+                    <div class="roi-stat-label">FORECAST ACCURACY</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">6x</div>
+                    <div class="roi-stat-label">REFRESHES PER HOUR</div>
+                </div>
+                <div class="roi-stat">
+                    <div class="roi-stat-val">€0</div>
+                    <div class="roi-stat-label">COST FOR FARMERS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL CTA -->
+        <div class="cta-section">
+            <h2>Stop selling on a hunch.<br>Start selling on evidence.</h2>
+            <div style="margin-top: 40px;">
+                <a href="#" class="btn">Get your first briefing tomorrow at 06:42</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let marketChart = null;
+
+        function setMiTabActive(isWheat) {
+            const w = document.getElementById('mi-tab-wheat');
+            const c = document.getElementById('mi-tab-corn');
+            if (w) w.classList.toggle('active', isWheat);
+            if (c) c.classList.toggle('active', !isWheat);
+        }
+
+        function formatPriceParts(n) {
+            const v = Math.abs(Number(n));
+            const intPart = Math.floor(v);
+            const dec = (v % 1).toFixed(2).slice(1);
+            return { intPart, dec };
+        }
+
+        async function loadChart(symbol) {
+            const loadEl = document.getElementById('chart-loading');
+            const canvas = document.getElementById('marketChart');
+            if (!loadEl || !canvas) return;
+
+            loadEl.style.display = 'flex';
+            loadEl.textContent = 'LOADING…';
+
+            const isWheat = symbol === 'ZW=F';
+            setMiTabActive(isWheat);
+
+            try {
+                const res = await fetch('/api/market-history?symbol=' + encodeURIComponent(symbol));
+                const result = await res.json();
+                const rows = Array.isArray(result.data) ? result.data : [];
+                if (!rows.length) throw new Error('no data');
+
+                const labels = rows.map(function (d) { return d.date; });
+                const dataPoints = rows.map(function (d) { return d.price; });
+
+                const neonColor = isWheat ? '#D4AF37' : '#3a8a30';
+                const ctx = canvas.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+                gradient.addColorStop(0, isWheat ? 'rgba(212, 175, 55, 0.4)' : 'rgba(58, 138, 48, 0.4)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                if (marketChart) marketChart.destroy();
+
+                marketChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: isWheat ? 'Wheat (close)' : 'Corn (close)',
+                            data: dataPoints,
+                            borderColor: neonColor,
+                            backgroundColor: gradient,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#fff',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(20, 20, 20, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: neonColor,
+                                titleFont: { family: 'JetBrains Mono', size: 12 },
+                                bodyFont: { family: 'JetBrains Mono', size: 14 },
+                                padding: 12,
+                                borderColor: 'rgba(255,255,255,0.1)',
+                                borderWidth: 1,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false, color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: 'rgba(255,255,255,0.4)',
+                                    font: { family: 'JetBrains Mono', size: 10 },
+                                    maxTicksLimit: 6
+                                }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: {
+                                    color: 'rgba(255,255,255,0.4)',
+                                    font: { family: 'JetBrains Mono', size: 10 },
+                                    callback: function (value) {
+                                        return value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                loadEl.style.display = 'none';
+
+                const latest = dataPoints[dataPoints.length - 1];
+                const prev = dataPoints[dataPoints.length - 2] !== undefined ? dataPoints[dataPoints.length - 2] : latest;
+                const diff = latest - prev;
+                const pct = prev !== 0 ? (diff / prev) * 100 : 0;
+                const parts = formatPriceParts(latest);
+                const intEl = document.getElementById('mi-price-int');
+                const decEl = document.getElementById('mi-price-dec');
+                const deltaEl = document.getElementById('mi-price-delta');
+                if (intEl) intEl.textContent = String(parts.intPart);
+                if (decEl) decEl.textContent = parts.dec;
+                if (deltaEl) {
+                    deltaEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2) + ' (' + (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%)';
+                    deltaEl.style.color = diff >= 0 ? 'var(--green-bright)' : 'var(--terracotta)';
+                }
+            } catch (err) {
+                console.error('Chart error:', err);
+                loadEl.style.display = 'flex';
+                loadEl.textContent = '[DATA UNAVAILABLE]';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('mi-tab-wheat')?.addEventListener('click', function () { loadChart('ZW=F'); });
+            document.getElementById('mi-tab-corn')?.addEventListener('click', function () { loadChart('ZC=F'); });
+            loadChart('ZW=F');
+            (async function loadTicker() {
+                const el = document.getElementById('agn-live-ticker');
+                if (!el) return;
+                try {
+                    const res = await fetch('/api/market-data');
+                    const j = await res.json();
+                    const rows = Array.isArray(j.data) ? j.data : [];
+                    if (!rows.length) return;
+                    const one = rows.map(function (d) {
+                        var nm = (d.name || d.symbol || '').split(' ')[0].slice(0, 14).toUpperCase();
+                        var pr = d.price != null ? Number(d.price).toFixed(2) : '—';
+                        var cur = d.currency || '';
+                        var pct = d.changePercent != null ? Number(d.changePercent) : 0;
+                        var up = pct >= 0;
+                        var cls = up ? 'tick-up' : 'tick-down';
+                        var sign = pct >= 0 ? '+' : '';
+                        return '<div class="tick"><span class="tick-name">' + nm + '</span> <span class="tick-price">' + pr + ' ' + cur + '</span> <span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span></div>';
+                    }).join('');
+                    el.innerHTML = one + one;
+                } catch (e) { console.warn('ticker', e); }
+            })();
+        });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-05-21T04:58:54.333Z",
+  "source": "C:\\Users\\expre\\OneDrive\\Desktop\\проект\\agrinexus-final-main\\market-data\\data",
+  "count": 1,
+  "items": [
+    {
+      "article": {
+        "id": "art_8af003a4e9e4",
+        "sourceUrl": "https://example.com/smoke",
+        "sourceName": "smoke-test",
+        "summary": "Тестова статия за smoke test.",
+        "period": "седмица 1",
+        "publishedDate": "2026-05-07",
+        "marketIndex": 2.5,
+        "marketIndexChange": 0.3,
+        "extractionConfidence": "high",
+        "priceCount": 2,
+        "parsedAt": "2026-05-17T14:47:33.217Z"
+      },
+      "prices": [
+        {
+          "id": "pr_3cf46ecf005e",
+          "articleId": "art_8af003a4e9e4",
+          "sourceName": "smoke-test",
+          "product": "домати",
+          "productGroup": "зеленчуци",
+          "price": 1.85,
+          "currency": "EUR",
+          "unit": "kg",
+          "priceType": "wholesale",
+          "weeklyChange": 5.2,
+          "region": null,
+          "quality": null,
+          "publishedDate": "2026-05-07"
+        },
+        {
+          "id": "pr_23b180e40b80",
+          "articleId": "art_8af003a4e9e4",
+          "sourceName": "smoke-test",
+          "product": "краве сирене",
+          "productGroup": "млечни",
+          "price": 5.94,
+          "currency": "EUR",
+          "unit": "kg",
+          "priceType": "wholesale",
+          "weeklyChange": -0.03,
+          "region": null,
+          "quality": null,
+          "publishedDate": "2026-05-07"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Dashboard - AgriNexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #faf7f0;
+            --surface: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --border: rgba(0, 0, 0, 0.08);
+            
+            /* The 5 families */
+            --green: #2d5a27;
+            --moss: #6b8e23;
+            --gold: #d4af37;
+            --terracotta: #cc4e36;
+            --charcoal: #2f4f4f;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+            
+            --transition: all 0.25s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* SIDEBAR */
+        aside {
+            width: 260px;
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+            margin-bottom: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav a:hover {
+            background-color: rgba(0,0,0,0.03);
+            color: var(--text-main);
+        }
+
+        nav a.active {
+            background-color: var(--surface);
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--green), var(--moss));
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-farm {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* MAIN LAYOUT */
+        main {
+            flex-grow: 1;
+            padding: 32px 48px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .greeting h1 {
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+        }
+
+        .greeting .subtitle {
+            color: var(--text-muted);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .time-badge {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0,0,0,0.04);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--text-main);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #000;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--surface);
+            border-color: rgba(0,0,0,0.15);
+        }
+
+        /* DAILY BRIEFING CARD */
+        .briefing-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 24px 32px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .briefing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gold);
+        }
+
+        .briefing-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .briefing-content {
+            flex-grow: 1;
+        }
+
+        .briefing-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .briefing-text {
+            font-size: 18px;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        .briefing-text strong {
+            font-weight: 600;
+        }
+
+        /* METRICS GRID */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .metric-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .metric-change {
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .change-positive { color: var(--green); }
+        .change-neutral { color: var(--text-muted); }
+        .change-warning { color: var(--terracotta); }
+
+        /* MAIN CONTENT SPLIT */
+        .dashboard-split {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            flex-grow: 1;
+            min-height: 400px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 24px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* FIELD MAP (Mockup) */
+        .field-map {
+            width: 100%;
+            height: 100%;
+            background: #e9e5db;
+            border-radius: var(--radius-sm);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .field-poly {
+            position: absolute;
+            background: rgba(45, 90, 39, 0.2);
+            border: 1px solid var(--green);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--green);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .field-poly:hover {
+            background: rgba(45, 90, 39, 0.4);
+        }
+
+        .poly-1 { top: 10%; left: 10%; width: 40%; height: 35%; border-radius: 4px 20px 4px 4px; }
+        .poly-2 { top: 50%; left: 10%; width: 30%; height: 40%; background: rgba(212, 175, 55, 0.2); border-color: var(--gold); color: var(--gold); }
+        .poly-3 { top: 10%; left: 55%; width: 35%; height: 60%; background: rgba(107, 142, 35, 0.2); border-color: var(--moss); color: var(--moss); }
+
+        /* AGENT LOG */
+        .agent-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feed-item {
+            display: flex;
+            gap: 16px;
+            position: relative;
+        }
+
+        .feed-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 36px;
+            bottom: -16px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .feed-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .feed-content {
+            flex-grow: 1;
+        }
+
+        .feed-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .feed-agent {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .feed-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .feed-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .feed-text strong {
+            color: var(--text-main);
+        }
+
+        /* SVG Utilities */
+        .icon {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+    
+        /* Mobile Nav & Layout Fix */
+        @media (max-width: 992px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 16px !important;
+                justify-content: center !important;
+                text-align: center;
+            }
+            nav > a.logo {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 8px;
+            }
+            nav > div {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px !important;
+                width: 100%;
+            }
+            nav > div[style*="margin-left: auto"] {
+                margin: 12px 0 !important;
+                width: 100%;
+                justify-content: center;
+            }
+            body {
+                overflow-x: hidden;
+            }
+            .container {
+                max-width: 100%;
+                padding: 0 16px;
+            }
+        }
+
+    
+        /* Comprehensive Mobile Layout Fixes */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            /* General Typography & Hero */
+            .hero { padding: 60px 0 30px !important; }
+            .hero h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+            .hero p { font-size: 16px !important; }
+            
+            /* Index (Agents) specific */
+            .stats-strip { 
+                flex-wrap: wrap !important; 
+                gap: 24px !important; 
+                padding: 24px 0 !important; 
+                margin-bottom: 40px !important;
+            }
+            .stat-item { width: 40%; }
+            .mesh-container { height: 400px !important; margin-bottom: 60px !important; }
+            .orbit { display: none; /* Hide orbits on mobile to avoid overflow and clutter */ }
+            .ladder-grid { grid-template-columns: 1fr !important; }
+            
+            /* Platform specific */
+            .arch-card { padding: 24px 16px !important; }
+            .arch-row { 
+                flex-direction: column !important; 
+                align-items: center !important; 
+                padding: 24px 16px !important;
+                gap: 24px !important;
+            }
+            .row-label, .row-meta { 
+                width: 100% !important; 
+                text-align: center !important; 
+            }
+            .nodes-container { 
+                flex-wrap: wrap !important; 
+                justify-content: center !important; 
+                gap: 24px !important; 
+            }
+            .integrations-grid { grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+            .foundation-grid { grid-template-columns: 1fr !important; }
+            
+            /* Market Intelligence specific */
+            .ticker-strip { width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; }
+            .engine-grid, .signal-grid { grid-template-columns: 1fr !important; }
+            .split-hero { flex-direction: column !important; }
+            
+            /* Academy specific */
+            .hero.split { flex-direction: column !important; }
+            .reading-layout { flex-direction: column !important; }
+            .paths-grid, .fresh-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+            
+            /* Dashboard specific */
+            .dashboard-layout { flex-direction: column !important; }
+            .sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); padding: 16px !important; }
+            .dash-grid { grid-template-columns: 1fr !important; }
+        }
+
+    
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto !important;
+            }
+            main {
+                padding: 16px !important;
+                overflow-y: visible !important;
+            }
+            aside {
+                width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--border);
+                padding: 16px !important;
+            }
+            nav {
+                flex-direction: row !important;
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+            nav a {
+                white-space: nowrap;
+            }
+            header {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 16px;
+            }
+            .header-actions {
+                width: 100%;
+                display: flex;
+            }
+            .header-actions button {
+                flex-grow: 1;
+                justify-content: center;
+            }
+            .briefing-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px !important;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr !important; /* 2 columns on mobile */
+                gap: 12px !important;
+            }
+            .dashboard-split {
+                grid-template-columns: 1fr !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .panel {
+                min-height: 350px;
+            }
+        }
+        </style>
+</head>
+<body>
+    <aside>
+        <div class="logo">
+            <a href="index.html" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;">
+            <div class="logo-dot"></div>
+            <span>AgriNexus <span style="opacity:0.75;font-weight:500;">Academy</span></span>
+            </a>
+        </div>
+        <nav>
+            <a href="/dashboard.html" class="active">
+                <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                Command Center
+            </a>
+            <a href="#" onclick="alert('This module is coming soon!')">
+                <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13l6.5-13z"/></svg>
+                Fields & Crops
+            </a>
+            <a href="/market-intelligence.html">
+                <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                Market Intelligence
+            </a>
+            <a href="#">
+                <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z"/></svg>
+                Fleet & Logistics
+            </a>
+            <a href="#">
+                <svg class="nav-icon icon" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                Agent Mesh
+            </a>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            
+        <div class="user-info" style="flex-grow: 1;">
+            <span class="user-name" style="word-break: break-all;">Loading...</span>
+            <span class="user-farm">AgriNexus User</span>
+        </div>
+        <button onclick="signOutUser()" title="Sign Out" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:4px;">
+            <svg class="icon" viewBox="0 0 24 24" style="width:20px; height:20px;"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        </button>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="greeting">
+                <h1>Good morning, Dimitar.</h1>
+                <div class="subtitle">
+                    <span class="time-badge">06:42 AM</span>
+                    <span>18°C, Clear sky. 30% chance of light rain at 14:00.</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    New Task
+                </button>
+                <button class="btn btn-primary">Open Daily Briefing</button>
+            </div>
+        </header>
+
+        <div class="briefing-card">
+            <div class="briefing-icon">
+                <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            </div>
+            <div class="briefing-content">
+                <div class="briefing-title">Overnight Synthesis</div>
+                <div class="briefing-text">
+                    <strong>Wheat harvest window opens in 3 days.</strong> Market agent upgraded sell recommendation to <em>Strong</em> following €8 surge on MATIF. Soil moisture in Field 4 dropped to 22%; Irrigation agent has prepared a schedule for review.
+                </div>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Wheat (MATIF Sep)</span>
+                    <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                </div>
+                <div class="metric-value" id="wheat-price">Loading...</div>
+                <div class="metric-change" id="wheat-change">
+                    Syncing...
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Corn (CBOT)</span>
+                    <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                </div>
+                <div class="metric-value" id="corn-price">Loading...</div>
+                <div class="metric-change" id="corn-change">
+                    Syncing...
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Active Agents</span>
+                    <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                </div>
+                <div class="metric-value">17/18</div>
+                <div class="metric-change change-neutral">
+                    1 idle (Harvest Sentry)
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Pending Decisions</span>
+                    <svg class="icon" style="color: var(--text-muted);" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z"/></svg>
+                </div>
+                <div class="metric-value">3</div>
+                <div class="metric-change change-neutral">
+                    Requires L2+ approval
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-split">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Field Status</span>
+                    
+                </div>
+                <div class="panel-content" style="padding: 16px;">
+                    
+                    <div id="fields-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                        <!-- Fields will be dynamically loaded here -->
+                        <div style="text-align: center; color: var(--text-muted); font-size: 14px; padding: 20px;">
+                            Loading your fields...
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+                        <div style="font-weight: 500; font-size: 14px; margin-bottom: 12px;">Add New Field</div>
+                        <form id="add-field-form" style="display: flex; flex-direction: column; gap: 8px;">
+                            <input type="text" id="field-name" placeholder="Field Name (e.g. North Plot)" required style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="field-crop" placeholder="Crop (e.g. Wheat)" required style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                                <input type="number" id="field-size" placeholder="Hectares" required min="0.1" step="0.1" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;">
+                            </div>
+                            <button type="submit" id="add-field-btn" class="btn btn-primary" style="padding: 8px; font-size: 13px; border-radius: 6px; width: 100%; margin-top: 4px;">Save Field</button>
+                        </form>
+                        <div id="field-error" style="color: var(--terracotta); font-size: 12px; margin-top: 8px; display: none;"></div>
+                    </div>
+    
+                </div>
+            </div>
+
+            <div class="panel">
+                
+                <div class="panel-header">
+                    <span class="panel-title">Ask the Agent Mesh</span>
+                    <span class="time-badge" style="background: rgba(45,90,39,0.1); color: var(--green);" id="agent-status">ONLINE</span>
+                </div>
+                <div class="panel-content" style="display: flex; flex-direction: column; padding: 0;">
+                    <div id="chat-messages" style="flex-grow: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; min-height: 250px; max-height: 400px;">
+                        <div class="feed-item">
+                            <div class="feed-icon" style="color: var(--text-main); border-color: var(--border);">ORC</div>
+                            <div class="feed-content">
+                                <div class="feed-meta">
+                                    <span class="feed-agent">Orchestrator</span>
+                                </div>
+                                <div class="feed-text">
+                                    Hello Dimitar. The mesh is online. What would you like to know about the markets or your farm?
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: #fff;">
+                        <input type="text" id="chat-input" placeholder="Ask about wheat prices, weather, etc..." style="flex-grow: 1; padding: 12px 16px; border: 1px solid var(--border); border-radius: 30px; font-size: 14px; outline: none; font-family: inherit;">
+                        <button id="chat-send" class="btn btn-primary" style="padding: 12px 24px;">Ask</button>
+                    </div>
+                </div>
+                
+                <script>
+                    const chatMessages = document.getElementById('chat-messages');
+                    const chatInput = document.getElementById('chat-input');
+                    const chatSend = document.getElementById('chat-send');
+                    const agentStatus = document.getElementById('agent-status');
+
+                    function appendMessage(sender, text, agentType) {
+                        const isUser = sender === 'You';
+                        
+                        let iconText = isUser ? 'USR' : 'ORC';
+                        let color = isUser ? 'var(--text-main)' : 'var(--green)';
+                        let borderColor = isUser ? 'var(--border)' : 'rgba(45,90,39,0.3)';
+                        
+                        if (agentType === 'marketAgent') {
+                            iconText = 'MKT';
+                            color = 'var(--gold)';
+                            borderColor = 'rgba(212,175,55,0.3)';
+                        }
+                        
+                        const msgHtml = `
+                            <div class="feed-item">
+                                <div class="feed-icon" style="color: ${color}; border-color: ${borderColor};">${iconText}</div>
+                                <div class="feed-content">
+                                    <div class="feed-meta">
+                                        <span class="feed-agent">${sender}</span>
+                                    </div>
+                                    <div class="feed-text">
+                                        ${text.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        chatMessages.innerHTML += msgHtml;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+
+                    async function sendMessage() {
+                        const message = chatInput.value.trim();
+                        if (!message) return;
+
+                        // 1. Show user message
+                        appendMessage('You', message);
+                        chatInput.value = '';
+                        
+                        // 2. Set status to processing
+                        agentStatus.textContent = 'THINKING...';
+                        agentStatus.style.color = 'var(--terracotta)';
+                        agentStatus.style.background = 'rgba(204,78,54,0.1)';
+
+                        try {
+                            const res = await fetch('/api/chat', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: message, farmContext: window.userFarmContext || [] })
+                            });
+                            
+                            const data = await res.json();
+                            
+                            if (res.ok) {
+                                const agentName = data.handledBy === 'marketAgent' ? 'Market Intelligence Agent' : 'General Agent';
+                                appendMessage(agentName, data.response, data.handledBy);
+                            } else {
+                                appendMessage('System Error', data.error || 'Failed to process request.');
+                            }
+                        } catch (err) {
+                            appendMessage('System Error', 'Network error. Please check if backend is running.');
+                        } finally {
+                            agentStatus.textContent = 'ONLINE';
+                            agentStatus.style.color = 'var(--green)';
+                            agentStatus.style.background = 'rgba(45,90,39,0.1)';
+                        }
+                    }
+
+                    chatSend.addEventListener('click', sendMessage);
+                    chatInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') sendMessage();
+                    });
+                </script>
+
+            </div>
+        </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/scripts/auth.js"></script>
+    <script>
+        // Protect the route
+        document.addEventListener('DOMContentLoaded', protectRoute);
+    </script>
+    <script src="/scripts/live-data.js"></script>
+    <script src="/scripts/fields.js"></script>
+</body>
+</html>

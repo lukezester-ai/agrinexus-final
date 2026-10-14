@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agrinexus-agriculture"
+version = "0.1.0"
+description = "Agriculture vertical capability package"
+requires-python = ">=3.11"
+dependencies = ["agrinexus-backend-core>=0.1.0"]
+
+[project.entry-points."agrinexus.capabilities"]
+agriculture = "agrinexus_agriculture:capability"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

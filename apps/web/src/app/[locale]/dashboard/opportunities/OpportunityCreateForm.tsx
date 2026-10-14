@@ -1,0 +1,146 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { supabase } from "@/lib/supabase";
+import { parseMarketList } from "@/lib/business-intents";
+import {
+	OPPORTUNITY_KINDS,
+	OPPORTUNITY_VISIBILITIES,
+	type OpportunityKind,
+	type OpportunityVisibility,
+} from "@/lib/business-opportunities";
+
+const copy = {
+	en: {
+		kind: "Opportunity type",
+		title: "Internal title",
+		summary: "Public-safe summary",
+		industry: "Industry",
+		markets: "Target markets",
+		visibility: "Visibility",
+		draft: "Save draft",
+		publish: "Open",
+		saving: "Saving…",
+	},
+	bg: {
+		kind: "Тип възможност",
+		title: "Вътрешно заглавие",
+		summary: "Публично безопасно резюме",
+		industry: "Индустрия",
+		markets: "Целеви пазари",
+		visibility: "Видимост",
+		draft: "Чернова",
+		publish: "Отвори",
+		saving: "Запис…",
+	},
+};
+
+export function OpportunityCreateForm({
+	locale,
+	organizationId,
+}: {
+	locale: string;
+	organizationId: string;
+}) {
+	const router = useRouter();
+	const t = locale === "bg" ? copy.bg : copy.en;
+	const [kind, setKind] = useState<OpportunityKind>("sell");
+	const [title, setTitle] = useState("");
+	const [summary, setSummary] = useState("");
+	const [industry, setIndustry] = useState("");
+	const [markets, setMarkets] = useState("");
+	const [visibility, setVisibility] = useState<OpportunityVisibility>("confidential");
+	const [error, setError] = useState<string | null>(null);
+	const [saving, setSaving] = useState(false);
+
+	async function save(lifecycle: "draft" | "open") {
+		setSaving(true);
+		setError(null);
+		const { error: commandError } = await supabase.rpc("create_business_opportunity_v1", {
+			p_organization_id: organizationId,
+			p_kind: kind,
+			p_title: title.trim(),
+			p_summary: summary.trim(),
+			p_industry: industry.trim(),
+			p_target_markets: parseMarketList(markets),
+			p_visibility: visibility,
+			p_initial_lifecycle: lifecycle,
+			p_expires_at: null,
+			p_private_brief: null,
+		});
+		if (commandError) {
+			setSaving(false);
+			setError(commandError.message);
+			return;
+		}
+		router.push("/dashboard/opportunities");
+		router.refresh();
+	}
+
+	const field = "w-full border border-white/15 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-white/40";
+	return (
+		<form
+			className="flex max-w-xl flex-col gap-4"
+			onSubmit={(e) => {
+				e.preventDefault();
+				void save("draft");
+			}}
+		>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.kind}
+				<select className={field} value={kind} onChange={(e) => setKind(e.target.value as OpportunityKind)}>
+					{OPPORTUNITY_KINDS.map((k) => (
+						<option key={k} value={k}>
+							{k}
+						</option>
+					))}
+				</select>
+			</label>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.title}
+				<input className={field} required value={title} onChange={(e) => setTitle(e.target.value)} />
+			</label>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.summary}
+				<textarea className={field} rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} />
+			</label>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.industry}
+				<input className={field} required value={industry} onChange={(e) => setIndustry(e.target.value)} />
+			</label>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.markets}
+				<input className={field} value={markets} onChange={(e) => setMarkets(e.target.value)} />
+			</label>
+			<label className="flex flex-col gap-1.5 text-xs font-medium text-white/70">
+				{t.visibility}
+				<select
+					className={field}
+					value={visibility}
+					onChange={(e) => setVisibility(e.target.value as OpportunityVisibility)}
+				>
+					{OPPORTUNITY_VISIBILITIES.map((v) => (
+						<option key={v} value={v}>
+							{v}
+						</option>
+					))}
+				</select>
+			</label>
+			{error ? <p className="text-sm text-red-800">{error}</p> : null}
+			<div className="flex gap-2">
+				<button type="submit" disabled={saving} className="rounded-xl border border-ink/15 px-4 py-2.5 text-[13px]">
+					{saving ? t.saving : t.draft}
+				</button>
+				<button
+					type="button"
+					disabled={saving}
+					onClick={() => void save("open")}
+					className="border border-white/15 px-4 py-2.5 text-[13px] text-white/85 hover:border-white/40"
+				>
+					{saving ? t.saving : t.publish}
+				</button>
+			</div>
+		</form>
+	);
+}

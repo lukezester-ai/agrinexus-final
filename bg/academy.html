@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Аграрна академия · каталог</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&subset=cyrillic&family=JetBrains+Mono:wght@400;500;600&family=PT+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/agri-market-shared.css">
+    <style>
+        :root {
+            /* Academy Palette - Warmer, Library Feel */
+            --bg-color: #faf7f0;
+            --surface: #ffffff;
+            --surface-warm: #fdfbf7;
+            --text-main: #2c2825;
+            --text-muted: #736b60;
+            --border: rgba(44, 40, 37, 0.1);
+            
+            /* The Families - Muted for Academy */
+            --green: #376331;
+            --moss: #779c2a;
+            --gold: #d4a32a;
+            --terracotta: #c24933;
+            --charcoal: #2f4f4f;
+            --blue: #3273a8;
+
+            /* Podcasts Gradient */
+            --pod-bg: linear-gradient(135deg, #1a2e1d, #3c2a1e);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            
+            --transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* NAVIGATION */
+        nav {
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--gold);
+            border-radius: 50%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            padding: 80px 0;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-family: 'PT Serif', serif;
+            font-size: 64px;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            margin-bottom: 24px;
+            color: var(--text-main);
+        }
+
+        .hero-illustration {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* SEARCH BAR */
+        .search-section {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+
+        .search-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 16px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .search-box .agn-search-input {
+            flex: 1;
+            min-width: 0;
+            border: none;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .trending-tags .t-tag {
+            border: none;
+        }
+
+        .agn-video-thumb {
+            border-radius: var(--radius-md);
+            min-height: 140px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .agn-video-card {
+            display: block;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 0 16px 16px;
+            background: var(--surface);
+            transition: var(--transition);
+        }
+
+        .agn-video-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 18px;
+            background-color: var(--text-main);
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .trending-tags {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .t-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.04);
+            padding: 6px 16px;
+            border-radius: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .t-tag:hover {
+            background: rgba(0,0,0,0.08);
+            color: var(--text-main);
+        }
+
+        /* SECTION HEADERS */
+        .section-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .section-header h2 {
+            font-family: 'PT Serif', serif;
+            font-size: 28px;
+            font-weight: 400;
+        }
+
+        .view-all {
+            font-size: 14px;
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* THIS WEEK'S READING */
+        .featured-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 100px;
+        }
+
+        .article-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.04);
+        }
+
+        .card-large {
+            padding: 48px;
+        }
+
+        /* Background Waves */
+        .card-large::after {
+            content: '';
+            position: absolute;
+            right: -10%;
+            bottom: -20%;
+            width: 70%;
+            height: 100%;
+            background-image: repeating-radial-gradient(
+                circle at bottom right,
+                transparent,
+                transparent 10px,
+                rgba(212, 163, 42, 0.05) 10px,
+                rgba(212, 163, 42, 0.05) 20px
+            );
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+            flex-grow: 1;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .cat-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .cat-market { background: rgba(55,99,49,0.1); color: var(--green); }
+        .cat-field { background: rgba(212,163,42,0.1); color: var(--gold); }
+        
+        .read-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--blue);
+            background: rgba(50, 115, 168, 0.1);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        .card-large h3 {
+            font-family: 'PT Serif', serif;
+            font-size: 36px;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            max-width: 90%;
+        }
+
+        .card-small h3 {
+            font-family: 'PT Serif', serif;
+            font-size: 20px;
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 16px;
+        }
+
+        .author-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #eee;
+        }
+
+        .author-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* LEARNING PATHS */
+        .paths-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 100px;
+        }
+
+        .path-card {
+            background: var(--surface-warm);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 32px;
+        }
+
+        .path-num {
+            font-family: 'PT Serif', serif;
+            font-style: italic;
+            font-size: 20px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .path-card h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .progress-bar {
+            display: flex;
+            gap: 6px;
+        }
+
+        .progress-pip {
+            flex: 1;
+            height: 4px;
+            background: rgba(0,0,0,0.06);
+            border-radius: 2px;
+        }
+        .progress-pip.filled { background: var(--gold); }
+
+        /* FRESH ARTICLES */
+        .fresh-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 120px;
+        }
+
+        /* PODCAST SECTION */
+        .podcast-card {
+            background: var(--pod-bg);
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 100px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pod-left { z-index: 1; }
+        
+        .pod-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .pod-title {
+            font-family: 'PT Serif', serif;
+            font-size: 40px;
+            font-weight: 400;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .pod-desc {
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 32px;
+        }
+
+        .pod-stats {
+            display: flex;
+            gap: 24px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 24px;
+        }
+
+        .p-stat-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .p-stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .pod-right {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .waveform {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .waveform::before {
+            content: '';
+            position: absolute;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .waveform::after {
+            content: '';
+            position: absolute;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .bars {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 60px;
+            z-index: 2;
+        }
+        .bar {
+            width: 4px;
+            background: var(--gold);
+            border-radius: 2px;
+        }
+        .bar:nth-child(1) { height: 20px; }
+        .bar:nth-child(2) { height: 40px; }
+        .bar:nth-child(3) { height: 60px; background: white; }
+        .bar:nth-child(4) { height: 35px; }
+        .bar:nth-child(5) { height: 15px; }
+
+        /* COMMUNITY TABLE */
+        .community-section {
+            margin-bottom: 120px;
+        }
+
+        .threads-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .thread-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .thread-item:hover {
+            border-color: rgba(0,0,0,0.2);
+        }
+
+        .thread-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+        }
+        .ava-1 { background: linear-gradient(135deg, #a8e063, #56ab2f); }
+        .ava-2 { background: linear-gradient(135deg, #f6d365, #fda085); }
+        .ava-3 { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+
+        .thread-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .thread-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .thread-eng {
+            display: flex;
+            gap: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .eng-item { display: flex; align-items: center; gap: 4px; }
+
+        /* FINAL CTA */
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 100px;
+            background: var(--surface);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .cta-section h2 {
+            font-family: 'PT Serif', serif;
+            font-size: 40px;
+            font-weight: 400;
+            margin-bottom: 16px;
+        }
+        
+        .cta-section p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background: var(--text-main);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-outline:hover {
+            background: rgba(0,0,0,0.03);
+        }
+
+    
+        /* Mobile Nav & Layout Fix */
+        @media (max-width: 992px) {
+            nav {
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 16px !important;
+                justify-content: center !important;
+                text-align: center;
+            }
+            nav > a.logo {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 8px;
+            }
+            nav > div {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px !important;
+                width: 100%;
+            }
+            nav > div[style*="margin-left: auto"] {
+                margin: 12px 0 !important;
+                width: 100%;
+                justify-content: center;
+            }
+            body {
+                overflow-x: hidden;
+            }
+            .container {
+                max-width: 100%;
+                padding: 0 16px;
+            }
+        }
+
+    
+        /* Comprehensive Mobile Layout Fixes */
+        html, body {
+            max-width: 100vw;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            /* General Typography & Hero */
+            .hero { padding: 60px 0 30px !important; }
+            .hero h1 { font-size: 36px !important; letter-spacing: -1px !important; }
+            .hero p { font-size: 16px !important; }
+            
+            /* Index (Agents) specific */
+            .stats-strip { 
+                flex-wrap: wrap !important; 
+                gap: 24px !important; 
+                padding: 24px 0 !important; 
+                margin-bottom: 40px !important;
+            }
+            .stat-item { width: 40%; }
+            .mesh-container { height: 400px !important; margin-bottom: 60px !important; }
+            .orbit { display: none; /* Hide orbits on mobile to avoid overflow and clutter */ }
+            .ladder-grid { grid-template-columns: 1fr !important; }
+            
+            /* Platform specific */
+            .arch-card { padding: 24px 16px !important; }
+            .arch-row { 
+                flex-direction: column !important; 
+                align-items: center !important; 
+                padding: 24px 16px !important;
+                gap: 24px !important;
+            }
+            .row-label, .row-meta { 
+                width: 100% !important; 
+                text-align: center !important; 
+            }
+            .nodes-container { 
+                flex-wrap: wrap !important; 
+                justify-content: center !important; 
+                gap: 24px !important; 
+            }
+            .integrations-grid { grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+            .foundation-grid { grid-template-columns: 1fr !important; }
+            
+            /* Market Intelligence specific */
+            .ticker-strip { width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; }
+            .engine-grid, .signal-grid { grid-template-columns: 1fr !important; }
+            .split-hero { flex-direction: column !important; }
+            
+            /* Academy specific */
+            .hero.split { flex-direction: column !important; }
+            .reading-layout { flex-direction: column !important; }
+            .paths-grid, .fresh-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+            
+            /* Dashboard specific */
+            .dashboard-layout { flex-direction: column !important; }
+            .sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); padding: 16px !important; }
+            .dash-grid { grid-template-columns: 1fr !important; }
+        
+            .featured-grid { grid-template-columns: 1fr !important; }
+            .podcast-card { grid-template-columns: 1fr !important; padding: 24px !important; }
+            .paths-grid { grid-template-columns: 1fr !important; }
+            .fresh-grid { grid-template-columns: 1fr !important; }
+        }
+        </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- NAVIGATION -->
+        <nav>
+    <a href="index.html" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px;">
+        <div class="logo-dot" style="width: 8px; height: 8px; background-color: var(--green, #2d5a27); border-radius: 50%;"></div>
+        AgriNexus Academy
+    </a>
+    <div style="display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; flex-wrap: wrap;">
+        <a href="index.html" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Начало</a>
+        <a href="academy.html" style="text-decoration: none; color: var(--text-main, #111);">Каталог</a>
+        <a href="index.html#lab" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Лаборатория</a>
+        <a href="index.html#compare" style="text-decoration: none; color: var(--text-muted, #666); transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='var(--text-muted, #666)'">Модели</a>
+        <a href="agents.html" style="text-decoration: none; color: var(--text-muted, #666); font-size: 13px; opacity: 0.85;">Архив</a>
+    </div>
+    
+    <div style="display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 600; margin-left: auto; margin-right: 24px; color: var(--text-muted, #999);">
+        <a href="../academy.html" style="color: inherit; text-decoration: none;">EN</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="academy.html" style="color: var(--text-main, #111); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main, #111)'" onmouseout="this.style.color='inherit'">BG</a>
+    </div>
+</nav>
+
+        <!-- HERO -->
+        <section class="hero">
+            <div>
+                <h1>Аграрна академия</h1>
+                <p style="font-size: 20px; color: var(--text-muted);">Каталог с търсене към материали от сайта (много от тях са на английски), наставник за упражнения и визуални насоки. Разделът се развива — не е затворен учебник, а работна маса.</p>
+            </div>
+            <div class="hero-illustration">
+                <!-- Custom SVG Illustration: Book with sprout and sun -->
+                <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Sun -->
+                    <circle cx="180" cy="60" r="20" fill="rgba(212, 163, 42, 0.2)" stroke="#d4a32a" stroke-width="2"/>
+                    <line x1="180" y1="25" x2="180" y2="35" stroke="#d4a32a" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="180" y1="85" x2="180" y2="95" stroke="#d4a32a" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="145" y1="60" x2="155" y2="60" stroke="#d4a32a" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="205" y1="60" x2="215" y2="60" stroke="#d4a32a" stroke-width="2" stroke-linecap="round"/>
+                    
+                    <!-- Book / Soil -->
+                    <path d="M40 180 Q120 200 200 180" stroke="#2c2825" stroke-width="4" stroke-linecap="round" fill="none"/>
+                    <path d="M40 190 Q120 210 200 190" stroke="#2c2825" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6" fill="none"/>
+                    
+                    <!-- Sprout -->
+                    <path d="M120 185 C120 130 90 100 120 60" stroke="#376331" stroke-width="4" stroke-linecap="round" fill="none"/>
+                    <path d="M120 130 Q90 130 80 100 Q100 90 120 130" fill="rgba(55, 99, 49, 0.1)" stroke="#376331" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M118 90 Q150 90 160 60 Q140 50 118 90" fill="rgba(55, 99, 49, 0.1)" stroke="#376331" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- ACADEMY ↔ PLATFORM (same i18n keys as academy.html) -->
+        <section class="agn-platform-bridge" aria-labelledby="agn-platform-bridge-title">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="platformEyebrow">From lessons to operations</div>
+            <h2 id="agn-platform-bridge-title" style="font-family:'PT Serif',serif;font-size:32px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="platformTitle">Academy explains why — Platform runs how</h2>
+            <p data-i18n-academy="platformSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:20px;">The Academy is for literacy: readings, video paths, and the Tutor. The Platform page is the live map of the same Sense → Think → Act stack.</p>
+            <ul>
+                <li data-i18n-academy="platformLi1">Sense — market & satellite context, AgriDirect desk, field reports</li>
+                <li data-i18n-academy="platformLi2">Think — agent mesh, data lake, and model literacy (tied back to courses here)</li>
+                <li data-i18n-academy="platformLi3">Act — daily briefings, playbooks, and mobile / voice hand-offs</li>
+            </ul>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <a href="platform.html#platform-architecture" class="btn btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta">Open Platform map</a>
+                <a href="index.html" class="btn btn-outline" style="text-decoration:none;display:inline-flex;align-items:center;" data-i18n-academy="platformCta2">Agents & mesh</a>
+            </div>
+        </section>
+
+        <!-- AI FARMER BRAIN — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-farmer-brain" aria-labelledby="agn-farmer-brain-title" style="margin-bottom: 40px;">
+            <h2 id="agn-farmer-brain-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="brainTitle">„AI фермерски мозък“</h2>
+            <ul style="margin-bottom:0;padding-left:1.25rem;">
+                <li data-i18n-academy="brainLi1" style="margin-bottom:10px;line-height:1.5;">Учи фермера.</li>
+                <li data-i18n-academy="brainLi2" style="margin-bottom:10px;line-height:1.5;">Анализира фермата.</li>
+                <li data-i18n-academy="brainLi3" style="margin-bottom:10px;line-height:1.5;">Дава решения.</li>
+                <li data-i18n-academy="brainLi4" style="margin-bottom:10px;line-height:1.5;">Автоматизира дейности.</li>
+            </ul>
+        </section>
+
+        <!-- PRODUCT ROADMAP (MVP) — strings via scripts/academy-hub.js -->
+        <section class="agn-platform-bridge agn-roadmap" aria-labelledby="agn-roadmap-title" style="margin-bottom: 48px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;" data-i18n-academy="roadmapEyebrow">Product roadmap</div>
+            <h2 id="agn-roadmap-title" style="font-family:'PT Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px;line-height:1.2;max-width:840px;" data-i18n-academy="roadmapTitle">What we ship next (MVP)</h2>
+            <p data-i18n-academy="roadmapSub" style="color:var(--text-muted);font-size:16px;line-height:1.55;max-width:720px;margin-bottom:16px;">Structured courses, in-site video paths, short quizzes, and a learner dashboard — building on today’s library and Tutor.</p>
+            <ul style="margin-bottom:16px;padding-left:1.25rem;">
+                <li data-i18n-academy="roadmapLi1" style="margin-bottom:8px;">Accounts & learner profiles</li>
+                <li data-i18n-academy="roadmapLi2" style="margin-bottom:8px;">First guided course path with progress</li>
+                <li data-i18n-academy="roadmapLi3" style="margin-bottom:8px;">Embedded video modules and transcripts where possible</li>
+                <li data-i18n-academy="roadmapLi4" style="margin-bottom:8px;">Module quizzes and optional recap touchpoints</li>
+                <li data-i18n-academy="roadmapLi5" style="margin-bottom:8px;">Dashboard: pick up where you left off</li>
+            </ul>
+            <p data-i18n-academy="roadmapFoot" style="font-size:14px;color:var(--text-muted);max-width:720px;line-height:1.5;">Full vision: docs/ACADEMY_PRODUCT_VISION.md · Architecture sketch: docs/ACADEMY_ARCHITECTURE.md (repository root).</p>
+        </section>
+
+        <!-- MATERIALS + SEARCH -->
+        <div class="search-section" style="margin-bottom: 64px;">
+            <div class="section-header" style="margin-bottom: 12px; text-align: center; justify-content: center;">
+                <h2 style="font-family: 'PT Serif', serif;" data-i18n-academy="materialsTitle">Materials library</h2>
+            </div>
+            <p data-i18n-academy="materialsSub" style="text-align: center; color: var(--text-muted); max-width: 720px; margin: 0 auto 24px; font-size: 15px; line-height: 1.5;">Articles on this site, partner hub, and trusted external guides — filter by topic.</p>
+            <div class="search-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #999; flex-shrink: 0;">
+                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="search" id="agn-academy-search" class="agn-search-input" autocomplete="off" placeholder="Търсене…" />
+            </div>
+            <div class="trending-tags" id="agn-quick-filters">
+                <button type="button" class="t-tag" data-q="ndvi satellite imagery crop">NDVI &amp; imagery</button>
+                <button type="button" class="t-tag" data-q="wheat futures market">Wheat &amp; futures</button>
+                <button type="button" class="t-tag" data-q="egypt irrigation oasis">Egypt &amp; water</button>
+                <button type="button" class="t-tag" data-q="tomato harvest prices">Tomato sector</button>
+                <button type="button" class="t-tag" data-q="fao guide policy download">Guides &amp; FAO</button>
+            </div>
+            <div id="agn-catalog-grid" class="fresh-grid" style="margin-top: 32px;"></div>
+            <p id="agn-catalog-empty" style="display: none; text-align: center; color: var(--text-muted); margin-top: 24px; font-size: 15px;">Няма съвпадения</p>
+        </div>
+
+        <!-- VISUAL LESSONS -->
+        <div class="section-header">
+            <h2 data-i18n-academy="visualTitle">Visual lessons</h2>
+        </div>
+        <p data-i18n-academy="visualSub" style="font-size: 15px; color: var(--text-muted); max-width: 720px; margin: -12px 0 28px; line-height: 1.5;">Curated video searches (YouTube opens in a new tab).</p>
+        <div id="agn-visual-lessons" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 64px;"></div>
+
+        <div id="agn-academy-tutor">
+        <!-- LIVE ACADEMY TUTOR -->
+        <div class="section-header" style="margin-top: 48px;">
+            <h2>Питайте наставника на Академията</h2>
+            <span style="font-size: 13px; color: var(--text-muted);">Пазарен снимък — само за обучение, не е инвестиционен съвет.</span>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; max-width: 720px;">
+            <textarea id="agn-academy-input" rows="4" placeholder="Напр.: как да чета котировките на пшеницата на борсата спрямо цената ми на елеватор?" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-family: inherit; font-size: 15px; resize: vertical;"></textarea>
+            <div style="display: flex; gap: 12px; margin-top: 14px; align-items: center; flex-wrap: wrap;">
+                <button type="button" id="agn-academy-send" style="padding: 12px 22px; border-radius: 999px; border: none; background: var(--text-main); color: #fff; font-weight: 600; cursor: pointer;">Вземи урок</button>
+                <span id="agn-academy-status" style="font-size: 13px; color: var(--text-muted);"></span>
+            </div>
+            <div id="agn-academy-reply" style="margin-top: 18px; font-size: 15px; line-height: 1.55; color: var(--text-main); white-space: pre-wrap;"></div>
+        </div>
+        </div>
+
+        <!-- THIS WEEK'S READING -->
+        <div class="section-header">
+            <h2>Четиво за тази седмица</h2>
+        </div>
+        <div class="featured-grid">
+            <div class="article-card card-large">
+                <div class="card-content">
+                    <div class="meta-row">
+                        <span class="cat-tag cat-market">MARKET</span>
+                        <span class="read-time">14 MIN READ</span>
+                    </div>
+                    <h3>Защо почти винаги продавате пшеницата си твърде рано.</h3>
+                    <p style="font-size: 16px; color: var(--text-muted); max-width: 80%;">Поглед на трейдър върху психологическите капани при продажба на реколтата и как вероятностните модели махат емоцията.</p>
+                    <div class="author-row">
+                        <div class="author-avatar" style="background: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23d4a32a\'/></svg>') center/cover;"></div>
+                        <div>
+                            <div class="author-name">Elena Kostova</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Главен пазарен аналитик</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="article-card card-small" style="flex: 1;">
+                    <div class="meta-row">
+                        <span class="cat-tag cat-field">FIELD</span>
+                        <span class="read-time">8 MIN READ</span>
+                    </div>
+                    <h3>Септория преди затварянето на полога</h3>
+                    <div class="author-row" style="padding-top: 12px;">
+                        <div class="author-name" style="color: var(--text-muted);">От д-р Иван Петров</div>
+                    </div>
+                </div>
+                <div class="article-card card-small" style="flex: 1;">
+                    <div class="meta-row">
+                        <span class="cat-tag cat-market">BUSINESS</span>
+                        <span class="read-time">6 MIN READ</span>
+                    </div>
+                    <h3>Въглеродни кредити: практически наръчник за фермери в ЕС</h3>
+                    <div class="author-row" style="padding-top: 12px;">
+                        <div class="author-name" style="color: var(--text-muted);">От Анна Илиева</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEARNING PATHS -->
+        <div class="section-header">
+            <h2>Учебни пътеки</h2>
+            <a href="../archive.html" class="view-all">Всички пътеки →</a>
+        </div>
+        <div class="paths-grid">
+            <a href="../course.html" class="path-card" style="text-decoration: none; color: inherit; display: block; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.05)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <div class="path-num">Пътека 01</div>
+                <h3>Основи на почвата и културата</h3>
+                <div class="progress-bar">
+                    <div class="progress-pip filled"></div>
+                    <div class="progress-pip filled"></div>
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">2/4 ЗАВЪРШЕНИ</div>
+            </a>
+            
+            <div class="path-card">
+                <div class="path-num">Пътека 02</div>
+                <h3>Пазари за фермери</h3>
+                <div class="progress-bar">
+                    <div class="progress-pip filled"></div>
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">1/4 ЗАВЪРШЕНИ</div>
+            </div>
+
+            <div class="path-card">
+                <div class="path-num">Пътека 03</div>
+                <h3>Работа с вашите агенти</h3>
+                <div class="progress-bar">
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                    <div class="progress-pip"></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">НЕ Е ЗАПОЧНАТА</div>
+            </div>
+        </div>
+
+        <!-- FRESH ARTICLES -->
+        <div class="section-header">
+            <h2>Демо карти за оформление</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px; max-width: 640px;">Статичен пример за визия — не са кликаеми статии. Работещият каталог с връзки е в секцията с търсене по-горе.</p>
+        </div>
+        <div class="fresh-grid">
+            <div class="article-card card-small">
+                <div class="meta-row">
+                    <span class="cat-tag cat-market">MARKET</span>
+                    <span class="read-time">5 MIN READ</span>
+                </div>
+                <h3>Какво наистина каза докладът на USDA — и какво премълча</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">120-страничният доклад, преведен в конкретни изводи за европейски производители.</p>
+            </div>
+            <div class="article-card card-small">
+                <div class="meta-row">
+                    <span class="cat-tag cat-field">BUSINESS</span>
+                    <span class="read-time">11 MIN READ</span>
+                </div>
+                <h3>Форвардни договори: кога пазят и кога капанират</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Математиката зад форварда и кога да го използвате.</p>
+            </div>
+            <div class="article-card card-small">
+                <div class="meta-row">
+                    <span class="cat-tag cat-field">FIELD</span>
+                    <span class="read-time">7 MIN READ</span>
+                </div>
+                <h3>Дрон срещу сателит: на кое изображение да разчитате</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Резолюция, честота и цена — как да изберете стратегия за мониторинг.</p>
+            </div>
+            <div class="article-card card-small">
+                <div class="meta-row">
+                    <span class="cat-tag cat-market">TECH</span>
+                    <span class="read-time">9 MIN READ</span>
+                </div>
+                <h3>В оркестратора: как се решават конфликтите</h3>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Когато пазарният агент каже „Продай“, а агентът за добив — „Чакай“, кой печели?</p>
+            </div>
+        </div>
+
+        <!-- PODCAST -->
+        <div class="podcast-card">
+            <div class="pod-left">
+                <span class="pod-tag">FIELD NOTES PODCAST</span>
+                <h2 class="pod-title">Епизод 47: Денят, в който спрях да гадая пазара</h2>
+                <p class="pod-desc">Иван Т., фермер трето поколение от Айова, за грешка от €31 000 и как данните променят емоцията в решенията.</p>
+                <div class="pod-stats">
+                    <div>
+                        <div class="p-stat-val">47</div>
+                        <div class="p-stat-label">Епизоди</div>
+                    </div>
+                    <div>
+                        <div class="p-stat-val">38m</div>
+                        <div class="p-stat-label">Средна дължина</div>
+                    </div>
+                    <div>
+                        <div class="p-stat-val">42k</div>
+                        <div class="p-stat-label">Слушатели</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pod-right" style="width: 100%; flex-direction: column;">
+                <div class="custom-player" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; backdrop-filter: blur(10px);">
+                    <audio id="podcast-audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                        <button id="play-pause-btn" style="width: 56px; height: 56px; border-radius: 50%; background: var(--gold); border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 16px rgba(212, 163, 42, 0.3); transition: transform 0.2s;">
+                            <svg id="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pause-icon" width="24" height="24" viewBox="0 0 24 24" fill="white" style="display: none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        
+                        <div class="sound-waves" style="display: flex; gap: 4px; align-items: center; height: 40px;">
+                            <div class="wave-bar" style="width: 4px; height: 10px; background: rgba(255,255,255,0.3); border-radius: 2px; transition: height 0.1s;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 20px; background: rgba(255,255,255,0.3); border-radius: 2px; transition: height 0.1s;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 40px; background: var(--gold); border-radius: 2px; transition: height 0.1s;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 15px; background: rgba(255,255,255,0.3); border-radius: 2px; transition: height 0.1s;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 25px; background: rgba(255,255,255,0.3); border-radius: 2px; transition: height 0.1s;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div id="progress-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; cursor: pointer; position: relative;">
+                            <div id="progress-bar" style="width: 0%; height: 100%; background: var(--gold); border-radius: 3px; position: absolute; top: 0; left: 0;"></div>
+                            <div id="progress-head" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.5);"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.6);">
+                            <span id="time-current">00:00</span>
+                            <span id="time-total">06:12</span>
+                        </div>
+                    </div>
+                </div>
+                <p id="agn-podcast-note" style="font-size: 12px; color: rgba(255,255,255,0.55); max-width: 400px; margin-top: 16px; text-align: center; line-height: 1.45;"></p>
+            </div>
+        </div>
+
+        <!-- COMMUNITY TABLE -->
+        <div class="community-section">
+            <div class="section-header">
+                <h2>Farmer's Table Community</h2>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-muted); margin-left: 16px;">LIVE FEED</span>
+            </div>
+            
+            <div id="login-prompt" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; text-align: center; margin-bottom: 24px; display: none;">
+                <p style="margin-bottom: 16px; color: var(--text-muted);">Влезте, за да участвате в разговора и да публикувате в общността.</p>
+                <a href="../login.html" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">Log In</a>
+            </div>
+
+            <div id="new-post-form" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; display: none;">
+                <textarea id="new-post-content" placeholder="Ask a question, coordinate a sale, or share a success story..." style="width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; margin-bottom: 12px; resize: vertical;"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <select id="new-post-tag" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);">
+                        <option value="">No Tag</option>
+                        <option value="QUESTION">Question</option>
+                        <option value="MARKET">Market</option>
+                        <option value="SUCCESS STORY">Success Story</option>
+                    </select>
+                    <button id="submit-post-btn" class="btn btn-primary" style="padding: 8px 24px; font-size: 14px;">Post</button>
+                </div>
+            </div>
+
+            <div class="threads-list" id="live-threads-list">
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading community posts...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FINAL CTA -->
+    <div class="cta-section">
+        <h2>Каталогът се попълва.</h2>
+        <p>За дълги текстове и архив на английски ползвайте индекса към статии; българските екрани са за навигация и наставник.</p>
+        <div class="btn-group">
+            <a href="../archive.html" class="btn btn-primary">Архив на статии (EN)</a>
+            <a href="#" class="btn btn-outline">Седмичен бюлетин по имейл</a>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const audio = document.getElementById('podcast-audio');
+            const playBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const progressBar = document.getElementById('progress-bar');
+            const progressHead = document.getElementById('progress-head');
+            const progressContainer = document.getElementById('progress-container');
+            const timeCurrent = document.getElementById('time-current');
+            const timeTotal = document.getElementById('time-total');
+            const waveBars = document.querySelectorAll('.wave-bar');
+            
+            let isPlaying = false;
+            let animationId = null;
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "00:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            audio.addEventListener('loadedmetadata', () => {
+                timeTotal.textContent = formatTime(audio.duration);
+            });
+
+            function animateWaves() {
+                if (!isPlaying) return;
+                waveBars.forEach(bar => {
+                    if (bar.style.backgroundColor !== 'var(--gold)') {
+                        bar.style.height = `${Math.random() * 30 + 10}px`;
+                        bar.style.backgroundColor = `rgba(255,255,255,${Math.random() * 0.5 + 0.3})`;
+                    }
+                });
+                animationId = setTimeout(animateWaves, 150);
+            }
+
+            playBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    audio.pause();
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                    playBtn.style.transform = 'scale(1)';
+                    clearTimeout(animationId);
+                } else {
+                    audio.play();
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                    playBtn.style.transform = 'scale(1.05)';
+                    animateWaves();
+                }
+                isPlaying = !isPlaying;
+            });
+
+            audio.addEventListener('timeupdate', () => {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+                progressHead.style.left = `${percent}%`;
+                timeCurrent.textContent = formatTime(audio.currentTime);
+            });
+
+            progressContainer.addEventListener('click', (e) => {
+                const rect = progressContainer.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                audio.currentTime = pos * audio.duration;
+            });
+            
+            audio.addEventListener('ended', () => {
+                isPlaying = false;
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                clearTimeout(animationId);
+                progressBar.style.width = '0%';
+                progressHead.style.left = '0%';
+                audio.currentTime = 0;
+            });
+        });
+    </script>
+    
+
+    <!-- Supabase and Community Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../scripts/auth.js"></script>
+    <script src="../scripts/community.js"></script>
+    <script>window.AGN_ACADEMY_LANG = 'bg';</script>
+    <script src="../scripts/academy-hub.js"></script>
+    <script>
+    (function () {
+        var btn = document.getElementById('agn-academy-send');
+        var input = document.getElementById('agn-academy-input');
+        var out = document.getElementById('agn-academy-reply');
+        var st = document.getElementById('agn-academy-status');
+        if (!btn || !input || !out || !st) return;
+        btn.addEventListener('click', async function () {
+            var q = (input.value || '').trim();
+            if (!q) { st.textContent = 'Напишете въпрос.'; return; }
+            st.textContent = 'Мисля…';
+            out.textContent = '';
+            btn.disabled = true;
+            try {
+                var res = await fetch('/api/academy-tutor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: q })
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+                out.textContent = data.reply || '';
+                st.textContent = 'Готово.';
+            } catch (e) {
+                st.textContent = 'Няма връзка с наставника (нужен е MISTRAL_API_KEY на сървъра).';
+                out.textContent = String(e && e.message ? e.message : e);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    })();
+    </script>
+
+</body>
+</html>
