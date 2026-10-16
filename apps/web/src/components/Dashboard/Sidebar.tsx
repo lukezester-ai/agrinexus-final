@@ -40,6 +40,7 @@ export default function Sidebar({
 		{ icon: "◎", label: c.radar, href: "/dashboard", active: pathname === "/dashboard" },
 		{ icon: "●", label: unreadNotifications ? `${c.notifications} (${unreadNotifications})` : c.notifications, href: "/dashboard/notifications", active: pathname.startsWith("/dashboard/notifications") },
 		{ icon: "◎", label: c.intents, href: "/dashboard/intents", active: pathname.startsWith("/dashboard/intents") },
+		{ icon: "✦", label: c.skills, href: "/dashboard/skills", active: pathname.startsWith("/dashboard/skills") },
 		{ icon: "◎", label: c.opportunities, href: "/dashboard/opportunities", active: pathname.startsWith("/dashboard/opportunities") },
 		{ icon: "✓", label: c.verification, href: "/dashboard/verification", active: pathname.startsWith("/dashboard/verification") },
 		{ icon: "◎", label: c.start, href: "/dashboard/onboarding", active: pathname.startsWith("/dashboard/onboarding") },

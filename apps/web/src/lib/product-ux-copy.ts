@@ -270,6 +270,7 @@ export const shellCopy = {
 		chat: "Chat",
 		settings: "Settings",
 		community: "Community",
+		skills: "Skills",
 		navAria: "Mobile navigation",
 		moreTitle: "More",
 		moreItems: [
@@ -277,6 +278,7 @@ export const shellCopy = {
 			{ href: "/dashboard/onboarding", icon: "◎", label: "Get started", sub: "Create your first Business Intent" },
 			{ href: "/dashboard", icon: "◎", label: "Radar", sub: "Candidates, introductions, relationships" },
 			{ href: "/dashboard/intents", icon: "◎", label: "Intents", sub: "Structured demand and supply" },
+			{ href: "/dashboard/skills", icon: "✦", label: "Skills", sub: "Describe what you want; get an internal playbook" },
 			{ href: "/dashboard/opportunities", icon: "◎", label: "Opportunities", sub: "Manual openings for matching" },
 			{ href: "/dashboard/verification", icon: "✓", label: "Verification", sub: "Organization evidence and review status" },
 			{ href: "/dashboard/settings", icon: "⚙️", label: "Settings", sub: "Display name" },
@@ -299,6 +301,7 @@ export const shellCopy = {
 		chat: "Чат",
 		settings: "Настройки",
 		community: "Общност",
+		skills: "Умения",
 		navAria: "Мобилна навигация",
 		moreTitle: "Още",
 		moreItems: [
@@ -306,6 +309,7 @@ export const shellCopy = {
 			{ href: "/dashboard/onboarding", icon: "◎", label: "Начало", sub: "Създай първото бизнес намерение" },
 			{ href: "/dashboard", icon: "◎", label: "Радар", sub: "Кандидати, представяния, връзки" },
 			{ href: "/dashboard/intents", icon: "◎", label: "Намерения", sub: "Структурирано търсене и предлагане" },
+			{ href: "/dashboard/skills", icon: "✦", label: "Умения", sub: "Опишете какво искате; получете вътрешен playbook" },
 			{ href: "/dashboard/opportunities", icon: "◎", label: "Възможности", sub: "Ръчни отвори за съпоставяне" },
 			{ href: "/dashboard/verification", icon: "✓", label: "Проверка", sub: "Данни за организацията и статус на прегледа" },
 			{ href: "/dashboard/settings", icon: "⚙️", label: "Настройки", sub: "Показвано име" },
@@ -328,6 +332,7 @@ export const shellCopy = {
 		chat: "محادثة",
 		settings: "الإعدادات",
 		community: "المجتمع",
+		skills: "المهارات",
 		navAria: "التنقل للجوال",
 		moreTitle: "المزيد",
 		moreItems: [
@@ -335,6 +340,7 @@ export const shellCopy = {
 			{ href: "/dashboard/onboarding", icon: "◎", label: "ابدأ", sub: "أنشئ أول نية أعمال" },
 			{ href: "/dashboard", icon: "◎", label: "الرادار", sub: "مرشحون، تقديمات، علاقات" },
 			{ href: "/dashboard/intents", icon: "◎", label: "النيات", sub: "طلب وعرض منظّمان" },
+			{ href: "/dashboard/skills", icon: "✦", label: "المهارات", sub: "اكتب ما تريده واحصل على دليل داخلي" },
 			{ href: "/dashboard/opportunities", icon: "◎", label: "الفرص", sub: "فتحات يدوية للمطابقة" },
 			{ href: "/dashboard/verification", icon: "✓", label: "التحقق", sub: "أدلة المنظمة وحالة المراجعة" },
 			{ href: "/dashboard/settings", icon: "⚙️", label: "الإعدادات", sub: "الاسم المعروض" },
@@ -379,6 +385,61 @@ export const listCopy = {
 		oppsLead: "فتحات يدوية. المطابقة تقرأ الحقول المفهرسة فقط، وليس درجة.",
 		newOpp: "فرصة جديدة",
 		noOpps: "لا توجد فرص بعد.",
+	},
+} as const;
+
+/**
+ * Organization skills — org-scoped AI playbooks. Never visible to another
+ * organization, never indexed for matching.
+ */
+export const skillsCopy = {
+	en: {
+		title: "Skills",
+		lead: "Write what you want in plain language and the platform turns it into an internal playbook your team can follow.",
+		newSkill: "Create a skill",
+		noSkills: "No skills for this organization yet.",
+		firstSkill: "Describe what you want",
+		whenToUse: "When to use it",
+		steps: "Steps",
+		guardrails: "Guardrails",
+		source: "Original request",
+		activate: "Activate",
+		archive: "Archive",
+		activateConfirm: "Activate this skill? This action is audited.",
+		archiveConfirm: "Archive this skill? This action is audited.",
+		status: { draft: "Draft", active: "Active", archived: "Archived" },
+	},
+	bg: {
+		title: "Умения",
+		lead: "Опишете с прости думи какво искате и платформата го превръща във вътрешен playbook, който екипът следва.",
+		newSkill: "Създай умение",
+		noSkills: "Все още няма умения за тази организация.",
+		firstSkill: "Опишете какво искате",
+		whenToUse: "Кога се използва",
+		steps: "Стъпки",
+		guardrails: "Ограничения",
+		source: "Първоначална заявка",
+		activate: "Активирай",
+		archive: "Архивирай",
+		activateConfirm: "Да се активира ли това умение? Действието се записва в одита.",
+		archiveConfirm: "Да се архивира ли това умение? Действието се записва в одита.",
+		status: { draft: "Чернова", active: "Активно", archived: "Архивирано" },
+	},
+	ar: {
+		title: "المهارات",
+		lead: "اكتب ما تريده بلغة بسيطة وسيحوّله النظام إلى دليل داخلي يتبعه فريقك.",
+		newSkill: "أنشئ مهارة",
+		noSkills: "لا توجد مهارات لهذه المنظمة بعد.",
+		firstSkill: "اكتب ما تريده",
+		whenToUse: "متى يُستخدم",
+		steps: "الخطوات",
+		guardrails: "الضوابط",
+		source: "الطلب الأصلي",
+		activate: "تفعيل",
+		archive: "أرشفة",
+		activateConfirm: "هل تريد تفعيل هذه المهارة؟ يُسجَّل الإجراء في سجل التدقيق.",
+		archiveConfirm: "هل تريد أرشفة هذه المهارة؟ يُسجَّل الإجراء في سجل التدقيق.",
+		status: { draft: "مسودة", active: "نشِط", archived: "مؤرشف" },
 	},
 } as const;
 
