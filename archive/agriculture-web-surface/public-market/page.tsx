@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/Hero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CTA, CTARow } from "@/components/CTA";
-import { ConfidenceHint } from "@/components/ConfidenceHint";
+import { ConfidenceHint } from "../components/ConfidenceHint";
 import { loadMarketDesk, generateLiveMarketSignals } from "@/lib/market-live-desk";
 import type { AppLocale } from "@/i18n/routing";
 

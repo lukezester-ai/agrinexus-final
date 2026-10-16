@@ -1,5 +1,9 @@
 {
-	"Metadata": {
+  "AgentsMeta": {
+    "title": "Мрежа от агенти",
+    "description": "AgriNexus не е един AI, а координиран екип от 18 агента. Всеки има своя област и действа в зададени от теб граници."
+  },
+  "Metadata": {
 		"titleDefault": "AGRI NEXUS — Universal Business Core",
 		"titleTemplate": "%s — AGRI NEXUS",
 		"description": "От бизнес намерение към управлявано решение. Инфраструктура за business intelligence и решения. Live execution е блокиран.",
