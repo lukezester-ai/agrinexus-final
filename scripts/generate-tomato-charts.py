@@ -2,7 +2,7 @@
 Tomato Harvest 2026 - Bilingual Report Generator (EN/RU)
 Generates PNG charts for the Furrow Markets article.
 Run: python scripts/generate-tomato-charts.py
-Output: articles/assets/tomato-2026/*.png
+Output: article/assets/tomato-2026/*.png
 """
 
 import os
@@ -13,7 +13,7 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-OUT = Path(__file__).resolve().parent.parent / "articles" / "assets" / "tomato-2026"
+OUT = Path(__file__).resolve().parent.parent / "article" / "assets" / "tomato-2026"
 OUT.mkdir(parents=True, exist_ok=True)
 
 years = [2023, 2024, 2025, 2026]
