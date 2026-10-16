@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { BreakEvenProfitCard } from "@/components/break-even/BreakEvenProfitCard";
-import { ConfidenceHint } from "@/components/ConfidenceHint";
+import { ConfidenceHint } from "../components/ConfidenceHint";
 import {
 	cbotPriceStrToEurPerTonne,
 	formatEur,
