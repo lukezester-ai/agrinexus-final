@@ -33,7 +33,11 @@ const tabs: Tab[] = [
 		href: "/dashboard/more",
 		icon: "⋯",
 		labelKey: "more",
-		match: (p) => p.startsWith("/dashboard/more") || p.startsWith("/dashboard/settings") || p.startsWith("/dashboard/ask"),
+		match: (p) =>
+			p.startsWith("/dashboard/more") ||
+			p.startsWith("/dashboard/settings") ||
+			p.startsWith("/dashboard/skills") ||
+			p.startsWith("/dashboard/ask"),
 	},
 ];
 
