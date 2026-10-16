@@ -4,7 +4,11 @@
 		"titleTemplate": "%s — AGRI NEXUS",
 		"description": "От бизнес намерение към управлявано решение. Инфраструктура за business intelligence и решения. Live execution е блокиран.",
 		"keywords": ["agri nexus", "universal business core", "бизнес радар", "finance intelligence"],
-		"ogTitle": "AGRI NEXUS — Universal Business Core",
-		"ogDescription": "От бизнес намерение към управлявано решение. Live execution е блокиран."
-	}
+    "ogTitle": "AGRI NEXUS — Universal Business Core",
+    "ogDescription": "От бизнес намерение към управлявано решение. Live execution е блокиран."
+  },
+  "AgentsMeta": {
+    "title": "Мрежата от агенти — 18 специалиста, една мислеща ферма",
+    "description": "AgriNexus не е един AI, а координирана мрежа от 18 агента по домейни. Всеки поема своята област, действа в зададените от теб граници на автономност и заедно поддържат стопанство, което почти се управлява само."
+  }
 }

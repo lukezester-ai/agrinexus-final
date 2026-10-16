@@ -15,7 +15,9 @@ export default function SkillCard({ skill }: { skill: Skill }) {
     try {
       const parsed = JSON.parse(skill.files_json);
       zipUrl = parsed.zip_url;
-    } catch (_) {}
+    } catch {
+      // невалиден files_json — оставяме zipUrl празен
+    }
   }
   // fallback for static skills (assume zip at /skill/<slug>.zip)
   if (!zipUrl && skill.slug) {

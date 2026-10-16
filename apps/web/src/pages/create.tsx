@@ -1,8 +1,7 @@
 import { useState, ChangeEvent } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import JSZip from "jszip";
 import { marked } from "marked";
-import { v4 as uuidv4 } from "uuid";
 
 export default function CreateSkill() {
   const [name, setName] = useState("");
@@ -19,7 +18,7 @@ export default function CreateSkill() {
     if (e.target.files) setFiles(Array.from(e.target.files));
   };
 
-  const onPreview = () => setPreview(marked.parse(instructions));
+  const onPreview = async () => setPreview(await marked.parse(instructions));
 
   const onSubmit = async () => {
     if (!isValid) return setError("Попълнете задължителните полета.");
@@ -34,17 +33,17 @@ export default function CreateSkill() {
       files.forEach((f) => zip.file(f.name, f));
 
       const zipBlob = await zip.generateAsync({ type: "blob" });
-      const zipFileName = `${uuidv4()}.zip`;
+      const zipFileName = `${crypto.randomUUID()}.zip`;
 
       // Upload to Supabase Storage (public bucket "skills")
-      const { data: storageData, error: storageErr } = await supabase.storage
+      const { error: storageErr } = await supabase.storage
         .from("skills")
         .upload(zipFileName, zipBlob, { upsert: false, contentType: "application/zip" });
       if (storageErr) throw storageErr;
 
       const publicUrl = supabase.storage
         .from("skills")
-        .getPublicUrl(zipFileName).publicURL;
+        .getPublicUrl(zipFileName).data.publicUrl;
 
       const { error: dbErr } = await supabase.from("skills").insert([
         {

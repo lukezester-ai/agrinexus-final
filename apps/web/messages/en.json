@@ -4,7 +4,11 @@
 		"titleTemplate": "%s — AGRI NEXUS",
 		"description": "From business intent to governed decision. Business intelligence and decision infrastructure. Live execution is blocked.",
 		"keywords": ["agri nexus", "universal business core", "business radar", "finance intelligence"],
-		"ogTitle": "AGRI NEXUS — Universal Business Core",
-		"ogDescription": "From business intent to governed decision. Live execution is blocked."
-	}
+    "ogTitle": "AGRI NEXUS — Universal Business Core",
+    "ogDescription": "From business intent to governed decision. Live execution is blocked."
+  },
+  "AgentsMeta": {
+    "title": "The Agent Mesh — 18 Specialists, One Thinking Farm",
+    "description": "AgriNexus is not one AI but a coordinated mesh of 18 domain agents. Each owns its domain, acts within the autonomy bounds you set, and together they run a farm that almost runs itself."
+  }
 }

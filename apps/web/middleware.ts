@@ -1,73 +1,77 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase-config';
+import createMiddleware from "next-intl/middleware";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { routing } from "./src/i18n/routing";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase-config";
+
+/**
+ * Единствен middleware за приложението.
+ *
+ * Next.js изпълнява само един middleware — този до app директорията.
+ * Затова i18n routing (next-intl) и Supabase session refresh са композирани тук,
+ * вместо да живеят в два отделни файла, където единият бива игнориран.
+ */
+
+const handleI18nRouting = createMiddleware(routing);
+
+/** Пътища, изискващи логин (проверяват се след премахване на locale префикса). */
+const protectedPaths = ["/dashboard", "/fields", "/market", "/tutor", "/profile", "/onboarding"];
+
+/** Маха locale префикса, за да се сравнява с locale-независимите пътища по-долу. */
+function stripLocalePrefix(pathname: string): string {
+	for (const locale of routing.locales) {
+		if (pathname === `/${locale}`) return "/";
+		if (pathname.startsWith(`/${locale}/`)) return pathname.slice(locale.length + 1);
+	}
+	return pathname;
+}
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+	// 1) next-intl решава locale rewrite/redirect и връща response.
+	const response = handleI18nRouting(request);
 
-  const supabase = createServerClient(
-    getSupabaseUrl(),
-    getSupabaseAnonKey(),
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+	// 2) Supabase session refresh върху същия response (cookies се пишат и в двата).
+	const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+		cookies: {
+			getAll() {
+				return request.cookies.getAll();
+			},
+			setAll(cookiesToSet) {
+				cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+				cookiesToSet.forEach(({ name, value, options }) =>
+					response.cookies.set(name, value, options)
+				);
+			},
+		},
+	});
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+	const pathname = stripLocalePrefix(request.nextUrl.pathname);
 
-  // Публични пътища (достъпни без логин)
-  const publicPaths = ['/', '/login', '/auth/callback', '/academy', '/about'];
-  
-  // Пътища, които изискват логин
-  const protectedPaths = ['/dashboard', '/fields', '/market', '/tutor', '/profile', '/onboarding'];
+	const isProtectedPath = protectedPaths.some(
+		(path) => pathname === path || pathname.startsWith(`${path}/`)
+	);
 
-  const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path));
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+	// Ако потребителят НЕ е логнат и се опитва да влезе в защитен път
+	if (!user && isProtectedPath) {
+		const redirectUrl = new URL("/login", request.url);
+		redirectUrl.searchParams.set("redirectedFrom", request.nextUrl.pathname);
+		return NextResponse.redirect(redirectUrl);
+	}
 
-  // Ако потребителят НЕ е логнат и се опитва да влезе в защитен път
-  if (!user && isProtectedPath) {
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirectedFrom', pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
+	// Ако потребителят Е логнат и се опитва да влезе в login страницата
+	if (user && pathname === "/login") {
+		return NextResponse.redirect(new URL("/dashboard", request.url));
+	}
 
-  // Ако потребителят Е логнат и се опитва да влезе в login страницата
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  return supabaseResponse;
+	return response;
 }
 
 // Конфигурация – на кои пътища да се прилага middleware
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/fields/:path*',
-    '/market/:path*',
-    '/tutor/:path*',
-    '/profile/:path*',
-    '/login',
-    '/auth/callback',
-  ],
+	matcher: ["/((?!api|_next|_vercel|dev|.*\\..*).*)"],
 };

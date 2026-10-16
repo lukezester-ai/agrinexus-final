@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "../../../lib/supabase";
-import LRU from "lru-cache";
+import { createServerSupabase } from "@/lib/supabase-admin";
+import { LRUCache } from "lru-cache";
 
 // Simple in‑memory rate limiter: max 5 requests / minute per IP
-const limiter = new LRU<string, { count: number; reset: number }>({
+const limiter = new LRUCache<string, { count: number; reset: number }>({
   max: 500,
-  ttl: 60 * 1000, // 1 min
+  ttl: 60 * 1000, // 1 min
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // ---- Auth ----
+  const supabase = createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return res.status(401).json({ error: "Unauthenticated" });

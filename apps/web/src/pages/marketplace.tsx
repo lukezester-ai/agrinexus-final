@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
-import SkillCard from "../components/SkillCard";
-import { supabase } from "../lib/supabase";
+import SkillCard from "@/components/SkillCard";
+import { createServerSupabase } from "@/lib/supabase-admin";
 
 type Skill = {
   id?: string;
@@ -15,9 +15,10 @@ type Skill = {
 export const getServerSideProps: GetServerSideProps = async () => {
   // 1️⃣ Статични skills от публичния JSON
   const staticRes = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ""}/public/skills-index.json`);
-  const staticSkills: Skill[] = (await staticRes.json()) ?? [];
+  const staticSkills: Skill[] = staticRes.ok ? ((await staticRes.json()) ?? []) : [];
 
   // 2️⃣ Публични потребителски skills от Supabase
+  const supabase = createServerSupabase();
   const { data: userSkills, error } = await supabase
     .from("skills")
     .select("id, name, description, files_json, public, created_at")
