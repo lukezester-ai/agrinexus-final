@@ -8,7 +8,7 @@ const root = path.join(__dirname, '..');
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
+async function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
     const raw = fs.readFileSync(path.join(root, 'article', sourceName), 'utf8');
     
     // Extract title (first line)
@@ -19,7 +19,7 @@ function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
     }
     
     // Parse the markdown
-    const htmlContent = marked.parse(raw);
+    const htmlContent = await marked.parse(raw);
     
     const kicker = lang === 'en' ? 'GLOBAL · ANALYSIS' : 'ГЛОБАЛЬНО · АНАЛИТИКА';
     const footerOtherLang = lang === 'en' ? 'Русский' : 'English';
@@ -30,7 +30,7 @@ function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>\${esc(title)} | Furrow Markets</title>
+	<title>${esc(title)} | Furrow Markets</title>
 	<meta name="description" content="Global Corn Producers Analysis">
 	<link rel="stylesheet" href="styles/article.css">
 </head>
@@ -46,14 +46,14 @@ function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
 			<a href="/register">Register</a>
 		</div>
 		<div class="article-lang-switch">
-			<a href="/\${outName.replace('.html', '')}" class="active">\${lang.toUpperCase()}</a>
-			<a href="\${otherLangUrl}">\${otherLangName}</a>
+			<a href="/${outName.replace('.html', '')}" class="active">${lang.toUpperCase()}</a>
+			<a href="${otherLangUrl}">${otherLangName}</a>
 		</div>
 	</div>
 </nav>
 
 <article class="article-container">
-	<div class="article-kicker">\${kicker}</div>
+	<div class="article-kicker">${kicker}</div>
 	
 	<div class="article-meta">
 		<span>19 May 2026</span>
@@ -61,13 +61,13 @@ function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
 		<span>Furrow Markets Desk</span>
 	</div>
 
-\${htmlContent}
+${htmlContent}
 	<p class="article-byline"><em>— Furrow Markets Desk</em></p>
 </article>
 
 <footer class="article-footer">
 	<p>© 2026 Furrow Markets — Agricultural market intelligence</p>
-	<p><a href="mailto:hello@furrowmarkets.com">hello@furrowmarkets.com</a> · English · <a href="\${otherLangLink}">\${footerOtherLang}</a></p>
+	<p><a href="mailto:hello@furrowmarkets.com">hello@furrowmarkets.com</a> · English · <a href="${otherLangLink}">${footerOtherLang}</a></p>
 </footer>
 
 <script src="scripts/furrow-analytics.js" defer></script>
@@ -80,7 +80,7 @@ function buildFile(sourceName, outName, lang, otherLangUrl, otherLangName) {
 }
 
 // Build EN
-buildFile('Global_Corn_Producers_Analysis_EN.md', 'global-corn-producers-analysis-en.html', 'en', '/global-corn-producers-analysis-ru', 'RU');
+await buildFile('Global_Corn_Producers_Analysis_EN.md', 'global-corn-producers-analysis-en.html', 'en', '/global-corn-producers-analysis-ru', 'RU');
 
 // Build RU
-buildFile('Global_Corn_Producers_Analysis_RU.md', 'global-corn-producers-analysis-ru.html', 'ru', '/global-corn-producers-analysis-en', 'EN');
+await buildFile('Global_Corn_Producers_Analysis_RU.md', 'global-corn-producers-analysis-ru.html', 'ru', '/global-corn-producers-analysis-en', 'EN');
