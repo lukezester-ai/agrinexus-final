@@ -21,3 +21,6 @@ apps/backend/**/__pycache__/
 # Единно AI кошче — временни файлове, чернови, фрагменти (не се комитват)
 ai-trash/**
 !ai-trash/README.md
+
+# Local GitHub CLI cache
+gh-cli-cache/

@@ -1,14 +1,19 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { Hero } from "@/components/Hero";
 import { SectionHeader } from "@/components/SectionHeader";
 
 type PageProps = { params: Promise<{ locale: string }> };
 
+/** Page copy below is localised inline, so the metadata titles are too. */
+const metaTitles: Record<string, string> = {
+	en: "Agents — SKILL SQUAD",
+	bg: "Агенти — SKILL SQUAD",
+	ar: "الوكلاء — SKILL SQUAD",
+};
+
 export async function generateMetadata({ params }: PageProps) {
 	const { locale } = await params;
-	setRequestLocale(locale);
-	const t = await getTranslations({ locale, namespace: "AgentsMeta" });
-	return { title: t("title"), description: t("description") };
+	return { title: metaTitles[locale] ?? metaTitles.en };
 }
 
 type AgentLevel = 1 | 2 | 3 | 4;
