@@ -28,7 +28,7 @@ const copy = {
 		heroLine2Before: "because of ",
 		heroLine2Em: "you.",
 		heroSubtitle:
-			"AgriNexus stays open because companies, foundations and brands choose to fund it. Three ways to stand with farmers — pick the one that fits.",
+			"Skill Squad stays open because companies, foundations and brands choose to fund it. Three ways to stand with farmers — pick the one that fits.",
 		tiersCta: "See sponsorship tiers →",
 		adsCta: "Advertise with us",
 		mostChosen: "MOST CHOSEN",
@@ -126,7 +126,7 @@ const copy = {
 		heroLine2Before: "благодарение на ",
 		heroLine2Em: "теб.",
 		heroSubtitle:
-			"AgriNexus остава отворен, защото компании, фондации и марки избират да го финансират. Има три начина да застанеш до фермерите — избери този, който пасва.",
+			"Skill Squad остава отворен, защото компании, фондации и марки избират да го финансират. Има три начина да застанеш до фермерите — избери този, който пасва.",
 		tiersCta: "Виж нивата на спонсорство →",
 		adsCta: "Рекламирай с нас",
 		mostChosen: "НАЙ-ИЗБИРАНО",
@@ -376,7 +376,7 @@ export default async function SponsorsPage({ params }: PageProps) {
 				</h2>
 				<p className="mb-5 text-[13px] text-ink/55">{c.finalSub}</p>
 				<CTARow>
-					<CTA href="mailto:partners@agrinexus.io">{c.finalCta1}</CTA>
+					<CTA href="mailto:partners@Skill Squad.io">{c.finalCta1}</CTA>
 					<CTA href="#" variant="secondary">{c.finalCta2}</CTA>
 				</CTARow>
 			</section>

@@ -8,11 +8,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	const { locale } = await params;
 	return locale === "bg"
 		? {
-				title: "Методология · AgriNexus",
+				title: "Методология · Skill Squad",
 				description: "Как изчисляваме показателя за увереност и как да го четеш.",
 			}
 		: {
-				title: "Methodology · AgriNexus",
+				title: "Methodology · Skill Squad",
 				description: "How we estimate the confidence indicator and how to read it.",
 			};
 }
@@ -21,7 +21,7 @@ const copy = {
 	en: {
 		title: "How we estimate confidence",
 		intro:
-			"Each forecast in AgriNexus combines several independent signals: delayed CBOT price direction, news flow, weather indices for key regions, and FX moves (EUR/USD). Each signal has a direction (up/down) and a weight.",
+			"Each forecast in Skill Squad combines several independent signals: delayed CBOT price direction, news flow, weather indices for key regions, and FX moves (EUR/USD). Each signal has a direction (up/down) and a weight.",
 		alignment:
 			"The confidence indicator reflects two things: how many signals point the same way, and how strong each one is. When most signals align, confidence reads as strong. When they conflict, it reads as mixed or weak — we show that openly instead of hiding uncertainty.",
 		caveat:
@@ -33,7 +33,7 @@ const copy = {
 	bg: {
 		title: "Как изчисляваме показателя за увереност",
 		intro:
-			"Всяка прогноза в AgriNexus събира няколко независими сигнала: посоката на цените на CBOT (със закъснение), новинарски поток, метеорологични индекси за ключови региони и валутни движения (EUR/USD). Всеки сигнал има посока (нагоре/надолу) и тежест.",
+			"Всяка прогноза в Skill Squad събира няколко независими сигнала: посоката на цените на CBOT (със закъснение), новинарски поток, метеорологични индекси за ключови региони и валутни движения (EUR/USD). Всеки сигнал има посока (нагоре/надолу) и тежест.",
 		alignment:
 			"Показателят за увереност отразява две неща: колко от сигналите сочат в една и съща посока и колко силен е всеки от тях. Когато повечето сигнали се подреждат еднопосочно, увереността е силен сигнал. Когато се противоречат — смесен или слаб — и ние го показваме честно, вместо да крием несигурността.",
 		caveat:
@@ -51,7 +51,7 @@ export default async function MethodologyPage({ params }: PageProps) {
 
 	return (
 		<main className="mx-auto max-w-2xl px-8 py-16 text-ink">
-			<p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">AgriNexus</p>
+			<p className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">Skill Squad</p>
 			<h1 className="mt-2 text-2xl font-semibold tracking-tight">{c.title}</h1>
 			<div className="mt-6 space-y-4 text-sm leading-relaxed text-ink/75">
 				<p>{c.intro}</p>

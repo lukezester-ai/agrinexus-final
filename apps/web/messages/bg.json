@@ -1,10 +1,16 @@
 {
-	"Metadata": {
-		"titleDefault": "AGRI NEXUS — Universal Business Core",
-		"titleTemplate": "%s — AGRI NEXUS",
-		"description": "От бизнес намерение към управлявано решение. Инфраструктура за business intelligence и решения. Live execution е блокиран.",
-		"keywords": ["agri nexus", "universal business core", "бизнес радар", "finance intelligence"],
-		"ogTitle": "AGRI NEXUS — Universal Business Core",
-		"ogDescription": "От бизнес намерение към управлявано решение. Live execution е блокиран."
-	}
+  "Metadata": {
+    "titleDefault": "SKILL SQUAD — Universal Business Core",
+    "titleTemplate": "%s — SKILL SQUAD",
+    "description": "Опишете процедурата, която ви трябва, и Skill Squad я превръща в управляван playbook. Инфраструктура за business intelligence и решения. Live execution е блокиран.",
+    "keywords": [
+      "skill squad",
+      "universal business core",
+      "бизнес playbook",
+      "бизнес радар",
+      "finance intelligence"
+    ],
+    "ogTitle": "SKILL SQUAD — Universal Business Core",
+    "ogDescription": "Опишете процедурата, която ви трябва, и Skill Squad я превръща в управляван playbook. Live execution е блокиран."
+  }
 }

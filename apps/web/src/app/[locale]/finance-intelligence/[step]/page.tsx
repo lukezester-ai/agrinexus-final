@@ -84,7 +84,7 @@ export default async function FinanceStepPage({ params }: PageProps) {
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title={found.title}
 			lead={found.lead}
 			chain={CHAIN}

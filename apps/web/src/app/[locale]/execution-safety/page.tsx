@@ -10,7 +10,7 @@ export default async function ExecutionSafetyPage({ params }: { params: Promise<
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="Execution Safety"
 			chain={[
 				{ label: "Authorization", href: "/execution-safety/authorization" },
