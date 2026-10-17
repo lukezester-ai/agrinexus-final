@@ -25,7 +25,7 @@ const copy = {
 	en: {
 		header: "Daily Briefing · 06:42 EET",
 		tabs: ["Market", "Field", "Cashflow"],
-		consulted: "AgriNexus · 4 agents consulted",
+		consulted: "Skill Squad · 4 agents consulted",
 		headline: <>Wheat opened <span className="text-semantic-success font-medium tabular-nums">+2.4%</span> on Black Sea export news</>,
 		body: (
 			<>
@@ -58,7 +58,7 @@ const copy = {
 	bg: {
 		header: "Дневен briefing · 06:42 EET",
 		tabs: ["Пазар", "Поле", "Паричен поток"],
-		consulted: "AgriNexus · 4 агента консултирани",
+		consulted: "Skill Squad · 4 агента консултирани",
 		headline: <>Пшеницата отвори <span className="text-semantic-success font-medium tabular-nums">+2.4%</span> след новини за Черноморския износ</>,
 		body: (
 			<>

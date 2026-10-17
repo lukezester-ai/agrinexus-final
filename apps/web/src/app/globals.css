@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @config "../../tailwind.config.ts";
 
-/* ─── AgriNexus brand (merged from AgriNexus_NextJS template) ─── */
+/* ─── Skill Squad brand (merged from AgriNexus_NextJS template) ─── */
 /* Compile-safe stacks: no next/font Google fetch. Brand faces stay optional later. */
 :root {
 	--font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;

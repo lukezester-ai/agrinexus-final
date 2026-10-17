@@ -20,7 +20,7 @@ export function MobileDashboardHeader({ locale, userName, initials, unreadNotifi
 			style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
 		>
 			<Link href="/" className="no-underline">
-				<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">AGRI NEXUS</div>
+				<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">SKILL SQUAD</div>
 			</Link>
 			<div className="flex items-center gap-3">
 				<Link

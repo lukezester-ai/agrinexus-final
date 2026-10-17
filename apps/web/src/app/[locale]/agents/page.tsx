@@ -35,7 +35,7 @@ const copy = {
 		heroLine2Before: "One ",
 		heroLine2Em: "thinking farm.",
 		heroSubtitle:
-			"AgriNexus isn't one AI — it's a coordinated team of 18. Each owns a domain. Each acts within bounds you set. Together, they run a farm that almost runs itself.",
+			"Skill Squad isn't one AI — it's a coordinated team of 18. Each owns a domain. Each acts within bounds you set. Together, they run a farm that almost runs itself.",
 		ladderEyebrow: "// Autonomy ladder",
 		ladderTitleBefore: "You set how much ",
 		ladderTitleEm: "they decide.",
@@ -122,7 +122,7 @@ const copy = {
 		heroLine2Before: "Една ",
 		heroLine2Em: "мислеща ферма.",
 		heroSubtitle:
-			"AgriNexus не е един AI, а координиран екип от 18 агента. Всеки има своя област, действа в зададени от теб граници и заедно поддържат стопанство, което почти се управлява само.",
+			"Skill Squad не е един AI, а координиран екип от 18 агента. Всеки има своя област, действа в зададени от теб граници и заедно поддържат стопанство, което почти се управлява само.",
 		ladderEyebrow: "// Нива на автономност",
 		ladderTitleBefore: "Ти задаваш колко ",
 		ladderTitleEm: "могат да решават.",

@@ -10,7 +10,7 @@ export default async function FinanceIntelligencePage({ params }: { params: Prom
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="Finance Intelligence"
 			chain={[
 				{ label: "Market data", href: "/finance-intelligence/market-data" },

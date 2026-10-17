@@ -10,7 +10,7 @@ export default async function BusinessRadarPage({ params }: { params: Promise<{ 
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="Business Radar"
 			chain={[
 				{ label: "Intent", href: "/business-radar/intent" },

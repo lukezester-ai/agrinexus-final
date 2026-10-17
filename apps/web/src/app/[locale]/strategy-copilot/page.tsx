@@ -10,7 +10,7 @@ export default async function StrategyCopilotPage({ params }: { params: Promise<
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="AI Strategy Copilot"
 			chain={[
 				{ label: "Human idea", href: "/strategy-copilot/human-idea" },

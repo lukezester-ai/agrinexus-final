@@ -10,7 +10,7 @@ export default async function BusinessIntelligencePage({ params }: { params: Pro
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="Business Intelligence"
 			lead="Business intelligence is the decision layer. A business intent splits here into a match or into research."
 			chain={[

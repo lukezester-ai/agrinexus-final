@@ -80,7 +80,7 @@ export function PublicHeader({ locale }: { locale: string }) {
 		<header className="border-b border-white/10">
 			<div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-6 md:px-10">
 				<Link href="/" className="w-fit text-white no-underline">
-					<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">AGRI NEXUS</div>
+					<div className="text-[11px] tracking-[0.22em] text-[#8fbf9a]">SKILL SQUAD</div>
 					<div className="mt-1 text-sm text-white/90">Universal Business Core</div>
 				</Link>
 				<nav className="flex flex-wrap gap-x-5 gap-y-2 text-[12px] text-white/70" aria-label="Public">

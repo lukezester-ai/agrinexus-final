@@ -9,6 +9,8 @@ node_modules/
 # Next.js app
 apps/web/.next/
 apps/web/node_modules/
+apps/web/node-compile-cache/
+node-compile-cache/
 *.tsbuildinfo
 
 # Python backend
