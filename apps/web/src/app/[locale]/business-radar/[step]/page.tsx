@@ -91,7 +91,7 @@ export default async function BusinessRadarStepPage({ params }: PageProps) {
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title={found.title}
 			lead={found.lead}
 			chain={CHAIN}

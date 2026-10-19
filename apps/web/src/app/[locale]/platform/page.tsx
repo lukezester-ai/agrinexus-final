@@ -32,7 +32,7 @@ const copy = {
 			eyebrow: "// Integrations",
 			titleBefore: "Plays well with ",
 			titleEm: "what you already use.",
-			subtitle: "Open standards, real APIs. Drop AgriNexus on top of your existing stack — or use it standalone.",
+			subtitle: "Open standards, real APIs. Drop Skill Squad on top of your existing stack — or use it standalone.",
 		},
 		trust: {
 			eyebrow: "Foundation",
@@ -87,7 +87,7 @@ const copy = {
 		trustCards: [
 			{ icon: "🛡️", name: "Data sovereignty", desc: "Your farm data is yours. We process it on your behalf. We never sell, share, or train commercial models on it.", badge: "GDPR · EU residency" },
 			{ icon: "🔒", name: "Auditable decisions", desc: "Every agent action carries its reasoning trace. Every change reversible. Compliance teams can replay any decision.", badge: "SOC 2 · ISO 27001" },
-			{ icon: "⌨", name: "Developer access", desc: "REST + GraphQL APIs. Webhooks. MCP tool spec for agent builders. Open SDK in Python, JS, Go.", badge: "developers.agrinexus.io" },
+			{ icon: "⌨", name: "Developer access", desc: "REST + GraphQL APIs. Webhooks. MCP tool spec for agent builders. Open SDK in Python, JS, Go.", badge: "developers.Skill Squad.io" },
 		],
 	},
 	bg: {
@@ -101,7 +101,7 @@ const copy = {
 			eyebrow: "// Интеграции",
 			titleBefore: "Работи с ",
 			titleEm: "това, което вече използваш.",
-			subtitle: "Отворени стандарти и реални API. AgriNexus може да легне върху текущия ти стек или да работи самостоятелно.",
+			subtitle: "Отворени стандарти и реални API. Skill Squad може да легне върху текущия ти стек или да работи самостоятелно.",
 		},
 		trust: {
 			eyebrow: "Основа",
@@ -156,7 +156,7 @@ const copy = {
 		trustCards: [
 			{ icon: "🛡️", name: "Суверенитет на данните", desc: "Данните от стопанството са твои. Обработваме ги от твое име и не ги продаваме, споделяме или ползваме за обучение на търговски модели.", badge: "GDPR · EU residency" },
 			{ icon: "🔒", name: "Проследими решения", desc: "Всяко действие на агент има следа на reasoning. Всяка промяна е обратима и може да бъде прегледана.", badge: "SOC 2 · ISO 27001" },
-			{ icon: "⌨", name: "Достъп за разработчици", desc: "REST и GraphQL API, webhooks, MCP спецификация и отворени SDK за Python, JS и Go.", badge: "developers.agrinexus.io" },
+			{ icon: "⌨", name: "Достъп за разработчици", desc: "REST и GraphQL API, webhooks, MCP спецификация и отворени SDK за Python, JS и Go.", badge: "developers.Skill Squad.io" },
 		],
 	},
 };

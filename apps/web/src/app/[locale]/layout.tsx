@@ -5,7 +5,8 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { MarketingChrome } from "@/components/MarketingChrome";
 
-const PUBLIC_SITE_NAME = "AGRI NEXUS";
+const PUBLIC_SITE_NAME = "SKILL SQUAD";
+const PUBLIC_SITE_URL = "https://agrinexus.eu.com";
 import { routing } from "@/i18n/routing";
 
 /** Next.js 15+: viewport must not live inside `metadata` / `generateMetadata`. */
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 	const t = await getTranslations({ locale, namespace: "Metadata" });
 
 	return {
-		metadataBase: new URL("https://agrinexus.io"),
+		metadataBase: new URL(PUBLIC_SITE_URL),
 		title: {
 			default: t("titleDefault"),
 			template: t("titleTemplate"),
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
 		openGraph: {
 			title: t("ogTitle"),
 			description: t("ogDescription"),
-			url: "https://agrinexus.io",
+			url: PUBLIC_SITE_URL,
 			siteName: PUBLIC_SITE_NAME,
 			locale: locale === "ar" ? "ar_SA" : locale === "bg" ? "bg_BG" : "en_US",
 			type: "website",

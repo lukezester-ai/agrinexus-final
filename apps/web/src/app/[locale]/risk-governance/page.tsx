@@ -10,7 +10,7 @@ export default async function RiskGovernancePage({ params }: { params: Promise<{
 	return (
 		<DirectionPage
 			locale={locale}
-			kicker="AGRI NEXUS"
+			kicker="SKILL SQUAD"
 			title="Risk & Governance"
 			chain={[
 				{ label: "Policy", href: "/risk-governance/policy" },

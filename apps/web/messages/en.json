@@ -1,10 +1,16 @@
 {
-	"Metadata": {
-		"titleDefault": "AGRI NEXUS — Universal Business Core",
-		"titleTemplate": "%s — AGRI NEXUS",
-		"description": "From business intent to governed decision. Business intelligence and decision infrastructure. Live execution is blocked.",
-		"keywords": ["agri nexus", "universal business core", "business radar", "finance intelligence"],
-		"ogTitle": "AGRI NEXUS — Universal Business Core",
-		"ogDescription": "From business intent to governed decision. Live execution is blocked."
-	}
+  "Metadata": {
+    "titleDefault": "SKILL SQUAD — Universal Business Core",
+    "titleTemplate": "%s — SKILL SQUAD",
+    "description": "Describe the routine you need and Skill Squad turns it into a governed playbook. Business intelligence and decision infrastructure. Live execution is blocked.",
+    "keywords": [
+      "skill squad",
+      "universal business core",
+      "business playbooks",
+      "business radar",
+      "finance intelligence"
+    ],
+    "ogTitle": "SKILL SQUAD — Universal Business Core",
+    "ogDescription": "Describe the routine you need and Skill Squad turns it into a governed playbook. Live execution is blocked."
+  }
 }
