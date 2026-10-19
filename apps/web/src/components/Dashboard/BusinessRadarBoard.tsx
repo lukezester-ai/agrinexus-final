@@ -193,7 +193,7 @@ export function BusinessRadarBoard({
 			) : null}
 			{loadError ? (
 				<p className={alertError} role="alert">
-					{c.unavailable}
+					{loadError}
 				</p>
 			) : null}
 			{message ? (

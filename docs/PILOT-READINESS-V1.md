@@ -18,3 +18,5 @@ Prove whether people find received business matches valuable enough to **request
 4. Observe first introductions
 
 No new product layer. Use the frozen funnel: Intent → Opportunity → Match → Qualify → Introduction → Relationship → Radar.
+
+Do not add a social network during pilot. **Core is a business decision desk, not a social network.** Social engagement mechanics are out of scope. North Star: **Introduction Request Rate** = Request Introduction / relevant shown Matches; then Accept Rate and Relationship conversion.
