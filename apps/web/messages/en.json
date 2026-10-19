@@ -1,5 +1,9 @@
 {
-	"Metadata": {
+  "AgentsMeta": {
+    "title": "The Agent Mesh",
+    "description": "AgriNexus isn't one AI — it's a coordinated team of 18. Each owns a domain. Each acts within bounds you set."
+  },
+  "Metadata": {
 		"titleDefault": "AGRI NEXUS — Universal Business Core",
 		"titleTemplate": "%s — AGRI NEXUS",
 		"description": "From business intent to governed decision. Business intelligence and decision infrastructure. Live execution is blocked.",
