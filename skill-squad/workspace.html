@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f3f1eb" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Skill Squad workspace — describe a routine and get a governed skill for your organization." />
+    <title>Workspace — Skill Squad</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="workspace.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="site.config.js"></script>
+    <script src="workspace.js" defer></script>
+  </head>
+  <body class="ws-body">
+    <a class="skip-link" href="#main-content" data-i18n="nav.skip">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Skill Squad home"><span class="brand-mark">S<span>S</span></span><span class="brand-name">skill<span>squad</span><i>.</i></span></a>
+      <div class="header-actions">
+        <button class="lang-toggle" type="button" aria-label="Switch language">BG</button>
+        <a class="header-contact" href="./"><span data-i18n="ws.back">Back to site</span><span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1" class="ws">
+      <noscript><p class="ws-status is-error">The workspace needs JavaScript to sign you in and store skills.</p></noscript>
+      <div class="ws-head">
+        <p class="section-kicker"><span>03 / <span data-i18n="ws.kicker">WORKSPACE</span></span></p>
+        <h1 data-i18n-html="ws.title">Describe a routine.<br /><span>Get a skill.</span></h1>
+        <p class="ws-lede" data-i18n="ws.lede">Write what you want in plain language. Skill Squad drafts a playbook with steps and guardrails, and stores it for your organization.</p>
+      </div>
+
+      <p id="ws-status" class="ws-status" role="status" aria-live="polite" hidden></p>
+
+      <section id="auth-panel" class="ws-card" hidden>
+        <div class="ws-tabs" role="tablist">
+          <button type="button" class="ws-tab is-active" data-mode="signin" role="tab" aria-selected="true" data-i18n="ws.signin">Sign in</button>
+          <button type="button" class="ws-tab" data-mode="signup" role="tab" aria-selected="false" data-i18n="ws.signup">Create account</button>
+        </div>
+        <form id="auth-form" class="ws-form" novalidate>
+          <label class="ws-field">
+            <span data-i18n="ws.email">Email</span>
+            <input id="auth-email" name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="ws-field">
+            <span data-i18n="ws.password">Password</span>
+            <input id="auth-password" name="password" type="password" autocomplete="current-password" minlength="8" required />
+            <small data-i18n="ws.passwordHint">At least 8 characters.</small>
+          </label>
+          <button class="button button-dark" type="submit" id="auth-submit"><span data-i18n="ws.signinSubmit">Sign in</span><span aria-hidden="true">→</span></button>
+        </form>
+      </section>
+
+      <section id="app-panel" class="ws-app" hidden>
+        <div class="ws-app-head">
+          <p class="ws-who"><span data-i18n="ws.signedInAs">Signed in as</span> <b id="ws-user"></b></p>
+          <button class="ws-link" type="button" id="signout" data-i18n="ws.signout">Sign out</button>
+        </div>
+
+        <form id="skill-form" class="ws-card ws-form" novalidate>
+          <label class="ws-field">
+            <span data-i18n="ws.describe">What should this skill do?</span>
+            <textarea id="skill-source" rows="5" maxlength="4000" required data-i18n-placeholder="ws.describePlaceholder" placeholder="e.g. When a new supplier writes, check the offer, collect the missing documents and prepare a short summary for me."></textarea>
+            <small data-i18n="ws.describeHint">Plain language. Up to 4000 characters.</small>
+          </label>
+          <div class="ws-actions">
+            <button class="button button-outline" type="button" id="draft-btn"><span data-i18n="ws.draft">Draft with AI</span><span aria-hidden="true">↗</span></button>
+            <span class="ws-hint" data-i18n="ws.draftHint">You review and edit the draft before saving.</span>
+          </div>
+
+          <div class="ws-grid">
+            <label class="ws-field">
+              <span data-i18n="ws.name">Name</span>
+              <input id="skill-name" type="text" maxlength="120" required />
+            </label>
+            <label class="ws-field">
+              <span data-i18n="ws.whenToUse">When to use it</span>
+              <input id="skill-when" type="text" maxlength="600" />
+            </label>
+          </div>
+          <label class="ws-field">
+            <span data-i18n="ws.description">Description</span>
+            <textarea id="skill-description" rows="2" maxlength="600"></textarea>
+          </label>
+          <label class="ws-field">
+            <span data-i18n="ws.steps">Steps</span>
+            <textarea id="skill-steps" rows="6" data-i18n-placeholder="ws.stepsPlaceholder" placeholder="Check the offer :: Read the request and list what is missing.&#10;Collect documents :: Ask for the missing files."></textarea>
+            <small data-i18n="ws.stepsHint">One step per line, as “Title :: detail”. Up to 8 steps.</small>
+          </label>
+          <label class="ws-field">
+            <span data-i18n="ws.guardrails">Guardrails</span>
+            <textarea id="skill-guardrails" rows="3" data-i18n-placeholder="ws.guardrailsPlaceholder" placeholder="Never send messages without approval.&#10;Never invent prices."></textarea>
+            <small data-i18n="ws.guardrailsHint">One per line. Up to 6.</small>
+          </label>
+
+          <div class="ws-actions">
+            <button class="button button-dark" type="submit" id="save-btn"><span data-i18n="ws.save">Save skill</span><span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+
+        <div class="ws-list-head">
+          <h2 data-i18n="ws.list">Your skills</h2>
+          <button class="ws-link" type="button" id="reload" data-i18n="ws.reload">Refresh</button>
+        </div>
+        <ul id="skill-list" class="ws-list"></ul>
+        <p id="skill-empty" class="ws-muted" hidden data-i18n="ws.empty">No skills yet. Describe one above.</p>
+      </section>
+    </main>
+
+    <footer class="ws-foot">
+      <span data-i18n="ws.footLeft">Skill Squad Core · private to your organization</span>
+      <a href="./" data-i18n="ws.footRight">Back to skillsquad</a>
+    </footer>
+  </body>
+</html>
