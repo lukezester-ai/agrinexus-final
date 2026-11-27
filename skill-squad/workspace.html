@@ -34,9 +34,13 @@
         <p class="ws-lede" data-i18n="ws.lede">Write what you want in plain language. Skill Squad drafts a playbook with steps and guardrails, and stores it for your organization.</p>
       </div>
 
-      <p id="ws-status" class="ws-status" role="status" aria-live="polite" hidden></p>
+      <p id="ws-status" class="ws-status" role="status" aria-live="polite" aria-atomic="true" tabindex="-1" hidden></p>
 
       <section id="auth-panel" class="ws-card" hidden>
+        <div class="ws-card-intro">
+          <span class="ws-card-kicker">01 / <span data-i18n="ws.accessKicker">ACCESS</span></span>
+          <p data-i18n="ws.accessIntro">Sign in to keep your skills private to your organization.</p>
+        </div>
         <div class="ws-tabs" role="tablist">
           <button type="button" class="ws-tab is-active" data-mode="signin" role="tab" aria-selected="true" data-i18n="ws.signin">Sign in</button>
           <button type="button" class="ws-tab" data-mode="signup" role="tab" aria-selected="false" data-i18n="ws.signup">Create account</button>
@@ -71,6 +75,7 @@
             <button class="button button-outline" type="button" id="draft-btn"><span data-i18n="ws.draft">Draft with AI</span><span aria-hidden="true">↗</span></button>
             <span class="ws-hint" data-i18n="ws.draftHint">You review and edit the draft before saving.</span>
           </div>
+          <p class="ws-form-note" data-i18n="ws.reviewNote">The fields below are your review step. Nothing is saved until you choose Save skill.</p>
 
           <div class="ws-grid">
             <label class="ws-field">
@@ -103,10 +108,13 @@
         </form>
 
         <div class="ws-list-head">
-          <h2 data-i18n="ws.list">Your skills</h2>
+          <div>
+            <span class="ws-card-kicker">02 / <span data-i18n="ws.libraryKicker">LIBRARY</span></span>
+            <h2 data-i18n="ws.list">Your skills</h2>
+          </div>
           <button class="ws-link" type="button" id="reload" data-i18n="ws.reload">Refresh</button>
         </div>
-        <ul id="skill-list" class="ws-list"></ul>
+        <ul id="skill-list" class="ws-list" aria-live="polite"></ul>
         <p id="skill-empty" class="ws-muted" hidden data-i18n="ws.empty">No skills yet. Describe one above.</p>
       </section>
     </main>

@@ -10,6 +10,8 @@ const copy = {
     "ws.lede": "Write what you want in plain language. Skill Squad drafts a playbook with steps and guardrails, and stores it for your organization.",
     "ws.signin": "Sign in",
     "ws.signup": "Create account",
+    "ws.accessKicker": "ACCESS",
+    "ws.accessIntro": "Sign in to keep your skills private to your organization.",
     "ws.email": "Email",
     "ws.password": "Password",
     "ws.passwordHint": "At least 8 characters.",
@@ -31,7 +33,9 @@ const copy = {
     "ws.guardrails": "Guardrails",
     "ws.guardrailsPlaceholder": "Never send messages without approval.\nNever invent prices.",
     "ws.guardrailsHint": "One per line. Up to 6.",
+    "ws.reviewNote": "The fields below are your review step. Nothing is saved until you choose Save skill.",
     "ws.save": "Save skill",
+    "ws.libraryKicker": "LIBRARY",
     "ws.list": "Your skills",
     "ws.reload": "Refresh",
     "ws.empty": "No skills yet. Describe one above.",
@@ -63,6 +67,8 @@ const copy = {
     "ws.lede": "Напишете какво искате на обикновен език. Skill Squad изготвя чернова със стъпки и ограничения и я запазва за вашата организация.",
     "ws.signin": "Вход",
     "ws.signup": "Регистрация",
+    "ws.accessKicker": "ДОСТЪП",
+    "ws.accessIntro": "Влезте, за да останат уменията видими само за вашата организация.",
     "ws.email": "Имейл",
     "ws.password": "Парола",
     "ws.passwordHint": "Поне 8 знака.",
@@ -84,7 +90,9 @@ const copy = {
     "ws.guardrails": "Ограничения",
     "ws.guardrailsPlaceholder": "Никога не изпращай съобщения без одобрение.\nНикога не измисляй цени.",
     "ws.guardrailsHint": "По едно на ред. До 6.",
+    "ws.reviewNote": "Полетата по-долу са стъпката за преглед. Нищо не се запазва, докато не изберете „Запази умение“.",
     "ws.save": "Запази умение",
+    "ws.libraryKicker": "БИБЛИОТЕКА",
     "ws.list": "Вашите умения",
     "ws.reload": "Обнови",
     "ws.empty": "Още няма умения. Опишете едно по-горе.",
@@ -189,6 +197,7 @@ function setStatus(message, kind) {
   statusEl.hidden = false;
   statusEl.textContent = message;
   statusEl.className = "ws-status" + (kind ? " is-" + kind : "");
+  if (kind === "error") statusEl.focus({ preventScroll: true });
 }
 
 function showAuth() {
